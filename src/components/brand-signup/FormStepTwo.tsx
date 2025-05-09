@@ -38,6 +38,17 @@ const FormStepTwo = ({
   agreeTerms,
   setAgreeTerms
 }: FormStepTwoProps) => {
+  // Handle checkbox click separately from the label click to avoid infinite loops
+  const handleTermsCheckboxChange = (checked: boolean | "indeterminate") => {
+    if (checked !== "indeterminate") {
+      setAgreeTerms(checked);
+    }
+  };
+
+  const handleTermsLabelClick = () => {
+    setAgreeTerms(!agreeTerms);
+  };
+
   return (
     <>
       <div className="space-y-2">
@@ -148,18 +159,16 @@ const FormStepTwo = ({
       </div>
       
       <div className="flex items-center space-x-2 mt-4">
-        <div 
-          className="cursor-pointer flex items-center space-x-2" 
-          onClick={() => setAgreeTerms(!agreeTerms)}
-        >
+        <div className="flex items-center space-x-2">
           <Checkbox 
             id="terms" 
             checked={agreeTerms}
-            onCheckedChange={() => setAgreeTerms(!agreeTerms)}
+            onCheckedChange={handleTermsCheckboxChange}
           />
           <label
             htmlFor="terms"
             className="text-sm text-gray-400 cursor-pointer"
+            onClick={handleTermsLabelClick}
           >
             I agree to the <a href="#" className="text-yeild-yellow hover:underline">Terms of Service</a> and <a href="#" className="text-yeild-yellow hover:underline">Privacy Policy</a>
           </label>
