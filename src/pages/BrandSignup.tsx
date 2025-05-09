@@ -331,17 +331,22 @@ const BrandSignup = () => {
                   </div>
                   
                   <div className="flex items-center space-x-2 mt-4">
-                    <Checkbox 
-                      id="terms" 
-                      checked={agreeTerms}
-                      onCheckedChange={(checked) => setAgreeTerms(checked as boolean)}
-                    />
-                    <label
-                      htmlFor="terms"
-                      className="text-sm text-gray-400"
+                    <div 
+                      className="cursor-pointer flex items-center space-x-2" 
+                      onClick={() => setAgreeTerms(!agreeTerms)}
                     >
-                      I agree to the <a href="#" className="text-yeild-yellow hover:underline">Terms of Service</a> and <a href="#" className="text-yeild-yellow hover:underline">Privacy Policy</a>
-                    </label>
+                      <Checkbox 
+                        id="terms" 
+                        checked={agreeTerms}
+                        onCheckedChange={() => setAgreeTerms(!agreeTerms)}
+                      />
+                      <label
+                        htmlFor="terms"
+                        className="text-sm text-gray-400 cursor-pointer"
+                      >
+                        I agree to the <a href="#" className="text-yeild-yellow hover:underline">Terms of Service</a> and <a href="#" className="text-yeild-yellow hover:underline">Privacy Policy</a>
+                      </label>
+                    </div>
                   </div>
                 </>
               )}
