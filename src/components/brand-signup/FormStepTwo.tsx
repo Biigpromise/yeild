@@ -38,17 +38,6 @@ const FormStepTwo = ({
   agreeTerms,
   setAgreeTerms
 }: FormStepTwoProps) => {
-  // Handle checkbox click separately from the label click to avoid infinite loops
-  const handleTermsCheckboxChange = (checked: boolean | "indeterminate") => {
-    if (checked !== "indeterminate") {
-      setAgreeTerms(checked);
-    }
-  };
-
-  const handleTermsLabelClick = () => {
-    setAgreeTerms(!agreeTerms);
-  };
-
   return (
     <>
       <div className="space-y-2">
@@ -79,7 +68,7 @@ const FormStepTwo = ({
               id="surveys" 
               checked={taskTypes.surveys}
               onCheckedChange={(checked) => 
-                setTaskTypes({...taskTypes, surveys: checked as boolean})
+                setTaskTypes({...taskTypes, surveys: checked === true})
               }
             />
             <label htmlFor="surveys" className="text-sm text-gray-300">Surveys & Feedback</label>
@@ -90,7 +79,7 @@ const FormStepTwo = ({
               id="appTesting" 
               checked={taskTypes.appTesting}
               onCheckedChange={(checked) => 
-                setTaskTypes({...taskTypes, appTesting: checked as boolean})
+                setTaskTypes({...taskTypes, appTesting: checked === true})
               }
             />
             <label htmlFor="appTesting" className="text-sm text-gray-300">App/Website Testing</label>
@@ -101,7 +90,7 @@ const FormStepTwo = ({
               id="contentCreation" 
               checked={taskTypes.contentCreation}
               onCheckedChange={(checked) => 
-                setTaskTypes({...taskTypes, contentCreation: checked as boolean})
+                setTaskTypes({...taskTypes, contentCreation: checked === true})
               }
             />
             <label htmlFor="contentCreation" className="text-sm text-gray-300">Content Creation</label>
@@ -112,7 +101,7 @@ const FormStepTwo = ({
               id="productReviews" 
               checked={taskTypes.productReviews}
               onCheckedChange={(checked) => 
-                setTaskTypes({...taskTypes, productReviews: checked as boolean})
+                setTaskTypes({...taskTypes, productReviews: checked === true})
               }
             />
             <label htmlFor="productReviews" className="text-sm text-gray-300">Product Reviews</label>
@@ -123,7 +112,7 @@ const FormStepTwo = ({
               id="focusGroups" 
               checked={taskTypes.focusGroups}
               onCheckedChange={(checked) => 
-                setTaskTypes({...taskTypes, focusGroups: checked as boolean})
+                setTaskTypes({...taskTypes, focusGroups: checked === true})
               }
             />
             <label htmlFor="focusGroups" className="text-sm text-gray-300">Focus Groups</label>
@@ -161,17 +150,20 @@ const FormStepTwo = ({
       <div className="flex items-center space-x-2 mt-4">
         <div className="flex items-center space-x-2">
           <Checkbox 
-            id="terms" 
+            id="termsCheckbox" 
             checked={agreeTerms}
-            onCheckedChange={handleTermsCheckboxChange}
+            onCheckedChange={(checked) => {
+              if (typeof checked === 'boolean') {
+                setAgreeTerms(checked);
+              }
+            }}
           />
-          <label
-            htmlFor="terms"
+          <Label 
+            htmlFor="termsCheckbox" 
             className="text-sm text-gray-400 cursor-pointer"
-            onClick={handleTermsLabelClick}
           >
             I agree to the <a href="#" className="text-yeild-yellow hover:underline">Terms of Service</a> and <a href="#" className="text-yeild-yellow hover:underline">Privacy Policy</a>
-          </label>
+          </Label>
         </div>
       </div>
     </>
