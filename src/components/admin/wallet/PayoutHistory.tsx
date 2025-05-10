@@ -1,6 +1,7 @@
 
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CheckCircle } from "lucide-react";
 import { PayoutRequest } from "./types";
 
 type PayoutHistoryProps = {
@@ -21,6 +22,7 @@ export const PayoutHistory: React.FC<PayoutHistoryProps> = ({ requests }) => {
             <TableHead>Request Date</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Processed Date</TableHead>
+            <TableHead>User Notified</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -39,12 +41,24 @@ export const PayoutHistory: React.FC<PayoutHistoryProps> = ({ requests }) => {
                   {request.status}
                 </span>
               </TableCell>
-              <TableCell>{request.status === "approved" ? "2025-05-06" : "-"}</TableCell>
+              <TableCell>{request.processingDate || "2025-05-06"}</TableCell>
+              <TableCell>
+                {request.notificationSent ? (
+                  <span className="text-green-600 text-xs flex items-center">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Notified
+                  </span>
+                ) : (
+                  <span className="text-amber-600 text-xs">
+                    Not sent
+                  </span>
+                )}
+              </TableCell>
             </TableRow>
           ))}
           {completedRequests.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+              <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
                 No payout history available
               </TableCell>
             </TableRow>

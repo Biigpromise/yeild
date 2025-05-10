@@ -14,13 +14,13 @@ import { PayoutHistory } from "./wallet/PayoutHistory";
 import { PayoutRequest, WalletChartData } from "./wallet/types";
 
 const chartData: WalletChartData[] = [
-  { name: 'Jan', amount: 4000 },
-  { name: 'Feb', amount: 3000 },
-  { name: 'Mar', amount: 5000 },
-  { name: 'Apr', amount: 8000 },
-  { name: 'May', amount: 7000 },
-  { name: 'Jun', amount: 9000 },
-  { name: 'Jul', amount: 11000 },
+  { name: 'Jan', amount: 4000, pending: 500 },
+  { name: 'Feb', amount: 3000, pending: 800 },
+  { name: 'Mar', amount: 5000, pending: 600 },
+  { name: 'Apr', amount: 8000, pending: 900 },
+  { name: 'May', amount: 7000, pending: 1200 },
+  { name: 'Jun', amount: 9000, pending: 700 },
+  { name: 'Jul', amount: 11000, pending: 500 },
 ];
 
 const mockPayoutRequests: PayoutRequest[] = [
@@ -33,6 +33,7 @@ const mockPayoutRequests: PayoutRequest[] = [
     requestDate: "2025-05-05",
     method: "paypal",
     taskCompleted: true,
+    notificationSent: true,
   },
   {
     id: "2",
@@ -43,6 +44,8 @@ const mockPayoutRequests: PayoutRequest[] = [
     requestDate: "2025-05-04",
     method: "bank",
     taskCompleted: true,
+    processingDate: "2025-05-06",
+    notificationSent: true,
   },
   {
     id: "3",
@@ -53,6 +56,8 @@ const mockPayoutRequests: PayoutRequest[] = [
     requestDate: "2025-05-03",
     method: "crypto",
     taskCompleted: false,
+    processingDate: "2025-05-04",
+    notificationSent: false,
   },
   {
     id: "4",
@@ -63,6 +68,7 @@ const mockPayoutRequests: PayoutRequest[] = [
     requestDate: "2025-05-02",
     method: "paypal",
     taskCompleted: true,
+    notificationSent: false,
   },
 ];
 
@@ -90,6 +96,12 @@ const automationSettings: AutomationSetting[] = [
     name: "Verification Hold",
     description: "Hold payouts for 24 hours for fraud prevention checks",
     enabled: true
+  },
+  {
+    id: "auto-sync",
+    name: "Dashboard Synchronization",
+    description: "Automatically sync payment statuses between admin and user dashboards",
+    enabled: true
   }
 ];
 
@@ -113,6 +125,16 @@ export const AdminWallet = () => {
       return () => clearTimeout(timer);
     }
   }, [payoutRequests]);
+
+  // Sync notifications to user dashboard
+  useEffect(() => {
+    if (settings.find(s => s.id === "auto-sync")?.enabled) {
+      const syncTimer = setTimeout(() => {
+        syncUserNotifications();
+      }, 3000);
+      return () => clearTimeout(syncTimer);
+    }
+  }, [payoutRequests]);
   
   const processAutomatedPayouts = () => {
     const thresholdEnabled = settings.find(s => s.id === "threshold-limit")?.enabled;
@@ -134,10 +156,35 @@ export const AdminWallet = () => {
     
     setPayoutRequests(updatedRequests);
   };
+
+  const syncUserNotifications = () => {
+    const requestsNeedingSync = payoutRequests.filter(
+      req => !req.notificationSent && (req.status === "approved" || req.status === "rejected")
+    );
+    
+    if (requestsNeedingSync.length > 0) {
+      const updatedRequests = payoutRequests.map(req => 
+        !req.notificationSent && (req.status === "approved" || req.status === "rejected")
+          ? { ...req, notificationSent: true }
+          : req
+      );
+      
+      setPayoutRequests(updatedRequests);
+      
+      toast({
+        title: "Dashboard Synchronized",
+        description: `${requestsNeedingSync.length} payout status updates synchronized to user dashboard`,
+      });
+    }
+  };
   
   const handleApproveRequest = (id: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    
     setPayoutRequests(payoutRequests.map(req => 
-      req.id === id ? { ...req, status: "approved" as const } : req
+      req.id === id 
+        ? { ...req, status: "approved" as const, processingDate: today } 
+        : req
     ));
     
     toast({
@@ -147,8 +194,12 @@ export const AdminWallet = () => {
   };
   
   const handleRejectRequest = (id: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    
     setPayoutRequests(payoutRequests.map(req => 
-      req.id === id ? { ...req, status: "rejected" as const } : req
+      req.id === id 
+        ? { ...req, status: "rejected" as const, processingDate: today } 
+        : req
     ));
     
     toast({
@@ -162,6 +213,15 @@ export const AdminWallet = () => {
     setSettings(settings.map(setting => 
       setting.id === id ? { ...setting, enabled: !setting.enabled } : setting
     ));
+
+    // Special handling for sync setting
+    if (id === "auto-sync") {
+      const setting = settings.find(s => s.id === id);
+      if (setting && !setting.enabled) {
+        // If enabling sync, trigger an immediate sync
+        syncUserNotifications();
+      }
+    }
   };
 
   return (

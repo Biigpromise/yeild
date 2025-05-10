@@ -2,7 +2,7 @@
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, AlertCircle } from "lucide-react";
+import { CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { PayoutRequest } from "./types";
 
 type PendingPayoutRequestsProps = {
@@ -29,6 +29,7 @@ export const PendingPayoutRequests: React.FC<PendingPayoutRequestsProps> = ({
             <TableHead>Request Date</TableHead>
             <TableHead>Task Status</TableHead>
             <TableHead>Payout Status</TableHead>
+            <TableHead>Sync Status</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -63,6 +64,19 @@ export const PendingPayoutRequests: React.FC<PendingPayoutRequestsProps> = ({
                 </span>
               </TableCell>
               <TableCell>
+                {request.notificationSent ? (
+                  <span className="text-green-600 text-xs flex items-center">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Synchronized
+                  </span>
+                ) : (
+                  <span className="text-amber-600 text-xs flex items-center">
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    Pending sync
+                  </span>
+                )}
+              </TableCell>
+              <TableCell>
                 <div className="flex items-center gap-2">
                   <Button 
                     size="sm" 
@@ -88,7 +102,7 @@ export const PendingPayoutRequests: React.FC<PendingPayoutRequestsProps> = ({
           ))}
           {pendingRequests.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+              <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
                 No pending payout requests
               </TableCell>
             </TableRow>
