@@ -3,12 +3,13 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CheckCircle, AlertCircle, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { useToast } from "@/components/ui/use-toast";
 
 type Task = {
   id: string;
@@ -18,6 +19,17 @@ type Task = {
   deadlineDate: Date;
   status: "active" | "completed" | "expired";
   submissions: number;
+};
+
+type TaskSubmission = {
+  id: string;
+  userId: string;
+  userName: string;
+  taskId: string;
+  taskTitle: string;
+  submittedDate: Date;
+  status: "pending" | "approved" | "rejected";
+  evidence: string;
 };
 
 const mockTasks: Task[] = [
@@ -50,8 +62,42 @@ const mockTasks: Task[] = [
   },
 ];
 
+const mockSubmissions: TaskSubmission[] = [
+  {
+    id: "sub1",
+    userId: "u123",
+    userName: "John Doe",
+    taskId: "1",
+    taskTitle: "Complete Survey",
+    submittedDate: new Date(),
+    status: "pending",
+    evidence: "Survey completed with ID: SURV-123456"
+  },
+  {
+    id: "sub2",
+    userId: "u456",
+    userName: "Jane Smith",
+    taskId: "2",
+    taskTitle: "Share on Twitter",
+    submittedDate: new Date(),
+    status: "pending",
+    evidence: "https://twitter.com/janesmith/status/123456789"
+  },
+  {
+    id: "sub3",
+    userId: "u789",
+    userName: "Robert Johnson",
+    taskId: "1",
+    taskTitle: "Complete Survey",
+    submittedDate: new Date(),
+    status: "pending",
+    evidence: "Survey completed with ID: SURV-987654"
+  },
+];
+
 export const AdminTasks = () => {
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [submissions, setSubmissions] = useState<TaskSubmission[]>(mockSubmissions);
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
@@ -60,10 +106,15 @@ export const AdminTasks = () => {
   });
   const [isCreating, setIsCreating] = useState(false);
   const [date, setDate] = useState<Date>();
+  const { toast } = useToast();
 
   const handleCreateTask = () => {
-    if (!newTask.title || !newTask.description || newTask.reward <= 0) {
-      alert("Please fill out all fields");
+    if (!newTask.title || !newTask.description || newTask.reward <= 0 || !date) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill out all fields",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -72,14 +123,57 @@ export const AdminTasks = () => {
       title: newTask.title,
       description: newTask.description,
       reward: newTask.reward,
-      deadlineDate: date || new Date(),
+      deadlineDate: date,
       status: "active",
       submissions: 0,
     };
     
     setTasks([task, ...tasks]);
     setNewTask({ title: "", description: "", reward: 0, deadlineDate: new Date() });
+    setDate(undefined);
     setIsCreating(false);
+    
+    toast({
+      title: "Task Created",
+      description: "New task has been successfully created"
+    });
+  };
+  
+  const handleApproveSubmission = (id: string) => {
+    setSubmissions(submissions.map(sub => 
+      sub.id === id ? { ...sub, status: "approved" } : sub
+    ));
+    
+    // Find the approved submission
+    const submission = submissions.find(sub => sub.id === id);
+    if (submission) {
+      // Find the related task to get the reward amount
+      const task = tasks.find(t => t.id === submission.taskId);
+      
+      if (task) {
+        toast({
+          title: "Submission Approved",
+          description: `${submission.userName}'s submission was approved. ${task.reward} points have been automatically added to their account.`
+        });
+      }
+    }
+  };
+  
+  const handleRejectSubmission = (id: string) => {
+    setSubmissions(submissions.map(sub => 
+      sub.id === id ? { ...sub, status: "rejected" } : sub
+    ));
+    
+    toast({
+      title: "Submission Rejected",
+      description: "The task submission has been rejected",
+      variant: "destructive"
+    });
+  };
+  
+  const handleViewDetails = (submission: TaskSubmission) => {
+    // In a real app, this would show a modal with details
+    console.log("Viewing submission details:", submission);
   };
 
   return (
@@ -87,6 +181,7 @@ export const AdminTasks = () => {
       <Card>
         <CardHeader>
           <CardTitle>Task Management</CardTitle>
+          <CardDescription>Create and manage tasks for users to earn rewards</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex justify-between">
@@ -203,6 +298,7 @@ export const AdminTasks = () => {
       <Card>
         <CardHeader>
           <CardTitle>Task Submissions</CardTitle>
+          <CardDescription>Review and approve user submissions for automated payouts</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex justify-between">
@@ -216,33 +312,76 @@ export const AdminTasks = () => {
                   <TableHead>User</TableHead>
                   <TableHead>Task</TableHead>
                   <TableHead>Submitted</TableHead>
+                  <TableHead>Evidence</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {[1, 2, 3].map((item) => (
-                  <TableRow key={item}>
-                    <TableCell>User {item}</TableCell>
-                    <TableCell>Task {item}</TableCell>
-                    <TableCell>{format(new Date(), "PPP")}</TableCell>
+                {submissions.map((submission) => (
+                  <TableRow key={submission.id}>
+                    <TableCell>{submission.userName}</TableCell>
+                    <TableCell>{submission.taskTitle}</TableCell>
+                    <TableCell>{format(submission.submittedDate, "PPP")}</TableCell>
+                    <TableCell className="max-w-xs truncate">
+                      <Button 
+                        variant="link" 
+                        className="p-0 h-auto text-blue-600"
+                        onClick={() => handleViewDetails(submission)}
+                      >
+                        View Evidence
+                      </Button>
+                    </TableCell>
                     <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        Pending
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        submission.status === "pending" ? "bg-yellow-100 text-yellow-800" :
+                        submission.status === "approved" ? "bg-green-100 text-green-800" :
+                        "bg-red-100 text-red-800"
+                      }`}>
+                        {submission.status}
                       </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline" className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200">
-                          Approve
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
+                          onClick={() => handleApproveSubmission(submission.id)}
+                          disabled={submission.status !== "pending"}
+                        >
+                          {submission.status === "approved" ? (
+                            <div className="flex items-center">
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Approved
+                            </div>
+                          ) : "Approve"}
                         </Button>
-                        <Button size="sm" variant="outline" className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200">
-                          Reject
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                          onClick={() => handleRejectSubmission(submission.id)}
+                          disabled={submission.status !== "pending"}
+                        >
+                          {submission.status === "rejected" ? (
+                            <div className="flex items-center">
+                              <AlertCircle className="h-4 w-4 mr-1" />
+                              Rejected
+                            </div>
+                          ) : "Reject"}
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
                 ))}
+                {submissions.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                      No task submissions found
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
