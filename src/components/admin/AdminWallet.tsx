@@ -143,7 +143,7 @@ export const AdminWallet = () => {
             title: "Payout Auto-Approved",
             description: `$${req.amount} payout to ${req.userName} was automatically approved`,
           });
-          return { ...req, status: "processing" };
+          return { ...req, status: "processing" as const };
         }
       }
       return req;
@@ -190,7 +190,7 @@ export const AdminWallet = () => {
   
   const handleApproveRequest = (id: string) => {
     setPayoutRequests(payoutRequests.map(req => 
-      req.id === id ? { ...req, status: "approved" } : req
+      req.id === id ? { ...req, status: "approved" as const } : req
     ));
     
     toast({
@@ -201,7 +201,7 @@ export const AdminWallet = () => {
   
   const handleRejectRequest = (id: string) => {
     setPayoutRequests(payoutRequests.map(req => 
-      req.id === id ? { ...req, status: "rejected" } : req
+      req.id === id ? { ...req, status: "rejected" as const } : req
     ));
     
     toast({
