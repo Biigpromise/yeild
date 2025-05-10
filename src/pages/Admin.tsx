@@ -1,71 +1,110 @@
 
 import React, { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminAnnouncements } from "@/components/admin/AdminAnnouncements";
+import { AdminOverview } from "@/components/admin/AdminOverview";
 import { AdminUsers } from "@/components/admin/AdminUsers";
+import { AdminTasks } from "@/components/admin/AdminTasks";
+import { AdminWallet } from "@/components/admin/AdminWallet";
+import { AdminReferrals } from "@/components/admin/AdminReferrals";
+import { AdminStreaks } from "@/components/admin/AdminStreaks";
+import { AdminBrands } from "@/components/admin/AdminBrands";
+import { AdminNotifications } from "@/components/admin/AdminNotifications";
+import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
+import { AdminSupport } from "@/components/admin/AdminSupport";
 import { AdminSettings } from "@/components/admin/AdminSettings";
-import { Bell, Settings, Users } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  ClipboardList,
+  Wallet,
+  Award,
+  Medal,
+  Flag,
+  Bell,
+  BarChart2,
+  HeadsetIcon,
+  Settings
+} from "lucide-react";
 
 const Admin = () => {
-  const [activeTab, setActiveTab] = useState("announcements");
+  const [activeSection, setActiveSection] = useState("dashboard");
+
+  // Map of sections to their component
+  const sectionComponents = {
+    dashboard: <AdminOverview />,
+    users: <AdminUsers />,
+    tasks: <AdminTasks />,
+    wallet: <AdminWallet />,
+    referrals: <AdminReferrals />,
+    streaks: <AdminStreaks />,
+    brands: <AdminBrands />,
+    notifications: <AdminNotifications />,
+    analytics: <AdminAnalytics />,
+    support: <AdminSupport />,
+    settings: <AdminSettings />
+  };
+
+  // Navigation items
+  const navItems = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "users", label: "Users", icon: Users },
+    { id: "tasks", label: "Tasks", icon: ClipboardList },
+    { id: "wallet", label: "Wallet & Payouts", icon: Wallet },
+    { id: "referrals", label: "Referral Levels", icon: Award },
+    { id: "streaks", label: "Streaks", icon: Medal },
+    { id: "brands", label: "Brands", icon: Flag },
+    { id: "notifications", label: "Notifications", icon: Bell },
+    { id: "analytics", label: "Analytics", icon: BarChart2 },
+    { id: "support", label: "Support", icon: HeadsetIcon },
+    { id: "settings", label: "Settings", icon: Settings }
+  ];
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold text-yeild-yellow mb-6">Admin Dashboard</h1>
-      
-      <Tabs defaultValue="announcements" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 md:w-[400px] mb-8">
-          <TabsTrigger value="announcements" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            <span>Announcements</span>
-          </TabsTrigger>
-          <TabsTrigger value="users" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            <span>Users</span>
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            <span>Settings</span>
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="announcements">
-          <Card>
-            <CardHeader>
-              <CardTitle>Announcements</CardTitle>
-              <CardDescription>Create and manage announcements for your users.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AdminAnnouncements />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="users">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>Manage user accounts and permissions.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AdminUsers />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="settings">
-          <Card>
-            <CardHeader>
-              <CardTitle>Settings</CardTitle>
-              <CardDescription>Configure your platform settings.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AdminSettings />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+    <div className="flex h-screen bg-background">
+      {/* Sidebar */}
+      <div className="w-64 border-r border-border bg-card flex flex-col">
+        <div className="p-4 border-b border-border">
+          <h1 className="text-2xl font-bold text-yeild-yellow">DASHboard</h1>
+        </div>
+        <nav className="flex-1 overflow-y-auto p-2">
+          <ul className="space-y-2">
+            {navItems.map((item) => (
+              <li key={item.id}>
+                <button
+                  onClick={() => setActiveSection(item.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-md transition-colors ${
+                    activeSection === item.id
+                      ? "bg-primary/10 text-primary"
+                      : "text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold">ADMIN DASHBOARD</h1>
+            <div className="flex gap-4">
+              <button className="px-4 py-2 rounded-md border border-border hover:bg-muted">
+                Broadcast
+              </button>
+              <button className="px-4 py-2 rounded-md border border-border hover:bg-muted">
+                Account
+              </button>
+            </div>
+          </div>
+          
+          {/* Dynamic Content */}
+          {sectionComponents[activeSection]}
+        </div>
+      </div>
     </div>
   );
 };
