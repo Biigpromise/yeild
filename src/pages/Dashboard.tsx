@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -29,6 +30,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useOnboarding } from "@/contexts/OnboardingContext";
+import { TutorialButton } from "@/components/TutorialButton";
 
 interface UserProfile {
   id: string;
@@ -428,6 +430,9 @@ const Dashboard = () => {
                 <Bell className="h-5 w-5" />
               </Button>
               
+              {/* Tutorial Button */}
+              <TutorialButton className="hidden md:flex" />
+              
               {/* Profile Menu (simplified) */}
               <Avatar className="h-8 w-8 cursor-pointer border-2 border-yeild-yellow">
                 <img src={userProfile.avatar} alt={userProfile.name} />
@@ -711,3 +716,15 @@ const Dashboard = () => {
                         <span>Connect PayPal</span>
                       </Button>
                     </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
