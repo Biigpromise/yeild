@@ -108,6 +108,11 @@ const automationSettings: AutomationSetting[] = [
 export const AdminWallet = () => {
   const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>(mockPayoutRequests);
   const [settings, setSettings] = useState<AutomationSetting[]>(automationSettings);
+  const [isLoading, setIsLoading] = useState({
+    chart: true,
+    requests: true,
+    history: true
+  });
   const { toast } = useToast();
   
   const pendingRequests = payoutRequests.filter(r => r.status === "pending" || r.status === "processing");
@@ -116,6 +121,27 @@ export const AdminWallet = () => {
     .filter(r => r.status === "approved")
     .reduce((sum, req) => sum + req.amount, 0);
   
+  // Simulate loading states
+  useEffect(() => {
+    const chartTimer = setTimeout(() => {
+      setIsLoading(prev => ({ ...prev, chart: false }));
+    }, 1000);
+    
+    const requestsTimer = setTimeout(() => {
+      setIsLoading(prev => ({ ...prev, requests: false }));
+    }, 1500);
+    
+    const historyTimer = setTimeout(() => {
+      setIsLoading(prev => ({ ...prev, history: false }));
+    }, 1800);
+    
+    return () => {
+      clearTimeout(chartTimer);
+      clearTimeout(requestsTimer);
+      clearTimeout(historyTimer);
+    };
+  }, []);
+
   // Auto-process payouts based on completed tasks
   useEffect(() => {
     if (settings.find(s => s.id === "auto-approval")?.enabled) {
@@ -222,6 +248,14 @@ export const AdminWallet = () => {
         syncUserNotifications();
       }
     }
+    
+    const setting = settings.find(s => s.id === id);
+    if (setting) {
+      toast({
+        title: `${setting.name} ${!setting.enabled ? 'Enabled' : 'Disabled'}`,
+        description: `${setting.description} is now ${!setting.enabled ? 'enabled' : 'disabled'}`,
+      });
+    }
   };
 
   return (
@@ -230,8 +264,12 @@ export const AdminWallet = () => {
         <WalletSummary 
           totalPendingAmount={totalPendingAmount} 
           totalProcessedAmount={totalProcessedAmount} 
+          lastSyncTime="5 mins ago"
         />
-        <PayoutTrendsChart data={chartData} />
+        <PayoutTrendsChart 
+          data={chartData} 
+          isLoading={isLoading.chart} 
+        />
       </div>
       
       <PayoutAutomationSettings 
@@ -252,7 +290,8 @@ export const AdminWallet = () => {
               <PendingPayoutRequests 
                 requests={payoutRequests} 
                 onApprove={handleApproveRequest} 
-                onReject={handleRejectRequest} 
+                onReject={handleRejectRequest}
+                isLoading={isLoading.requests} 
               />
             </TabsContent>
             
@@ -261,7 +300,10 @@ export const AdminWallet = () => {
             </TabsContent>
             
             <TabsContent value="history">
-              <PayoutHistory requests={payoutRequests} />
+              <PayoutHistory 
+                requests={payoutRequests}
+                isLoading={isLoading.history}
+              />
             </TabsContent>
           </Tabs>
         </CardContent>
