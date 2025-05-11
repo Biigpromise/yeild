@@ -16,6 +16,7 @@ export type PayoutRequest = {
 export type WalletChartData = {
   name: string;
   amount: number;
+  pending?: number;
 };
 
 export type PayoutStats = {
@@ -24,4 +25,3 @@ export type PayoutStats = {
   totalRejected: number;
   weeklyVolume: number;
 };
-
