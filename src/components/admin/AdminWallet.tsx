@@ -1,8 +1,7 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
 
 // Import refactored components
 import { WalletSummary } from "./wallet/WalletSummary";
@@ -13,6 +12,12 @@ import { ManageWalletBalances } from "./wallet/ManageWalletBalances";
 import { PayoutHistory } from "./wallet/PayoutHistory";
 import { PayoutRequest, WalletChartData } from "./wallet/types";
 
+// Import new components
+import { WalletDataProvider } from "./wallet/WalletDataProvider";
+import { AutomationProcessor } from "./wallet/AutomationProcessor";
+import { PayoutActionHandlers } from "./wallet/PayoutActionHandlers";
+
+// Mock data
 const chartData: WalletChartData[] = [
   { name: 'Jan', amount: 4000, pending: 500 },
   { name: 'Feb', amount: 3000, pending: 800 },
@@ -106,208 +111,91 @@ const automationSettings: AutomationSetting[] = [
 ];
 
 export const AdminWallet = () => {
-  const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>(mockPayoutRequests);
-  const [settings, setSettings] = useState<AutomationSetting[]>(automationSettings);
-  const [isLoading, setIsLoading] = useState({
-    chart: true,
-    requests: true,
-    history: true
-  });
-  const { toast } = useToast();
-  
-  const pendingRequests = payoutRequests.filter(r => r.status === "pending" || r.status === "processing");
-  const totalPendingAmount = pendingRequests.reduce((sum, req) => sum + req.amount, 0);
-  const totalProcessedAmount = payoutRequests
-    .filter(r => r.status === "approved")
-    .reduce((sum, req) => sum + req.amount, 0);
-  
-  // Simulate loading states
-  useEffect(() => {
-    const chartTimer = setTimeout(() => {
-      setIsLoading(prev => ({ ...prev, chart: false }));
-    }, 1000);
-    
-    const requestsTimer = setTimeout(() => {
-      setIsLoading(prev => ({ ...prev, requests: false }));
-    }, 1500);
-    
-    const historyTimer = setTimeout(() => {
-      setIsLoading(prev => ({ ...prev, history: false }));
-    }, 1800);
-    
-    return () => {
-      clearTimeout(chartTimer);
-      clearTimeout(requestsTimer);
-      clearTimeout(historyTimer);
-    };
-  }, []);
-
-  // Auto-process payouts based on completed tasks
-  useEffect(() => {
-    if (settings.find(s => s.id === "auto-approval")?.enabled) {
-      const timer = setTimeout(() => {
-        processAutomatedPayouts();
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [payoutRequests]);
-
-  // Sync notifications to user dashboard
-  useEffect(() => {
-    if (settings.find(s => s.id === "auto-sync")?.enabled) {
-      const syncTimer = setTimeout(() => {
-        syncUserNotifications();
-      }, 3000);
-      return () => clearTimeout(syncTimer);
-    }
-  }, [payoutRequests]);
-  
-  const processAutomatedPayouts = () => {
-    const thresholdEnabled = settings.find(s => s.id === "threshold-limit")?.enabled;
-    const threshold = 300; // $300 threshold
-    
-    const updatedRequests = payoutRequests.map(req => {
-      if (req.status === "pending" && req.taskCompleted) {
-        // Auto-approve if task is completed and either below threshold or threshold check is disabled
-        if (!thresholdEnabled || req.amount <= threshold) {
-          toast({
-            title: "Payout Auto-Approved",
-            description: `$${req.amount} payout to ${req.userName} was automatically approved`,
-          });
-          return { ...req, status: "processing" as const };
-        }
-      }
-      return req;
-    });
-    
-    setPayoutRequests(updatedRequests);
-  };
-
-  const syncUserNotifications = () => {
-    const requestsNeedingSync = payoutRequests.filter(
-      req => !req.notificationSent && (req.status === "approved" || req.status === "rejected")
-    );
-    
-    if (requestsNeedingSync.length > 0) {
-      const updatedRequests = payoutRequests.map(req => 
-        !req.notificationSent && (req.status === "approved" || req.status === "rejected")
-          ? { ...req, notificationSent: true }
-          : req
-      );
-      
-      setPayoutRequests(updatedRequests);
-      
-      toast({
-        title: "Dashboard Synchronized",
-        description: `${requestsNeedingSync.length} payout status updates synchronized to user dashboard`,
-      });
-    }
-  };
-  
-  const handleApproveRequest = (id: string) => {
+  const handleApproveRequest = (id: string, updatePayoutRequest: (id: string, updates: Partial<PayoutRequest>) => void) => {
     const today = new Date().toISOString().split('T')[0];
-    
-    setPayoutRequests(payoutRequests.map(req => 
-      req.id === id 
-        ? { ...req, status: "approved" as const, processingDate: today } 
-        : req
-    ));
-    
-    toast({
-      title: "Payout Approved",
-      description: "The payout request has been approved and is being processed",
-    });
+    updatePayoutRequest(id, { status: "approved", processingDate: today });
   };
   
-  const handleRejectRequest = (id: string) => {
+  const handleRejectRequest = (id: string, updatePayoutRequest: (id: string, updates: Partial<PayoutRequest>) => void) => {
     const today = new Date().toISOString().split('T')[0];
-    
-    setPayoutRequests(payoutRequests.map(req => 
-      req.id === id 
-        ? { ...req, status: "rejected" as const, processingDate: today } 
-        : req
-    ));
-    
-    toast({
-      title: "Payout Rejected",
-      description: "The payout request has been rejected",
-      variant: "destructive"
-    });
+    updatePayoutRequest(id, { status: "rejected", processingDate: today });
   };
   
-  const toggleAutomation = (id: string) => {
+  const handleToggleAutomation = (id: string, settings: AutomationSetting[], setSettings: (settings: AutomationSetting[]) => void) => {
     setSettings(settings.map(setting => 
       setting.id === id ? { ...setting, enabled: !setting.enabled } : setting
     ));
+  };
 
-    // Special handling for sync setting
-    if (id === "auto-sync") {
-      const setting = settings.find(s => s.id === id);
-      if (setting && !setting.enabled) {
-        // If enabling sync, trigger an immediate sync
-        syncUserNotifications();
-      }
-    }
-    
-    const setting = settings.find(s => s.id === id);
-    if (setting) {
-      toast({
-        title: `${setting.name} ${!setting.enabled ? 'Enabled' : 'Disabled'}`,
-        description: `${setting.description} is now ${!setting.enabled ? 'enabled' : 'disabled'}`,
-      });
-    }
+  const initialData = {
+    payoutRequests: mockPayoutRequests,
+    chartData: chartData,
+    automationSettings: automationSettings
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <WalletSummary 
-          totalPendingAmount={totalPendingAmount} 
-          totalProcessedAmount={totalProcessedAmount} 
-          lastSyncTime="5 mins ago"
-        />
-        <PayoutTrendsChart 
-          data={chartData} 
-          isLoading={isLoading.chart} 
-        />
-      </div>
-      
-      <PayoutAutomationSettings 
-        settings={settings} 
-        onToggleAutomation={toggleAutomation} 
-      />
-      
-      <Card>
-        <CardContent className="p-4 md:p-6">
-          <Tabs defaultValue="requests">
-            <TabsList className="mb-4">
-              <TabsTrigger value="requests">Payout Requests</TabsTrigger>
-              <TabsTrigger value="manage">Manage Balances</TabsTrigger>
-              <TabsTrigger value="history">Payout History</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="requests">
-              <PendingPayoutRequests 
-                requests={payoutRequests} 
-                onApprove={handleApproveRequest} 
-                onReject={handleRejectRequest}
-                isLoading={isLoading.requests} 
-              />
-            </TabsContent>
-            
-            <TabsContent value="manage">
-              <ManageWalletBalances />
-            </TabsContent>
-            
-            <TabsContent value="history">
-              <PayoutHistory 
-                requests={payoutRequests}
-                isLoading={isLoading.history}
-              />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+    <WalletDataProvider initialData={initialData}>
+      {({ payoutRequests, settings, totalPendingAmount, totalProcessedAmount, isLoading, updatePayoutRequest, setPayoutRequests, setSettings }) => (
+        <div className="space-y-6">
+          <AutomationProcessor 
+            payoutRequests={payoutRequests}
+            settings={settings}
+            onPayoutRequestsUpdate={setPayoutRequests}
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <WalletSummary 
+              totalPendingAmount={totalPendingAmount} 
+              totalProcessedAmount={totalProcessedAmount} 
+              lastSyncTime="5 mins ago"
+            />
+            <PayoutTrendsChart 
+              data={chartData} 
+              isLoading={isLoading.chart} 
+            />
+          </div>
+          
+          <PayoutAutomationSettings 
+            settings={settings} 
+            onToggleAutomation={(id) => handleToggleAutomation(id, settings, setSettings)} 
+          />
+          
+          <Card>
+            <CardContent className="p-4 md:p-6">
+              <Tabs defaultValue="requests">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="requests">Payout Requests</TabsTrigger>
+                  <TabsTrigger value="manage">Manage Balances</TabsTrigger>
+                  <TabsTrigger value="history">Payout History</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="requests">
+                  <PayoutActionHandlers
+                    onApproveRequest={(id) => handleApproveRequest(id, updatePayoutRequest)} 
+                    onRejectRequest={(id) => handleRejectRequest(id, updatePayoutRequest)}
+                  >
+                    <PendingPayoutRequests 
+                      requests={payoutRequests} 
+                      isLoading={isLoading.requests} 
+                    />
+                  </PayoutActionHandlers>
+                </TabsContent>
+                
+                <TabsContent value="manage">
+                  <ManageWalletBalances />
+                </TabsContent>
+                
+                <TabsContent value="history">
+                  <PayoutHistory 
+                    requests={payoutRequests}
+                    isLoading={isLoading.history}
+                  />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </WalletDataProvider>
   );
 };

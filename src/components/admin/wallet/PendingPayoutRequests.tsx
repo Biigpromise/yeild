@@ -10,8 +10,8 @@ import { TooltipWrapper } from "@/components/ui/tooltip-wrapper";
 
 type PendingPayoutRequestsProps = {
   requests: PayoutRequest[];
-  onApprove: (id: string) => void;
-  onReject: (id: string) => void;
+  onApprove?: (id: string) => void;
+  onReject?: (id: string) => void;
   isLoading?: boolean;
 };
 
@@ -137,8 +137,8 @@ export const PendingPayoutRequests: React.FC<PendingPayoutRequestsProps> = ({
                         size="sm" 
                         variant="outline" 
                         className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
-                        onClick={() => onApprove(request.id)}
-                        disabled={request.status === "processing"}
+                        onClick={() => onApprove && onApprove(request.id)}
+                        disabled={request.status === "processing" || !onApprove}
                       >
                         {request.status === "processing" ? "Processing" : "Approve"}
                       </Button>
@@ -146,8 +146,8 @@ export const PendingPayoutRequests: React.FC<PendingPayoutRequestsProps> = ({
                         size="sm" 
                         variant="outline" 
                         className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-                        onClick={() => onReject(request.id)}
-                        disabled={request.status === "processing"}
+                        onClick={() => onReject && onReject(request.id)}
+                        disabled={request.status === "processing" || !onReject}
                       >
                         Reject
                       </Button>
