@@ -117,11 +117,16 @@ const Index = () => {
         <div className="container mx-auto px-4 py-16 md:py-28">
           <div className="flex flex-col lg:flex-row items-center">
             <div className="lg:w-1/2 mb-10 lg:mb-0">
-              <div className="relative">
+              <div className="relative bg-yeild-black p-6 rounded-xl">
                 {/* Yellow accent for heading */}
                 <div className="absolute -left-4 -top-4 w-20 h-20 bg-yeild-yellow/20 rounded-full blur-xl"></div>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 relative">
-                  Complete Tasks. <br /> 
+                  <span className="text-yeild-yellow relative inline-block">
+                    Complete Tasks.
+                    <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 8" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M0,5 Q50,0 100,5 T200,5" stroke="#FFDE59" strokeWidth="3" fill="none" strokeLinecap="round" />
+                    </svg>
+                  </span> <br /> 
                   <span className="text-yeild-yellow relative inline-block">
                     Earn Rewards.
                     <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 8" xmlns="http://www.w3.org/2000/svg">
@@ -228,7 +233,7 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="yeild-card relative overflow-hidden group">
+            <Card className="bg-gray-900 rounded-xl p-6 shadow-yeild-card border border-gray-800 hover:border-yeild-yellow/50 transition-all duration-500 relative overflow-hidden group">
               <div className="absolute -right-8 -top-8 w-16 h-16 bg-yeild-yellow/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
               <CardContent className="p-6">
                 <div className="w-14 h-14 bg-yeild-yellow/20 rounded-full flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
@@ -241,7 +246,7 @@ const Index = () => {
               </CardContent>
             </Card>
             
-            <Card className="yeild-card relative overflow-hidden group transform md:translate-y-4">
+            <Card className="bg-gray-900 rounded-xl p-6 shadow-yeild-card border border-gray-800 hover:border-yeild-yellow/50 transition-all duration-500 relative overflow-hidden group transform md:translate-y-4">
               <div className="absolute -right-8 -top-8 w-16 h-16 bg-yeild-yellow/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
               <CardContent className="p-6">
                 <div className="w-14 h-14 bg-yeild-yellow/20 rounded-full flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
@@ -254,7 +259,7 @@ const Index = () => {
               </CardContent>
             </Card>
             
-            <Card className="yeild-card relative overflow-hidden group">
+            <Card className="bg-gray-900 rounded-xl p-6 shadow-yeild-card border border-gray-800 hover:border-yeild-yellow/50 transition-all duration-500 relative overflow-hidden group">
               <div className="absolute -right-8 -top-8 w-16 h-16 bg-yeild-yellow/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
               <CardContent className="p-6">
                 <div className="w-14 h-14 bg-yeild-yellow/20 rounded-full flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
@@ -272,7 +277,7 @@ const Index = () => {
             <h3 className="text-2xl font-bold mb-8 text-center">Available Task Types</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {taskExamples.map((task, index) => (
-                <Card key={index} className="yeild-card hover:border-yeild-yellow/30 hover:-translate-y-1 transition-all duration-300">
+                <Card key={index} className="bg-gray-900 rounded-xl p-6 shadow-yeild-card border border-gray-800 hover:border-yeild-yellow/50 transition-all duration-500">
                   <CardContent className="p-6">
                     <div className="text-3xl mb-3">{task.icon}</div>
                     <h4 className="text-lg font-bold mb-2">{task.title}</h4>
@@ -361,7 +366,7 @@ const Index = () => {
             </div>
             
             <div className="lg:w-1/2 lg:pl-12">
-              <Card className="yeild-card relative overflow-hidden backdrop-blur-sm border-2 border-gray-800/50">
+              <Card className="bg-gray-900 rounded-xl p-6 shadow-yeild-card border border-gray-800 hover:border-yeild-yellow/50 transition-all duration-500 relative overflow-hidden backdrop-blur-sm border-2 border-gray-800/50">
                 <CardContent className="p-8">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-yeild-yellow/20 rounded-full blur-xl"></div>
                   <div className="relative z-10">
@@ -433,7 +438,7 @@ const Index = () => {
             {testimonials.map((testimonial, index) => (
               <Card 
                 key={index} 
-                className="yeild-card group hover:border-yeild-yellow/30 hover:-translate-y-1 transition-all duration-300"
+                className="bg-gray-900 rounded-xl p-6 shadow-yeild-card border border-gray-800 hover:border-yeild-yellow/50 transition-all duration-500 group hover:-translate-y-1"
               >
                 <CardContent className="p-6">
                   <div className="absolute top-4 right-4 text-4xl text-yeild-yellow/20 font-serif">"</div>
@@ -474,7 +479,7 @@ const Index = () => {
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-yeild-yellow/15 rounded-full blur-3xl"></div>
         
         <div className="container mx-auto px-4 relative z-10">
-          <Card className="max-w-4xl mx-auto yeild-card border-2 border-gray-800/50 overflow-hidden">
+          <Card className="max-w-4xl mx-auto bg-gray-900 rounded-xl p-6 shadow-yeild-card border border-gray-800 hover:border-yeild-yellow/50 transition-all duration-500 border-2 border-gray-800/50 overflow-hidden">
             <CardContent className="p-10 text-center">
               <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-yeild-yellow to-transparent"></div>
               
@@ -594,4 +599,3 @@ const Index = () => {
 };
 
 export default Index;
-

@@ -69,7 +69,7 @@
   }
 
   .yeild-card {
-    @apply bg-gray-900 rounded-xl p-6 shadow-yeild-card border border-gray-800 hover:border-yeild-yellow/40 transition-all duration-300;
+    @apply bg-gray-900 rounded-xl p-6 shadow-yeild-card border border-gray-800 hover:border-yeild-yellow/50 transition-all duration-500;
   }
 
   .yeild-input {
