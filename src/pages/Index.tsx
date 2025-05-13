@@ -14,7 +14,7 @@ const Index = () => {
       {/* Simplified Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
         <div className="flex items-center">
-          <span className="text-white text-3xl font-bold tracking-tight animate-pulse-subtle">YEILD</span>
+          <span className="text-yeild-yellow text-3xl font-bold tracking-tight animate-pulse-subtle">YEILD</span>
         </div>
         <div className="hidden md:flex space-x-6">
           <a href="#how-it-works" className="nav-link">How It Works</a>
@@ -55,7 +55,7 @@ const Index = () => {
       <div className="flex-1 container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="flex flex-col space-y-6">
-            <h1 className="text-5xl font-bold leading-tight gradient-text animate-float">Earn Rewards</h1>
+            <h1 className="text-5xl font-bold leading-tight yellow-gradient-text animate-float">Earn Rewards</h1>
             <p className="text-xl text-white/80">
               Join thousands of users making money by completing simple tasks from your phone or computer.
             </p>
@@ -78,7 +78,7 @@ const Index = () => {
           </div>
           <div className="shiny-card flex items-center justify-center p-12">
             <div className="text-6xl animate-float flex items-center justify-center">
-              <Sparkles className="h-24 w-24 text-white/90" />
+              <Sparkles className="h-24 w-24 text-yeild-yellow" />
             </div>
           </div>
         </div>
@@ -87,20 +87,20 @@ const Index = () => {
       {/* How It Works Section */}
       <section id="how-it-works" className="py-16 bg-zinc-950">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold mb-12 text-center gradient-text">How It Works</h2>
+          <h2 className="text-4xl font-bold mb-12 text-center yellow-text">How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="feature-card hover-lift">
-              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-white to-gray-300 text-black flex items-center justify-center text-2xl font-bold mb-4">1</div>
+              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-yeild-yellow to-yeild-yellow-dark text-black flex items-center justify-center text-2xl font-bold mb-4">1</div>
               <h3 className="text-2xl font-bold mb-2">Sign Up</h3>
               <p className="text-white/70">Create your account in less than 2 minutes and set your preferences.</p>
             </div>
             <div className="feature-card hover-lift">
-              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-white to-gray-300 text-black flex items-center justify-center text-2xl font-bold mb-4">2</div>
+              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-yeild-yellow to-yeild-yellow-dark text-black flex items-center justify-center text-2xl font-bold mb-4">2</div>
               <h3 className="text-2xl font-bold mb-2">Complete Tasks</h3>
               <p className="text-white/70">Choose from available tasks that match your interests and skills.</p>
             </div>
             <div className="feature-card hover-lift">
-              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-white to-gray-300 text-black flex items-center justify-center text-2xl font-bold mb-4">3</div>
+              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-yeild-yellow to-yeild-yellow-dark text-black flex items-center justify-center text-2xl font-bold mb-4">3</div>
               <h3 className="text-2xl font-bold mb-2">Earn Rewards</h3>
               <p className="text-white/70">Get paid directly to your account after task verification.</p>
             </div>
@@ -111,7 +111,7 @@ const Index = () => {
       {/* For Brands Section */}
       <section id="for-brands" className="py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold mb-12 text-center gradient-text">For Brands</h2>
+          <h2 className="text-4xl font-bold mb-12 text-center yellow-text">For Brands</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div className="feature-card hover-scale">
               <h3 className="text-2xl font-bold mb-4">Reach Your Audience</h3>
@@ -143,12 +143,12 @@ const Index = () => {
       {/* Testimonials Section */}
       <section id="testimonials" className="py-16 bg-zinc-950">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold mb-12 text-center gradient-text">Testimonials</h2>
+          <h2 className="text-4xl font-bold mb-12 text-center yellow-text">Testimonials</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="testimonial-card hover-lift">
               <p className="italic mb-4 text-white/70">"I've earned over $500 in my first month using this platform. The tasks are easy and payment is always on time."</p>
               <div className="flex items-center">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-white/40 to-gray-500/40"></div>
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yeild-yellow/40 to-yeild-yellow-dark/40"></div>
                 <div className="ml-4">
                   <p className="font-bold">Sarah K.</p>
                   <p className="text-sm text-white/50">Student</p>
@@ -158,7 +158,7 @@ const Index = () => {
             <div className="testimonial-card hover-lift">
               <p className="italic mb-4 text-white/70">"As a brand, we've seen remarkable engagement from users. Our campaign metrics exceeded expectations."</p>
               <div className="flex items-center">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-white/40 to-gray-500/40"></div>
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yeild-yellow/40 to-yeild-yellow-dark/40"></div>
                 <div className="ml-4">
                   <p className="font-bold">Mark J.</p>
                   <p className="text-sm text-white/50">Marketing Director</p>
@@ -168,7 +168,7 @@ const Index = () => {
             <div className="testimonial-card hover-lift">
               <p className="italic mb-4 text-white/70">"The platform is so intuitive. I complete tasks during my commute and have earned enough for a vacation!"</p>
               <div className="flex items-center">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-white/40 to-gray-500/40"></div>
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yeild-yellow/40 to-yeild-yellow-dark/40"></div>
                 <div className="ml-4">
                   <p className="font-bold">James T.</p>
                   <p className="text-sm text-white/50">Professional</p>
@@ -184,7 +184,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4 gradient-text">YEILD</h3>
+              <h3 className="text-xl font-bold mb-4 yellow-text">YEILD</h3>
               <p className="text-white/70">Making task completion rewarding.</p>
             </div>
             <div>
