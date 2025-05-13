@@ -1,5 +1,7 @@
+
 import React from "react";
 import { Sparkles, BarChart3, ListTodo, Wallet, Trophy, Users, BarChart, HelpCircle } from "lucide-react";
+import { TutorialImageGenerator } from "./tutorial-image-generator";
 
 interface OnboardingImageProps {
   step: number;
@@ -12,8 +14,8 @@ export const OnboardingImage: React.FC<OnboardingImageProps> = ({
   altText,
   imageUrl 
 }) => {
-  // If there's a direct image URL provided, use that
-  if (imageUrl) {
+  // If there's a direct image URL provided that's an uploaded image, use that
+  if (imageUrl && imageUrl.startsWith("/lovable-uploads/")) {
     return (
       <div className="rounded-lg overflow-hidden border border-gray-800 h-64 bg-gradient-to-b from-black to-zinc-900 flex items-center justify-center">
         <img 
@@ -24,29 +26,26 @@ export const OnboardingImage: React.FC<OnboardingImageProps> = ({
       </div>
     );
   }
-
-  // Otherwise, create a stylish placeholder based on the step number
-  const iconMap = {
-    1: <Sparkles className="h-24 w-24 text-yeild-yellow animate-pulse-subtle" />,
-    2: <BarChart3 className="h-24 w-24 text-yeild-yellow animate-pulse-subtle" />,
-    3: <ListTodo className="h-24 w-24 text-yeild-yellow animate-pulse-subtle" />,
-    4: <Wallet className="h-24 w-24 text-yeild-yellow animate-pulse-subtle" />,
-    5: <Trophy className="h-24 w-24 text-yeild-yellow animate-pulse-subtle" />,
-    6: <Users className="h-24 w-24 text-yeild-yellow animate-pulse-subtle" />,
-    7: <BarChart className="h-24 w-24 text-yeild-yellow animate-pulse-subtle" />,
-    8: <Sparkles className="h-24 w-24 text-yeild-yellow animate-pulse-subtle" />,
+  
+  // Map step to section for the tutorial image generator
+  const getSectionName = () => {
+    switch(step) {
+      case 1: return "welcome";
+      case 2: return "dashboard";
+      case 3: return "tasks";
+      case 4: return "wallet";
+      case 5: return "leaderboard";
+      case 6: return "referrals";
+      case 7: return "level-up";
+      case 8: return "congrats";
+      default: return "welcome";
+    }
   };
-
-  const icon = iconMap[step as keyof typeof iconMap] || <HelpCircle className="h-24 w-24 text-yeild-yellow" />;
-
+  
+  // Use our dynamic tutorial image generator
   return (
-    <div className="rounded-lg overflow-hidden border border-gray-800 h-64 bg-gradient-to-b from-black to-zinc-900">
-      <div className="w-full h-full flex flex-col items-center justify-center p-4 space-y-4">
-        {icon}
-        <p className="text-yeild-yellow text-lg font-medium text-center">
-          {altText}
-        </p>
-      </div>
+    <div className="rounded-lg overflow-hidden border border-gray-800 h-64 flex items-center justify-center">
+      <TutorialImageGenerator section={getSectionName()} />
     </div>
   );
 };
