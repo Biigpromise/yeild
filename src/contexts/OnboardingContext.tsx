@@ -33,16 +33,11 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     if (onboardingCompleted === "true") {
       setHasCompletedOnboarding(true);
     } else {
-      // For new users, check if they're logged in
-      const loggedInUser = localStorage.getItem("yeild-user");
-      if (loggedInUser) {
-        // Auto-start onboarding for new logged-in users
-        // We use a small delay to ensure the page is fully loaded
-        const timer = setTimeout(() => {
-          setShowOnboarding(true);
-        }, 1500);
-        return () => clearTimeout(timer);
-      }
+      // Always show tutorial for demo purposes, don't check for login status
+      const timer = setTimeout(() => {
+        setShowOnboarding(true);
+      }, 800);
+      return () => clearTimeout(timer);
     }
   }, []);
   

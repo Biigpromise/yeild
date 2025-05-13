@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { TooltipWrapper } from "@/components/ui/tooltip-wrapper";
 import { LoadingState } from "@/components/ui/loading-state";
 import { toast } from "sonner";
+import { OnboardingImage } from "@/components/ui/onboarding-image";
 import {
   Drawer,
   DrawerContent,
@@ -91,7 +92,7 @@ export const OnboardingTutorial: React.FC<OnboardingTutorialProps> = ({
       <DrawerContent className="bg-gray-900 border-t border-gray-800">
         <DrawerHeader>
           <DrawerTitle className="text-xl font-bold flex items-center justify-between">
-            <span>{currentStepData.title}</span>
+            <span className="text-yeild-yellow">{currentStepData.title}</span>
             <Button 
               variant="ghost" 
               size="icon"
@@ -127,15 +128,11 @@ export const OnboardingTutorial: React.FC<OnboardingTutorialProps> = ({
               </div>
             </div>
             
-            {currentStepData.image && (
-              <div className="rounded-lg overflow-hidden border border-gray-800 h-64">
-                <img 
-                  src={currentStepData.image} 
-                  alt={`Step ${currentStep + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
+            <OnboardingImage 
+              step={currentStep + 1}
+              altText={`Step ${currentStep + 1}: ${currentStepData.title}`}
+              imageUrl={currentStepData.image}
+            />
           </div>
         </div>
         
@@ -163,7 +160,7 @@ export const OnboardingTutorial: React.FC<OnboardingTutorialProps> = ({
               </TooltipWrapper>
               
               <Button 
-                className="yeild-btn-primary flex items-center gap-2"
+                className="bg-yeild-yellow text-black hover:bg-yeild-yellow-dark transition-all duration-300 flex items-center gap-2"
                 onClick={handleNext}
                 disabled={loading}
               >
