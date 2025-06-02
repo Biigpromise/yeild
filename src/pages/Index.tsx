@@ -2,12 +2,22 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Sparkles, Star } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
-  // Simulate a logged-in user (replace with actual auth check)
-  const isLoggedIn = localStorage.getItem("yeild-user") !== null;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <span className="text-yeild-yellow text-3xl font-bold animate-pulse">YEILD</span>
+          <p className="text-gray-400 mt-2">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
@@ -22,7 +32,7 @@ const Index = () => {
           <a href="#testimonials" className="nav-link">Testimonials</a>
         </div>
         <div className="flex space-x-4">
-          {isLoggedIn ? (
+          {user ? (
             <Button 
               className="action-button-primary group"
               onClick={() => navigate("/dashboard")}
@@ -108,7 +118,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* For Brands Section */}
       <section id="for-brands" className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold mb-12 text-center yellow-text">For Brands</h2>
@@ -140,7 +149,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
       <section id="testimonials" className="py-16 bg-zinc-950">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold mb-12 text-center yellow-text">Testimonials</h2>
@@ -179,7 +187,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Simple Footer */}
       <footer className="bg-black py-8 border-t border-white/20">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

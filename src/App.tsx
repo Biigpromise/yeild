@@ -12,31 +12,34 @@ import BrandSignup from "./pages/BrandSignup";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import { OnboardingTutorial } from "./components/OnboardingTutorial";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <OnboardingProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/brand-signup" element={<BrandSignup />} />
-            <Route path="/admin" element={<Admin />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <OnboardingTutorial />
-        </BrowserRouter>
-      </TooltipProvider>
-    </OnboardingProvider>
+    <AuthProvider>
+      <OnboardingProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/brand-signup" element={<BrandSignup />} />
+              <Route path="/admin" element={<Admin />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <OnboardingTutorial />
+          </BrowserRouter>
+        </TooltipProvider>
+      </OnboardingProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
