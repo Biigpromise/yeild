@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const { signUp, signInWithProvider, user } = useAuth();
+  const { signUp, signInWithProvider, user, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   // Form values
@@ -20,9 +20,24 @@ const SignUp = () => {
   const [name, setName] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
 
-  // Redirect if already logged in
+  // Handle redirect after auth state is determined
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard");
+    }
+  }, [user, loading, navigate]);
+
+  // Show loading while auth state is being determined
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-yeild-black">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
+
+  // Don't render the form if user is already logged in
   if (user) {
-    navigate("/dashboard");
     return null;
   }
 
