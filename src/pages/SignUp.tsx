@@ -94,6 +94,10 @@ const SignUp = () => {
     }
   };
 
+  const handleTermsChange = (checked: boolean) => {
+    setAgreeTerms(checked);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-yeild-black relative">
       {/* Yellow accent graphics */}
@@ -194,22 +198,17 @@ const SignUp = () => {
           </div>
           
           <div className="flex items-center space-x-2 mt-4">
-            <div 
-              className="cursor-pointer flex items-center space-x-2" 
-              onClick={() => setAgreeTerms(!agreeTerms)}
+            <Checkbox 
+              id="terms" 
+              checked={agreeTerms}
+              onCheckedChange={handleTermsChange}
+            />
+            <label
+              htmlFor="terms"
+              className="text-sm text-gray-400 cursor-pointer"
             >
-              <Checkbox 
-                id="terms" 
-                checked={agreeTerms}
-                onCheckedChange={() => setAgreeTerms(!agreeTerms)}
-              />
-              <label
-                htmlFor="terms"
-                className="text-sm text-gray-400 cursor-pointer"
-              >
-                I agree to the <a href="#" className="text-yeild-yellow hover:underline">Terms of Service</a> and <a href="#" className="text-yeild-yellow hover:underline">Privacy Policy</a>
-              </label>
-            </div>
+              I agree to the <a href="#" className="text-yeild-yellow hover:underline">Terms of Service</a> and <a href="#" className="text-yeild-yellow hover:underline">Privacy Policy</a>
+            </label>
           </div>
           
           <Button 
