@@ -31,6 +31,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { TutorialButton } from "@/components/TutorialButton";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UserProfile {
   id: string;
@@ -39,7 +41,7 @@ interface UserProfile {
   points: number;
   level: number;
   tasks_completed: number;
-  avatar?: string;
+  avatar_url?: string;
 }
 
 interface Task {
@@ -47,98 +49,16 @@ interface Task {
   title: string;
   description: string;
   points: number;
-  estimatedTime: string;
+  estimated_time: string;
   category: string;
   difficulty: "easy" | "medium" | "hard";
-  status: "available" | "in_progress" | "completed" | "expired";
-  expiresIn?: string;
-  type: string;
-  brand?: {
-    name: string;
-    logo?: string;
-  };
+  status: "active" | "inactive" | "expired";
+  expires_at?: string;
+  task_type: string;
+  brand_name?: string;
+  brand_logo_url?: string;
+  user_task_status?: "available" | "in_progress" | "completed" | "expired";
 }
-
-const mockTasks: Task[] = [
-  {
-    id: "t1",
-    title: "Complete a short survey about social media habits",
-    description: "Answer 10 questions about how you use different social media platforms.",
-    points: 50,
-    estimatedTime: "5 min",
-    category: "Survey",
-    difficulty: "easy",
-    status: "available",
-    type: "survey",
-    brand: {
-      name: "SocialX",
-      logo: "https://via.placeholder.com/50"
-    }
-  },
-  {
-    id: "t2",
-    title: "Test a new mobile game and provide feedback",
-    description: "Download the game, play for at least 15 minutes, and answer specific questions about your experience.",
-    points: 200,
-    estimatedTime: "25 min",
-    category: "App Testing",
-    difficulty: "medium",
-    status: "available",
-    expiresIn: "2 days",
-    type: "app-test",
-    brand: {
-      name: "GameSphere",
-      logo: "https://via.placeholder.com/50"
-    }
-  },
-  {
-    id: "t3",
-    title: "Create a short unboxing video of a product",
-    description: "Record a 1-minute unboxing video showing your first impressions of the product.",
-    points: 350,
-    estimatedTime: "40 min",
-    category: "Content Creation",
-    difficulty: "hard",
-    status: "available",
-    expiresIn: "5 days",
-    type: "content",
-    brand: {
-      name: "TechGadgets",
-      logo: "https://via.placeholder.com/50"
-    }
-  },
-  {
-    id: "t4",
-    title: "Write a product review for an eco-friendly water bottle",
-    description: "Try the product for 3 days and write a detailed review highlighting pros and cons.",
-    points: 150,
-    estimatedTime: "20 min",
-    category: "Review",
-    difficulty: "medium",
-    status: "available",
-    type: "review",
-    brand: {
-      name: "EcoLife",
-      logo: "https://via.placeholder.com/50"
-    }
-  },
-  {
-    id: "t5",
-    title: "Participate in a virtual focus group about food delivery",
-    description: "Join a 30-minute Zoom meeting to discuss your experiences with food delivery services.",
-    points: 400,
-    estimatedTime: "35 min",
-    category: "Focus Group",
-    difficulty: "medium",
-    status: "available",
-    expiresIn: "2 days",
-    type: "meeting",
-    brand: {
-      name: "FoodDash",
-      logo: "https://via.placeholder.com/50"
-    }
-  },
-];
 
 const leaderboardData = [
   { id: "u1", name: "Sarah Johnson", points: 12450, level: 8, avatar: "https://i.pravatar.cc/150?img=1" },
@@ -150,11 +70,13 @@ const leaderboardData = [
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const { user, signOut } = useAuth();
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [leaderboard, setLeaderboard] = useState(leaderboardData);
   const [activeTab, setActiveTab] = useState("tasks");
   const [activeLevelTab, setActiveLevelTab] = useState("levels");
+  const [loading, setLoading] = useState(true);
   const { startOnboarding, hasCompletedOnboarding } = useOnboarding();
 
   // Progress to next level calculation
@@ -163,118 +85,224 @@ const Dashboard = () => {
   const progressPercentage = (currentProgress / pointsToNextLevel) * 100;
 
   useEffect(() => {
-    // Check if user is logged in
-    const storedUser = localStorage.getItem("yeild-user");
-    
-    if (!storedUser) {
-      // Redirect to login if no user found
+    if (!user) {
       toast.error("Please login to access the dashboard");
       navigate("/login");
       return;
     }
-    
+
+    fetchUserProfile();
+    fetchTasks();
+  }, [user, navigate]);
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+
     try {
-      const user = JSON.parse(storedUser) as UserProfile;
-      setUserProfile({
-        ...user,
-        avatar: user.avatar || "https://i.pravatar.cc/150?img=18"
-      });
-    } catch (error) {
-      console.error("Error parsing user data", error);
-      localStorage.removeItem("yeild-user");
-      navigate("/login");
-    }
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
 
-    // Add current user to leaderboard for demo
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      // Insert user into appropriate position in leaderboard based on points
-      const updatedLeaderboard = [...leaderboardData];
-      
-      const userEntry = {
-        id: user.id,
-        name: user.name,
-        points: user.points,
-        level: user.level,
-        avatar: user.avatar || "https://i.pravatar.cc/150?img=18"
-      };
-      
-      // Find position for user and insert them
-      let inserted = false;
-      for (let i = 0; i < updatedLeaderboard.length; i++) {
-        if (userEntry.points > updatedLeaderboard[i].points) {
-          updatedLeaderboard.splice(i, 0, userEntry);
-          inserted = true;
-          break;
+      if (error) {
+        console.error('Error fetching profile:', error);
+        // Create profile if it doesn't exist
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: user.id,
+              email: user.email,
+              name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+              points: 0,
+              level: 1,
+              tasks_completed: 0
+            }
+          ])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          toast.error("Failed to load user profile");
+          return;
         }
-      }
-      
-      // If not inserted yet, add to the end
-      if (!inserted) {
-        updatedLeaderboard.push(userEntry);
-      }
-      
-      setLeaderboard(updatedLeaderboard);
-    }
-  }, [navigate]);
 
-  const handleLogout = () => {
-    // In a real app, call logout API
-    localStorage.removeItem("yeild-user");
-    toast.success("Logged out successfully");
-    navigate("/");
+        setUserProfile(newProfile);
+      } else {
+        setUserProfile(profile);
+      }
+    } catch (error) {
+      console.error('Profile fetch error:', error);
+      toast.error("Failed to load user profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTasks = async () => {
+    if (!user) return;
+
+    try {
+      // Fetch all active tasks
+      const { data: tasksData, error: tasksError } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('status', 'active');
+
+      if (tasksError) {
+        console.error('Error fetching tasks:', tasksError);
+        toast.error("Failed to load tasks");
+        return;
+      }
+
+      // Fetch user task progress
+      const { data: userTasksData, error: userTasksError } = await supabase
+        .from('user_tasks')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (userTasksError) {
+        console.error('Error fetching user tasks:', userTasksError);
+      }
+
+      // Combine tasks with user progress
+      const tasksWithProgress = tasksData.map(task => {
+        const userTask = userTasksData?.find(ut => ut.task_id === task.id);
+        return {
+          ...task,
+          user_task_status: userTask?.status || 'available'
+        };
+      });
+
+      setTasks(tasksWithProgress);
+    } catch (error) {
+      console.error('Tasks fetch error:', error);
+      toast.error("Failed to load tasks");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Logged out successfully");
+      navigate("/");
+    } catch (error) {
+      toast.error("Failed to logout");
+    }
   };
 
   // Function to handle accepting a task
-  const handleAcceptTask = (taskId: string) => {
-    // Update task status
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === taskId ? { ...task, status: "in_progress" } : task
-      )
-    );
-    
-    toast.success("Task accepted! Start working on it now.");
-  };
+  const handleAcceptTask = async (taskId: string) => {
+    if (!user) return;
 
-  // Function to handle completing a task (simplified for demo)
-  const handleCompleteTask = (taskId: string) => {
-    // Find the task
-    const task = tasks.find(t => t.id === taskId);
-    
-    if (!task || !userProfile) return;
-    
-    // Update task status
-    setTasks(prevTasks => 
-      prevTasks.map(t => 
-        t.id === taskId ? { ...t, status: "completed" } : t
-      )
-    );
-    
-    // Update user profile
-    const updatedProfile = {
-      ...userProfile,
-      points: userProfile.points + task.points,
-      tasks_completed: userProfile.tasks_completed + 1
-    };
-    
-    // Check if user leveled up
-    const currentLevel = userProfile.level;
-    const pointsForNextLevel = currentLevel * 500;
-    
-    if (updatedProfile.points >= pointsForNextLevel + userProfile.points % pointsForNextLevel) {
-      updatedProfile.level += 1;
-      toast.success("🎉 Level Up! You are now level " + updatedProfile.level);
+    try {
+      const { error } = await supabase
+        .from('user_tasks')
+        .insert([
+          {
+            user_id: user.id,
+            task_id: taskId,
+            status: 'in_progress',
+            started_at: new Date().toISOString()
+          }
+        ]);
+
+      if (error) {
+        console.error('Error accepting task:', error);
+        toast.error("Failed to accept task");
+        return;
+      }
+
+      // Update local state
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === taskId ? { ...task, user_task_status: "in_progress" } : task
+        )
+      );
+      
+      toast.success("Task accepted! Start working on it now.");
+    } catch (error) {
+      console.error('Accept task error:', error);
+      toast.error("Failed to accept task");
     }
-    
-    setUserProfile(updatedProfile);
-    localStorage.setItem("yeild-user", JSON.stringify(updatedProfile));
-    
-    toast.success(`Task completed! Earned ${task.points} points.`);
   };
 
-  // If no user logged in, show loading or redirect (handled in useEffect)
-  if (!userProfile) {
+  // Function to handle completing a task
+  const handleCompleteTask = async (taskId: string) => {
+    if (!user || !userProfile) return;
+
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    try {
+      // Update user task status
+      const { error: taskError } = await supabase
+        .from('user_tasks')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          points_earned: task.points
+        })
+        .eq('user_id', user.id)
+        .eq('task_id', taskId);
+
+      if (taskError) {
+        console.error('Error completing task:', taskError);
+        toast.error("Failed to complete task");
+        return;
+      }
+
+      // Update user profile with new points and tasks completed
+      const newPoints = userProfile.points + task.points;
+      const newTasksCompleted = userProfile.tasks_completed + 1;
+      const currentLevel = userProfile.level;
+      const pointsForNextLevel = currentLevel * 500;
+      const newLevel = newPoints >= pointsForNextLevel ? currentLevel + 1 : currentLevel;
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          points: newPoints,
+          tasks_completed: newTasksCompleted,
+          level: newLevel
+        })
+        .eq('id', user.id);
+
+      if (profileError) {
+        console.error('Error updating profile:', profileError);
+        toast.error("Task completed but failed to update profile");
+        return;
+      }
+
+      // Update local state
+      setTasks(prevTasks => 
+        prevTasks.map(t => 
+          t.id === taskId ? { ...t, user_task_status: "completed" } : t
+        )
+      );
+      
+      setUserProfile(prev => prev ? {
+        ...prev,
+        points: newPoints,
+        tasks_completed: newTasksCompleted,
+        level: newLevel
+      } : null);
+
+      if (newLevel > currentLevel) {
+        toast.success(`🎉 Level Up! You are now level ${newLevel}`);
+      }
+      
+      toast.success(`Task completed! Earned ${task.points} points.`);
+    } catch (error) {
+      console.error('Complete task error:', error);
+      toast.error("Failed to complete task");
+    }
+  };
+
+  // If loading or no user profile, show loading
+  if (loading || !userProfile) {
     return <div className="min-h-screen flex items-center justify-center bg-yeild-black">Loading...</div>;
   }
 
@@ -319,7 +347,7 @@ const Dashboard = () => {
           <div className="p-4 border-b border-gray-800 hidden md:block">
             <div className="flex items-center space-x-4">
               <Avatar className="h-10 w-10 border-2 border-yeild-yellow">
-                <img src={userProfile.avatar} alt={userProfile.name} />
+                <img src={userProfile.avatar_url || "https://i.pravatar.cc/150?img=18"} alt={userProfile.name} />
               </Avatar>
               <div>
                 <p className="font-medium truncate">{userProfile.name}</p>
@@ -435,7 +463,7 @@ const Dashboard = () => {
               
               {/* Profile Menu (simplified) */}
               <Avatar className="h-8 w-8 cursor-pointer border-2 border-yeild-yellow">
-                <img src={userProfile.avatar} alt={userProfile.name} />
+                <img src={userProfile.avatar_url || "https://i.pravatar.cc/150?img=18"} alt={userProfile.name} />
               </Avatar>
             </div>
           </div>
@@ -477,7 +505,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="flex text-sm text-gray-400">
-                <span>{tasks.filter(t => t.status === "available").length} tasks available</span>
+                <span>{tasks.filter(t => t.user_task_status === "available").length} tasks available</span>
               </div>
             </div>
 
@@ -510,7 +538,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="flex text-sm text-gray-400">
-                <span>{500 - currentProgress} points until next level</span>
+                <span>{pointsToNextLevel - currentProgress} points until next level</span>
               </div>
             </div>
           </div>
@@ -525,7 +553,7 @@ const Dashboard = () => {
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <div className="flex gap-2 mb-2">
-                          {getTaskStatusBadge(task.status)}
+                          {getTaskStatusBadge(task.user_task_status || "available")}
                           <Badge variant="outline" className={getDifficultyColor(task.difficulty)}>
                             {task.difficulty.charAt(0).toUpperCase() + task.difficulty.slice(1)}
                           </Badge>
@@ -542,41 +570,41 @@ const Dashboard = () => {
                     <div className="flex justify-between items-center mb-4">
                       <div className="flex items-center text-sm text-gray-400">
                         <Clock className="h-4 w-4 mr-2" />
-                        <span>{task.estimatedTime}</span>
+                        <span>{task.estimated_time}</span>
                       </div>
                       
-                      {task.expiresIn && (
+                      {task.expires_at && (
                         <div className="text-sm text-gray-400">
-                          Expires in {task.expiresIn}
+                          Expires soon
                         </div>
                       )}
                     </div>
                     
-                    {task.brand && (
+                    {task.brand_name && (
                       <div className="flex items-center mt-2 mb-4">
                         <div className="h-6 w-6 bg-gray-800 rounded-full overflow-hidden mr-2">
-                          <img src={task.brand.logo} alt={task.brand.name} className="w-full h-full object-cover" />
+                          <img src={task.brand_logo_url} alt={task.brand_name} className="w-full h-full object-cover" />
                         </div>
-                        <span className="text-sm text-gray-300">{task.brand.name}</span>
+                        <span className="text-sm text-gray-300">{task.brand_name}</span>
                       </div>
                     )}
                     
                     <div className="mt-auto">
-                      {task.status === "available" ? (
+                      {task.user_task_status === "available" ? (
                         <Button 
                           className="w-full yeild-btn-primary"
                           onClick={() => handleAcceptTask(task.id)}
                         >
                           Accept Task
                         </Button>
-                      ) : task.status === "in_progress" ? (
+                      ) : task.user_task_status === "in_progress" ? (
                         <Button 
                           className="w-full bg-blue-500 hover:bg-blue-600 text-white"
                           onClick={() => handleCompleteTask(task.id)}
                         >
                           Mark Complete
                         </Button>
-                      ) : task.status === "completed" ? (
+                      ) : task.user_task_status === "completed" ? (
                         <Button 
                           disabled 
                           className="w-full bg-green-600 cursor-not-allowed text-white"
@@ -642,36 +670,10 @@ const Dashboard = () => {
                               </div>
                               <div>
                                 <div className="font-medium">Task Completion: Survey</div>
-                                <div className="text-sm text-gray-400">May 5, 2025</div>
+                                <div className="text-sm text-gray-400">Today</div>
                               </div>
                             </div>
                             <div className="text-green-400">+$0.50</div>
-                          </div>
-                          
-                          <div className="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
-                            <div className="flex items-center">
-                              <div className="bg-green-500/20 p-2 rounded-full mr-3">
-                                <TrendingUp className="h-4 w-4 text-green-500" />
-                              </div>
-                              <div>
-                                <div className="font-medium">Task Completion: App Test</div>
-                                <div className="text-sm text-gray-400">May 3, 2025</div>
-                              </div>
-                            </div>
-                            <div className="text-green-400">+$2.00</div>
-                          </div>
-                          
-                          <div className="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
-                            <div className="flex items-center">
-                              <div className="bg-yeild-yellow/20 p-2 rounded-full mr-3">
-                                <ArrowRight className="h-4 w-4 text-yeild-yellow" />
-                              </div>
-                              <div>
-                                <div className="font-medium">Referral Bonus</div>
-                                <div className="text-sm text-gray-400">April 28, 2025</div>
-                              </div>
-                            </div>
-                            <div className="text-yeild-yellow">+$1.00</div>
                           </div>
                         </div>
                       </div>

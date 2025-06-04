@@ -9,38 +9,181 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      colors: {
+        Row: {
+          blue: number | null
+          green: number | null
+          hex: string
+          hue: number | null
+          id: number
+          light_hsl: number | null
+          name: string | null
+          red: number | null
+          sat_hsl: number | null
+          sat_hsv: number | null
+          source: Database["public"]["Enums"]["color_source"] | null
+          val_hsv: number | null
+        }
+        Insert: {
+          blue?: number | null
+          green?: number | null
+          hex: string
+          hue?: number | null
+          id?: number
+          light_hsl?: number | null
+          name?: string | null
+          red?: number | null
+          sat_hsl?: number | null
+          sat_hsv?: number | null
+          source?: Database["public"]["Enums"]["color_source"] | null
+          val_hsv?: number | null
+        }
+        Update: {
+          blue?: number | null
+          green?: number | null
+          hex?: string
+          hue?: number | null
+          id?: number
+          light_hsl?: number | null
+          name?: string | null
+          red?: number | null
+          sat_hsl?: number | null
+          sat_hsv?: number | null
+          source?: Database["public"]["Enums"]["color_source"] | null
+          val_hsv?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          bio: string | null
           created_at: string | null
           email: string | null
           id: string
           level: number | null
           name: string | null
           points: number | null
+          profile_picture_url: string | null
+          social_media_links: string[] | null
           tasks_completed: number | null
           updated_at: string | null
         }
         Insert: {
+          bio?: string | null
           created_at?: string | null
           email?: string | null
           id: string
           level?: number | null
           name?: string | null
           points?: number | null
+          profile_picture_url?: string | null
+          social_media_links?: string[] | null
           tasks_completed?: number | null
           updated_at?: string | null
         }
         Update: {
+          bio?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
           level?: number | null
           name?: string | null
           points?: number | null
+          profile_picture_url?: string | null
+          social_media_links?: string[] | null
           tasks_completed?: number | null
           updated_at?: string | null
         }
         Relationships: []
+      }
+      tasks: {
+        Row: {
+          brand_logo_url: string | null
+          brand_name: string | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          difficulty: string | null
+          estimated_time: string | null
+          expires_at: string | null
+          id: string
+          points: number
+          status: string | null
+          task_type: string | null
+          title: string
+        }
+        Insert: {
+          brand_logo_url?: string | null
+          brand_name?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string | null
+          estimated_time?: string | null
+          expires_at?: string | null
+          id?: string
+          points?: number
+          status?: string | null
+          task_type?: string | null
+          title: string
+        }
+        Update: {
+          brand_logo_url?: string | null
+          brand_name?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string | null
+          estimated_time?: string | null
+          expires_at?: string | null
+          id?: string
+          points?: number
+          status?: string | null
+          task_type?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      user_tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          points_earned: number | null
+          started_at: string | null
+          status: string | null
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          points_earned?: number | null
+          started_at?: string | null
+          status?: string | null
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          points_earned?: number | null
+          started_at?: string | null
+          status?: string | null
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_tasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -60,7 +203,50 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      color_source:
+        | "99COLORS_NET"
+        | "ART_PAINTS_YG07S"
+        | "BYRNE"
+        | "CRAYOLA"
+        | "CMYK_COLOR_MODEL"
+        | "COLORCODE_IS"
+        | "COLORHEXA"
+        | "COLORXS"
+        | "CORNELL_UNIVERSITY"
+        | "COLUMBIA_UNIVERSITY"
+        | "DUKE_UNIVERSITY"
+        | "ENCYCOLORPEDIA_COM"
+        | "ETON_COLLEGE"
+        | "FANTETTI_AND_PETRACCHI"
+        | "FINDTHEDATA_COM"
+        | "FERRARIO_1919"
+        | "FEDERAL_STANDARD_595"
+        | "FLAG_OF_INDIA"
+        | "FLAG_OF_SOUTH_AFRICA"
+        | "GLAZEBROOK_AND_BALDRY"
+        | "GOOGLE"
+        | "HEXCOLOR_CO"
+        | "ISCC_NBS"
+        | "KELLY_MOORE"
+        | "MATTEL"
+        | "MAERZ_AND_PAUL"
+        | "MILK_PAINT"
+        | "MUNSELL_COLOR_WHEEL"
+        | "NATURAL_COLOR_SYSTEM"
+        | "PANTONE"
+        | "PLOCHERE"
+        | "POURPRE_COM"
+        | "RAL"
+        | "RESENE"
+        | "RGB_COLOR_MODEL"
+        | "THOM_POOLE"
+        | "UNIVERSITY_OF_ALABAMA"
+        | "UNIVERSITY_OF_CALIFORNIA_DAVIS"
+        | "UNIVERSITY_OF_CAMBRIDGE"
+        | "UNIVERSITY_OF_NORTH_CAROLINA"
+        | "UNIVERSITY_OF_TEXAS_AT_AUSTIN"
+        | "X11_WEB"
+        | "XONA_COM"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -175,6 +361,52 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      color_source: [
+        "99COLORS_NET",
+        "ART_PAINTS_YG07S",
+        "BYRNE",
+        "CRAYOLA",
+        "CMYK_COLOR_MODEL",
+        "COLORCODE_IS",
+        "COLORHEXA",
+        "COLORXS",
+        "CORNELL_UNIVERSITY",
+        "COLUMBIA_UNIVERSITY",
+        "DUKE_UNIVERSITY",
+        "ENCYCOLORPEDIA_COM",
+        "ETON_COLLEGE",
+        "FANTETTI_AND_PETRACCHI",
+        "FINDTHEDATA_COM",
+        "FERRARIO_1919",
+        "FEDERAL_STANDARD_595",
+        "FLAG_OF_INDIA",
+        "FLAG_OF_SOUTH_AFRICA",
+        "GLAZEBROOK_AND_BALDRY",
+        "GOOGLE",
+        "HEXCOLOR_CO",
+        "ISCC_NBS",
+        "KELLY_MOORE",
+        "MATTEL",
+        "MAERZ_AND_PAUL",
+        "MILK_PAINT",
+        "MUNSELL_COLOR_WHEEL",
+        "NATURAL_COLOR_SYSTEM",
+        "PANTONE",
+        "PLOCHERE",
+        "POURPRE_COM",
+        "RAL",
+        "RESENE",
+        "RGB_COLOR_MODEL",
+        "THOM_POOLE",
+        "UNIVERSITY_OF_ALABAMA",
+        "UNIVERSITY_OF_CALIFORNIA_DAVIS",
+        "UNIVERSITY_OF_CAMBRIDGE",
+        "UNIVERSITY_OF_NORTH_CAROLINA",
+        "UNIVERSITY_OF_TEXAS_AT_AUSTIN",
+        "X11_WEB",
+        "XONA_COM",
+      ],
+    },
   },
 } as const
