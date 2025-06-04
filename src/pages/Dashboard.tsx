@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -168,11 +167,13 @@ const Dashboard = () => {
       }
 
       // Combine tasks with user progress
-      const tasksWithProgress = tasksData.map(task => {
+      const tasksWithProgress: Task[] = tasksData.map(task => {
         const userTask = userTasksData?.find(ut => ut.task_id === task.id);
+        const taskStatus = userTask?.status || 'available';
+        
         return {
           ...task,
-          user_task_status: userTask?.status || 'available'
+          user_task_status: taskStatus as "available" | "in_progress" | "completed" | "expired"
         };
       });
 
@@ -255,9 +256,9 @@ const Dashboard = () => {
       }
 
       // Update user profile with new points and tasks completed
-      const newPoints = userProfile.points + task.points;
-      const newTasksCompleted = userProfile.tasks_completed + 1;
-      const currentLevel = userProfile.level;
+      const newPoints = (userProfile.points || 0) + task.points;
+      const newTasksCompleted = (userProfile.tasks_completed || 0) + 1;
+      const currentLevel = userProfile.level || 1;
       const pointsForNextLevel = currentLevel * 500;
       const newLevel = newPoints >= pointsForNextLevel ? currentLevel + 1 : currentLevel;
 
