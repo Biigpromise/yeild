@@ -36,27 +36,27 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface UserProfile {
   id: string;
-  name: string;
-  email: string;
-  points: number;
-  level: number;
-  tasks_completed: number;
-  avatar_url?: string;
+  name: string | null;
+  email: string | null;
+  points: number | null;
+  level: number | null;
+  tasks_completed: number | null;
+  avatar_url?: string | null;
 }
 
 interface Task {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   points: number;
-  estimated_time: string;
-  category: string;
-  difficulty: "easy" | "medium" | "hard";
-  status: "active" | "inactive" | "expired";
-  expires_at?: string;
-  task_type: string;
-  brand_name?: string;
-  brand_logo_url?: string;
+  estimated_time: string | null;
+  category: string | null;
+  difficulty: string | null;
+  status: string | null;
+  expires_at?: string | null;
+  task_type: string | null;
+  brand_name?: string | null;
+  brand_logo_url?: string | null;
   user_task_status?: "available" | "in_progress" | "completed" | "expired";
 }
 
@@ -80,8 +80,8 @@ const Dashboard = () => {
   const { startOnboarding, hasCompletedOnboarding } = useOnboarding();
 
   // Progress to next level calculation
-  const pointsToNextLevel = userProfile ? (userProfile.level * 500) : 500;
-  const currentProgress = userProfile ? userProfile.points % pointsToNextLevel : 0;
+  const pointsToNextLevel = userProfile ? ((userProfile.level || 1) * 500) : 500;
+  const currentProgress = userProfile ? (userProfile.points || 0) % pointsToNextLevel : 0;
   const progressPercentage = (currentProgress / pointsToNextLevel) * 100;
 
   useEffect(() => {
@@ -306,7 +306,7 @@ const Dashboard = () => {
     return <div className="min-h-screen flex items-center justify-center bg-yeild-black">Loading...</div>;
   }
 
-  const getDifficultyColor = (difficulty: string) => {
+  const getDifficultyColor = (difficulty: string | null) => {
     switch (difficulty) {
       case "easy": return "bg-green-500/20 text-green-400";
       case "medium": return "bg-blue-500/20 text-blue-400";
@@ -315,7 +315,7 @@ const Dashboard = () => {
     }
   };
 
-  const getTaskStatusBadge = (status: string) => {
+  const getTaskStatusBadge = (status: string | undefined) => {
     switch (status) {
       case "available": 
         return <Badge className="bg-yeild-yellow text-yeild-black">Available</Badge>;
@@ -347,11 +347,11 @@ const Dashboard = () => {
           <div className="p-4 border-b border-gray-800 hidden md:block">
             <div className="flex items-center space-x-4">
               <Avatar className="h-10 w-10 border-2 border-yeild-yellow">
-                <img src={userProfile.avatar_url || "https://i.pravatar.cc/150?img=18"} alt={userProfile.name} />
+                <img src={userProfile.avatar_url || "https://i.pravatar.cc/150?img=18"} alt={userProfile.name || "User"} />
               </Avatar>
               <div>
-                <p className="font-medium truncate">{userProfile.name}</p>
-                <p className="text-sm text-gray-400">Level {userProfile.level}</p>
+                <p className="font-medium truncate">{userProfile.name || "User"}</p>
+                <p className="text-sm text-gray-400">Level {userProfile.level || 1}</p>
               </div>
             </div>
           </div>
@@ -439,7 +439,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-4">
               <div>
                 <h1 className="text-xl font-bold hidden md:block">Dashboard</h1>
-                <p className="text-gray-400 text-sm hidden md:block">Welcome back, {userProfile.name}</p>
+                <p className="text-gray-400 text-sm hidden md:block">Welcome back, {userProfile.name || "User"}</p>
               </div>
             </div>
             
@@ -463,7 +463,7 @@ const Dashboard = () => {
               
               {/* Profile Menu (simplified) */}
               <Avatar className="h-8 w-8 cursor-pointer border-2 border-yeild-yellow">
-                <img src={userProfile.avatar_url || "https://i.pravatar.cc/150?img=18"} alt={userProfile.name} />
+                <img src={userProfile.avatar_url || "https://i.pravatar.cc/150?img=18"} alt={userProfile.name || "User"} />
               </Avatar>
             </div>
           </div>
@@ -478,7 +478,7 @@ const Dashboard = () => {
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-400">Total Points</h3>
-                  <p className="text-2xl font-bold text-yeild-yellow">{userProfile.points}</p>
+                  <p className="text-2xl font-bold text-yeild-yellow">{userProfile.points || 0}</p>
                 </div>
                 <div className="bg-yeild-yellow/20 p-2 rounded-lg">
                   <Star className="h-6 w-6 text-yeild-yellow" />
@@ -486,7 +486,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <div className="flex justify-between mb-1 text-sm">
-                  <span>Progress to Level {userProfile.level + 1}</span>
+                  <span>Progress to Level {(userProfile.level || 1) + 1}</span>
                   <span>{currentProgress}/{pointsToNextLevel}</span>
                 </div>
                 <Progress value={progressPercentage} className="h-2 bg-gray-800 [&>div]:bg-yeild-yellow" />
@@ -498,7 +498,7 @@ const Dashboard = () => {
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-400">Tasks Completed</h3>
-                  <p className="text-2xl font-bold">{userProfile.tasks_completed}</p>
+                  <p className="text-2xl font-bold">{userProfile.tasks_completed || 0}</p>
                 </div>
                 <div className="bg-blue-500/20 p-2 rounded-lg">
                   <CheckCircle className="h-6 w-6 text-blue-500" />
@@ -514,7 +514,7 @@ const Dashboard = () => {
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-400">Earnings</h3>
-                  <p className="text-2xl font-bold">${(userProfile.points * 0.01).toFixed(2)}</p>
+                  <p className="text-2xl font-bold">${((userProfile.points || 0) * 0.01).toFixed(2)}</p>
                 </div>
                 <div className="bg-green-500/20 p-2 rounded-lg">
                   <Wallet className="h-6 w-6 text-green-500" />
@@ -531,7 +531,7 @@ const Dashboard = () => {
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-400">Current Level</h3>
-                  <p className="text-2xl font-bold">{userProfile.level}</p>
+                  <p className="text-2xl font-bold">{userProfile.level || 1}</p>
                 </div>
                 <div className="bg-purple-500/20 p-2 rounded-lg">
                   <Award className="h-6 w-6 text-purple-500" />
@@ -555,7 +555,7 @@ const Dashboard = () => {
                         <div className="flex gap-2 mb-2">
                           {getTaskStatusBadge(task.user_task_status || "available")}
                           <Badge variant="outline" className={getDifficultyColor(task.difficulty)}>
-                            {task.difficulty.charAt(0).toUpperCase() + task.difficulty.slice(1)}
+                            {task.difficulty ? task.difficulty.charAt(0).toUpperCase() + task.difficulty.slice(1) : 'Unknown'}
                           </Badge>
                         </div>
                         <h3 className="text-lg font-bold mb-2">{task.title}</h3>
@@ -583,7 +583,7 @@ const Dashboard = () => {
                     {task.brand_name && (
                       <div className="flex items-center mt-2 mb-4">
                         <div className="h-6 w-6 bg-gray-800 rounded-full overflow-hidden mr-2">
-                          <img src={task.brand_logo_url} alt={task.brand_name} className="w-full h-full object-cover" />
+                          <img src={task.brand_logo_url || ''} alt={task.brand_name} className="w-full h-full object-cover" />
                         </div>
                         <span className="text-sm text-gray-300">{task.brand_name}</span>
                       </div>
@@ -642,10 +642,10 @@ const Dashboard = () => {
                         <div className="mb-6 md:mb-0">
                           <div className="text-sm text-gray-400">Available balance</div>
                           <div className="text-4xl font-bold text-yeild-yellow">
-                            ${(userProfile.points * 0.01).toFixed(2)}
+                            ${((userProfile.points || 0) * 0.01).toFixed(2)}
                           </div>
                           <div className="text-sm text-gray-400 mt-1">
-                            {userProfile.points} points
+                            {userProfile.points || 0} points
                           </div>
                         </div>
                         
