@@ -11,6 +11,7 @@ import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
 import { AdminSupport } from "@/components/admin/AdminSupport";
 import { AdminSettings } from "@/components/admin/AdminSettings";
+import { AdminAnnouncements } from "@/components/admin/AdminAnnouncements";
 import {
   LayoutDashboard,
   Users,
@@ -24,7 +25,8 @@ import {
   HeadsetIcon,
   Settings,
   Menu,
-  X
+  X,
+  Megaphone
 } from "lucide-react";
 
 const Admin = () => {
@@ -41,6 +43,7 @@ const Admin = () => {
     streaks: <AdminStreaks />,
     brands: <AdminBrands />,
     notifications: <AdminNotifications />,
+    announcements: <AdminAnnouncements />,
     analytics: <AdminAnalytics />,
     support: <AdminSupport />,
     settings: <AdminSettings />
@@ -56,6 +59,7 @@ const Admin = () => {
     { id: "streaks", label: "Streaks", icon: Medal },
     { id: "brands", label: "Brands", icon: Flag },
     { id: "notifications", label: "Notifications", icon: Bell },
+    { id: "announcements", label: "Announcements", icon: Megaphone },
     { id: "analytics", label: "Analytics", icon: BarChart2 },
     { id: "support", label: "Support", icon: HeadsetIcon },
     { id: "settings", label: "Settings", icon: Settings }
