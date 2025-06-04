@@ -32,6 +32,9 @@ import { useOnboarding } from "@/contexts/OnboardingContext";
 import { TutorialButton } from "@/components/TutorialButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import TaskFilter from "@/components/TaskFilter";
+import TaskHistory from "@/components/TaskHistory";
+import TaskCategories from "@/components/TaskCategories";
 
 interface UserProfile {
   id: string;
@@ -77,6 +80,11 @@ const Dashboard = () => {
   const [activeLevelTab, setActiveLevelTab] = useState("levels");
   const [loading, setLoading] = useState(true);
   const { startOnboarding, hasCompletedOnboarding } = useOnboarding();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [completedTasks, setCompletedTasks] = useState<any[]>([]);
 
   // Progress to next level calculation
   const pointsToNextLevel = userProfile ? ((userProfile.level || 1) * 500) : 500;
@@ -164,6 +172,28 @@ const Dashboard = () => {
 
       if (userTasksError) {
         console.error('Error fetching user tasks:', userTasksError);
+      }
+
+      // Fetch completed tasks for history
+      const { data: completedTasksData, error: completedTasksError } = await supabase
+        .from('user_tasks')
+        .select(`
+          *,
+          tasks (*)
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'completed')
+        .order('completed_at', { ascending: false });
+
+      if (completedTasksError) {
+        console.error('Error fetching completed tasks:', completedTasksError);
+      } else {
+        const formattedCompletedTasks = completedTasksData?.map(userTask => ({
+          ...userTask.tasks,
+          completed_at: userTask.completed_at,
+          points_earned: userTask.points_earned || userTask.tasks.points
+        })) || [];
+        setCompletedTasks(formattedCompletedTasks);
       }
 
       // Combine tasks with user progress
@@ -302,6 +332,48 @@ const Dashboard = () => {
     }
   };
 
+  // Filter tasks based on search and filters
+  const filteredTasks = tasks.filter(task => {
+    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (task.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || task.category === selectedCategory;
+    const matchesDifficulty = selectedDifficulty === "all" || task.difficulty === selectedDifficulty;
+    const matchesStatus = selectedStatus === "all" || task.user_task_status === selectedStatus;
+    
+    return matchesSearch && matchesCategory && matchesDifficulty && matchesStatus;
+  });
+
+  // Calculate task counts for filter component
+  const taskCounts = {
+    total: filteredTasks.length,
+    available: filteredTasks.filter(t => t.user_task_status === "available").length,
+    in_progress: filteredTasks.filter(t => t.user_task_status === "in_progress").length,
+    completed: filteredTasks.filter(t => t.user_task_status === "completed").length,
+  };
+
+  // Handle filter clearing
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory("all");
+    setSelectedDifficulty("all");
+    setSelectedStatus("all");
+  };
+
+  // Handle category selection from TaskCategories
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setActiveTab("tasks");
+  };
+
+  // Calculate category data for TaskCategories component
+  const categoryData = [
+    { id: "survey", taskCount: tasks.filter(t => t.category === "survey").length, averagePoints: 50 },
+    { id: "app_testing", taskCount: tasks.filter(t => t.category === "app_testing").length, averagePoints: 100 },
+    { id: "content_creation", taskCount: tasks.filter(t => t.category === "content_creation").length, averagePoints: 150 },
+    { id: "social_media", taskCount: tasks.filter(t => t.category === "social_media").length, averagePoints: 75 },
+    { id: "research", taskCount: tasks.filter(t => t.category === "research").length, averagePoints: 200 },
+  ];
+
   // If loading or no user profile, show loading
   if (loading || !userProfile) {
     return <div className="min-h-screen flex items-center justify-center bg-yeild-black">Loading...</div>;
@@ -376,6 +448,24 @@ const Dashboard = () => {
               >
                 <LayoutGrid className="h-5 w-5 mr-3 md:mr-4" />
                 <span className="hidden md:block">Tasks</span>
+              </Button>
+
+              <Button 
+                variant="ghost" 
+                className={`w-full justify-start ${activeTab === 'categories' ? 'bg-gray-800 text-yeild-yellow' : 'text-white hover:bg-gray-800 hover:text-yeild-yellow'}`}
+                onClick={() => setActiveTab("categories")}
+              >
+                <LayoutGrid className="h-5 w-5 mr-3 md:mr-4" />
+                <span className="hidden md:block">Categories</span>
+              </Button>
+
+              <Button 
+                variant="ghost" 
+                className={`w-full justify-start ${activeTab === 'history' ? 'bg-gray-800 text-yeild-yellow' : 'text-white hover:bg-gray-800 hover:text-yeild-yellow'}`}
+                onClick={() => setActiveTab("history")}
+              >
+                <CheckCircle className="h-5 w-5 mr-3 md:mr-4" />
+                <span className="hidden md:block">History</span>
               </Button>
               
               <Button 
@@ -547,9 +637,28 @@ const Dashboard = () => {
           {/* Main Content based on active tab */}
           {activeTab === "tasks" && (
             <>
-              <h2 className="text-2xl font-bold mb-6">Available Tasks</h2>
+              <TaskFilter
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                selectedCategory={selectedCategory}
+                onCategoryChange={setSelectedCategory}
+                selectedDifficulty={selectedDifficulty}
+                onDifficultyChange={setSelectedDifficulty}
+                selectedStatus={selectedStatus}
+                onStatusChange={setSelectedStatus}
+                taskCounts={taskCounts}
+                onClearFilters={handleClearFilters}
+              />
+
+              <h2 className="text-2xl font-bold mb-6">
+                {selectedCategory !== "all" ? 
+                  `${selectedCategory.replace('_', ' ').toUpperCase()} Tasks` : 
+                  "Available Tasks"
+                } ({filteredTasks.length})
+              </h2>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-tab="tasks">
-                {tasks.map((task) => (
+                {filteredTasks.map((task) => (
                   <div key={task.id} className="yeild-card h-full flex flex-col">
                     <div className="flex justify-between items-start mb-4">
                       <div>
@@ -625,6 +734,21 @@ const Dashboard = () => {
                 ))}
               </div>
             </>
+          )}
+
+          {activeTab === "categories" && (
+            <TaskCategories
+              categories={categoryData}
+              onCategorySelect={handleCategorySelect}
+            />
+          )}
+
+          {activeTab === "history" && (
+            <TaskHistory
+              completedTasks={completedTasks}
+              totalPointsEarned={userProfile.points || 0}
+              totalTasksCompleted={userProfile.tasks_completed || 0}
+            />
           )}
           
           {activeTab === "wallet" && (
