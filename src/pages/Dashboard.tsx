@@ -19,7 +19,11 @@ import {
   Clock,
   CheckCircle,
   ArrowRight,
-  ChevronUp
+  ChevronUp,
+  FileText, 
+  Smartphone, 
+  PenTool, 
+  Share2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -367,11 +371,51 @@ const Dashboard = () => {
 
   // Calculate category data for TaskCategories component
   const categoryData = [
-    { id: "survey", taskCount: tasks.filter(t => t.category === "survey").length, averagePoints: 50 },
-    { id: "app_testing", taskCount: tasks.filter(t => t.category === "app_testing").length, averagePoints: 100 },
-    { id: "content_creation", taskCount: tasks.filter(t => t.category === "content_creation").length, averagePoints: 150 },
-    { id: "social_media", taskCount: tasks.filter(t => t.category === "social_media").length, averagePoints: 75 },
-    { id: "research", taskCount: tasks.filter(t => t.category === "research").length, averagePoints: 200 },
+    { 
+      id: "survey", 
+      name: "Surveys",
+      description: "Share your opinions and feedback on various topics",
+      icon: <FileText className="h-6 w-6" />,
+      taskCount: tasks.filter(t => t.category === "survey").length, 
+      color: "text-blue-400",
+      averagePoints: 50 
+    },
+    { 
+      id: "app_testing", 
+      name: "App Testing",
+      description: "Test mobile apps and websites for usability issues",
+      icon: <Smartphone className="h-6 w-6" />,
+      taskCount: tasks.filter(t => t.category === "app_testing").length, 
+      color: "text-green-400",
+      averagePoints: 100 
+    },
+    { 
+      id: "content_creation", 
+      name: "Content Creation",
+      description: "Create reviews, write descriptions, or generate content",
+      icon: <PenTool className="h-6 w-6" />,
+      taskCount: tasks.filter(t => t.category === "content_creation").length, 
+      color: "text-purple-400",
+      averagePoints: 150 
+    },
+    { 
+      id: "social_media", 
+      name: "Social Media",
+      description: "Engage with brands on social platforms",
+      icon: <Share2 className="h-6 w-6" />,
+      taskCount: tasks.filter(t => t.category === "social_media").length, 
+      color: "text-pink-400",
+      averagePoints: 75 
+    },
+    { 
+      id: "research", 
+      name: "Research",
+      description: "Participate in market research and data collection",
+      icon: <Search className="h-6 w-6" />,
+      taskCount: tasks.filter(t => t.category === "research").length, 
+      color: "text-yellow-400",
+      averagePoints: 200 
+    },
   ];
 
   // If loading or no user profile, show loading
