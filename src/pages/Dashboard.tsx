@@ -37,7 +37,71 @@ const Dashboard = () => {
     { id: 3, message: "Referral bonus: +100 points", read: true }
   ]);
 
+  // Task filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+
+  // Mock data for task categories
+  const [categories] = useState([
+    { id: "survey", name: "Surveys", taskCount: 15, averagePoints: 50 },
+    { id: "app_testing", name: "App Testing", taskCount: 8, averagePoints: 100 },
+    { id: "content_creation", name: "Content Creation", taskCount: 12, averagePoints: 150 },
+    { id: "social_media", name: "Social Media", taskCount: 20, averagePoints: 75 },
+    { id: "research", name: "Research", taskCount: 5, averagePoints: 200 }
+  ]);
+
+  // Mock data for completed tasks
+  const [completedTasks] = useState([
+    {
+      id: "1",
+      title: "Complete Product Survey",
+      description: "Share your feedback on our new product features",
+      points: 50,
+      category: "survey",
+      difficulty: "easy",
+      brand_name: "TechCorp",
+      brand_logo_url: "",
+      completed_at: "2024-01-15T10:30:00Z",
+      points_earned: 50
+    },
+    {
+      id: "2", 
+      title: "Test Mobile App",
+      description: "Test the new mobile app and report any bugs",
+      points: 100,
+      category: "app_testing",
+      difficulty: "medium",
+      brand_name: "AppStudio",
+      brand_logo_url: "",
+      completed_at: "2024-01-14T14:20:00Z",
+      points_earned: 100
+    }
+  ]);
+
+  // Task counts for filter
+  const taskCounts = {
+    available: 45,
+    in_progress: 3,
+    completed: completedTasks.length,
+    total: 50
+  };
+
+  const totalPointsEarned = completedTasks.reduce((sum, task) => sum + task.points_earned, 0);
+
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory("all");
+    setSelectedDifficulty("all");
+    setSelectedStatus("all");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -141,8 +205,22 @@ const Dashboard = () => {
           <TabsContent value="tasks" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               <div className="lg:col-span-3 space-y-6">
-                <TaskFilter />
-                <TaskCategories />
+                <TaskFilter
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  selectedCategory={selectedCategory}
+                  onCategoryChange={setSelectedCategory}
+                  selectedDifficulty={selectedDifficulty}
+                  onDifficultyChange={setSelectedDifficulty}
+                  selectedStatus={selectedStatus}
+                  onStatusChange={setSelectedStatus}
+                  taskCounts={taskCounts}
+                  onClearFilters={handleClearFilters}
+                />
+                <TaskCategories
+                  categories={categories}
+                  onCategorySelect={handleCategorySelect}
+                />
               </div>
               <div className="space-y-6">
                 {/* Quick Actions */}
@@ -212,7 +290,11 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="history">
-            <TaskHistory />
+            <TaskHistory
+              completedTasks={completedTasks}
+              totalPointsEarned={totalPointsEarned}
+              totalTasksCompleted={completedTasks.length}
+            />
           </TabsContent>
         </Tabs>
       </div>
