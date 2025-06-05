@@ -1,8 +1,8 @@
 
 import React, { useState } from "react";
-import { TaskCategories } from "@/components/TaskCategories";
-import { TaskFilter } from "@/components/TaskFilter";
-import { TaskHistory } from "@/components/TaskHistory";
+import TaskCategories from "@/components/TaskCategories";
+import TaskFilter from "@/components/TaskFilter";
+import TaskHistory from "@/components/TaskHistory";
 import { Leaderboard } from "@/components/Leaderboard";
 import { ReferralSystem } from "@/components/ReferralSystem";
 import { NotificationCenter } from "@/components/NotificationCenter";
