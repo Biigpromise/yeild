@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import TaskCategories from "@/components/TaskCategories";
 import TaskFilter from "@/components/TaskFilter";
@@ -18,7 +17,12 @@ import {
   TrendingUp,
   Award,
   Star,
-  Target
+  Target,
+  FileText,
+  Smartphone,
+  PenTool,
+  Share2,
+  Search
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -43,13 +47,53 @@ const Dashboard = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
-  // Mock data for task categories
+  // Mock data for task categories - updated to match TaskCategory interface
   const [categories] = useState([
-    { id: "survey", name: "Surveys", taskCount: 15, averagePoints: 50 },
-    { id: "app_testing", name: "App Testing", taskCount: 8, averagePoints: 100 },
-    { id: "content_creation", name: "Content Creation", taskCount: 12, averagePoints: 150 },
-    { id: "social_media", name: "Social Media", taskCount: 20, averagePoints: 75 },
-    { id: "research", name: "Research", taskCount: 5, averagePoints: 200 }
+    { 
+      id: "survey", 
+      name: "Surveys", 
+      description: "Share your opinions and feedback on various topics",
+      icon: <FileText className="h-6 w-6" />,
+      taskCount: 15, 
+      averagePoints: 50,
+      color: "text-blue-400"
+    },
+    { 
+      id: "app_testing", 
+      name: "App Testing", 
+      description: "Test mobile apps and websites for usability issues",
+      icon: <Smartphone className="h-6 w-6" />,
+      taskCount: 8, 
+      averagePoints: 100,
+      color: "text-green-400"
+    },
+    { 
+      id: "content_creation", 
+      name: "Content Creation", 
+      description: "Create reviews, write descriptions, or generate content",
+      icon: <PenTool className="h-6 w-6" />,
+      taskCount: 12, 
+      averagePoints: 150,
+      color: "text-purple-400"
+    },
+    { 
+      id: "social_media", 
+      name: "Social Media", 
+      description: "Engage with brands on social platforms",
+      icon: <Share2 className="h-6 w-6" />,
+      taskCount: 20, 
+      averagePoints: 75,
+      color: "text-pink-400"
+    },
+    { 
+      id: "research", 
+      name: "Research", 
+      description: "Participate in market research and data collection",
+      icon: <Search className="h-6 w-6" />,
+      taskCount: 5, 
+      averagePoints: 200,
+      color: "text-yellow-400"
+    }
   ]);
 
   // Mock data for completed tasks
