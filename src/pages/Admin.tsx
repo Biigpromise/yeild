@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import { AdminOverview } from "@/components/admin/AdminOverview";
 import { AdminUsers } from "@/components/admin/AdminUsers";
-import { AdminTasks } from "@/components/admin/AdminTasks";
+import { TaskManagement } from "@/components/admin/TaskManagement";
 import { AdminWallet } from "@/components/admin/AdminWallet";
 import { AdminReferrals } from "@/components/admin/AdminReferrals";
 import { AdminStreaks } from "@/components/admin/AdminStreaks";
@@ -37,7 +36,7 @@ const Admin = () => {
   const sectionComponents = {
     dashboard: <AdminOverview />,
     users: <AdminUsers />,
-    tasks: <AdminTasks />,
+    tasks: <TaskManagement />,
     wallet: <AdminWallet />,
     referrals: <AdminReferrals />,
     streaks: <AdminStreaks />,
