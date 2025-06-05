@@ -21,7 +21,9 @@ const Login = () => {
 
   // Handle redirect after auth state is determined
   useEffect(() => {
+    console.log("Auth state changed - loading:", loading, "user:", user?.email);
     if (!loading && user) {
+      console.log("User authenticated, redirecting to dashboard");
       navigate("/dashboard");
     }
   }, [user, loading, navigate]);
@@ -49,11 +51,13 @@ const Login = () => {
     }
 
     setIsLoading(true);
+    console.log("Attempting login for:", email);
     
     try {
       const { error } = await signIn(email, password);
       
       if (error) {
+        console.error("Login error:", error);
         if (error.message.includes("Invalid login credentials")) {
           toast.error("Invalid email or password");
         } else if (error.message.includes("Email not confirmed")) {
@@ -62,10 +66,12 @@ const Login = () => {
           toast.error(error.message || "Login failed");
         }
       } else {
+        console.log("Login successful");
         toast.success("Welcome back!");
-        navigate("/dashboard");
+        // Don't navigate here - let the useEffect handle it based on auth state
       }
     } catch (error) {
+      console.error("Unexpected login error:", error);
       toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
@@ -73,12 +79,15 @@ const Login = () => {
   };
 
   const handleSocialLogin = async (provider: 'google' | 'github') => {
+    console.log("Attempting social login with:", provider);
     try {
       const { error } = await signInWithProvider(provider);
       if (error) {
+        console.error("Social login error:", error);
         toast.error(`Failed to sign in with ${provider}`);
       }
     } catch (error) {
+      console.error("Social login unexpected error:", error);
       toast.error("Social login failed");
     }
   };

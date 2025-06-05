@@ -33,6 +33,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("AuthProvider: Setting up auth listeners");
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -45,16 +47,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session check:", session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log("AuthProvider: Cleaning up auth listeners");
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, name?: string) => {
     try {
+      console.log("Attempting signup for:", email);
       const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signUp({
@@ -65,38 +72,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           data: name ? { name } : undefined
         }
       });
+      
+      if (error) {
+        console.error("Signup error:", error);
+      } else {
+        console.log("Signup successful");
+      }
+      
       return { error };
     } catch (error) {
+      console.error("Signup unexpected error:", error);
       return { error };
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log("AuthContext: Attempting sign in for:", email);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+      
+      if (error) {
+        console.error("AuthContext: Sign in error:", error);
+      } else {
+        console.log("AuthContext: Sign in successful");
+      }
+      
       return { error };
     } catch (error) {
+      console.error("AuthContext: Sign in unexpected error:", error);
       return { error };
     }
   };
 
   const signOut = async () => {
+    console.log("AuthContext: Signing out");
     await supabase.auth.signOut();
   };
 
   const signInWithProvider = async (provider: 'google' | 'github' | 'twitter') => {
     try {
+      console.log("AuthContext: Attempting provider sign in with:", provider);
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/`
         }
       });
+      
+      if (error) {
+        console.error("AuthContext: Provider sign in error:", error);
+      }
+      
       return { error };
     } catch (error) {
+      console.error("AuthContext: Provider sign in unexpected error:", error);
       return { error };
     }
   };
