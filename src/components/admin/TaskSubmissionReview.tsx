@@ -20,7 +20,7 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [adminNotes, setAdminNotes] = useState("");
-  const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
+  const [actionType, setActionType] = useState<'approved' | 'rejected' | null>(null);
 
   const handleViewSubmission = (submission: any) => {
     setSelectedSubmission(submission);
@@ -28,7 +28,7 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
     setIsModalOpen(true);
   };
 
-  const handleAction = (type: 'approve' | 'reject') => {
+  const handleAction = (type: 'approved' | 'rejected') => {
     setActionType(type);
   };
 
@@ -127,7 +127,7 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
                               className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
                               onClick={() => {
                                 setSelectedSubmission(submission);
-                                setActionType('approve');
+                                setActionType('approved');
                                 confirmAction();
                               }}
                             >
@@ -139,7 +139,7 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
                               className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
                               onClick={() => {
                                 setSelectedSubmission(submission);
-                                setActionType('reject');
+                                setActionType('rejected');
                                 confirmAction();
                               }}
                             >
@@ -228,14 +228,14 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
                   <Button 
                     variant="outline"
                     className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-                    onClick={() => handleAction('reject')}
+                    onClick={() => handleAction('rejected')}
                   >
                     <XCircle className="h-4 w-4 mr-2" />
                     Reject
                   </Button>
                   <Button 
                     className="bg-green-600 hover:bg-green-700"
-                    onClick={() => handleAction('approve')}
+                    onClick={() => handleAction('approved')}
                   >
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Approve & Award Points
@@ -246,10 +246,10 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
               {actionType && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-md">
                   <p className="text-sm font-medium mb-2">
-                    Confirm {actionType === 'approve' ? 'Approval' : 'Rejection'}
+                    Confirm {actionType === 'approved' ? 'Approval' : 'Rejection'}
                   </p>
                   <p className="text-sm text-muted-foreground mb-3">
-                    {actionType === 'approve' 
+                    {actionType === 'approved' 
                       ? `This will award ${selectedSubmission.tasks?.points} points to the user.`
                       : 'This will reject the submission without awarding points.'
                     }
@@ -259,7 +259,7 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
                       Cancel
                     </Button>
                     <Button onClick={confirmAction}>
-                      Confirm {actionType === 'approve' ? 'Approval' : 'Rejection'}
+                      Confirm {actionType === 'approved' ? 'Approval' : 'Rejection'}
                     </Button>
                   </div>
                 </div>

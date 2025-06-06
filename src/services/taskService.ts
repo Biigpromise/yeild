@@ -37,6 +37,20 @@ export interface TaskCategory {
   color: string;
 }
 
+export interface CreateTaskData {
+  title: string;
+  description: string;
+  points: number;
+  category?: string;
+  category_id?: string;
+  difficulty?: string;
+  status?: string;
+  brand_name?: string;
+  brand_logo_url?: string;
+  estimated_time?: string;
+  expires_at?: string;
+}
+
 export const taskService = {
   // Get all active tasks
   async getTasks() {
@@ -126,7 +140,7 @@ export const taskService = {
     },
 
     // Create a new task
-    async createTask(task: Partial<Task>) {
+    async createTask(task: CreateTaskData) {
       const { data, error } = await supabase
         .from('tasks')
         .insert(task)
