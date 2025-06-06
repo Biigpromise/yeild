@@ -96,11 +96,89 @@ export type Database = {
         }
         Relationships: []
       }
+      task_categories: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      task_submissions: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          evidence: string | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          submitted_at: string | null
+          task_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          evidence?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          task_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          evidence?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          task_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_submissions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           brand_logo_url: string | null
           brand_name: string | null
           category: string | null
+          category_id: string | null
           created_at: string | null
           description: string | null
           difficulty: string | null
@@ -116,6 +194,7 @@ export type Database = {
           brand_logo_url?: string | null
           brand_name?: string | null
           category?: string | null
+          category_id?: string | null
           created_at?: string | null
           description?: string | null
           difficulty?: string | null
@@ -131,6 +210,7 @@ export type Database = {
           brand_logo_url?: string | null
           brand_name?: string | null
           category?: string | null
+          category_id?: string | null
           created_at?: string | null
           description?: string | null
           difficulty?: string | null
@@ -141,6 +221,38 @@ export type Database = {
           status?: string | null
           task_type?: string | null
           title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "task_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          role?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -200,6 +312,10 @@ export type Database = {
           level: number
           tasks_completed: number
         }[]
+      }
+      has_role: {
+        Args: { _user_id: string; _role: string }
+        Returns: boolean
       }
     }
     Enums: {

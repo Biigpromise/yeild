@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
+import { taskService } from "@/services/taskService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
@@ -22,11 +23,6 @@ import {
   Award,
   Star,
   Target,
-  FileText,
-  Smartphone,
-  PenTool,
-  Share2,
-  Search,
   LogOut,
   User
 } from "lucide-react";
@@ -42,6 +38,9 @@ const Dashboard = () => {
     rank: 142,
     referrals: 3
   });
+  const [userTasks, setUserTasks] = useState<any[]>([]);
+  const [userSubmissions, setUserSubmissions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [notifications] = useState([
     { id: 1, message: "New task available: Complete Survey", read: false },
@@ -55,37 +54,53 @@ const Dashboard = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
-  // Fetch user profile data
+  // Fetch user data
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!user) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        
-        if (error) {
-          console.error('Error fetching profile:', error);
-          return;
-        }
-        
-        setUserProfile(data);
-        setUserStats(prev => ({
-          ...prev,
-          points: data.points || 0,
-          level: data.level || 1,
-          tasksCompleted: data.tasks_completed || 0
-        }));
-      } catch (error) {
-        console.error('Unexpected error:', error);
-      }
-    };
-
-    fetchUserProfile();
+    loadUserData();
   }, [user]);
+
+  const loadUserData = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      
+      // Fetch user profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        return;
+      }
+      
+      setUserProfile(profile);
+      setUserStats(prev => ({
+        ...prev,
+        points: profile.points || 0,
+        level: profile.level || 1,
+        tasksCompleted: profile.tasks_completed || 0
+      }));
+
+      // Fetch user tasks and submissions
+      const [tasksData, submissionsData] = await Promise.all([
+        taskService.getUserTasks(),
+        taskService.getUserSubmissions()
+      ]);
+      
+      setUserTasks(tasksData);
+      setUserSubmissions(submissionsData);
+      
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      toast.error("Failed to load user data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -96,93 +111,15 @@ const Dashboard = () => {
     }
   };
 
-  // Mock data for task categories - updated to match TaskCategory interface
-  const [categories] = useState([
-    { 
-      id: "survey", 
-      name: "Surveys", 
-      description: "Share your opinions and feedback on various topics",
-      icon: <FileText className="h-6 w-6" />,
-      taskCount: 15, 
-      averagePoints: 50,
-      color: "text-blue-400"
-    },
-    { 
-      id: "app_testing", 
-      name: "App Testing", 
-      description: "Test mobile apps and websites for usability issues",
-      icon: <Smartphone className="h-6 w-6" />,
-      taskCount: 8, 
-      averagePoints: 100,
-      color: "text-green-400"
-    },
-    { 
-      id: "content_creation", 
-      name: "Content Creation", 
-      description: "Create reviews, write descriptions, or generate content",
-      icon: <PenTool className="h-6 w-6" />,
-      taskCount: 12, 
-      averagePoints: 150,
-      color: "text-purple-400"
-    },
-    { 
-      id: "social_media", 
-      name: "Social Media", 
-      description: "Engage with brands on social platforms",
-      icon: <Share2 className="h-6 w-6" />,
-      taskCount: 20, 
-      averagePoints: 75,
-      color: "text-pink-400"
-    },
-    { 
-      id: "research", 
-      name: "Research", 
-      description: "Participate in market research and data collection",
-      icon: <Search className="h-6 w-6" />,
-      taskCount: 5, 
-      averagePoints: 200,
-      color: "text-yellow-400"
-    }
-  ]);
-
-  // Mock data for completed tasks
-  const [completedTasks] = useState([
-    {
-      id: "1",
-      title: "Complete Product Survey",
-      description: "Share your feedback on our new product features",
-      points: 50,
-      category: "survey",
-      difficulty: "easy",
-      brand_name: "TechCorp",
-      brand_logo_url: "",
-      completed_at: "2024-01-15T10:30:00Z",
-      points_earned: 50
-    },
-    {
-      id: "2", 
-      title: "Test Mobile App",
-      description: "Test the new mobile app and report any bugs",
-      points: 100,
-      category: "app_testing",
-      difficulty: "medium",
-      brand_name: "AppStudio",
-      brand_logo_url: "",
-      completed_at: "2024-01-14T14:20:00Z",
-      points_earned: 100
-    }
-  ]);
-
-  // Task counts for filter
+  // Calculate task counts
   const taskCounts = {
-    available: 45,
-    in_progress: 3,
-    completed: completedTasks.length,
+    available: 45, // This would come from a real API call
+    in_progress: userSubmissions.filter(s => s.status === 'pending').length,
+    completed: userTasks.length,
     total: 50
   };
 
-  const totalPointsEarned = completedTasks.reduce((sum, task) => sum + task.points_earned, 0);
-
+  const totalPointsEarned = userTasks.reduce((sum, task) => sum + (task.points_earned || 0), 0);
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleCategorySelect = (categoryId: string) => {
@@ -195,6 +132,23 @@ const Dashboard = () => {
     setSelectedDifficulty("all");
     setSelectedStatus("all");
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <div className="animate-pulse space-y-8">
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="grid grid-cols-6 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-20 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -318,10 +272,7 @@ const Dashboard = () => {
                   taskCounts={taskCounts}
                   onClearFilters={handleClearFilters}
                 />
-                <TaskCategories
-                  categories={categories}
-                  onCategorySelect={handleCategorySelect}
-                />
+                <TaskCategories onCategorySelect={handleCategorySelect} />
               </div>
               <div className="space-y-6">
                 {/* Quick Actions */}
@@ -351,27 +302,20 @@ const Dashboard = () => {
                     <CardTitle className="text-lg">Recent Activity</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div className="text-sm">
-                      <div className="flex justify-between items-center">
-                        <span>Survey completed</span>
-                        <span className="text-muted-foreground">+50 pts</span>
+                    {userTasks.slice(0, 3).map((task, index) => (
+                      <div key={task.id} className="text-sm">
+                        <div className="flex justify-between items-center">
+                          <span>{task.tasks?.title || 'Task completed'}</span>
+                          <span className="text-muted-foreground">+{task.points_earned || 0} pts</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {task.completed_at ? new Date(task.completed_at).toLocaleDateString() : 'Recently'}
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground">2 hours ago</div>
-                    </div>
-                    <div className="text-sm">
-                      <div className="flex justify-between items-center">
-                        <span>Social media share</span>
-                        <span className="text-muted-foreground">+25 pts</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground">1 day ago</div>
-                    </div>
-                    <div className="text-sm">
-                      <div className="flex justify-between items-center">
-                        <span>Referral bonus</span>
-                        <span className="text-muted-foreground">+100 pts</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground">2 days ago</div>
-                    </div>
+                    ))}
+                    {userTasks.length === 0 && (
+                      <p className="text-sm text-muted-foreground">No recent activity</p>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -392,9 +336,9 @@ const Dashboard = () => {
 
           <TabsContent value="history">
             <TaskHistory
-              completedTasks={completedTasks}
+              completedTasks={userTasks}
               totalPointsEarned={totalPointsEarned}
-              totalTasksCompleted={completedTasks.length}
+              totalTasksCompleted={userTasks.length}
             />
           </TabsContent>
         </Tabs>
