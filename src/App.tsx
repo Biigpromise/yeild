@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,10 +11,11 @@ import Dashboard from "./pages/Dashboard";
 import BrandSignup from "./pages/BrandSignup";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import Profile from "@/pages/Profile";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { OnboardingTutorial } from "./components/OnboardingTutorial";
-import Profile from "@/pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -31,10 +33,22 @@ function App() {
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<SignUp />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
                   <Route path="/brand-signup" element={<BrandSignup />} />
-                  <Route path="/admin" element={<Admin />} />
-                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/admin" element={
+                    <ProtectedRoute>
+                      <Admin />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

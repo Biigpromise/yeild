@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import TaskCategories from "@/components/TaskCategories";
 import TaskFilter from "@/components/TaskFilter";
 import TaskHistory from "@/components/TaskHistory";
@@ -9,6 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { 
   Trophy, 
   Users, 
@@ -22,14 +26,18 @@ import {
   Smartphone,
   PenTool,
   Share2,
-  Search
+  Search,
+  LogOut,
+  User
 } from "lucide-react";
 
 const Dashboard = () => {
-  const [userStats] = useState({
-    points: 2450,
-    level: 12,
-    tasksCompleted: 38,
+  const { user, signOut } = useAuth();
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userStats, setUserStats] = useState({
+    points: 0,
+    level: 1,
+    tasksCompleted: 0,
     currentStreak: 5,
     rank: 142,
     referrals: 3
@@ -46,6 +54,47 @@ const Dashboard = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
+
+  // Fetch user profile data
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
+        
+        setUserProfile(data);
+        setUserStats(prev => ({
+          ...prev,
+          points: data.points || 0,
+          level: data.level || 1,
+          tasksCompleted: data.tasks_completed || 0
+        }));
+      } catch (error) {
+        console.error('Unexpected error:', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Logged out successfully");
+    } catch (error) {
+      toast.error("Error logging out");
+    }
+  };
 
   // Mock data for task categories - updated to match TaskCategory interface
   const [categories] = useState([
@@ -156,7 +205,7 @@ const Dashboard = () => {
             <div>
               <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
               <p className="text-muted-foreground">
-                Welcome back! Ready to earn some rewards?
+                Welcome back, {userProfile?.name || user?.email}! Ready to earn some rewards?
               </p>
             </div>
             <div className="flex gap-3">
@@ -167,6 +216,14 @@ const Dashboard = () => {
                     {unreadCount}
                   </Badge>
                 )}
+              </Button>
+              <Button variant="outline" onClick={() => window.location.href = "/profile"}>
+                <User className="h-4 w-4 mr-2" />
+                Profile
+              </Button>
+              <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
               </Button>
               <Button>
                 <Target className="h-4 w-4 mr-2" />
