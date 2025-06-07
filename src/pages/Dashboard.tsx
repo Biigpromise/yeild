@@ -358,11 +358,11 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="rewards">
-            <RewardsStore />
+            <RewardsStore userPoints={userStats.points} onRedemption={loadUserData} />
           </TabsContent>
 
           <TabsContent value="achievements">
-            <AchievementsList />
+            <AchievementsList userStats={userStats} />
           </TabsContent>
 
           <TabsContent value="wallet">
