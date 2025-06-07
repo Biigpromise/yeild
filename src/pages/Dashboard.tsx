@@ -164,13 +164,13 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="container mx-auto px-4 py-4 max-w-7xl">
         {/* Compact Header */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-4">
+        <div className="mb-4">
+          <div className="flex justify-between items-center mb-3">
             <div>
-              <h1 className="text-2xl font-bold mb-1">Dashboard</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-xl font-bold mb-1">Dashboard</h1>
+              <p className="text-xs text-muted-foreground">
                 Welcome back, {userProfile?.name || user?.email}!
               </p>
             </div>
@@ -218,83 +218,85 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-            <Card>
-              <CardContent className="p-3 text-center">
-                <div className="text-xl font-bold text-primary">{userStats.points.toLocaleString()}</div>
+          {/* Compact Quick Stats */}
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-2 text-center">
+                <div className="text-lg font-bold text-primary">{userStats.points.toLocaleString()}</div>
                 <div className="text-xs text-muted-foreground">Points</div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-3 text-center">
-                <div className="text-xl font-bold text-purple-600">{userStats.level}</div>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-2 text-center">
+                <div className="text-lg font-bold text-purple-600">{userStats.level}</div>
                 <div className="text-xs text-muted-foreground">Level</div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-3 text-center">
-                <div className="text-xl font-bold text-green-600">{userStats.tasksCompleted}</div>
-                <div className="text-xs text-muted-foreground">Tasks Done</div>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-2 text-center">
+                <div className="text-lg font-bold text-green-600">{userStats.tasksCompleted}</div>
+                <div className="text-xs text-muted-foreground">Tasks</div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-3 text-center">
-                <div className="text-xl font-bold text-orange-600">{userStats.currentStreak}</div>
-                <div className="text-xs text-muted-foreground">Day Streak</div>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-2 text-center">
+                <div className="text-lg font-bold text-orange-600">{userStats.currentStreak}</div>
+                <div className="text-xs text-muted-foreground">Streak</div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-3 text-center">
-                <div className="text-xl font-bold text-blue-600">#{userStats.rank}</div>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-2 text-center">
+                <div className="text-lg font-bold text-blue-600">#{userStats.rank}</div>
                 <div className="text-xs text-muted-foreground">Rank</div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-3 text-center">
-                <div className="text-xl font-bold text-pink-600">{userStats.referrals}</div>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-2 text-center">
+                <div className="text-lg font-bold text-pink-600">{userStats.referrals}</div>
                 <div className="text-xs text-muted-foreground">Referrals</div>
               </CardContent>
             </Card>
           </div>
         </div>
 
-        {/* Main Content */}
-        <Tabs defaultValue="tasks" className="space-y-4">
-          <TabsList className="grid w-full max-w-4xl grid-cols-7">
-            <TabsTrigger value="tasks" className="flex items-center gap-1 text-xs">
-              <Target className="h-3 w-3" />
-              Tasks
-            </TabsTrigger>
-            <TabsTrigger value="rewards" className="flex items-center gap-1 text-xs">
-              <Gift className="h-3 w-3" />
-              Rewards
-            </TabsTrigger>
-            <TabsTrigger value="achievements" className="flex items-center gap-1 text-xs">
-              <Award className="h-3 w-3" />
-              Achievements
-            </TabsTrigger>
-            <TabsTrigger value="wallet" className="flex items-center gap-1 text-xs">
-              <Wallet className="h-3 w-3" />
-              Wallet
-            </TabsTrigger>
-            <TabsTrigger value="leaderboard" className="flex items-center gap-1 text-xs">
-              <Trophy className="h-3 w-3" />
-              Leaderboard
-            </TabsTrigger>
-            <TabsTrigger value="referrals" className="flex items-center gap-1 text-xs">
-              <Users className="h-3 w-3" />
-              Referrals
-            </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-1 text-xs">
-              <TrendingUp className="h-3 w-3" />
-              History
-            </TabsTrigger>
-          </TabsList>
+        {/* Compact Main Content */}
+        <Tabs defaultValue="tasks" className="space-y-3">
+          <div className="flex justify-center">
+            <TabsList className="grid grid-cols-7 h-9 w-fit bg-muted/50 p-0.5">
+              <TabsTrigger value="tasks" className="flex items-center gap-1 text-xs px-2 py-1">
+                <Target className="h-3 w-3" />
+                <span className="hidden sm:inline">Tasks</span>
+              </TabsTrigger>
+              <TabsTrigger value="rewards" className="flex items-center gap-1 text-xs px-2 py-1">
+                <Gift className="h-3 w-3" />
+                <span className="hidden sm:inline">Rewards</span>
+              </TabsTrigger>
+              <TabsTrigger value="achievements" className="flex items-center gap-1 text-xs px-2 py-1">
+                <Award className="h-3 w-3" />
+                <span className="hidden sm:inline">Achievements</span>
+              </TabsTrigger>
+              <TabsTrigger value="wallet" className="flex items-center gap-1 text-xs px-2 py-1">
+                <Wallet className="h-3 w-3" />
+                <span className="hidden sm:inline">Wallet</span>
+              </TabsTrigger>
+              <TabsTrigger value="leaderboard" className="flex items-center gap-1 text-xs px-2 py-1">
+                <Trophy className="h-3 w-3" />
+                <span className="hidden sm:inline">Leaderboard</span>
+              </TabsTrigger>
+              <TabsTrigger value="referrals" className="flex items-center gap-1 text-xs px-2 py-1">
+                <Users className="h-3 w-3" />
+                <span className="hidden sm:inline">Referrals</span>
+              </TabsTrigger>
+              <TabsTrigger value="history" className="flex items-center gap-1 text-xs px-2 py-1">
+                <TrendingUp className="h-3 w-3" />
+                <span className="hidden sm:inline">History</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="tasks" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              <div className="lg:col-span-3 space-y-6">
+          <TabsContent value="tasks" className="space-y-4 mt-3">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+              <div className="lg:col-span-3 space-y-4">
                 <TaskFilter
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
@@ -309,22 +311,22 @@ const Dashboard = () => {
                 />
                 <TaskCategories onCategorySelect={handleCategorySelect} />
               </div>
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Quick Actions */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Quick Actions</CardTitle>
+                <Card className="border-0 shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Quick Actions</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button className="w-full justify-start">
+                  <CardContent className="space-y-2 pt-0">
+                    <Button size="sm" className="w-full justify-start">
                       <Star className="h-4 w-4 mr-2" />
                       Daily Check-in
                     </Button>
-                    <Button variant="outline" className="w-full justify-start">
+                    <Button variant="outline" size="sm" className="w-full justify-start">
                       <Gift className="h-4 w-4 mr-2" />
                       Claim Rewards
                     </Button>
-                    <Button variant="outline" className="w-full justify-start">
+                    <Button variant="outline" size="sm" className="w-full justify-start">
                       <TrendingUp className="h-4 w-4 mr-2" />
                       View Progress
                     </Button>
@@ -332,15 +334,15 @@ const Dashboard = () => {
                 </Card>
 
                 {/* Recent Activity */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Recent Activity</CardTitle>
+                <Card className="border-0 shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Recent Activity</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-2 pt-0">
                     {userTasks.slice(0, 3).map((task, index) => (
                       <div key={task.id} className="text-sm">
                         <div className="flex justify-between items-center">
-                          <span>{task.tasks?.title || 'Task completed'}</span>
+                          <span className="truncate">{task.tasks?.title || 'Task completed'}</span>
                           <span className="text-muted-foreground">+{task.points_earned || 0} pts</span>
                         </div>
                         <div className="text-xs text-muted-foreground">
@@ -366,49 +368,49 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="wallet">
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Wallet className="h-5 w-5" />
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="border-0 shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Wallet className="h-4 w-4" />
                       Current Balance
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-primary mb-2">
+                  <CardContent className="pt-0">
+                    <div className="text-2xl font-bold text-primary mb-1">
                       {userStats.points.toLocaleString()} Points
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       ≈ ${(userStats.points / 100).toFixed(2)} USD
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Total Earned</CardTitle>
+                <Card className="border-0 shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Total Earned</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-green-600 mb-2">
+                  <CardContent className="pt-0">
+                    <div className="text-xl font-bold text-green-600 mb-1">
                       {totalPointsEarned.toLocaleString()} Points
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       From {userTasks.length} completed tasks
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Quick Actions</CardTitle>
+                <Card className="border-0 shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Quick Actions</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2">
-                    <Button className="w-full">
+                  <CardContent className="space-y-2 pt-0">
+                    <Button size="sm" className="w-full">
                       <Gift className="h-4 w-4 mr-2" />
                       Redeem Points
                     </Button>
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full">
                       <TrendingUp className="h-4 w-4 mr-2" />
                       Withdraw Funds
                     </Button>
