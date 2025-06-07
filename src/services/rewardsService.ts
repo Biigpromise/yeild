@@ -6,7 +6,7 @@ export interface Reward {
   title: string;
   description: string;
   points_required: number;
-  reward_type: 'digital' | 'physical' | 'discount' | 'badge';
+  reward_type: string; // Changed from union type to string
   reward_value: string;
   image_url: string;
   stock_quantity: number | null;
@@ -19,9 +19,9 @@ export interface Achievement {
   id: string;
   title: string;
   description: string;
-  achievement_type: 'milestone' | 'streak' | 'special';
+  achievement_type: string; // Changed from union type to string
   requirement_value: number;
-  requirement_type: 'tasks_completed' | 'points_earned' | 'streak_days';
+  requirement_type: string; // Changed from union type to string
   points_reward: number;
   badge_icon: string;
   badge_color: string;
@@ -42,7 +42,7 @@ export interface RewardRedemption {
   user_id: string;
   reward_id: string;
   points_spent: number;
-  status: 'pending' | 'approved' | 'delivered' | 'cancelled';
+  status: string; // Changed from union type to string
   redemption_code: string;
   redeemed_at: string;
   delivered_at: string | null;
@@ -54,7 +54,7 @@ export interface PointTransaction {
   id: string;
   user_id: string;
   points: number;
-  transaction_type: 'task_completion' | 'reward_redemption' | 'admin_adjustment' | 'bonus' | 'achievement';
+  transaction_type: string; // Changed from union type to string
   reference_id: string | null;
   description: string;
   created_at: string;
@@ -70,7 +70,7 @@ export const rewardsService = {
       .order('points_required', { ascending: true });
     
     if (error) throw error;
-    return data;
+    return data as Reward[];
   },
 
   // Get all active achievements
@@ -82,7 +82,7 @@ export const rewardsService = {
       .order('requirement_value', { ascending: true });
     
     if (error) throw error;
-    return data;
+    return data as Achievement[];
   },
 
   // Get user's achievements
@@ -97,7 +97,7 @@ export const rewardsService = {
       .order('earned_at', { ascending: false });
     
     if (error) throw error;
-    return data;
+    return data as UserAchievement[];
   },
 
   // Get user's redemption history
@@ -112,7 +112,7 @@ export const rewardsService = {
       .order('redeemed_at', { ascending: false });
     
     if (error) throw error;
-    return data;
+    return data as RewardRedemption[];
   },
 
   // Get user's point transaction history
@@ -125,7 +125,7 @@ export const rewardsService = {
       .limit(50);
     
     if (error) throw error;
-    return data;
+    return data as PointTransaction[];
   },
 
   // Redeem a reward
@@ -158,7 +158,7 @@ export const rewardsService = {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data as Reward[];
     },
 
     // Create reward
@@ -170,7 +170,7 @@ export const rewardsService = {
         .single();
       
       if (error) throw error;
-      return data;
+      return data as Reward;
     },
 
     // Update reward
@@ -183,7 +183,7 @@ export const rewardsService = {
         .single();
       
       if (error) throw error;
-      return data;
+      return data as Reward;
     },
 
     // Get all achievements for admin
@@ -194,7 +194,7 @@ export const rewardsService = {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data as Achievement[];
     },
 
     // Create achievement
@@ -206,7 +206,7 @@ export const rewardsService = {
         .single();
       
       if (error) throw error;
-      return data;
+      return data as Achievement;
     },
 
     // Update achievement
@@ -219,7 +219,7 @@ export const rewardsService = {
         .single();
       
       if (error) throw error;
-      return data;
+      return data as Achievement;
     },
 
     // Get all redemptions for admin
@@ -234,12 +234,12 @@ export const rewardsService = {
         .order('redeemed_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data as RewardRedemption[];
     },
 
     // Update redemption status
-    async updateRedemptionStatus(id: string, status: RewardRedemption['status'], adminNotes?: string): Promise<RewardRedemption> {
-      const updates: Partial<RewardRedemption> = { 
+    async updateRedemptionStatus(id: string, status: string, adminNotes?: string): Promise<RewardRedemption> {
+      const updates: any = { 
         status, 
         admin_notes: adminNotes 
       };
@@ -252,11 +252,14 @@ export const rewardsService = {
         .from('reward_redemptions')
         .update(updates)
         .eq('id', id)
-        .select()
+        .select(`
+          *,
+          rewards(*)
+        `)
         .single();
       
       if (error) throw error;
-      return data;
+      return data as RewardRedemption;
     }
   }
 };
