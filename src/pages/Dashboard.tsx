@@ -36,7 +36,8 @@ import {
   LogOut,
   User,
   Wallet,
-  ChevronDown
+  ChevronDown,
+  Home
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -163,7 +164,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       <div className="container mx-auto px-4 py-4 max-w-7xl">
         {/* Compact Header */}
         <div className="mb-4">
@@ -259,41 +260,8 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Compact Main Content */}
+        {/* Main Content */}
         <Tabs defaultValue="tasks" className="space-y-3">
-          <div className="flex justify-center">
-            <TabsList className="grid grid-cols-7 h-9 w-fit bg-muted/50 p-0.5">
-              <TabsTrigger value="tasks" className="flex items-center gap-1 text-xs px-2 py-1">
-                <Target className="h-3 w-3" />
-                <span className="hidden sm:inline">Tasks</span>
-              </TabsTrigger>
-              <TabsTrigger value="rewards" className="flex items-center gap-1 text-xs px-2 py-1">
-                <Gift className="h-3 w-3" />
-                <span className="hidden sm:inline">Rewards</span>
-              </TabsTrigger>
-              <TabsTrigger value="achievements" className="flex items-center gap-1 text-xs px-2 py-1">
-                <Award className="h-3 w-3" />
-                <span className="hidden sm:inline">Achievements</span>
-              </TabsTrigger>
-              <TabsTrigger value="wallet" className="flex items-center gap-1 text-xs px-2 py-1">
-                <Wallet className="h-3 w-3" />
-                <span className="hidden sm:inline">Wallet</span>
-              </TabsTrigger>
-              <TabsTrigger value="leaderboard" className="flex items-center gap-1 text-xs px-2 py-1">
-                <Trophy className="h-3 w-3" />
-                <span className="hidden sm:inline">Leaderboard</span>
-              </TabsTrigger>
-              <TabsTrigger value="referrals" className="flex items-center gap-1 text-xs px-2 py-1">
-                <Users className="h-3 w-3" />
-                <span className="hidden sm:inline">Referrals</span>
-              </TabsTrigger>
-              <TabsTrigger value="history" className="flex items-center gap-1 text-xs px-2 py-1">
-                <TrendingUp className="h-3 w-3" />
-                <span className="hidden sm:inline">History</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
           <TabsContent value="tasks" className="space-y-4 mt-3">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               <div className="lg:col-span-3 space-y-4">
@@ -437,6 +405,54 @@ const Dashboard = () => {
               totalTasksCompleted={userTasks.length}
             />
           </TabsContent>
+
+          {/* Fixed Bottom Navigation - Facebook Style */}
+          <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
+            <TabsList className="w-full h-16 bg-background p-0 grid grid-cols-6 rounded-none border-0">
+              <TabsTrigger 
+                value="tasks" 
+                className="flex-col h-full gap-1 data-[state=active]:bg-transparent data-[state=active]:text-primary rounded-none"
+              >
+                <Home className="h-5 w-5" />
+                <span className="text-xs">Home</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="rewards" 
+                className="flex-col h-full gap-1 data-[state=active]:bg-transparent data-[state=active]:text-primary rounded-none"
+              >
+                <Gift className="h-5 w-5" />
+                <span className="text-xs">Rewards</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="achievements" 
+                className="flex-col h-full gap-1 data-[state=active]:bg-transparent data-[state=active]:text-primary rounded-none"
+              >
+                <Award className="h-5 w-5" />
+                <span className="text-xs">Achievements</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="wallet" 
+                className="flex-col h-full gap-1 data-[state=active]:bg-transparent data-[state=active]:text-primary rounded-none"
+              >
+                <Wallet className="h-5 w-5" />
+                <span className="text-xs">Wallet</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="leaderboard" 
+                className="flex-col h-full gap-1 data-[state=active]:bg-transparent data-[state=active]:text-primary rounded-none"
+              >
+                <Trophy className="h-5 w-5" />
+                <span className="text-xs">Leaderboard</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="referrals" 
+                className="flex-col h-full gap-1 data-[state=active]:bg-transparent data-[state=active]:text-primary rounded-none"
+              >
+                <Users className="h-5 w-5" />
+                <span className="text-xs">Referrals</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
         </Tabs>
       </div>
     </div>
