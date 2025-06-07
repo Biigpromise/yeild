@@ -8,9 +8,9 @@ import { toast } from "sonner";
 import { Trophy, Award, Medal, Star, Coins, Target } from "lucide-react";
 
 interface AchievementsListProps {
-  userStats: {
-    tasksCompleted: number;
-    points: number;
+  userStats?: {
+    tasksCompleted?: number;
+    points?: number;
   };
 }
 
@@ -18,6 +18,12 @@ export const AchievementsList = ({ userStats }: AchievementsListProps) => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [userAchievements, setUserAchievements] = useState<UserAchievement[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Provide safe defaults for userStats
+  const safeUserStats = {
+    tasksCompleted: userStats?.tasksCompleted || 0,
+    points: userStats?.points || 0
+  };
 
   useEffect(() => {
     loadData();
@@ -66,10 +72,10 @@ export const AchievementsList = ({ userStats }: AchievementsListProps) => {
     let currentValue = 0;
     switch (achievement.requirement_type) {
       case 'tasks_completed':
-        currentValue = userStats.tasksCompleted;
+        currentValue = safeUserStats.tasksCompleted;
         break;
       case 'points_earned':
-        currentValue = userStats.points;
+        currentValue = safeUserStats.points;
         break;
     }
 
@@ -160,8 +166,8 @@ export const AchievementsList = ({ userStats }: AchievementsListProps) => {
                     </span>
                     <span>
                       {achievement.requirement_type === 'tasks_completed' 
-                        ? `${Math.min(userStats.tasksCompleted, achievement.requirement_value)}/${achievement.requirement_value}`
-                        : `${Math.min(userStats.points, achievement.requirement_value)}/${achievement.requirement_value}`
+                        ? `${Math.min(safeUserStats.tasksCompleted, achievement.requirement_value)}/${achievement.requirement_value}`
+                        : `${Math.min(safeUserStats.points, achievement.requirement_value)}/${achievement.requirement_value}`
                       }
                     </span>
                   </div>
