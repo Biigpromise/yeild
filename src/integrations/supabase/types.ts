@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          achievement_type: string
+          badge_color: string | null
+          badge_icon: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          points_reward: number
+          requirement_type: string | null
+          requirement_value: number | null
+          title: string
+        }
+        Insert: {
+          achievement_type?: string
+          badge_color?: string | null
+          badge_icon?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          points_reward?: number
+          requirement_type?: string | null
+          requirement_value?: number | null
+          title: string
+        }
+        Update: {
+          achievement_type?: string
+          badge_color?: string | null
+          badge_icon?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          points_reward?: number
+          requirement_type?: string | null
+          requirement_value?: number | null
+          title?: string
+        }
+        Relationships: []
+      }
       colors: {
         Row: {
           blue: number | null
@@ -54,6 +96,36 @@ export type Database = {
         }
         Relationships: []
       }
+      point_transactions: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          points: number
+          reference_id: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          points: number
+          reference_id?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          reference_id?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           bio: string | null
@@ -93,6 +165,92 @@ export type Database = {
           social_media_links?: string[] | null
           tasks_completed?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      reward_redemptions: {
+        Row: {
+          admin_notes: string | null
+          delivered_at: string | null
+          id: string
+          points_spent: number
+          redeemed_at: string
+          redemption_code: string | null
+          reward_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          delivered_at?: string | null
+          id?: string
+          points_spent: number
+          redeemed_at?: string
+          redemption_code?: string | null
+          reward_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          delivered_at?: string | null
+          id?: string
+          points_spent?: number
+          redeemed_at?: string
+          redemption_code?: string | null
+          reward_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_redemptions_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "rewards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rewards: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          points_required: number
+          reward_type: string
+          reward_value: string | null
+          stock_quantity: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          points_required?: number
+          reward_type?: string
+          reward_value?: string | null
+          stock_quantity?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          points_required?: number
+          reward_type?: string
+          reward_value?: string | null
+          stock_quantity?: number | null
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -232,6 +390,35 @@ export type Database = {
           },
         ]
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           assigned_at: string | null
@@ -302,6 +489,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_and_award_achievements: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
       get_current_user_profile: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -316,6 +507,10 @@ export type Database = {
       has_role: {
         Args: { _user_id: string; _role: string }
         Returns: boolean
+      }
+      redeem_reward: {
+        Args: { p_user_id: string; p_reward_id: string }
+        Returns: string
       }
     }
     Enums: {

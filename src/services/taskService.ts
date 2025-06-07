@@ -1,5 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
+import { rewardsService } from "@/services/rewardsService";
 
 export interface Task {
   id: string;
@@ -189,7 +189,7 @@ export const taskService = {
       return data;
     },
 
-    // Approve/reject submission
+    // Approve/reject submission with achievement checking
     async updateSubmissionStatus(id: string, status: 'approved' | 'rejected', adminNotes?: string) {
       const { data, error } = await supabase
         .from('task_submissions')
@@ -204,6 +204,17 @@ export const taskService = {
         .single();
       
       if (error) throw error;
+
+      // If approved, check for achievements
+      if (status === 'approved' && data.user_id) {
+        try {
+          await rewardsService.checkAndAwardAchievements(data.user_id);
+        } catch (achievementError) {
+          console.error("Error checking achievements:", achievementError);
+          // Don't throw error here as the main operation succeeded
+        }
+      }
+      
       return data;
     }
   }
