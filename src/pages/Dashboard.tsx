@@ -6,10 +6,20 @@ import TaskHistory from "@/components/TaskHistory";
 import { Leaderboard } from "@/components/Leaderboard";
 import { ReferralSystem } from "@/components/ReferralSystem";
 import { NotificationCenter } from "@/components/NotificationCenter";
+import { RewardsStore } from "@/components/rewards/RewardsStore";
+import { AchievementsList } from "@/components/achievements/AchievementsList";
+import { RedemptionHistory } from "@/components/rewards/RedemptionHistory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { taskService } from "@/services/taskService";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +34,9 @@ import {
   Star,
   Target,
   LogOut,
-  User
+  User,
+  Wallet,
+  ChevronDown
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -152,75 +164,95 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex justify-between items-start mb-4">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        {/* Compact Header */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-              <p className="text-muted-foreground">
-                Welcome back, {userProfile?.name || user?.email}! Ready to earn some rewards?
+              <h1 className="text-2xl font-bold mb-1">Dashboard</h1>
+              <p className="text-sm text-muted-foreground">
+                Welcome back, {userProfile?.name || user?.email}!
               </p>
             </div>
-            <div className="flex gap-3">
-              <Button variant="outline" className="relative">
+            <div className="flex items-center gap-2">
+              {/* Notifications */}
+              <Button variant="outline" size="sm" className="relative">
                 <Bell className="h-4 w-4" />
                 {unreadCount > 0 && (
-                  <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                  <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs">
                     {unreadCount}
                   </Badge>
                 )}
               </Button>
-              <Button variant="outline" onClick={() => window.location.href = "/profile"}>
-                <User className="h-4 w-4 mr-2" />
-                Profile
-              </Button>
-              <Button variant="outline" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
-              <Button>
-                <Target className="h-4 w-4 mr-2" />
+
+              {/* Browse Tasks Button */}
+              <Button size="sm">
+                <Target className="h-4 w-4 mr-1" />
                 Browse Tasks
               </Button>
+
+              {/* User Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <User className="h-4 w-4" />
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => window.location.href = "/profile"}>
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Wallet className="h-4 w-4 mr-2" />
+                    Wallet
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
             <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-primary">{userStats.points.toLocaleString()}</div>
+              <CardContent className="p-3 text-center">
+                <div className="text-xl font-bold text-primary">{userStats.points.toLocaleString()}</div>
                 <div className="text-xs text-muted-foreground">Points</div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-purple-600">{userStats.level}</div>
+              <CardContent className="p-3 text-center">
+                <div className="text-xl font-bold text-purple-600">{userStats.level}</div>
                 <div className="text-xs text-muted-foreground">Level</div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">{userStats.tasksCompleted}</div>
+              <CardContent className="p-3 text-center">
+                <div className="text-xl font-bold text-green-600">{userStats.tasksCompleted}</div>
                 <div className="text-xs text-muted-foreground">Tasks Done</div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-orange-600">{userStats.currentStreak}</div>
+              <CardContent className="p-3 text-center">
+                <div className="text-xl font-bold text-orange-600">{userStats.currentStreak}</div>
                 <div className="text-xs text-muted-foreground">Day Streak</div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600">#{userStats.rank}</div>
+              <CardContent className="p-3 text-center">
+                <div className="text-xl font-bold text-blue-600">#{userStats.rank}</div>
                 <div className="text-xs text-muted-foreground">Rank</div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-pink-600">{userStats.referrals}</div>
+              <CardContent className="p-3 text-center">
+                <div className="text-xl font-bold text-pink-600">{userStats.referrals}</div>
                 <div className="text-xs text-muted-foreground">Referrals</div>
               </CardContent>
             </Card>
@@ -228,31 +260,34 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="tasks" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-5">
-            <TabsTrigger value="tasks" className="flex items-center gap-2">
-              <Target className="h-4 w-4" />
+        <Tabs defaultValue="tasks" className="space-y-4">
+          <TabsList className="grid w-full max-w-4xl grid-cols-7">
+            <TabsTrigger value="tasks" className="flex items-center gap-1 text-xs">
+              <Target className="h-3 w-3" />
               Tasks
             </TabsTrigger>
-            <TabsTrigger value="leaderboard" className="flex items-center gap-2">
-              <Trophy className="h-4 w-4" />
+            <TabsTrigger value="rewards" className="flex items-center gap-1 text-xs">
+              <Gift className="h-3 w-3" />
+              Rewards
+            </TabsTrigger>
+            <TabsTrigger value="achievements" className="flex items-center gap-1 text-xs">
+              <Award className="h-3 w-3" />
+              Achievements
+            </TabsTrigger>
+            <TabsTrigger value="wallet" className="flex items-center gap-1 text-xs">
+              <Wallet className="h-3 w-3" />
+              Wallet
+            </TabsTrigger>
+            <TabsTrigger value="leaderboard" className="flex items-center gap-1 text-xs">
+              <Trophy className="h-3 w-3" />
               Leaderboard
             </TabsTrigger>
-            <TabsTrigger value="referrals" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
+            <TabsTrigger value="referrals" className="flex items-center gap-1 text-xs">
+              <Users className="h-3 w-3" />
               Referrals
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              Notifications
-              {unreadCount > 0 && (
-                <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                  {unreadCount}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-2">
-              <Award className="h-4 w-4" />
+            <TabsTrigger value="history" className="flex items-center gap-1 text-xs">
+              <TrendingUp className="h-3 w-3" />
               History
             </TabsTrigger>
           </TabsList>
@@ -322,16 +357,75 @@ const Dashboard = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="rewards">
+            <RewardsStore />
+          </TabsContent>
+
+          <TabsContent value="achievements">
+            <AchievementsList />
+          </TabsContent>
+
+          <TabsContent value="wallet">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Wallet className="h-5 w-5" />
+                      Current Balance
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-primary mb-2">
+                      {userStats.points.toLocaleString()} Points
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      ≈ ${(userStats.points / 100).toFixed(2)} USD
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Total Earned</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600 mb-2">
+                      {totalPointsEarned.toLocaleString()} Points
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      From {userTasks.length} completed tasks
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Quick Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <Button className="w-full">
+                      <Gift className="h-4 w-4 mr-2" />
+                      Redeem Points
+                    </Button>
+                    <Button variant="outline" className="w-full">
+                      <TrendingUp className="h-4 w-4 mr-2" />
+                      Withdraw Funds
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <RedemptionHistory />
+            </div>
+          </TabsContent>
+
           <TabsContent value="leaderboard">
             <Leaderboard />
           </TabsContent>
 
           <TabsContent value="referrals">
             <ReferralSystem />
-          </TabsContent>
-
-          <TabsContent value="notifications">
-            <NotificationCenter />
           </TabsContent>
 
           <TabsContent value="history">
