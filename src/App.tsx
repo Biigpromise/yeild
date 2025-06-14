@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
+import Tasks from "./pages/Tasks";
 import BrandSignup from "./pages/BrandSignup";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -36,6 +37,11 @@ function App() {
                   <Route path="/dashboard" element={
                     <ProtectedRoute>
                       <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/tasks" element={
+                    <ProtectedRoute>
+                      <Tasks />
                     </ProtectedRoute>
                   } />
                   <Route path="/brand-signup" element={<BrandSignup />} />

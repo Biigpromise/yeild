@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import TaskCategories from "@/components/TaskCategories";
 import TaskFilter from "@/components/TaskFilter";
 import TaskHistory from "@/components/TaskHistory";
@@ -42,6 +42,7 @@ import {
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userStats, setUserStats] = useState({
     points: 0,
@@ -187,7 +188,7 @@ const Dashboard = () => {
               </Button>
 
               {/* Browse Tasks Button */}
-              <Button size="sm">
+              <Button size="sm" onClick={() => navigate('/tasks')}>
                 <Target className="h-4 w-4 mr-1" />
                 Browse Tasks
               </Button>
