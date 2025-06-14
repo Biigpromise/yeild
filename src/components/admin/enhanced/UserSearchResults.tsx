@@ -1,8 +1,8 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { UserActivityData } from "@/services/admin/enhancedUserManagementService";
 import { 
@@ -82,6 +82,9 @@ export const UserSearchResults: React.FC<UserSearchResultsProps> = ({
     );
   }
 
+  const isAllSelected = selectedUsers.length === users.length && users.length > 0;
+  const isIndeterminate = selectedUsers.length > 0 && selectedUsers.length < users.length;
+
   return (
     <Card>
       <CardHeader>
@@ -107,12 +110,10 @@ export const UserSearchResults: React.FC<UserSearchResultsProps> = ({
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12">
-                    <input 
-                      type="checkbox" 
-                      className="w-4 h-4"
-                      onChange={(e) => onSelectAll(e.target.checked)}
-                      checked={selectedUsers.length === users.length && users.length > 0}
-                      indeterminate={selectedUsers.length > 0 && selectedUsers.length < users.length}
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={(checked) => onSelectAll(!!checked)}
+                      className={isIndeterminate ? "data-[state=checked]:bg-primary/50" : ""}
                     />
                   </TableHead>
                   <TableHead>User</TableHead>
@@ -129,11 +130,9 @@ export const UserSearchResults: React.FC<UserSearchResultsProps> = ({
                   return (
                     <TableRow key={user.userId}>
                       <TableCell>
-                        <input 
-                          type="checkbox" 
-                          className="w-4 h-4"
+                        <Checkbox
                           checked={selectedUsers.includes(user.userId)}
-                          onChange={(e) => onSelectUser(user.userId, e.target.checked)}
+                          onCheckedChange={(checked) => onSelectUser(user.userId, !!checked)}
                         />
                       </TableCell>
                       <TableCell>
