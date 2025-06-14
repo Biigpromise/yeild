@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,9 +5,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Users, Settings, CheckCircle, Loader2, AlertTriangle } from 'lucide-react';
 import { adminSetupService } from '@/services/admin/adminSetupService';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export const AdminAccessHelper: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isAssigning, setIsAssigning] = useState(false);
@@ -61,13 +62,7 @@ export const AdminAccessHelper: React.FC = () => {
       if (success) {
         setHasAdminAccess(true);
         setSuccess(true);
-        
-        // Force a longer delay to ensure database consistency and proper redirect
-        setTimeout(() => {
-          console.log('AdminAccessHelper: Redirecting to admin dashboard');
-          // Force page reload to ensure clean state
-          window.location.href = '/admin';
-        }, 2000);
+        console.log('AdminAccessHelper: Admin role assigned successfully');
       } else {
         setError('Failed to assign admin role. Please try refreshing and trying again.');
       }
@@ -79,9 +74,9 @@ export const AdminAccessHelper: React.FC = () => {
     }
   };
 
-  const handleForceRedirect = () => {
-    console.log('AdminAccessHelper: Force redirecting to admin dashboard');
-    window.location.href = '/admin';
+  const handleGoToAdmin = () => {
+    console.log('AdminAccessHelper: Navigating to admin dashboard');
+    navigate('/admin');
   };
 
   if (!user) {
@@ -142,14 +137,14 @@ export const AdminAccessHelper: React.FC = () => {
             <Alert className="border-green-200 bg-green-50">
               <CheckCircle className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800">
-                Admin role assigned successfully! Redirecting to admin dashboard...
+                Admin role assigned successfully! You can now access the admin dashboard.
               </AlertDescription>
             </Alert>
           )}
           
           <Button 
             className="w-full" 
-            onClick={handleForceRedirect}
+            onClick={handleGoToAdmin}
           >
             <Settings className="h-4 w-4 mr-2" />
             Go to Admin Dashboard
