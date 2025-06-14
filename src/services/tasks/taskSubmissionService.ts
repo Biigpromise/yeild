@@ -70,7 +70,7 @@ export const taskSubmissionService = {
         evidence: evidence,
         calculated_points: pointResult.finalPoints,
         point_breakdown: pointResult.breakdown as any,
-        point_explanation: pointResult.explanation,
+        point_explanation: pointResult.explanation.join('\n'), // Convert array to string
         status: 'pending' as const
       };
 
