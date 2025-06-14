@@ -310,19 +310,21 @@ export const TaskManagement = () => {
         </TabsContent>
 
         <TabsContent value="create" className="h-full">
-          <div className="h-full min-h-[80vh] flex flex-col">
-            <Card className="flex-1 flex flex-col h-full min-h-[80vh]">
-              <CardHeader>
-                <CardTitle>Create New Task</CardTitle>
-              </CardHeader>
-              <CardContent 
-                className="flex-1 overflow-y-auto min-h-[400px] pt-4 px-1"
-                style={{ WebkitOverflowScrolling: "touch" }}
-              >
-                <CreateTaskForm onTaskCreated={loadData} />
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="w-full max-w-2xl mx-auto min-h-[60vh] max-h-[85vh] flex flex-col">
+            <CardHeader>
+              <CardTitle>Create New Task</CardTitle>
+            </CardHeader>
+            <CardContent
+              className="flex-1 overflow-y-auto px-1"
+              style={{
+                maxHeight: "calc(85vh - 70px)", // 85vh minus an estimated header size
+                minHeight: "300px",
+                WebkitOverflowScrolling: "touch"
+              }}
+            >
+              <CreateTaskForm onTaskCreated={loadData} />
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
