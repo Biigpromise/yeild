@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -75,8 +76,8 @@ export const AdminAccessHelper: React.FC = () => {
   };
 
   const handleGoToAdmin = () => {
-    console.log('AdminAccessHelper: Navigating to admin dashboard');
-    navigate('/admin');
+    console.log('AdminAccessHelper: Navigating to admin dashboard with page reload');
+    window.location.href = '/admin';
   };
 
   if (!user) {
