@@ -12,6 +12,9 @@ import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
 import { AdminSupport } from "@/components/admin/AdminSupport";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminAnnouncements } from "@/components/admin/AdminAnnouncements";
+import { AdminSecurity } from "@/components/admin/AdminSecurity";
+import { AdminCommunication } from "@/components/admin/AdminCommunication";
+import { AdminContentManagement } from "@/components/admin/AdminContentManagement";
 import {
   LayoutDashboard,
   Users,
@@ -50,7 +53,7 @@ const Admin = () => {
     };
   }, []);
 
-  // Map of sections to their component - Updated to use enhanced components
+  // Map of sections to their component - Updated to include all new components
   const sectionComponents = {
     dashboard: <AdminOverview />,
     users: <EnhancedUserManagement />,
@@ -64,12 +67,12 @@ const Admin = () => {
     analytics: <AdminAnalytics />,
     support: <AdminSupport />,
     settings: <AdminSettings />,
-    security: <div className="text-center py-8 text-muted-foreground">Security & Monitoring coming soon...</div>,
-    communication: <div className="text-center py-8 text-muted-foreground">Communication Features coming soon...</div>,
-    content: <div className="text-center py-8 text-muted-foreground">Content Management coming soon...</div>
+    security: <AdminSecurity />,
+    communication: <AdminCommunication />,
+    content: <AdminContentManagement />
   };
 
-  // Enhanced navigation items with new sections
+  // Enhanced navigation items with all new sections
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "users", label: "Users", icon: Users },
