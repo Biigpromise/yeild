@@ -5,6 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { WithdrawalForm } from "./WithdrawalForm";
 import { WithdrawalHistory } from "./WithdrawalHistory";
+import { EnhancedWalletOverview } from "./EnhancedWalletOverview";
+import { PaymentMethodStatus } from "./PaymentMethodStatus";
+import { QuickWithdrawalActions } from "./QuickWithdrawalActions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Wallet, 
@@ -12,7 +15,8 @@ import {
   Download,
   RefreshCw,
   Trophy,
-  Target
+  Target,
+  Settings
 } from "lucide-react";
 import { userService } from "@/services/userService";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,6 +38,7 @@ export const WalletOverview: React.FC<WalletOverviewProps> = ({
   const { user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [userLevel, setUserLevel] = useState(1);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     // Get user level for earning capacity calculation
@@ -57,38 +62,37 @@ export const WalletOverview: React.FC<WalletOverviewProps> = ({
     window.location.reload();
   };
 
+  const handleSetupPaymentMethod = (method: string) => {
+    setActiveTab("withdraw");
+  };
+
+  const handleStartWithdrawal = (method: string) => {
+    setActiveTab("withdraw");
+  };
+
   const usdValue = currencyService.pointsToUSD(userPoints);
   const earningMultiplier = 1 + ((userLevel - 1) * 0.04); // 4% increase per level
   const nextLevelMultiplier = 1 + (userLevel * 0.04);
 
   return (
     <div className="space-y-6">
-      {/* Wallet Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Wallet className="h-8 w-8 text-blue-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Available Points</p>
-                <p className="text-2xl font-bold">{userPoints.toLocaleString()}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Enhanced Wallet Summary */}
+      <EnhancedWalletOverview 
+        userPoints={userPoints} 
+        onRefresh={handleRefresh}
+      />
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Download className="h-8 w-8 text-green-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">USD Value</p>
-                <p className="text-2xl font-bold">${usdValue.toFixed(2)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Quick Actions Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <PaymentMethodStatus onSetupMethod={handleSetupPaymentMethod} />
+        <QuickWithdrawalActions 
+          userPoints={userPoints}
+          onStartWithdrawal={handleStartWithdrawal}
+        />
+      </div>
 
+      {/* Legacy Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -103,12 +107,24 @@ export const WalletOverview: React.FC<WalletOverviewProps> = ({
 
         <Card>
           <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Target className="h-8 w-8 text-orange-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">Next Level</p>
+                <p className="text-lg font-bold">+{((nextLevelMultiplier - 1) * 100).toFixed(0)}% Earnings</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Target className="h-8 w-8 text-orange-500" />
+                <Settings className="h-8 w-8 text-gray-500" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Next Level</p>
-                  <p className="text-lg font-bold">+{((nextLevelMultiplier - 1) * 100).toFixed(0)}% Earnings</p>
+                  <p className="text-sm text-muted-foreground">Settings</p>
+                  <p className="text-lg font-bold">Configure</p>
                 </div>
               </div>
               <Button
@@ -156,11 +172,27 @@ export const WalletOverview: React.FC<WalletOverviewProps> = ({
       </Card>
 
       {/* Wallet Actions */}
-      <Tabs defaultValue="withdraw" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="overview">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <Wallet className="h-16 w-16 mx-auto mb-4 text-blue-500" />
+              <h3 className="font-semibold mb-2">Wallet Overview</h3>
+              <p className="text-muted-foreground mb-4">
+                Manage your points, set up payment methods, and track your withdrawals.
+              </p>
+              <Button onClick={() => setActiveTab("withdraw")}>
+                Start Withdrawal
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
         
         <TabsContent value="withdraw">
           <WithdrawalForm 
