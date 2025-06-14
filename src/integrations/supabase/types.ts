@@ -737,6 +737,10 @@ export type Database = {
           tasks_completed: number
         }[]
       }
+      get_user_role_for_policy: {
+        Args: { user_id: string }
+        Returns: string
+      }
       has_role: {
         Args: { _user_id: string; _role: string }
         Returns: boolean

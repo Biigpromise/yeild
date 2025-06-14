@@ -71,7 +71,7 @@ export const taskSubmissionService = {
           task_id: taskId,
           evidence: evidence,
           calculated_points: pointResult.finalPoints,
-          point_breakdown: pointResult.breakdown,
+          point_breakdown: pointResult.breakdown as any, // Cast to any to match Json type
           point_explanation: pointResult.explanation,
           status: 'pending'
         });
