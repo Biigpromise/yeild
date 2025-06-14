@@ -1,22 +1,22 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { OnboardingProvider } from "@/contexts/OnboardingContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Tasks from "./pages/Tasks";
-import BrandSignup from "./pages/BrandSignup";
+import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
+import BrandSignup from "./pages/BrandSignup";
 import NotFound from "./pages/NotFound";
-import Profile from "@/pages/Profile";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { OnboardingProvider } from "./contexts/OnboardingContext";
-import { AuthProvider } from "./contexts/AuthContext";
-import { OnboardingTutorial } from "./components/OnboardingTutorial";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -27,40 +27,49 @@ function App() {
         <OnboardingProvider>
           <TooltipProvider>
             <Toaster />
-            <Sonner />
-            <Router>
-              <div className="min-h-screen bg-background">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<SignUp />} />
-                  <Route path="/dashboard" element={
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/brand-signup" element={<BrandSignup />} />
+                <Route
+                  path="/dashboard"
+                  element={
                     <ProtectedRoute>
                       <Dashboard />
                     </ProtectedRoute>
-                  } />
-                  <Route path="/tasks" element={
+                  }
+                />
+                <Route
+                  path="/tasks"
+                  element={
                     <ProtectedRoute>
                       <Tasks />
                     </ProtectedRoute>
-                  } />
-                  <Route path="/brand-signup" element={<BrandSignup />} />
-                  <Route path="/admin" element={
-                    <ProtectedRoute>
-                      <Admin />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/profile" element={
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
                     <ProtectedRoute>
                       <Profile />
                     </ProtectedRoute>
-                  } />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <OnboardingTutorial />
-              </div>
-            </Router>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <Admin />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
           </TooltipProvider>
         </OnboardingProvider>
       </AuthProvider>
