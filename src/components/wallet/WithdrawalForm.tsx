@@ -6,17 +6,47 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, DollarSign, CreditCard, Banknote } from "lucide-react";
+import { AlertTriangle, CreditCard, Banknote } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { paystackService } from "@/services/paystackService";
 
 interface WithdrawalFormProps {
   userPoints: number;
   onWithdrawalSubmitted: () => void;
 }
+
+// Nigerian banks list for withdrawal
+const nigerianBanks = [
+  { name: "Access Bank", code: "044" },
+  { name: "Diamond Bank", code: "063" },
+  { name: "Ecobank Nigeria", code: "050" },
+  { name: "Fidelity Bank", code: "070" },
+  { name: "First Bank of Nigeria", code: "011" },
+  { name: "First City Monument Bank", code: "214" },
+  { name: "Guaranty Trust Bank", code: "058" },
+  { name: "Heritage Bank", code: "030" },
+  { name: "Keystone Bank", code: "082" },
+  { name: "Polaris Bank", code: "076" },
+  { name: "Providus Bank", code: "101" },
+  { name: "Stanbic IBTC Bank", code: "221" },
+  { name: "Standard Chartered Bank", code: "068" },
+  { name: "Sterling Bank", code: "232" },
+  { name: "Union Bank of Nigeria", code: "032" },
+  { name: "United Bank For Africa", code: "033" },
+  { name: "Unity Bank", code: "215" },
+  { name: "Wema Bank", code: "035" },
+  { name: "Zenith Bank", code: "057" }
+];
+
+const formatNaira = (amount: number): string => {
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
 
 export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: WithdrawalFormProps) => {
   const { user } = useAuth();
@@ -38,8 +68,6 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
   const feeAmount = Math.round(withdrawalAmount * (processingFee / 100));
   const netAmount = withdrawalAmount - feeAmount;
   const nairaValue = (netAmount / 10).toFixed(0); // 10 points = ₦1
-
-  const nigerianBanks = paystackService.getNigerianBanks();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,7 +164,7 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
               </div>
               <div className="flex justify-between font-medium border-t pt-1">
                 <span>Net Amount:</span>
-                <span>{netAmount.toLocaleString()} points ≈ {paystackService.formatNaira(parseInt(nairaValue))}</span>
+                <span>{netAmount.toLocaleString()} points ≈ {formatNaira(parseInt(nairaValue))}</span>
               </div>
             </div>
           )}

@@ -38,7 +38,7 @@ export const WalletOverview: React.FC<WalletOverviewProps> = ({
   useEffect(() => {
     // Get user level for earning capacity calculation
     if (user) {
-      userService.getUserProfile().then(profile => {
+      userService.getCurrentUser().then(profile => {
         if (profile) {
           setUserLevel(profile.level || 1);
         }
