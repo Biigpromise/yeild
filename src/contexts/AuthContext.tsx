@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -133,7 +132,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { error };
       }
 
-      const redirectUrl = `${window.location.origin}/`;
+      // Use the current origin as the redirect URL - this will work for both preview and deployed versions
+      const redirectUrl = window.location.origin;
+      console.log("Using redirect URL:", redirectUrl);
       
       const { error } = await supabase.auth.signUp({
         email,
@@ -208,7 +209,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/`
+          redirectTo: window.location.origin
         }
       });
       
