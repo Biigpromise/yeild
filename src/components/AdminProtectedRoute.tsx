@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { RoleProtectedRoute } from '@/components/RoleProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Shield, ArrowRight } from 'lucide-react';
@@ -27,7 +26,9 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ childr
       return;
     }
 
+    console.log('AdminProtectedRoute: Checking admin access for user:', user.id);
     const hasAccess = await adminSetupService.checkAdminAccess();
+    console.log('AdminProtectedRoute: Admin access result:', hasAccess);
     setHasAdminAccess(hasAccess);
     setIsLoading(false);
   };

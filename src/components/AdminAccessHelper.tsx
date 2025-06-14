@@ -6,9 +6,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Users, Settings } from 'lucide-react';
 import { adminSetupService } from '@/services/admin/adminSetupService';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export const AdminAccessHelper: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isAssigning, setIsAssigning] = useState(false);
@@ -24,16 +26,23 @@ export const AdminAccessHelper: React.FC = () => {
     }
 
     setIsLoading(true);
+    console.log('Checking admin access...');
     const hasAccess = await adminSetupService.checkAdminAccess();
+    console.log('Admin access result:', hasAccess);
     setHasAdminAccess(hasAccess);
     setIsLoading(false);
   };
 
   const handleMakeAdmin = async () => {
     setIsAssigning(true);
+    console.log('Making user admin...');
     const success = await adminSetupService.makeCurrentUserAdmin();
     if (success) {
       setHasAdminAccess(true);
+      // Add a small delay then redirect to admin
+      setTimeout(() => {
+        navigate('/admin');
+      }, 1000);
     }
     setIsAssigning(false);
   };
@@ -86,7 +95,7 @@ export const AdminAccessHelper: React.FC = () => {
         <CardContent>
           <Button 
             className="w-full" 
-            onClick={() => window.location.href = '/admin'}
+            onClick={() => navigate('/admin')}
           >
             <Settings className="h-4 w-4 mr-2" />
             Go to Admin Dashboard

@@ -7,7 +7,12 @@ export const adminSetupService = {
   async checkAdminAccess(): Promise<boolean> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      if (!user) {
+        console.log('No user found');
+        return false;
+      }
+
+      console.log('Checking admin access for user:', user.id);
 
       const { data, error } = await supabase
         .from('user_roles')
@@ -16,11 +21,16 @@ export const adminSetupService = {
         .eq('role', 'admin')
         .single();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
+        if (error.code === 'PGRST116') {
+          console.log('No admin role found for user');
+          return false;
+        }
         console.error('Error checking admin access:', error);
         return false;
       }
 
+      console.log('Admin role found:', data);
       return !!data;
     } catch (error) {
       console.error('Error checking admin access:', error);
@@ -37,6 +47,22 @@ export const adminSetupService = {
         return false;
       }
 
+      console.log('Attempting to make user admin:', user.id);
+
+      // First check if user already has admin role
+      const { data: existingRole } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (existingRole) {
+        toast.success('You already have admin access');
+        return true;
+      }
+
+      // Insert admin role
       const { error } = await supabase
         .from('user_roles')
         .insert({
@@ -45,13 +71,16 @@ export const adminSetupService = {
         });
 
       if (error) {
+        console.error('Error assigning admin role:', error);
         if (error.code === '23505') {
           toast.success('You already have admin access');
           return true;
         }
-        throw error;
+        toast.error('Failed to assign admin role: ' + error.message);
+        return false;
       }
 
+      console.log('Admin role assigned successfully');
       toast.success('Admin role assigned successfully');
       return true;
     } catch (error) {
@@ -72,8 +101,14 @@ export const adminSetupService = {
         .select('role')
         .eq('user_id', user.id);
 
-      if (error) throw error;
-      return data.map(r => r.role) || [];
+      if (error) {
+        console.error('Error fetching user roles:', error);
+        return [];
+      }
+      
+      const roles = data.map(r => r.role) || [];
+      console.log('User roles:', roles);
+      return roles;
     } catch (error) {
       console.error('Error fetching user roles:', error);
       return [];
