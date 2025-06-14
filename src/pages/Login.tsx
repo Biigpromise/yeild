@@ -6,13 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
   const { signIn, user, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Form values
   const [email, setEmail] = useState("");
@@ -27,6 +28,26 @@ const Login = () => {
       navigate("/dashboard");
     }
   }, [user, loading, navigate]);
+
+  // Form validation
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   // Show loading while auth state is being determined
   if (loading) {
@@ -45,8 +66,10 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast.error("Please fill out all fields");
+    // Clear previous errors
+    setErrors({});
+    
+    if (!validateForm()) {
       return;
     }
 
@@ -58,12 +81,14 @@ const Login = () => {
       
       if (error) {
         console.error("Login error:", error);
-        if (error.message.includes("Invalid login credentials")) {
-          toast.error("Invalid email or password");
-        } else if (error.message.includes("Email not confirmed")) {
-          toast.error("Please check your email and confirm your account");
-        } else {
-          toast.error(error.message || "Login failed");
+        toast.error(error.message);
+        
+        // Set field-specific errors if applicable
+        if (error.message.includes("Invalid")) {
+          setErrors({ 
+            email: "Invalid credentials", 
+            password: "Invalid credentials" 
+          });
         }
       } else {
         console.log("Login successful");
@@ -72,7 +97,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Unexpected login error:", error);
-      toast.error("An unexpected error occurred");
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -110,10 +135,21 @@ const Login = () => {
               type="email"
               placeholder="Enter your email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="yeild-input"
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errors.email) {
+                  setErrors(prev => ({ ...prev, email: "" }));
+                }
+              }}
+              className={`yeild-input ${errors.email ? 'border-red-500' : ''}`}
               required
             />
+            {errors.email && (
+              <div className="flex items-center gap-2 text-red-400 text-sm">
+                <AlertCircle className="h-4 w-4" />
+                {errors.email}
+              </div>
+            )}
           </div>
           
           <div className="space-y-2">
@@ -128,10 +164,21 @@ const Login = () => {
               type="password"
               placeholder="Enter your password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="yeild-input"
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (errors.password) {
+                  setErrors(prev => ({ ...prev, password: "" }));
+                }
+              }}
+              className={`yeild-input ${errors.password ? 'border-red-500' : ''}`}
               required
             />
+            {errors.password && (
+              <div className="flex items-center gap-2 text-red-400 text-sm">
+                <AlertCircle className="h-4 w-4" />
+                {errors.password}
+              </div>
+            )}
           </div>
           
           <div className="flex items-center justify-between mt-4">
@@ -159,13 +206,23 @@ const Login = () => {
           </Button>
         </form>
         
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-2">
           <p className="text-gray-400">
             Don't have an account?{" "}
             <Link to="/signup" className="text-yeild-yellow hover:underline">
               Sign up
             </Link>
           </p>
+          
+          <div className="text-xs text-gray-500 space-x-4">
+            <Link to="/terms" className="hover:text-yeild-yellow">
+              Terms of Service
+            </Link>
+            <span>•</span>
+            <Link to="/privacy" className="hover:text-yeild-yellow">
+              Privacy Policy
+            </Link>
+          </div>
         </div>
       </div>
     </div>
