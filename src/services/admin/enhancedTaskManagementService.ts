@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -64,27 +65,9 @@ export interface TaskSubmissionWithDetails {
 }
 
 export const enhancedTaskManagementService = {
-  // Enhanced task analytics with fallback to direct queries
+  // Enhanced task analytics with real data
   async getTaskAnalytics(dateRange?: { start: Date; end: Date }): Promise<TaskAnalytics> {
     try {
-      // Try edge function first, fallback to direct queries
-      try {
-        const { data, error } = await supabase.functions.invoke('admin-operations', {
-          body: { 
-            action: 'get_enhanced_task_analytics',
-            data: { 
-              startDate: dateRange?.start?.toISOString(),
-              endDate: dateRange?.end?.toISOString()
-            }
-          }
-        });
-
-        if (!error && data) return data;
-      } catch (edgeFunctionError) {
-        console.log('Edge function not available, using direct queries');
-      }
-
-      // Fallback to direct database queries
       const [tasksData, submissionsData] = await Promise.all([
         supabase.from('tasks').select('*'),
         supabase.from('task_submissions').select('*')
@@ -93,6 +76,40 @@ export const enhancedTaskManagementService = {
       const tasks = tasksData.data || [];
       const submissions = submissionsData.data || [];
 
+      // Calculate category counts
+      const categoryMap = new Map<string, number>();
+      tasks.forEach(task => {
+        const category = task.category || 'Uncategorized';
+        categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
+      });
+
+      const topCategories = Array.from(categoryMap.entries())
+        .map(([category, count]) => ({ category, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+
+      // Calculate recent activity (last 7 days)
+      const recentActivity = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        const daySubmissions = submissions.filter(s => 
+          s.submitted_at?.startsWith(dateStr)
+        ).length;
+        
+        const dayApprovals = submissions.filter(s => 
+          s.reviewed_at?.startsWith(dateStr) && s.status === 'approved'
+        ).length;
+
+        recentActivity.push({
+          date: dateStr,
+          submissions: daySubmissions,
+          approvals: dayApprovals
+        });
+      }
+
       return {
         totalTasks: tasks.length,
         activeTasks: tasks.filter(t => t.status === 'active').length,
@@ -100,8 +117,8 @@ export const enhancedTaskManagementService = {
         pendingSubmissions: submissions.filter(s => s.status === 'pending').length,
         approvalRate: submissions.length > 0 ? (submissions.filter(s => s.status === 'approved').length / submissions.length) * 100 : 0,
         avgCompletionTime: 0,
-        topCategories: [],
-        recentActivity: []
+        topCategories,
+        recentActivity
       };
     } catch (error) {
       console.error('Error fetching task analytics:', error);
@@ -109,24 +126,9 @@ export const enhancedTaskManagementService = {
     }
   },
 
-  // Enhanced task search with fallback
+  // Enhanced task search with real data
   async searchTasks(filters: TaskFilters): Promise<any[]> {
     try {
-      // Try edge function first
-      try {
-        const { data, error } = await supabase.functions.invoke('admin-operations', {
-          body: { 
-            action: 'search_tasks_enhanced',
-            data: filters
-          }
-        });
-
-        if (!error && data) return data;
-      } catch (edgeFunctionError) {
-        console.log('Edge function not available, using direct queries');
-      }
-
-      // Fallback to direct query
       let query = supabase.from('tasks').select('*');
       
       if (filters.searchTerm) {
@@ -143,6 +145,13 @@ export const enhancedTaskManagementService = {
       
       if (filters.difficulty) {
         query = query.eq('difficulty', filters.difficulty);
+      }
+
+      if (filters.pointsRange) {
+        query = query.gte('points', filters.pointsRange.min);
+        if (filters.pointsRange.max) {
+          query = query.lte('points', filters.pointsRange.max);
+        }
       }
 
       query = query.order(filters.sortBy || 'created_at', { 
@@ -212,7 +221,7 @@ export const enhancedTaskManagementService = {
     }
   },
 
-  // Enhanced submission processing with fallback
+  // Enhanced submission processing
   async processTaskSubmission(
     submissionId: string, 
     status: 'approved' | 'rejected',
@@ -249,56 +258,50 @@ export const enhancedTaskManagementService = {
     limit?: number;
   }): Promise<TaskSubmissionWithDetails[]> {
     try {
-      const { data, error } = await supabase
+      // First get submissions
+      const { data: submissions, error: submissionsError } = await supabase
         .from('task_submissions')
-        .select(`
-          id,
-          task_id,
-          user_id,
-          evidence,
-          status,
-          submitted_at,
-          reviewed_at,
-          admin_notes,
-          calculated_points,
-          tasks!inner(
-            id,
-            title,
-            points,
-            category,
-            difficulty
-          ),
-          profiles!inner(
-            id,
-            name,
-            email
-          )
-        `)
+        .select('*')
         .eq('status', 'pending')
         .order('submitted_at', { ascending: false })
         .limit(filters?.limit || 50);
 
-      if (error) {
-        console.error('Supabase query error:', error);
+      if (submissionsError) {
+        console.error('Error fetching submissions:', submissionsError);
         return [];
       }
-      
-      // Transform and validate the data
-      const transformedData: TaskSubmissionWithDetails[] = (data || [])
-        .filter(submission => submission.tasks && submission.profiles) // Filter out invalid joins
-        .map(submission => ({
-          id: submission.id,
-          task_id: submission.task_id,
-          user_id: submission.user_id,
-          evidence: submission.evidence,
-          status: submission.status,
-          submitted_at: submission.submitted_at,
-          reviewed_at: submission.reviewed_at,
-          admin_notes: submission.admin_notes,
-          calculated_points: submission.calculated_points,
-          tasks: submission.tasks,
-          profiles: submission.profiles
-        }));
+
+      if (!submissions || submissions.length === 0) {
+        return [];
+      }
+
+      // Get task IDs and user IDs
+      const taskIds = [...new Set(submissions.map(s => s.task_id))];
+      const userIds = [...new Set(submissions.map(s => s.user_id))];
+
+      // Fetch tasks and profiles separately
+      const [tasksResult, profilesResult] = await Promise.all([
+        supabase.from('tasks').select('id, title, points, category, difficulty').in('id', taskIds),
+        supabase.from('profiles').select('id, name, email').in('id', userIds)
+      ]);
+
+      const tasks = tasksResult.data || [];
+      const profiles = profilesResult.data || [];
+
+      // Combine the data
+      const transformedData: TaskSubmissionWithDetails[] = submissions.map(submission => ({
+        id: submission.id,
+        task_id: submission.task_id,
+        user_id: submission.user_id,
+        evidence: submission.evidence,
+        status: submission.status,
+        submitted_at: submission.submitted_at,
+        reviewed_at: submission.reviewed_at,
+        admin_notes: submission.admin_notes,
+        calculated_points: submission.calculated_points,
+        tasks: tasks.find(t => t.id === submission.task_id) || null,
+        profiles: profiles.find(p => p.id === submission.user_id) || null
+      }));
 
       return transformedData;
     } catch (error) {
@@ -307,7 +310,7 @@ export const enhancedTaskManagementService = {
     }
   },
 
-  // Bulk task operations with fallback
+  // Bulk task operations
   async performBulkTaskOperation(operation: BulkTaskOperation): Promise<boolean> {
     try {
       let updateData: any = {};
