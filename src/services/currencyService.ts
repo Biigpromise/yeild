@@ -11,7 +11,6 @@ export interface SupportedCountry {
   code: string;
   name: string;
   currency: CurrencyRate;
-  paymentProvider: 'paystack' | 'stripe' | 'paypal';
 }
 
 class CurrencyService {
@@ -30,7 +29,7 @@ class CurrencyService {
   }
 
   private initializeRates() {
-    // Base rates - these would typically come from an API
+    // Base rates for withdrawal calculations
     const rates: CurrencyRate[] = [
       {
         code: 'USD',
@@ -86,38 +85,32 @@ class CurrencyService {
       {
         code: 'NG',
         name: 'Nigeria',
-        currency: this.exchangeRates.get('NGN')!,
-        paymentProvider: 'paystack'
+        currency: this.exchangeRates.get('NGN')!
       },
       {
         code: 'US',
         name: 'United States',
-        currency: this.exchangeRates.get('USD')!,
-        paymentProvider: 'stripe'
+        currency: this.exchangeRates.get('USD')!
       },
       {
         code: 'GB',
         name: 'United Kingdom',
-        currency: this.exchangeRates.get('GBP')!,
-        paymentProvider: 'stripe'
+        currency: this.exchangeRates.get('GBP')!
       },
       {
         code: 'DE',
         name: 'Germany',
-        currency: this.exchangeRates.get('EUR')!,
-        paymentProvider: 'stripe'
+        currency: this.exchangeRates.get('EUR')!
       },
       {
         code: 'KE',
         name: 'Kenya',
-        currency: this.exchangeRates.get('KES')!,
-        paymentProvider: 'paystack'
+        currency: this.exchangeRates.get('KES')!
       },
       {
         code: 'ZA',
         name: 'South Africa',
-        currency: this.exchangeRates.get('ZAR')!,
-        paymentProvider: 'paystack'
+        currency: this.exchangeRates.get('ZAR')!
       }
     ];
   }
@@ -152,8 +145,8 @@ class CurrencyService {
 
   getUserCountryFromIP(): Promise<string> {
     // This would typically use a geolocation service
-    // For now, we'll default to Nigeria since that's your primary market
-    return Promise.resolve('NG');
+    // For now, we'll default to US since we're focusing on earning, not purchasing
+    return Promise.resolve('US');
   }
 
   // Points to USD conversion (1000 points = $1 USD)
