@@ -1,10 +1,12 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { userService, LeaderboardUser } from "@/services/userService";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Trophy, 
   Medal, 
@@ -14,79 +16,34 @@ import {
   Crown
 } from "lucide-react";
 
-type LeaderboardUser = {
-  id: string;
-  name: string;
-  avatar?: string;
-  points: number;
-  level: number;
-  rank: number;
-  tasksCompleted: number;
-  streak: number;
-  change: "up" | "down" | "same";
-};
-
-const mockLeaderboardData: LeaderboardUser[] = [
-  {
-    id: "1",
-    name: "Sarah Johnson",
-    avatar: "",
-    points: 15420,
-    level: 25,
-    rank: 1,
-    tasksCompleted: 342,
-    streak: 28,
-    change: "up"
-  },
-  {
-    id: "2",
-    name: "Mike Chen",
-    avatar: "",
-    points: 14890,
-    level: 24,
-    rank: 2,
-    tasksCompleted: 298,
-    streak: 15,
-    change: "same"
-  },
-  {
-    id: "3",
-    name: "Emma Wilson",
-    avatar: "",
-    points: 13650,
-    level: 22,
-    rank: 3,
-    tasksCompleted: 267,
-    streak: 12,
-    change: "up"
-  },
-  {
-    id: "4",
-    name: "John Doe",
-    avatar: "",
-    points: 12450,
-    level: 21,
-    rank: 4,
-    tasksCompleted: 234,
-    streak: 8,
-    change: "down"
-  },
-  {
-    id: "5",
-    name: "Lisa Brown",
-    avatar: "",
-    points: 11200,
-    level: 19,
-    rank: 5,
-    tasksCompleted: 189,
-    streak: 5,
-    change: "up"
-  }
-];
-
 export const Leaderboard = () => {
+  const { user } = useAuth();
   const [timeframe, setTimeframe] = useState<"weekly" | "monthly" | "all">("weekly");
-  const [currentUserRank] = useState(12);
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardUser[]>([]);
+  const [currentUserRank, setCurrentUserRank] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadLeaderboard();
+  }, [timeframe]);
+
+  const loadLeaderboard = async () => {
+    try {
+      setLoading(true);
+      const data = await userService.getLeaderboard(50);
+      setLeaderboardData(data);
+      
+      // Find current user's rank
+      if (user) {
+        const userRank = data.findIndex(u => u.id === user.id);
+        setCurrentUserRank(userRank >= 0 ? userRank + 1 : null);
+      }
+    } catch (error) {
+      console.error('Error loading leaderboard:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -112,6 +69,19 @@ export const Leaderboard = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -131,76 +101,86 @@ export const Leaderboard = () => {
 
             <TabsContent value={timeframe} className="space-y-4 mt-6">
               {/* Your Rank */}
-              <Card className="bg-muted/50 border-2 border-primary/20">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-muted-foreground">Your Rank:</span>
-                      <Badge variant="outline" className="text-lg px-3 py-1">
-                        #{currentUserRank}
-                      </Badge>
+              {currentUserRank && (
+                <Card className="bg-muted/50 border-2 border-primary/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-muted-foreground">Your Rank:</span>
+                        <Badge variant="outline" className="text-lg px-3 py-1">
+                          #{currentUserRank}
+                        </Badge>
+                      </div>
+                      <Button variant="outline" size="sm">
+                        View My Stats
+                      </Button>
                     </div>
-                    <Button variant="outline" size="sm">
-                      View My Stats
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Top Users */}
               <div className="space-y-2">
-                {mockLeaderboardData.map((user) => (
-                  <Card key={user.id} className={`transition-all hover:shadow-md ${
-                    user.rank <= 3 ? 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20' : ''
-                  }`}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center justify-center w-12 h-12">
-                            {getRankIcon(user.rank)}
-                          </div>
-                          
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={user.avatar} />
-                            <AvatarFallback>
-                              {user.name.split(' ').map(n => n[0]).join('')}
-                            </AvatarFallback>
-                          </Avatar>
-                          
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold">{user.name}</span>
-                              <Badge variant="secondary">Level {user.level}</Badge>
-                            </div>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                              <span>{user.tasksCompleted} tasks</span>
-                              <span>{user.streak} day streak</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="text-right">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xl font-bold text-primary">
-                              {user.points.toLocaleString()}
-                            </span>
-                            <span className="text-sm text-muted-foreground">pts</span>
-                            {getChangeIcon(user.change)}
-                          </div>
-                        </div>
-                      </div>
+                {leaderboardData.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <p className="text-muted-foreground">No leaderboard data available yet.</p>
+                      <p className="text-sm text-muted-foreground mt-1">Complete some tasks to see rankings!</p>
                     </CardContent>
                   </Card>
-                ))}
+                ) : (
+                  leaderboardData.map((user) => (
+                    <Card key={user.id} className={`transition-all hover:shadow-md ${
+                      user.rank <= 3 ? 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20' : ''
+                    }`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center justify-center w-12 h-12">
+                              {getRankIcon(user.rank)}
+                            </div>
+                            
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback>
+                                {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold">{user.name || 'Anonymous User'}</span>
+                                <Badge variant="secondary">Level {user.level}</Badge>
+                              </div>
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                <span>{user.tasks_completed} tasks</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="text-right">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl font-bold text-primary">
+                                {user.points.toLocaleString()}
+                              </span>
+                              <span className="text-sm text-muted-foreground">pts</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
 
               {/* Load More */}
-              <div className="text-center pt-4">
-                <Button variant="outline" className="w-full">
-                  <Users className="h-4 w-4 mr-2" />
-                  Load More Users
-                </Button>
-              </div>
+              {leaderboardData.length >= 50 && (
+                <div className="text-center pt-4">
+                  <Button variant="outline" className="w-full" onClick={loadLeaderboard}>
+                    <Users className="h-4 w-4 mr-2" />
+                    Load More Users
+                  </Button>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>

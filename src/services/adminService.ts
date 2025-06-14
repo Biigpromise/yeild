@@ -1,112 +1,97 @@
 
 import { supabase } from "@/integrations/supabase/client";
-
-export interface AdminDashboardStats {
-  totalUsers: number;
-  activeTasks: number;
-  pendingSubmissions: number;
-  totalSubmissions: number;
-  approvedSubmissions: number;
-  approvalRate: number;
-}
+import { toast } from "sonner";
 
 export interface AdminUser {
   id: string;
-  name: string;
   email: string;
+  name?: string;
   points: number;
   level: number;
   tasks_completed: number;
   created_at: string;
-  user_roles?: { role: string }[];
-}
-
-export interface SystemMetrics {
-  recentSignups: number;
-  recentTasks: number;
-  recentSubmissions: number;
-  totalPointsAwarded: number;
+  user_roles?: Array<{ role: string }>;
 }
 
 export const adminService = {
-  // Get dashboard statistics
-  async getDashboardStats(): Promise<AdminDashboardStats> {
-    const { data, error } = await supabase.functions.invoke('admin-operations', {
-      body: { operation: 'get_dashboard_stats' }
-    });
-    
-    if (error) throw error;
-    return data;
-  },
-
   // Get all users for admin management
   async getAllUsers(): Promise<AdminUser[]> {
-    const { data, error } = await supabase.functions.invoke('admin-operations', {
-      body: { operation: 'get_all_users' }
-    });
-    
-    if (error) throw error;
-    return data;
-  },
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          user_roles(role)
+        `)
+        .order('created_at', { ascending: false });
 
-  // Update user status
-  async updateUserStatus(userId: string, status: string) {
-    const { data, error } = await supabase.functions.invoke('admin-operations', {
-      body: { 
-        operation: 'update_user_status',
-        data: { userId, status }
-      }
-    });
-    
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast.error('Failed to load users');
+      return [];
+    }
   },
 
   // Assign role to user
-  async assignUserRole(userId: string, role: string) {
-    const { data, error } = await supabase.functions.invoke('admin-operations', {
-      body: { 
-        operation: 'assign_user_role',
-        data: { userId, role }
-      }
-    });
-    
-    if (error) throw error;
-    return data;
+  async assignUserRole(userId: string, role: string): Promise<boolean> {
+    try {
+      // First remove any existing roles for this user
+      await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+
+      // Then add the new role
+      const { error } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: role
+        });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error assigning role:', error);
+      return false;
+    }
   },
 
-  // Get system metrics
-  async getSystemMetrics(): Promise<SystemMetrics> {
-    const { data, error } = await supabase.functions.invoke('admin-operations', {
-      body: { operation: 'get_system_metrics' }
-    });
-    
-    if (error) throw error;
-    return data;
+  // Bulk update users
+  async bulkUpdateUsers(userIds: string[], action: string): Promise<boolean> {
+    try {
+      // This is a placeholder - implement based on what actions you want to support
+      console.log('Bulk action:', action, 'for users:', userIds);
+      return true;
+    } catch (error) {
+      console.error('Error with bulk action:', error);
+      return false;
+    }
   },
 
-  // Bulk operations
-  async bulkUpdateUsers(userIds: string[], operation: string) {
-    const results = await Promise.all(
-      userIds.map(userId => this.updateUserStatus(userId, operation))
-    );
-    return results;
-  },
+  // Get platform statistics
+  async getPlatformStats(): Promise<any> {
+    try {
+      const [usersCount, tasksCount, submissionsCount] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('tasks').select('id', { count: 'exact', head: true }),
+        supabase.from('task_submissions').select('id', { count: 'exact', head: true })
+      ]);
 
-  // Analytics and reporting
-  async getAnalyticsData(startDate: string, endDate: string) {
-    const { data, error } = await supabase
-      .from('task_submissions')
-      .select(`
-        *,
-        tasks(title, points, category),
-        profiles(name, email)
-      `)
-      .gte('submitted_at', startDate)
-      .lte('submitted_at', endDate)
-      .order('submitted_at', { ascending: false });
-
-    if (error) throw error;
-    return data;
+      return {
+        totalUsers: usersCount.count || 0,
+        totalTasks: tasksCount.count || 0,
+        totalSubmissions: submissionsCount.count || 0
+      };
+    } catch (error) {
+      console.error('Error fetching platform stats:', error);
+      return {
+        totalUsers: 0,
+        totalTasks: 0,
+        totalSubmissions: 0
+      };
+    }
   }
 };

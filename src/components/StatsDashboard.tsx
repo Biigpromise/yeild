@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -26,28 +26,63 @@ import {
   Clock,
   Award
 } from "lucide-react";
+import { userService, UserStats } from "@/services/userService";
 
 interface StatsDashboardProps {
-  userStats: {
-    level: number;
-    points: number;
-    tasksCompleted: number;
-    currentStreak: number;
-    longestStreak: number;
-  };
+  userStats?: UserStats;
 }
 
-export const StatsDashboard = ({ userStats }: StatsDashboardProps) => {
-  // Mock data for charts - in real app this would come from API
-  const pointsOverTime = [
-    { date: "Jan", points: 0 },
-    { date: "Feb", points: 150 },
-    { date: "Mar", points: 450 },
-    { date: "Apr", points: 720 },
-    { date: "May", points: 1100 },
-    { date: "Jun", points: 1400 },
-  ];
+export const StatsDashboard = ({ userStats: propUserStats }: StatsDashboardProps) => {
+  const [userStats, setUserStats] = useState<UserStats | null>(propUserStats || null);
+  const [pointTransactions, setPointTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      setLoading(true);
+      const [stats, transactions] = await Promise.all([
+        userService.getUserStats(),
+        userService.getPointTransactions()
+      ]);
+      
+      setUserStats(stats);
+      setPointTransactions(transactions);
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Generate chart data from real transactions
+  const pointsOverTime = React.useMemo(() => {
+    if (!pointTransactions.length) return [];
+    
+    const last6Months = [];
+    const now = new Date();
+    
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthName = date.toLocaleDateString('en', { month: 'short' });
+      
+      const monthTransactions = pointTransactions.filter(t => {
+        const transactionDate = new Date(t.created_at);
+        return transactionDate.getMonth() === date.getMonth() && 
+               transactionDate.getFullYear() === date.getFullYear();
+      });
+      
+      const totalPoints = monthTransactions.reduce((sum, t) => sum + (t.points > 0 ? t.points : 0), 0);
+      last6Months.push({ date: monthName, points: totalPoints });
+    }
+    
+    return last6Months;
+  }, [pointTransactions]);
+
+  // Mock data for categories and weekly activity (you can implement real data later)
   const tasksPerCategory = [
     { category: "Social Media", completed: 12, total: 15 },
     { category: "Survey", completed: 8, total: 10 },
@@ -72,9 +107,37 @@ export const StatsDashboard = ({ userStats }: StatsDashboardProps) => {
     { name: "Hard", value: 20, color: "#ef4444" },
   ];
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-4">
+                <div className="h-8 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!userStats) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <p className="text-muted-foreground">No statistics available yet.</p>
+          <p className="text-sm text-muted-foreground mt-1">Complete some tasks to see your stats!</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const totalTasks = tasksPerCategory.reduce((sum, cat) => sum + cat.completed, 0);
   const completionRate = tasksPerCategory.reduce((sum, cat) => sum + cat.total, 0);
-  const avgPointsPerTask = totalTasks > 0 ? Math.round(userStats.points / totalTasks) : 0;
+  const avgPointsPerTask = userStats.tasksCompleted > 0 ? Math.round(userStats.points / userStats.tasksCompleted) : 0;
 
   return (
     <div className="space-y-6">
@@ -85,10 +148,8 @@ export const StatsDashboard = ({ userStats }: StatsDashboardProps) => {
             <div className="flex items-center gap-3">
               <Target className="h-8 w-8 text-blue-500" />
               <div>
-                <p className="text-sm text-muted-foreground">Completion Rate</p>
-                <p className="text-2xl font-bold">
-                  {completionRate > 0 ? Math.round((totalTasks / completionRate) * 100) : 0}%
-                </p>
+                <p className="text-sm text-muted-foreground">Total Points</p>
+                <p className="text-2xl font-bold">{userStats.points.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
@@ -99,8 +160,8 @@ export const StatsDashboard = ({ userStats }: StatsDashboardProps) => {
             <div className="flex items-center gap-3">
               <Award className="h-8 w-8 text-yellow-500" />
               <div>
-                <p className="text-sm text-muted-foreground">Avg Points/Task</p>
-                <p className="text-2xl font-bold">{avgPointsPerTask}</p>
+                <p className="text-sm text-muted-foreground">Current Level</p>
+                <p className="text-2xl font-bold">{userStats.level}</p>
               </div>
             </div>
           </CardContent>
@@ -111,10 +172,8 @@ export const StatsDashboard = ({ userStats }: StatsDashboardProps) => {
             <div className="flex items-center gap-3">
               <Calendar className="h-8 w-8 text-green-500" />
               <div>
-                <p className="text-sm text-muted-foreground">This Week</p>
-                <p className="text-2xl font-bold">
-                  {weeklyActivity.reduce((sum, day) => sum + day.tasks, 0)}
-                </p>
+                <p className="text-sm text-muted-foreground">Tasks Completed</p>
+                <p className="text-2xl font-bold">{userStats.tasksCompleted}</p>
               </div>
             </div>
           </CardContent>
@@ -125,8 +184,8 @@ export const StatsDashboard = ({ userStats }: StatsDashboardProps) => {
             <div className="flex items-center gap-3">
               <Clock className="h-8 w-8 text-purple-500" />
               <div>
-                <p className="text-sm text-muted-foreground">Best Streak</p>
-                <p className="text-2xl font-bold">{userStats.longestStreak} days</p>
+                <p className="text-sm text-muted-foreground">Avg Points/Task</p>
+                <p className="text-2xl font-bold">{avgPointsPerTask}</p>
               </div>
             </div>
           </CardContent>
@@ -143,21 +202,27 @@ export const StatsDashboard = ({ userStats }: StatsDashboardProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={pointsOverTime}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="points"
-                  stroke="#3b82f6"
-                  fill="#3b82f6"
-                  fillOpacity={0.2}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {pointsOverTime.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={pointsOverTime}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Area
+                    type="monotone"
+                    dataKey="points"
+                    stroke="#3b82f6"
+                    fill="#3b82f6"
+                    fillOpacity={0.2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No point history available yet
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -180,29 +245,27 @@ export const StatsDashboard = ({ userStats }: StatsDashboardProps) => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Tasks by Category</CardTitle>
+            <CardTitle>Point Transactions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {tasksPerCategory.map((category) => {
-                const percentage = (category.completed / category.total) * 100;
-                return (
-                  <div key={category.category} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">{category.category}</span>
-                      <Badge variant="outline">
-                        {category.completed}/{category.total}
-                      </Badge>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              {pointTransactions.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No transactions yet</p>
+              ) : (
+                pointTransactions.slice(0, 10).map((transaction, index) => (
+                  <div key={transaction.id || index} className="flex justify-between items-center p-2 border rounded">
+                    <div>
+                      <span className="text-sm font-medium">{transaction.description}</span>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(transaction.created_at).toLocaleDateString()}
+                      </div>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-blue-500 h-2 rounded-full transition-all"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
+                    <Badge variant={transaction.points > 0 ? "default" : "secondary"}>
+                      {transaction.points > 0 ? '+' : ''}{transaction.points} pts
+                    </Badge>
                   </div>
-                );
-              })}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>

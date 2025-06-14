@@ -1,32 +1,21 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { rewardsService } from "@/services/rewardsService";
+import { toast } from "sonner";
 
 export interface Task {
   id: string;
   title: string;
   description: string;
-  points: number;
   category: string;
-  category_id: string;
-  difficulty: string;
-  status: string;
-  brand_name: string;
-  brand_logo_url: string;
+  points: number;
   estimated_time: string;
-  expires_at: string;
+  difficulty: string;
+  task_type: string;
+  brand_name: string;
+  brand_logo_url?: string;
+  status: string;
   created_at: string;
-}
-
-export interface TaskSubmission {
-  id: string;
-  task_id: string;
-  user_id: string;
-  status: 'pending' | 'approved' | 'rejected';
-  evidence: string;
-  submitted_at: string;
-  admin_notes?: string;
-  reviewed_at?: string;
-  reviewed_by?: string;
+  expires_at?: string;
 }
 
 export interface TaskCategory {
@@ -35,187 +24,167 @@ export interface TaskCategory {
   description: string;
   icon: string;
   color: string;
+  created_at: string;
 }
 
-export interface CreateTaskData {
-  title: string;
-  description: string;
-  points: number;
-  category?: string;
-  category_id?: string;
-  difficulty?: string;
-  status?: string;
-  brand_name?: string;
-  brand_logo_url?: string;
-  estimated_time?: string;
-  expires_at?: string;
+export interface TaskSubmission {
+  id: string;
+  task_id: string;
+  user_id: string;
+  evidence: string;
+  status: string;
+  submitted_at: string;
+  reviewed_at?: string;
+  admin_notes?: string;
 }
 
 export const taskService = {
   // Get all active tasks
-  async getTasks() {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select(`
-        *,
-        task_categories(*)
-      `)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false });
-    
-    if (error) throw error;
-    return data;
+  async getTasks(): Promise<Task[]> {
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      toast.error('Failed to load tasks');
+      return [];
+    }
   },
 
   // Get task categories
-  async getCategories() {
-    const { data, error } = await supabase
-      .from('task_categories')
-      .select('*')
-      .order('name');
-    
-    if (error) throw error;
-    return data;
-  },
+  async getCategories(): Promise<TaskCategory[]> {
+    try {
+      const { data, error } = await supabase
+        .from('task_categories')
+        .select('*')
+        .order('name');
 
-  // Submit a task
-  async submitTask(taskId: string, evidence: string) {
-    const { data, error } = await supabase
-      .from('task_submissions')
-      .insert({
-        task_id: taskId,
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        evidence,
-        status: 'pending'
-      })
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      toast.error('Failed to load categories');
+      return [];
+    }
   },
 
   // Get user's task submissions
-  async getUserSubmissions() {
-    const { data, error } = await supabase
-      .from('task_submissions')
-      .select(`
-        *,
-        tasks(*)
-      `)
-      .order('submitted_at', { ascending: false });
-    
-    if (error) throw error;
-    return data;
+  async getUserSubmissions(): Promise<TaskSubmission[]> {
+    try {
+      const { data, error } = await supabase
+        .from('task_submissions')
+        .select(`
+          *,
+          tasks(title, points, category),
+          profiles(name, email)
+        `)
+        .order('submitted_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching submissions:', error);
+      toast.error('Failed to load submissions');
+      return [];
+    }
   },
 
-  // Get user's completed tasks
-  async getUserTasks() {
-    const { data, error } = await supabase
-      .from('user_tasks')
-      .select(`
-        *,
-        tasks(*)
-      `)
-      .order('completed_at', { ascending: false });
-    
-    if (error) throw error;
-    return data;
+  // Submit a task
+  async submitTask(taskId: string, evidence: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('task_submissions')
+        .insert({
+          task_id: taskId,
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          evidence,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+      toast.success('Task submitted successfully!');
+      return true;
+    } catch (error) {
+      console.error('Error submitting task:', error);
+      toast.error('Failed to submit task');
+      return false;
+    }
   },
 
   // Admin functions
   admin: {
-    // Get all tasks for admin
-    async getAllTasks() {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select(`
-          *,
-          task_categories(*)
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    },
+    async getAllTasks(): Promise<Task[]> {
+      try {
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-    // Create a new task
-    async createTask(task: CreateTaskData) {
-      const { data, error } = await supabase
-        .from('tasks')
-        .insert(task)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-
-    // Update task
-    async updateTask(id: string, updates: Partial<Task>) {
-      const { data, error } = await supabase
-        .from('tasks')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-
-    // Delete task
-    async deleteTask(id: string) {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-    },
-
-    // Get all submissions for review
-    async getAllSubmissions() {
-      const { data, error } = await supabase
-        .from('task_submissions')
-        .select(`
-          *,
-          tasks(*),
-          profiles!task_submissions_user_id_fkey(name, email)
-        `)
-        .order('submitted_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    },
-
-    // Approve/reject submission with achievement checking
-    async updateSubmissionStatus(id: string, status: 'approved' | 'rejected', adminNotes?: string) {
-      const { data, error } = await supabase
-        .from('task_submissions')
-        .update({
-          status,
-          admin_notes: adminNotes,
-          reviewed_at: new Date().toISOString(),
-          reviewed_by: (await supabase.auth.getUser()).data.user?.id
-        })
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-
-      // If approved, check for achievements
-      if (status === 'approved' && data.user_id) {
-        try {
-          await rewardsService.checkAndAwardAchievements(data.user_id);
-        } catch (achievementError) {
-          console.error("Error checking achievements:", achievementError);
-          // Don't throw error here as the main operation succeeded
-        }
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
+        console.error('Error fetching all tasks:', error);
+        return [];
       }
-      
-      return data;
+    },
+
+    async getAllSubmissions(): Promise<any[]> {
+      try {
+        const { data, error } = await supabase
+          .from('task_submissions')
+          .select(`
+            *,
+            tasks(title, points, category),
+            profiles(name, email)
+          `)
+          .order('submitted_at', { ascending: false });
+
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
+        console.error('Error fetching all submissions:', error);
+        return [];
+      }
+    },
+
+    async updateSubmissionStatus(submissionId: string, status: 'approved' | 'rejected', notes?: string): Promise<boolean> {
+      try {
+        const { error } = await supabase
+          .from('task_submissions')
+          .update({
+            status,
+            admin_notes: notes,
+            reviewed_at: new Date().toISOString()
+          })
+          .eq('id', submissionId);
+
+        if (error) throw error;
+        return true;
+      } catch (error) {
+        console.error('Error updating submission:', error);
+        return false;
+      }
+    },
+
+    async deleteTask(taskId: string): Promise<boolean> {
+      try {
+        const { error } = await supabase
+          .from('tasks')
+          .delete()
+          .eq('id', taskId);
+
+        if (error) throw error;
+        return true;
+      } catch (error) {
+        console.error('Error deleting task:', error);
+        return false;
+      }
     }
   }
 };
