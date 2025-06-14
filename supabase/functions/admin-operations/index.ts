@@ -120,6 +120,29 @@ Deno.serve(async (req) => {
       case 'send_bulk_message':
         return await sendBulkMessage(supabase, data, user.id);
       
+      case 'get_platform_settings':
+        return await getPlatformSettings(supabase);
+      case 'update_platform_settings':
+        return await updatePlatformSettings(supabase, data, user.id);
+      case 'create_announcement':
+        return await createAnnouncement(supabase, data, user.id);
+      case 'broadcast_announcement':
+        return await broadcastAnnouncement(supabase, data, user.id);
+      case 'get_announcements':
+        return await getAnnouncements(supabase, data);
+      case 'delete_announcement':
+        return await deleteAnnouncement(supabase, data, user.id);
+      case 'get_content_policy':
+        return await getContentPolicy(supabase);
+      case 'update_content_policy':
+        return await updateContentPolicy(supabase, data, user.id);
+      case 'toggle_maintenance_mode':
+        return await toggleMaintenanceMode(supabase, data, user.id);
+      case 'get_content_moderation_queue':
+        return await getContentModerationQueue(supabase);
+      case 'moderate_content':
+        return await moderateContent(supabase, data, user.id);
+      
       default:
         return new Response(JSON.stringify({ error: 'Invalid operation' }), {
           status: 400,
@@ -467,6 +490,142 @@ async function createMessageTemplate(supabase: any, data: any, adminId: string) 
 
 async function sendBulkMessage(supabase: any, data: any, adminId: string) {
   console.log('Bulk message sent:', data);
+  return new Response(JSON.stringify({ success: true }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function getPlatformSettings(supabase: any) {
+  const mockSettings = {
+    siteName: "YEILD",
+    maintenanceMode: false,
+    registrationEnabled: true,
+    taskSubmissionEnabled: true,
+    withdrawalEnabled: true,
+    maxTasksPerUser: 10,
+    pointsPerTask: 50
+  };
+  
+  return new Response(JSON.stringify(mockSettings), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function updatePlatformSettings(supabase: any, data: any, adminId: string) {
+  console.log('Platform settings update:', data);
+  return new Response(JSON.stringify({ success: true }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function createAnnouncement(supabase: any, data: any, adminId: string) {
+  console.log('Announcement created:', data);
+  return new Response(JSON.stringify({ 
+    success: true, 
+    id: 'announcement-' + Date.now() 
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function broadcastAnnouncement(supabase: any, data: any, adminId: string) {
+  console.log('Announcement broadcasted:', data);
+  return new Response(JSON.stringify({ success: true }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function getAnnouncements(supabase: any, data: any) {
+  const mockAnnouncements = [
+    {
+      id: '1',
+      title: 'Platform Update',
+      content: 'We have released new features for better user experience.',
+      type: 'info',
+      targetAudience: 'all',
+      isActive: true,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: '2',
+      title: 'Maintenance Notice',
+      content: 'Scheduled maintenance will occur this weekend.',
+      type: 'warning',
+      targetAudience: 'all',
+      isActive: true,
+      createdAt: new Date(Date.now() - 86400000).toISOString()
+    }
+  ];
+  
+  return new Response(JSON.stringify(mockAnnouncements), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function deleteAnnouncement(supabase: any, data: any, adminId: string) {
+  console.log('Announcement deleted:', data);
+  return new Response(JSON.stringify({ success: true }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function getContentPolicy(supabase: any) {
+  const mockPolicy = {
+    autoApproval: false,
+    moderationRequired: true,
+    bannedWords: ['spam', 'abuse'],
+    maxSubmissionSize: 5,
+    allowedFileTypes: ['jpg', 'png', 'pdf', 'doc']
+  };
+  
+  return new Response(JSON.stringify(mockPolicy), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function updateContentPolicy(supabase: any, data: any, adminId: string) {
+  console.log('Content policy updated:', data);
+  return new Response(JSON.stringify({ success: true }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function toggleMaintenanceMode(supabase: any, data: any, adminId: string) {
+  console.log('Maintenance mode toggled:', data);
+  return new Response(JSON.stringify({ success: true }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function getContentModerationQueue(supabase: any) {
+  const mockQueue = [
+    {
+      id: '1',
+      type: 'Task Submission',
+      title: 'Social Media Post',
+      description: 'User submitted a social media campaign task',
+      submittedBy: 'John Doe',
+      submittedAt: new Date().toISOString(),
+      evidence: 'Screenshot of Instagram post with brand hashtag'
+    },
+    {
+      id: '2',
+      type: 'Profile Update',
+      title: 'Bio Update',
+      description: 'User updated their profile bio',
+      submittedBy: 'Jane Smith',
+      submittedAt: new Date(Date.now() - 3600000).toISOString(),
+      evidence: 'Updated bio contains promotional content'
+    }
+  ];
+  
+  return new Response(JSON.stringify(mockQueue), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function moderateContent(supabase: any, data: any, adminId: string) {
+  console.log('Content moderated:', data);
   return new Response(JSON.stringify({ success: true }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   });
