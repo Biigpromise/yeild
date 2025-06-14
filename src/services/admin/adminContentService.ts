@@ -37,7 +37,7 @@ export const adminContentService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'get_platform_settings'
+          action: 'get_platform_settings'
         }
       });
 
@@ -61,7 +61,7 @@ export const adminContentService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'update_platform_settings',
+          action: 'update_platform_settings',
           data: settings
         }
       });
@@ -81,7 +81,7 @@ export const adminContentService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'create_announcement',
+          action: 'create_announcement',
           data: announcement
         }
       });
@@ -103,7 +103,7 @@ export const adminContentService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'broadcast_announcement',
+          action: 'broadcast_announcement',
           data: { announcementId, targetAudience }
         }
       });
@@ -126,7 +126,7 @@ export const adminContentService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'get_announcements',
+          action: 'get_announcements',
           data: filters
         }
       });
@@ -143,7 +143,7 @@ export const adminContentService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'delete_announcement',
+          action: 'delete_announcement',
           data: { announcementId }
         }
       });
@@ -163,7 +163,7 @@ export const adminContentService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'get_content_policy'
+          action: 'get_content_policy'
         }
       });
 
@@ -185,7 +185,7 @@ export const adminContentService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'update_content_policy',
+          action: 'update_content_policy',
           data: policy
         }
       });
@@ -205,7 +205,7 @@ export const adminContentService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'toggle_maintenance_mode',
+          action: 'toggle_maintenance_mode',
           data: { enabled }
         }
       });
@@ -225,7 +225,7 @@ export const adminContentService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'get_content_moderation_queue'
+          action: 'get_content_moderation_queue'
         }
       });
 
@@ -245,7 +245,7 @@ export const adminContentService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'moderate_content',
+          action: 'moderate_content',
           data: { contentId, action, reason }
         }
       });
