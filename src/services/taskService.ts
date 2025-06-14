@@ -4,7 +4,7 @@ import { taskSubmissionService } from "./tasks/taskSubmissionService";
 import { adminTaskService } from "./tasks/adminTaskService";
 
 // Re-export types for backward compatibility
-export { Task, TaskCategory, TaskSubmission } from "./types/taskTypes";
+export type { Task, TaskCategory, TaskSubmission } from "./types/taskTypes";
 
 export const taskService = {
   // Public task operations
