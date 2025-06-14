@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TaskCategories from "@/components/TaskCategories";
@@ -12,6 +13,8 @@ import { RedemptionHistory } from "@/components/rewards/RedemptionHistory";
 import { WithdrawalForm } from "@/components/wallet/WithdrawalForm";
 import { WithdrawalHistory } from "@/components/wallet/WithdrawalHistory";
 import { WalletOverview } from "@/components/wallet/WalletOverview";
+import { DashboardSkeleton, WalletSkeleton } from "@/components/ui/dashboard-skeleton";
+import { MobileTabNavigation } from "@/components/ui/mobile-tab-navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -32,6 +35,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { taskService } from "@/services/taskService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTouchGestures } from "@/hooks/use-touch-gestures";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 import { 
   Trophy, 
   Users, 
@@ -51,6 +57,7 @@ import {
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userStats, setUserStats] = useState({
     points: 0,
@@ -68,6 +75,7 @@ const Dashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("tasks");
 
   // Mock notifications data - in a real app this would come from an API
   const notifications = [
@@ -81,6 +89,30 @@ const Dashboard = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
+
+  // Touch gesture navigation
+  const tabs = ['tasks', 'rewards', 'achievements', 'wallet', 'leaderboard', 'referrals'];
+  
+  const handleSwipeLeft = () => {
+    const currentIndex = tabs.indexOf(activeTab);
+    if (currentIndex < tabs.length - 1) {
+      setActiveTab(tabs[currentIndex + 1]);
+    }
+  };
+
+  const handleSwipeRight = () => {
+    const currentIndex = tabs.indexOf(activeTab);
+    if (currentIndex > 0) {
+      setActiveTab(tabs[currentIndex - 1]);
+    }
+  };
+
+  const gestureRef = useTouchGestures({
+    onSwipeLeft: handleSwipeLeft,
+    onSwipeRight: handleSwipeRight,
+    threshold: 50,
+    enabled: isMobile
+  });
 
   // Fetch user data
   useEffect(() => {
@@ -182,35 +214,28 @@ const Dashboard = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          <div className="animate-pulse space-y-8">
-            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-            <div className="grid grid-cols-6 gap-4">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-20 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <div className="container mx-auto px-4 py-4 max-w-7xl">
+    <div 
+      ref={gestureRef}
+      className={cn(
+        "min-h-screen bg-background",
+        isMobile ? "pb-20" : "pb-4"
+      )}
+    >
+      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4 max-w-7xl">
         {/* Compact Header */}
-        <div className="mb-4">
-          <div className="flex justify-between items-center mb-3">
-            <div>
-              <h1 className="text-xl font-bold mb-1">Dashboard</h1>
-              <p className="text-xs text-muted-foreground">
+        <div className="mb-3 sm:mb-4">
+          <div className="flex justify-between items-center mb-2 sm:mb-3">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl font-bold mb-1 truncate">Dashboard</h1>
+              <p className="text-xs text-muted-foreground truncate">
                 Welcome back, {userProfile?.name || user?.email}!
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {/* Notifications */}
               <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
                 <PopoverTrigger asChild>
@@ -223,23 +248,25 @@ const Dashboard = () => {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-96 p-0" align="end">
+                <PopoverContent className="w-80 sm:w-96 p-0" align="end">
                   <NotificationCenter />
                 </PopoverContent>
               </Popover>
 
-              {/* Browse Tasks Button */}
-              <Button size="sm" onClick={() => navigate('/tasks')}>
-                <Target className="h-4 w-4 mr-1" />
-                Browse Tasks
-              </Button>
+              {/* Browse Tasks Button - Hidden on mobile */}
+              {!isMobile && (
+                <Button size="sm" onClick={() => navigate('/tasks')}>
+                  <Target className="h-4 w-4 mr-1" />
+                  Browse Tasks
+                </Button>
+              )}
 
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="flex items-center gap-1">
                     <User className="h-4 w-4" />
-                    <ChevronDown className="h-3 w-3" />
+                    {!isMobile && <ChevronDown className="h-3 w-3" />}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -247,9 +274,9 @@ const Dashboard = () => {
                     <User className="h-4 w-4 mr-2" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Wallet className="h-4 w-4 mr-2" />
-                    Wallet
+                  <DropdownMenuItem onClick={() => navigate('/tasks')}>
+                    <Target className="h-4 w-4 mr-2" />
+                    Browse Tasks
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
@@ -262,40 +289,40 @@ const Dashboard = () => {
           </div>
 
           {/* Compact Quick Stats */}
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 sm:gap-2">
             <Card className="border-0 shadow-sm">
               <CardContent className="p-2 text-center">
-                <div className="text-lg font-bold text-primary">{userStats.points.toLocaleString()}</div>
+                <div className="text-sm sm:text-lg font-bold text-primary">{userStats.points.toLocaleString()}</div>
                 <div className="text-xs text-muted-foreground">Points</div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-sm">
               <CardContent className="p-2 text-center">
-                <div className="text-lg font-bold text-purple-600">{userStats.level}</div>
+                <div className="text-sm sm:text-lg font-bold text-purple-600">{userStats.level}</div>
                 <div className="text-xs text-muted-foreground">Level</div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-sm">
               <CardContent className="p-2 text-center">
-                <div className="text-lg font-bold text-green-600">{userStats.tasksCompleted}</div>
+                <div className="text-sm sm:text-lg font-bold text-green-600">{userStats.tasksCompleted}</div>
                 <div className="text-xs text-muted-foreground">Tasks</div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-sm">
               <CardContent className="p-2 text-center">
-                <div className="text-lg font-bold text-orange-600">{userStats.currentStreak}</div>
+                <div className="text-sm sm:text-lg font-bold text-orange-600">{userStats.currentStreak}</div>
                 <div className="text-xs text-muted-foreground">Streak</div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-sm">
               <CardContent className="p-2 text-center">
-                <div className="text-lg font-bold text-blue-600">#{userStats.rank}</div>
+                <div className="text-sm sm:text-lg font-bold text-blue-600">#{userStats.rank}</div>
                 <div className="text-xs text-muted-foreground">Rank</div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-sm">
               <CardContent className="p-2 text-center">
-                <div className="text-lg font-bold text-pink-600">{userStats.referrals}</div>
+                <div className="text-sm sm:text-lg font-bold text-pink-600">{userStats.referrals}</div>
                 <div className="text-xs text-muted-foreground">Referrals</div>
               </CardContent>
             </Card>
@@ -303,7 +330,37 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="tasks" className="space-y-3">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3">
+          {/* Desktop Tab Navigation */}
+          {!isMobile && (
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="tasks">
+                <Home className="h-4 w-4 mr-2" />
+                Home
+              </TabsTrigger>
+              <TabsTrigger value="rewards">
+                <Gift className="h-4 w-4 mr-2" />
+                Rewards
+              </TabsTrigger>
+              <TabsTrigger value="achievements">
+                <Award className="h-4 w-4 mr-2" />
+                Achievements
+              </TabsTrigger>
+              <TabsTrigger value="wallet">
+                <Wallet className="h-4 w-4 mr-2" />
+                Wallet
+              </TabsTrigger>
+              <TabsTrigger value="leaderboard">
+                <Trophy className="h-4 w-4 mr-2" />
+                Leaderboard
+              </TabsTrigger>
+              <TabsTrigger value="referrals">
+                <Users className="h-4 w-4 mr-2" />
+                Referrals
+              </TabsTrigger>
+            </TabsList>
+          )}
+
           <TabsContent value="tasks" className="space-y-4 mt-3">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               <div className="lg:col-span-3 space-y-4">
@@ -378,22 +435,26 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="wallet">
-            <div className="space-y-6">
-              <WalletOverview 
-                userPoints={userStats.points}
-                totalEarned={totalPointsEarned}
-                pendingWithdrawals={withdrawalStats.pendingWithdrawals}
-                completedWithdrawals={withdrawalStats.completedWithdrawals}
-              />
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <WithdrawalForm 
+            {loading ? (
+              <WalletSkeleton />
+            ) : (
+              <div className="space-y-6">
+                <WalletOverview 
                   userPoints={userStats.points}
-                  onWithdrawalSubmitted={loadUserData}
+                  totalEarned={totalPointsEarned}
+                  pendingWithdrawals={withdrawalStats.pendingWithdrawals}
+                  completedWithdrawals={withdrawalStats.completedWithdrawals}
                 />
-                <WithdrawalHistory />
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <WithdrawalForm 
+                    userPoints={userStats.points}
+                    onWithdrawalSubmitted={loadUserData}
+                  />
+                  <WithdrawalHistory />
+                </div>
               </div>
-            </div>
+            )}
           </TabsContent>
 
           <TabsContent value="leaderboard">
@@ -412,53 +473,11 @@ const Dashboard = () => {
             />
           </TabsContent>
 
-          {/* Fixed Bottom Navigation - Facebook Style */}
-          <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
-            <TabsList className="w-full h-16 bg-background p-0 grid grid-cols-6 rounded-none border-0">
-              <TabsTrigger 
-                value="tasks" 
-                className="flex-col h-full gap-1 data-[state=active]:bg-transparent data-[state=active]:text-primary rounded-none"
-              >
-                <Home className="h-5 w-5" />
-                <span className="text-xs">Home</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="rewards" 
-                className="flex-col h-full gap-1 data-[state=active]:bg-transparent data-[state=active]:text-primary rounded-none"
-              >
-                <Gift className="h-5 w-5" />
-                <span className="text-xs">Rewards</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="achievements" 
-                className="flex-col h-full gap-1 data-[state=active]:bg-transparent data-[state=active]:text-primary rounded-none"
-              >
-                <Award className="h-5 w-5" />
-                <span className="text-xs">Achievements</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="wallet" 
-                className="flex-col h-full gap-1 data-[state=active]:bg-transparent data-[state=active]:text-primary rounded-none"
-              >
-                <Wallet className="h-5 w-5" />
-                <span className="text-xs">Wallet</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="leaderboard" 
-                className="flex-col h-full gap-1 data-[state=active]:bg-transparent data-[state=active]:text-primary rounded-none"
-              >
-                <Trophy className="h-5 w-5" />
-                <span className="text-xs">Leaderboard</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="referrals" 
-                className="flex-col h-full gap-1 data-[state=active]:bg-transparent data-[state=active]:text-primary rounded-none"
-              >
-                <Users className="h-5 w-5" />
-                <span className="text-xs">Referrals</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          {/* Mobile Tab Navigation */}
+          <MobileTabNavigation 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </Tabs>
       </div>
     </div>
