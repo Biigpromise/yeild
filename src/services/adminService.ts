@@ -139,6 +139,30 @@ export const adminService = {
     }
   },
 
+  // Add bulk update users method
+  async bulkUpdateUsers(userIds: string[], action: string): Promise<boolean> {
+    const hasAccess = await this.verifyAdminAccess();
+    if (!hasAccess) {
+      toast.error('Admin access required');
+      return false;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-operations', {
+        body: { 
+          operation: 'bulk_update_users',
+          data: { userIds, action }
+        }
+      });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error with bulk update:', error);
+      throw error;
+    }
+  },
+
   // Get system metrics with admin verification
   async getSystemMetrics(): Promise<any> {
     const hasAccess = await this.verifyAdminAccess();
