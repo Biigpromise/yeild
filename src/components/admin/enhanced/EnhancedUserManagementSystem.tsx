@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,7 +40,7 @@ export const EnhancedUserManagementSystem = () => {
   const [banReason, setBanReason] = useState("");
   const [bulkReason, setBulkReason] = useState("");
 
-  // Load users when filters change
+  // Load users when filters change with enhanced activity data
   useEffect(() => {
     if (filters.searchTerm || filters.status !== 'all' || Object.keys(filters.dateRange || {}).length > 0) {
       loadUsers();
@@ -51,7 +50,8 @@ export const EnhancedUserManagementSystem = () => {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const data = await enhancedUserManagementService.searchUsers(filters);
+      // Use the enhanced search with activity data
+      const data = await enhancedUserManagementService.searchUsersWithActivity(filters);
       setUsers(data);
     } catch (error) {
       console.error("Error loading users:", error);
@@ -208,7 +208,7 @@ export const EnhancedUserManagementSystem = () => {
         </Card>
       )}
 
-      {/* Search Results */}
+      {/* Enhanced Search Results with Activity Monitoring */}
       <UserSearchResults
         users={users}
         selectedUsers={selectedUsers}

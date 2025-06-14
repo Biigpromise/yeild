@@ -200,42 +200,60 @@ export type Database = {
       }
       profiles: {
         Row: {
+          average_session_duration: number | null
           bio: string | null
           created_at: string | null
           email: string | null
           id: string
+          last_active_at: string | null
+          last_login_at: string | null
           level: number | null
+          login_count: number | null
           name: string | null
           points: number | null
           profile_picture_url: string | null
           social_media_links: string[] | null
+          task_completion_rate: number | null
           tasks_completed: number | null
+          total_session_time: number | null
           updated_at: string | null
         }
         Insert: {
+          average_session_duration?: number | null
           bio?: string | null
           created_at?: string | null
           email?: string | null
           id: string
+          last_active_at?: string | null
+          last_login_at?: string | null
           level?: number | null
+          login_count?: number | null
           name?: string | null
           points?: number | null
           profile_picture_url?: string | null
           social_media_links?: string[] | null
+          task_completion_rate?: number | null
           tasks_completed?: number | null
+          total_session_time?: number | null
           updated_at?: string | null
         }
         Update: {
+          average_session_duration?: number | null
           bio?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
+          last_active_at?: string | null
+          last_login_at?: string | null
           level?: number | null
+          login_count?: number | null
           name?: string | null
           points?: number | null
           profile_picture_url?: string | null
           social_media_links?: string[] | null
+          task_completion_rate?: number | null
           tasks_completed?: number | null
+          total_session_time?: number | null
           updated_at?: string | null
         }
         Relationships: []
@@ -500,6 +518,36 @@ export type Database = {
           },
         ]
       }
+      user_activity_log: {
+        Row: {
+          activity_data: Json | null
+          activity_type: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_data?: Json | null
+          activity_type: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_data?: Json | null
+          activity_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           assigned_at: string | null
@@ -520,6 +568,93 @@ export type Database = {
           assigned_by?: string | null
           id?: string
           role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          browser: string | null
+          created_at: string
+          device_type: string | null
+          id: string
+          ip_address: unknown | null
+          is_active: boolean
+          location_city: string | null
+          location_country: string | null
+          operating_system: string | null
+          session_end: string | null
+          session_start: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          location_city?: string | null
+          location_country?: string | null
+          operating_system?: string | null
+          session_end?: string | null
+          session_start?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          location_city?: string | null
+          location_country?: string | null
+          operating_system?: string | null
+          session_end?: string | null
+          session_start?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          id: string
+          last_activity_date: string | null
+          longest_streak: number
+          streak_start_date: string | null
+          streak_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number
+          streak_start_date?: string | null
+          streak_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number
+          streak_start_date?: string | null
+          streak_type?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -722,6 +857,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_task_completion_rate: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
       check_and_award_achievements: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -748,6 +887,14 @@ export type Database = {
       redeem_reward: {
         Args: { p_user_id: string; p_reward_id: string }
         Returns: string
+      }
+      update_user_streak: {
+        Args: {
+          p_user_id: string
+          p_streak_type: string
+          p_activity_date?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

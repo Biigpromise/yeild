@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -16,25 +15,43 @@ export interface UserActivityData {
   joinDate: string;
   totalLogins: number;
   lastLogin?: string;
+  taskCompletionRate: number;
+  averageSessionDuration: number;
+  totalSessionTime: number;
+  longestStreak: number;
+  currentLoginStreak: number;
 }
 
-export interface UserSearchFilters {
-  searchTerm?: string;
-  status?: string;
-  dateRange?: {
-    from: Date;
-    to: Date;
-  };
-  pointsRange?: {
-    min: number;
-    max: number;
-  };
-  tasksRange?: {
-    min: number;
-    max: number;
-  };
-  sortBy?: 'name' | 'email' | 'points' | 'tasks' | 'joinDate' | 'lastActive';
-  sortOrder?: 'asc' | 'desc';
+export interface UserSessionData {
+  id: string;
+  sessionStart: string;
+  sessionEnd?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  deviceType?: string;
+  browser?: string;
+  operatingSystem?: string;
+  locationCountry?: string;
+  locationCity?: string;
+  isActive: boolean;
+  duration?: number;
+}
+
+export interface UserStreakData {
+  streakType: string;
+  currentStreak: number;
+  longestStreak: number;
+  lastActivityDate?: string;
+  streakStartDate?: string;
+}
+
+export interface UserActivityTimeline {
+  id: string;
+  activityType: string;
+  activityData: any;
+  timestamp: string;
+  ipAddress?: string;
+  description: string;
 }
 
 export interface BulkOperation {
@@ -65,6 +82,25 @@ export const enhancedUserManagementService = {
       return data || [];
     } catch (error) {
       console.error('Error searching users:', error);
+      toast.error('Failed to search users');
+      return [];
+    }
+  },
+
+  // Enhanced user search with activity data
+  async searchUsersWithActivity(filters: UserSearchFilters): Promise<UserActivityData[]> {
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-operations', {
+        body: { 
+          operation: 'search_users_with_activity',
+          data: filters
+        }
+      });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error searching users with activity:', error);
       toast.error('Failed to search users');
       return [];
     }
@@ -195,39 +231,263 @@ export const enhancedUserManagementService = {
     }
   },
 
-  // Get user activity timeline
-  async getUserActivityTimeline(userId: string, limit: number = 50): Promise<any[]> {
+  // Get detailed user profile with activity metrics
+  async getUserProfileWithActivity(userId: string): Promise<UserActivityData | null> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          operation: 'get_user_activity_timeline',
-          data: { userId, limit }
-        }
-      });
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          user_streaks(*),
+          user_sessions!inner(*)
+        `)
+        .eq('id', userId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Get login streak data
+      const { data: loginStreak } = await supabase
+        .from('user_streaks')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('streak_type', 'login')
+        .single();
+
+      // Get task completion streak data
+      const { data: taskStreak } = await supabase
+        .from('user_streaks')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('streak_type', 'task_completion')
+        .single();
+
+      // Get session count
+      const { count: sessionCount } = await supabase
+        .from('user_sessions')
+        .select('*', { count: 'exact' })
+        .eq('user_id', userId);
+
+      return {
+        userId: profile.id,
+        userName: profile.name || 'Unknown',
+        email: profile.email || '',
+        lastActive: profile.last_active_at || profile.updated_at,
+        tasksCompleted: profile.tasks_completed || 0,
+        pointsEarned: profile.points || 0,
+        streakDays: taskStreak?.current_streak || 0,
+        accountStatus: 'active', // Default, can be enhanced with actual status logic
+        joinDate: profile.created_at,
+        totalLogins: sessionCount || 0,
+        lastLogin: profile.last_login_at,
+        taskCompletionRate: profile.task_completion_rate || 0,
+        averageSessionDuration: profile.average_session_duration || 0,
+        totalSessionTime: profile.total_session_time || 0,
+        longestStreak: taskStreak?.longest_streak || 0,
+        currentLoginStreak: loginStreak?.current_streak || 0
+      };
+    } catch (error) {
+      console.error('Error fetching user profile with activity:', error);
+      return null;
+    }
+  },
+
+  // Get user session history
+  async getUserSessions(userId: string, limit: number = 50): Promise<UserSessionData[]> {
+    try {
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('session_start', { ascending: false })
+        .limit(limit);
 
       if (error) throw error;
-      return data || [];
+
+      return (data || []).map(session => ({
+        id: session.id,
+        sessionStart: session.session_start,
+        sessionEnd: session.session_end,
+        ipAddress: session.ip_address,
+        userAgent: session.user_agent,
+        deviceType: session.device_type,
+        browser: session.browser,
+        operatingSystem: session.operating_system,
+        locationCountry: session.location_country,
+        locationCity: session.location_city,
+        isActive: session.is_active,
+        duration: session.session_end 
+          ? Math.round((new Date(session.session_end).getTime() - new Date(session.session_start).getTime()) / (1000 * 60))
+          : undefined
+      }));
+    } catch (error) {
+      console.error('Error fetching user sessions:', error);
+      return [];
+    }
+  },
+
+  // Get user streaks data
+  async getUserStreaks(userId: string): Promise<UserStreakData[]> {
+    try {
+      const { data, error } = await supabase
+        .from('user_streaks')
+        .select('*')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+
+      return (data || []).map(streak => ({
+        streakType: streak.streak_type,
+        currentStreak: streak.current_streak,
+        longestStreak: streak.longest_streak,
+        lastActivityDate: streak.last_activity_date,
+        streakStartDate: streak.streak_start_date
+      }));
+    } catch (error) {
+      console.error('Error fetching user streaks:', error);
+      return [];
+    }
+  },
+
+  // Get user activity timeline
+  async getUserActivityTimeline(userId: string, limit: number = 50): Promise<UserActivityTimeline[]> {
+    try {
+      const { data, error } = await supabase
+        .from('user_activity_log')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+
+      return (data || []).map(activity => ({
+        id: activity.id,
+        activityType: activity.activity_type,
+        activityData: activity.activity_data,
+        timestamp: activity.created_at,
+        ipAddress: activity.ip_address,
+        description: this.getActivityDescription(activity.activity_type, activity.activity_data)
+      }));
     } catch (error) {
       console.error('Error fetching user activity timeline:', error);
       return [];
     }
   },
 
-  // Get suspension history for a user
-  async getUserSuspensionHistory(userId: string): Promise<any[]> {
+  // Helper function to format activity descriptions
+  getActivityDescription(activityType: string, activityData: any): string {
+    switch (activityType) {
+      case 'login':
+        return 'User logged in';
+      case 'logout':
+        return 'User logged out';
+      case 'task_start':
+        return `Started task: ${activityData?.taskTitle || 'Unknown'}`;
+      case 'task_complete':
+        return `Completed task: ${activityData?.taskTitle || 'Unknown'}`;
+      case 'page_view':
+        return `Viewed page: ${activityData?.page || 'Unknown'}`;
+      case 'profile_update':
+        return 'Updated profile';
+      default:
+        return `${activityType.replace('_', ' ')}`;
+    }
+  },
+
+  // Track user activity
+  async trackUserActivity(
+    userId: string, 
+    activityType: string, 
+    activityData?: any,
+    ipAddress?: string,
+    userAgent?: string
+  ): Promise<boolean> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          operation: 'get_user_suspension_history',
-          data: { userId }
-        }
-      });
+      const { error } = await supabase
+        .from('user_activity_log')
+        .insert({
+          user_id: userId,
+          activity_type: activityType,
+          activity_data: activityData || {},
+          ip_address: ipAddress,
+          user_agent: userAgent
+        });
 
       if (error) throw error;
-      return data || [];
+      return true;
     } catch (error) {
-      console.error('Error fetching suspension history:', error);
-      return [];
+      console.error('Error tracking user activity:', error);
+      return false;
+    }
+  },
+
+  // Create user session
+  async createUserSession(
+    userId: string,
+    sessionData: {
+      ipAddress?: string;
+      userAgent?: string;
+      deviceType?: string;
+      browser?: string;
+      operatingSystem?: string;
+      locationCountry?: string;
+      locationCity?: string;
+    }
+  ): Promise<string | null> {
+    try {
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .insert({
+          user_id: userId,
+          ...sessionData
+        })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
+      // Update login streak and profile
+      await this.trackUserActivity(userId, 'login');
+      await supabase.rpc('update_user_streak', {
+        p_user_id: userId,
+        p_streak_type: 'login'
+      });
+
+      // Update profile login data
+      await supabase
+        .from('profiles')
+        .update({
+          last_login_at: new Date().toISOString(),
+          login_count: supabase.sql`login_count + 1`,
+          last_active_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+
+      return data.id;
+    } catch (error) {
+      console.error('Error creating user session:', error);
+      return null;
+    }
+  },
+
+  // End user session
+  async endUserSession(sessionId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('user_sessions')
+        .update({
+          session_end: new Date().toISOString(),
+          is_active: false
+        })
+        .eq('id', sessionId);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error ending user session:', error);
+      return false;
     }
   }
 };
