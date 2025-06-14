@@ -53,7 +53,6 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
         taskService.getTasks(),
         taskService.getUserSubmissions()
       ]);
-      
       setCategories(propCategories || categoriesData);
       setTasks(tasksData);
       setUserSubmissions(submissionsData);
@@ -93,6 +92,9 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
     );
   }
 
+  // Remove all static/demo/mock task cards from here
+  // Only show real tasks fetched from the backend in the main task section
+
   return (
     <>
       <div className="space-y-8">
@@ -102,7 +104,7 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
             {categories.map((category) => {
               const IconComponent = iconMap[category.icon as keyof typeof iconMap] || FileText;
               const categoryTasks = tasks.filter(task => task.category === category.name);
-              
+
               return (
                 <Card 
                   key={category.id} 
@@ -159,7 +161,8 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
               {tasks.length} tasks available
             </Badge>
           </div>
-          
+
+          {/* If there are no real tasks, show a message - NEVER show static task cards */}
           {tasks.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
@@ -199,3 +202,4 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
 };
 
 export default TaskCategories;
+
