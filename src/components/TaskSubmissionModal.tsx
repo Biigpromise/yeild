@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, CheckCircle, FileImage, FileVideo } from "lucide-react";
 import { toast } from "sonner";
 import { taskService, Task } from "@/services/taskService";
+import { taskSubmissionService } from "@/services/tasks/taskSubmissionService";
 
 interface TaskSubmissionModalProps {
   task: Task | null;
@@ -84,13 +84,12 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      // If both text and file are empty, block
       if (!evidence.trim() && !evidenceFile) {
         setValidationError("Please provide text or file evidence.");
         setIsSubmitting(false);
         return;
       }
-      const success = await taskService.submitTask(
+      const success = await taskSubmissionService.submitTask(
         task.id,
         evidence.trim(),
         undefined,
