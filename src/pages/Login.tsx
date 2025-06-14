@@ -215,11 +215,11 @@ const Login = () => {
           </p>
           
           <div className="text-xs text-gray-500 space-x-4">
-            <Link to="/terms" className="hover:text-yeild-yellow">
+            <Link to="/terms" className="hover:text-yeild-yellow transition-colors">
               Terms of Service
             </Link>
             <span>•</span>
-            <Link to="/privacy" className="hover:text-yeild-yellow">
+            <Link to="/privacy" className="hover:text-yeild-yellow transition-colors">
               Privacy Policy
             </Link>
           </div>
