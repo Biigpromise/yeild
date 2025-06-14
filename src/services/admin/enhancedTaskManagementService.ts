@@ -44,24 +44,24 @@ export interface TaskSubmissionWithDetails {
   id: string;
   task_id: string;
   user_id: string;
-  evidence: string;
-  status: 'pending' | 'approved' | 'rejected';
+  evidence: string | null;
+  status: string;
   submitted_at: string;
-  reviewed_at?: string;
-  admin_notes?: string;
+  reviewed_at?: string | null;
+  admin_notes?: string | null;
   calculated_points?: number;
   tasks: {
     id: string;
     title: string;
     points: number;
-    category: string;
-    difficulty: string;
-  };
+    category: string | null;
+    difficulty: string | null;
+  } | null;
   profiles: {
     id: string;
-    name: string;
-    email: string;
-  };
+    name: string | null;
+    email: string | null;
+  } | null;
 }
 
 export const enhancedTaskManagementService = {
@@ -262,7 +262,23 @@ export const enhancedTaskManagementService = {
         .limit(filters?.limit || 50);
 
       if (error) throw error;
-      return data || [];
+      
+      // Transform the data to match our interface
+      const transformedData: TaskSubmissionWithDetails[] = (data || []).map(submission => ({
+        id: submission.id,
+        task_id: submission.task_id,
+        user_id: submission.user_id,
+        evidence: submission.evidence,
+        status: submission.status,
+        submitted_at: submission.submitted_at,
+        reviewed_at: submission.reviewed_at,
+        admin_notes: submission.admin_notes,
+        calculated_points: submission.calculated_points,
+        tasks: submission.tasks,
+        profiles: submission.profiles
+      }));
+
+      return transformedData;
     } catch (error) {
       console.error('Error fetching pending submissions:', error);
       return [];
