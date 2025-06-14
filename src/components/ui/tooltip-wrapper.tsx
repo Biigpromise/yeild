@@ -5,16 +5,17 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 interface TooltipWrapperProps {
   content: string;
   children: React.ReactNode;
+  side?: "top" | "right" | "bottom" | "left";
 }
 
-export const TooltipWrapper: React.FC<TooltipWrapperProps> = ({ content, children }) => {
+export const TooltipWrapper: React.FC<TooltipWrapperProps> = ({ content, children, side = "top" }) => {
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           {children}
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent side={side}>
           <p>{content}</p>
         </TooltipContent>
       </Tooltip>
