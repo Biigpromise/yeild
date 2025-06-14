@@ -13,6 +13,13 @@ export interface AdminUser {
   user_roles?: Array<{ role: string }>;
 }
 
+export interface AdminDashboardStats {
+  totalUsers: number;
+  activeTasks: number;
+  pendingSubmissions: number;
+  approvalRate: number;
+}
+
 export const adminService = {
   // Get all users for admin management
   async getAllUsers(): Promise<AdminUser[]> {
@@ -31,6 +38,37 @@ export const adminService = {
       console.error('Error fetching users:', error);
       toast.error('Failed to load users');
       return [];
+    }
+  },
+
+  // Get dashboard statistics
+  async getDashboardStats(): Promise<AdminDashboardStats> {
+    try {
+      const [usersCount, tasksCount, submissionsCount, approvedCount] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('task_submissions').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('task_submissions').select('id', { count: 'exact', head: true }).eq('status', 'approved')
+      ]);
+
+      const totalSubmissions = submissionsCount.count || 0;
+      const approvedSubmissions = approvedCount.count || 0;
+      const approvalRate = totalSubmissions > 0 ? Math.round((approvedSubmissions / totalSubmissions) * 100) : 0;
+
+      return {
+        totalUsers: usersCount.count || 0,
+        activeTasks: tasksCount.count || 0,
+        pendingSubmissions: totalSubmissions,
+        approvalRate
+      };
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      return {
+        totalUsers: 0,
+        activeTasks: 0,
+        pendingSubmissions: 0,
+        approvalRate: 0
+      };
     }
   },
 

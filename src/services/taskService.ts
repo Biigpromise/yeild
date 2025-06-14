@@ -95,6 +95,27 @@ export const taskService = {
     }
   },
 
+  // Get user's completed tasks
+  async getUserTasks(): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('user_tasks')
+        .select(`
+          *,
+          tasks(title, points, category, brand_name)
+        `)
+        .eq('status', 'completed')
+        .order('completed_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching user tasks:', error);
+      toast.error('Failed to load user tasks');
+      return [];
+    }
+  },
+
   // Submit a task
   async submitTask(taskId: string, evidence: string): Promise<boolean> {
     try {
@@ -150,6 +171,20 @@ export const taskService = {
       } catch (error) {
         console.error('Error fetching all submissions:', error);
         return [];
+      }
+    },
+
+    async createTask(taskData: any): Promise<boolean> {
+      try {
+        const { error } = await supabase
+          .from('tasks')
+          .insert(taskData);
+
+        if (error) throw error;
+        return true;
+      } catch (error) {
+        console.error('Error creating task:', error);
+        throw error;
       }
     },
 
