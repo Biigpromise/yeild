@@ -61,10 +61,12 @@ export const AdminAccessHelper: React.FC = () => {
         setHasAdminAccess(true);
         setSuccess(true);
         
-        // Wait a moment then redirect to admin
+        // Force a small delay to ensure database consistency
         setTimeout(() => {
-          navigate('/admin');
-        }, 2000);
+          console.log('AdminAccessHelper: Redirecting to admin dashboard');
+          // Use replace instead of navigate to avoid back button issues
+          window.location.replace('/admin');
+        }, 1500);
       } else {
         setError('Failed to assign admin role. Please try again.');
       }
@@ -135,7 +137,7 @@ export const AdminAccessHelper: React.FC = () => {
           )}
           <Button 
             className="w-full" 
-            onClick={() => navigate('/admin')}
+            onClick={() => window.location.replace('/admin')}
           >
             <Settings className="h-4 w-4 mr-2" />
             Go to Admin Dashboard

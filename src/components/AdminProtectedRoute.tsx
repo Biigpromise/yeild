@@ -15,10 +15,11 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ childr
   const [hasAdminAccess, setHasAdminAccess] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     checkAdminAccess();
-  }, [user]);
+  }, [user, retryCount]);
 
   const checkAdminAccess = async () => {
     if (!user) {
@@ -28,14 +29,25 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ childr
       return;
     }
 
-    console.log('AdminProtectedRoute: Checking admin access for user:', user.id);
+    console.log('AdminProtectedRoute: Checking admin access for user:', user.id, 'retry:', retryCount);
     setIsLoading(true);
     setError(null);
     
     try {
+      // Add a small delay on retries to allow for database consistency
+      if (retryCount > 0) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
       const hasAccess = await adminSetupService.checkAdminAccess();
       console.log('AdminProtectedRoute: Admin access result:', hasAccess);
       setHasAdminAccess(hasAccess);
+      
+      // If we still don't have access after 3 retries, stop trying
+      if (!hasAccess && retryCount < 3) {
+        console.log('AdminProtectedRoute: No admin access, will retry in 2 seconds');
+        setTimeout(() => setRetryCount(prev => prev + 1), 2000);
+      }
     } catch (err) {
       console.error('AdminProtectedRoute: Error checking admin access:', err);
       setError('Failed to verify admin access');
@@ -50,6 +62,11 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ childr
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-pulse text-muted-foreground">
           Checking admin access...
+          {retryCount > 0 && (
+            <span className="block text-sm mt-2">
+              Retry {retryCount}/3...
+            </span>
+          )}
         </div>
       </div>
     );
@@ -94,7 +111,10 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ childr
             <Button 
               variant="outline" 
               className="w-full" 
-              onClick={checkAdminAccess}
+              onClick={() => {
+                setRetryCount(0);
+                checkAdminAccess();
+              }}
             >
               Refresh Access Check
             </Button>
