@@ -55,8 +55,6 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
     }
   };
 
-  const pendingSubmissions = submissions.filter(s => s.status === 'pending');
-
   return (
     <>
       <Card>
@@ -102,7 +100,7 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {submission.tasks?.points} pts
+                        {submission.calculated_points || submission.tasks?.points} pts
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -126,9 +124,7 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
                               variant="outline"
                               className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
                               onClick={() => {
-                                setSelectedSubmission(submission);
-                                setActionType('approved');
-                                confirmAction();
+                                onUpdate(submission.id, 'approved');
                               }}
                             >
                               <CheckCircle className="h-4 w-4" />
@@ -138,9 +134,7 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
                               variant="outline"
                               className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
                               onClick={() => {
-                                setSelectedSubmission(submission);
-                                setActionType('rejected');
-                                confirmAction();
+                                onUpdate(submission.id, 'rejected');
                               }}
                             >
                               <XCircle className="h-4 w-4" />
@@ -250,7 +244,7 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
                   </p>
                   <p className="text-sm text-muted-foreground mb-3">
                     {actionType === 'approved' 
-                      ? `This will award ${selectedSubmission.tasks?.points} points to the user.`
+                      ? `This will award ${selectedSubmission.calculated_points || selectedSubmission.tasks?.points} points to the user.`
                       : 'This will reject the submission without awarding points.'
                     }
                   </p>
