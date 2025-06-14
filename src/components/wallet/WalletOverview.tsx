@@ -5,18 +5,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { WithdrawalForm } from "./WithdrawalForm";
 import { WithdrawalHistory } from "./WithdrawalHistory";
-import { NigerianPayment } from "./NigerianPayment";
+import { MultiCurrencyPayment } from "./MultiCurrencyPayment";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Wallet, 
   TrendingUp, 
   Download, 
   CreditCard,
-  RefreshCw
+  RefreshCw,
+  Globe
 } from "lucide-react";
 import { userService } from "@/services/userService";
 import { useAuth } from "@/contexts/AuthContext";
-import { paystackService } from "@/services/paystackService";
+import { currencyService } from "@/services/currencyService";
 
 interface WalletOverviewProps {
   userPoints: number;
@@ -33,6 +34,18 @@ export const WalletOverview: React.FC<WalletOverviewProps> = ({
 }) => {
   const { user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
+  const [userCurrency, setUserCurrency] = useState('USD');
+
+  useEffect(() => {
+    // Detect user's currency based on location
+    currencyService.getUserCountryFromIP().then(countryCode => {
+      const countries = currencyService.getSupportedCountries();
+      const country = countries.find(c => c.code === countryCode);
+      if (country) {
+        setUserCurrency(country.currency.code);
+      }
+    });
+  }, []);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -45,12 +58,13 @@ export const WalletOverview: React.FC<WalletOverviewProps> = ({
     window.location.reload();
   };
 
-  const nairaEquivalent = Math.floor(userPoints / 10); // 10 points = ₦1
+  const usdValue = currencyService.pointsToUSD(userPoints);
+  const localValue = currencyService.pointsToLocalCurrency(userPoints, userCurrency);
 
   return (
     <div className="space-y-6">
       {/* Wallet Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -68,8 +82,22 @@ export const WalletOverview: React.FC<WalletOverviewProps> = ({
             <div className="flex items-center gap-3">
               <CreditCard className="h-8 w-8 text-green-500" />
               <div>
-                <p className="text-sm text-muted-foreground">Naira Value</p>
-                <p className="text-2xl font-bold">{paystackService.formatNaira(nairaEquivalent)}</p>
+                <p className="text-sm text-muted-foreground">USD Value</p>
+                <p className="text-2xl font-bold">${usdValue.toFixed(2)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Globe className="h-8 w-8 text-purple-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">Local Value</p>
+                <p className="text-2xl font-bold">
+                  {currencyService.formatCurrency(localValue, userCurrency)}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -79,10 +107,10 @@ export const WalletOverview: React.FC<WalletOverviewProps> = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <TrendingUp className="h-8 w-8 text-purple-500" />
+                <TrendingUp className="h-8 w-8 text-orange-500" />
                 <div>
                   <p className="text-sm text-muted-foreground">Exchange Rate</p>
-                  <p className="text-lg font-bold">10 pts = ₦1</p>
+                  <p className="text-lg font-bold">1000 pts = $1</p>
                 </div>
               </div>
               <Button
@@ -107,7 +135,7 @@ export const WalletOverview: React.FC<WalletOverviewProps> = ({
         </TabsList>
         
         <TabsContent value="buy">
-          <NigerianPayment />
+          <MultiCurrencyPayment />
         </TabsContent>
         
         <TabsContent value="withdraw">
@@ -125,26 +153,28 @@ export const WalletOverview: React.FC<WalletOverviewProps> = ({
       {/* Information Panel */}
       <Card>
         <CardHeader>
-          <CardTitle>Nigerian Payment Information</CardTitle>
+          <CardTitle>Global Payment System</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <h4 className="font-semibold mb-2">Supported Banks</h4>
+              <h4 className="font-semibold mb-2">Supported Countries</h4>
               <ul className="space-y-1 text-muted-foreground">
-                <li>• All major Nigerian banks</li>
-                <li>• GTBank, First Bank, Access Bank</li>
-                <li>• UBA, Zenith Bank, Fidelity Bank</li>
-                <li>• And many more...</li>
+                <li>• Nigeria (NGN) - Paystack</li>
+                <li>• United States (USD) - Stripe</li>
+                <li>• United Kingdom (GBP) - Stripe</li>
+                <li>• Kenya (KES) - Paystack</li>
+                <li>• South Africa (ZAR) - Paystack</li>
+                <li>• Germany (EUR) - Stripe</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-2">Payment Features</h4>
+              <h4 className="font-semibold mb-2">Global Features</h4>
               <ul className="space-y-1 text-muted-foreground">
-                <li>• Instant point crediting</li>
-                <li>• Secure Paystack integration</li>
-                <li>• Multiple payment methods</li>
-                <li>• 24/7 transaction support</li>
+                <li>• Universal points system</li>
+                <li>• Real-time currency conversion</li>
+                <li>• Local payment methods</li>
+                <li>• Secure multi-currency withdrawals</li>
               </ul>
             </div>
           </div>

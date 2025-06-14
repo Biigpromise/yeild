@@ -44,7 +44,10 @@ serve(async (req) => {
       );
 
       const amountInNaira = result.data.amount / 100; // Convert from kobo
-      const pointsToAdd = Math.floor(amountInNaira / 10); // 1 point per ₦10
+      
+      // New global conversion: 1650 NGN = 1 USD, 1000 points = 1 USD
+      // So 1650 NGN = 1000 points, or 1 NGN = ~0.606 points
+      const pointsToAdd = Math.floor(amountInNaira * (1000 / 1650));
 
       // Get user by email
       const { data: profiles } = await supabase
@@ -55,23 +58,31 @@ serve(async (req) => {
 
       if (profiles) {
         // Add points to user account
-        await supabase
+        const { error: updateError } = await supabase
           .from('profiles')
           .update({ 
             points: supabase.rpc('increment', { x: pointsToAdd }) 
           })
           .eq('id', profiles.id);
 
+        if (updateError) {
+          console.error('Error updating user points:', updateError);
+        }
+
         // Record transaction
-        await supabase
+        const { error: transactionError } = await supabase
           .from('point_transactions')
           .insert({
             user_id: profiles.id,
             points: pointsToAdd,
             transaction_type: 'purchase',
             reference_id: reference,
-            description: `Points purchased via Paystack - ₦${amountInNaira.toLocaleString()}`
+            description: `Points purchased via Paystack - ₦${amountInNaira.toLocaleString()} (${pointsToAdd} points)`
           });
+
+        if (transactionError) {
+          console.error('Error recording transaction:', transactionError);
+        }
       }
     }
 

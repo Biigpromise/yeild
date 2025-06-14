@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { currencyService } from "./currencyService";
 
 export interface PaystackInitializeResponse {
   status: boolean;
@@ -57,12 +58,12 @@ export interface PaystackVerifyResponse {
 class PaystackService {
   private baseURL = 'https://api.paystack.co';
   
-  async initializePayment(email: string, amount: number, reference?: string) {
+  async initializePayment(email: string, amountInNaira: number, reference?: string) {
     try {
       const { data } = await supabase.functions.invoke('paystack-initialize', {
         body: {
           email,
-          amount: amount * 100, // Convert to kobo (smallest unit)
+          amount: amountInNaira * 100, // Convert to kobo (smallest unit)
           currency: 'NGN',
           reference,
           callback_url: `${window.location.origin}/payment-success`
@@ -115,12 +116,16 @@ class PaystackService {
   }
   
   formatNaira(amount: number): string {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    return currencyService.formatCurrency(amount, 'NGN');
+  }
+
+  // Helper methods for points conversion
+  getPointsFromNaira(nairaAmount: number): number {
+    return currencyService.localCurrencyToPoints(nairaAmount, 'NGN');
+  }
+
+  getNairaFromPoints(points: number): number {
+    return currencyService.pointsToLocalCurrency(points, 'NGN');
   }
 }
 
