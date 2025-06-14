@@ -1,15 +1,13 @@
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { AdvancedUserSearch } from "./AdvancedUserSearch";
+import { UserSearchResults } from "./UserSearchResults";
 import { 
   enhancedUserManagementService, 
   UserActivityData, 
@@ -17,25 +15,11 @@ import {
   SuspensionAction 
 } from "@/services/admin/enhancedUserManagementService";
 import { toast } from "sonner";
-import { 
-  Users, 
-  Shield, 
-  Ban, 
-  CheckCircle, 
-  Activity,
-  Search,
-  Filter,
-  MoreHorizontal,
-  UserX,
-  UserCheck,
-  Calendar,
-  Clock
-} from "lucide-react";
 
 export const EnhancedUserManagementSystem = () => {
   const [users, setUsers] = useState<UserActivityData[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<UserSearchFilters>({
     searchTerm: "",
     status: "all",
@@ -43,7 +27,7 @@ export const EnhancedUserManagementSystem = () => {
     sortOrder: "desc"
   });
 
-  // Suspension/Ban dialogs
+  // Dialog states
   const [suspensionDialog, setSuspensionDialog] = useState<{ open: boolean; userId?: string }>({ open: false });
   const [banDialog, setBanDialog] = useState<{ open: boolean; userId?: string }>({ open: false });
   const [bulkDialog, setBulkDialog] = useState<{ open: boolean; operation?: string }>({ open: false });
@@ -57,9 +41,12 @@ export const EnhancedUserManagementSystem = () => {
   const [banReason, setBanReason] = useState("");
   const [bulkReason, setBulkReason] = useState("");
 
+  // Load users when filters change
   useEffect(() => {
-    loadUsers();
-  }, [filters]);
+    if (filters.searchTerm || filters.status !== 'all' || Object.keys(filters.dateRange || {}).length > 0) {
+      loadUsers();
+    }
+  }, []);
 
   const loadUsers = async () => {
     try {
@@ -71,6 +58,52 @@ export const EnhancedUserManagementSystem = () => {
       toast.error("Failed to load users");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSearch = () => {
+    loadUsers();
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      searchTerm: "",
+      status: "all",
+      sortBy: "joinDate",
+      sortOrder: "desc"
+    });
+    setUsers([]);
+    setSelectedUsers([]);
+  };
+
+  const handleSelectUser = (userId: string, selected: boolean) => {
+    if (selected) {
+      setSelectedUsers([...selectedUsers, userId]);
+    } else {
+      setSelectedUsers(selectedUsers.filter(id => id !== userId));
+    }
+  };
+
+  const handleSelectAll = (selected: boolean) => {
+    if (selected) {
+      setSelectedUsers(users.map(u => u.userId));
+    } else {
+      setSelectedUsers([]);
+    }
+  };
+
+  const handleUserAction = async (userId: string, action: 'suspend' | 'ban' | 'unsuspend') => {
+    switch (action) {
+      case 'suspend':
+        setSuspensionForm({ userId, reason: "", duration: undefined });
+        setSuspensionDialog({ open: true, userId });
+        break;
+      case 'ban':
+        setBanDialog({ open: true, userId });
+        break;
+      case 'unsuspend':
+        await handleUnsuspendUser(userId);
+        break;
     }
   };
 
@@ -129,310 +162,61 @@ export const EnhancedUserManagementSystem = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'suspended':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'banned':
-        return 'bg-red-100 text-red-800';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <CheckCircle className="h-3 w-3" />;
-      case 'suspended':
-        return <Clock className="h-3 w-3" />;
-      case 'banned':
-        return <Ban className="h-3 w-3" />;
-      default:
-        return <Activity className="h-3 w-3" />;
-    }
-  };
-
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-64 bg-gray-200 rounded"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* Enhanced Search and Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Advanced User Search & Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search users..." 
-                value={filters.searchTerm || ""}
-                onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
-                className="pl-10"
-              />
-            </div>
-            
-            <Select 
-              value={filters.status || "all"} 
-              onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="suspended">Suspended</SelectItem>
-                <SelectItem value="banned">Banned</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select 
-              value={filters.sortBy || "joinDate"} 
-              onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value as any }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">Name</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-                <SelectItem value="points">Points</SelectItem>
-                <SelectItem value="tasks">Tasks</SelectItem>
-                <SelectItem value="joinDate">Join Date</SelectItem>
-                <SelectItem value="lastActive">Last Active</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select 
-              value={filters.sortOrder || "desc"} 
-              onValueChange={(value) => setFilters(prev => ({ ...prev, sortOrder: value as any }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="asc">Ascending</SelectItem>
-                <SelectItem value="desc">Descending</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button onClick={loadUsers} variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Apply Filters
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Advanced Search Component */}
+      <AdvancedUserSearch
+        filters={filters}
+        onFiltersChange={setFilters}
+        onSearch={handleSearch}
+        onClearFilters={handleClearFilters}
+      />
 
       {/* Bulk Actions */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Bulk Operations</CardTitle>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setBulkDialog({ open: true, operation: 'suspend' })}
-                disabled={selectedUsers.length === 0}
-              >
-                Suspend Selected ({selectedUsers.length})
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setBulkDialog({ open: true, operation: 'activate' })}
-                disabled={selectedUsers.length === 0}
-              >
-                Activate Selected ({selectedUsers.length})
-              </Button>
-              <Button 
-                variant="destructive" 
-                size="sm"
-                onClick={() => setBulkDialog({ open: true, operation: 'ban' })}
-                disabled={selectedUsers.length === 0}
-              >
-                Ban Selected ({selectedUsers.length})
-              </Button>
+      {selectedUsers.length > 0 && (
+        <Card>
+          <div className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium">
+                Bulk Operations ({selectedUsers.length} users selected)
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setBulkDialog({ open: true, operation: 'suspend' })}
+                >
+                  Suspend Selected
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setBulkDialog({ open: true, operation: 'activate' })}
+                >
+                  Activate Selected
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => setBulkDialog({ open: true, operation: 'ban' })}
+                >
+                  Ban Selected
+                </Button>
+              </div>
             </div>
           </div>
-        </CardHeader>
-      </Card>
+        </Card>
+      )}
 
-      {/* Users Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Users ({users.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto border rounded-md">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <input 
-                      type="checkbox" 
-                      className="w-4 h-4"
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedUsers(users.map(u => u.userId));
-                        } else {
-                          setSelectedUsers([]);
-                        }
-                      }}
-                      checked={selectedUsers.length === users.length && users.length > 0}
-                    />
-                  </TableHead>
-                  <TableHead>User Details</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Activity</TableHead>
-                  <TableHead>Points & Tasks</TableHead>
-                  <TableHead>Join Date</TableHead>
-                  <TableHead>Last Active</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.userId}>
-                    <TableCell>
-                      <input 
-                        type="checkbox" 
-                        className="w-4 h-4"
-                        checked={selectedUsers.includes(user.userId)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedUsers([...selectedUsers, user.userId]);
-                          } else {
-                            setSelectedUsers(selectedUsers.filter(id => id !== user.userId));
-                          }
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{user.userName}</div>
-                        <div className="text-sm text-muted-foreground">{user.email}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={`${getStatusColor(user.accountStatus)} flex items-center gap-1 w-fit`}>
-                        {getStatusIcon(user.accountStatus)}
-                        {user.accountStatus}
-                      </Badge>
-                      {user.suspensionReason && (
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Reason: {user.suspensionReason}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div>Logins: {user.totalLogins}</div>
-                        <div>Streak: {user.streakDays} days</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div>{user.pointsEarned} pts</div>
-                        <div>{user.tasksCompleted} tasks</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {new Date(user.joinDate).toLocaleDateString()}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {user.lastActive ? new Date(user.lastActive).toLocaleDateString() : 'Never'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        {user.accountStatus === 'suspended' ? (
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleUnsuspendUser(user.userId)}
-                            className="text-green-600"
-                          >
-                            <UserCheck className="h-3 w-3 mr-1" />
-                            Unsuspend
-                          </Button>
-                        ) : user.accountStatus === 'banned' ? (
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleUnsuspendUser(user.userId)}
-                            className="text-green-600"
-                          >
-                            <UserCheck className="h-3 w-3 mr-1" />
-                            Unban
-                          </Button>
-                        ) : (
-                          <>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => {
-                                setSuspensionForm({ userId: user.userId, reason: "", duration: undefined });
-                                setSuspensionDialog({ open: true, userId: user.userId });
-                              }}
-                              className="text-yellow-600"
-                            >
-                              <Clock className="h-3 w-3 mr-1" />
-                              Suspend
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => setBanDialog({ open: true, userId: user.userId })}
-                              className="text-red-600"
-                            >
-                              <UserX className="h-3 w-3 mr-1" />
-                              Ban
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {users.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
-                      No users found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Search Results */}
+      <UserSearchResults
+        users={users}
+        selectedUsers={selectedUsers}
+        onSelectUser={handleSelectUser}
+        onSelectAll={handleSelectAll}
+        onUserAction={handleUserAction}
+        loading={loading}
+      />
 
       {/* Suspension Dialog */}
       <Dialog open={suspensionDialog.open} onOpenChange={(open) => setSuspensionDialog({ open })}>
