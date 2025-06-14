@@ -29,6 +29,7 @@ import { TooltipWrapper } from "@/components/ui/tooltip-wrapper";
 import { TaskCreationForm } from "@/components/admin/enhanced/TaskCreationForm";
 import { TaskViewModal } from "./TaskViewModal";
 import { TaskEditModal } from "./TaskEditModal";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export const EnhancedTaskManagement = () => {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -475,11 +476,17 @@ export const EnhancedTaskManagement = () => {
             </CardContent>
           </Card>
           {/* Create Task Modal */}
-          <TaskCreationForm
-            open={createModalOpen}
-            onClose={() => setCreateModalOpen(false)}
-            afterCreate={loadData}
-          />
+          <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+            <DialogContent>
+              <TaskCreationForm
+                onTaskCreated={() => {
+                  setCreateModalOpen(false);
+                  loadData();
+                }}
+                onCancel={() => setCreateModalOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
           {/* View Task Modal */}
           <TaskViewModal
             open={viewModalOpen}
