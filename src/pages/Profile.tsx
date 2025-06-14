@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { UserProfile } from "@/components/UserProfile";
 import { AchievementSystem } from "@/components/AchievementSystem";
 import { StatsDashboard } from "@/components/StatsDashboard";
 import { StreakTracker } from "@/components/StreakTracker";
-import { TaskHistory } from "@/components/TaskHistory";
+import TaskHistory from "@/components/TaskHistory";
 import { RedemptionHistory } from "@/components/rewards/RedemptionHistory";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
