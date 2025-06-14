@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { adminCommunicationService, SupportTicket, MessageTemplate } from "@/services/admin/adminCommunicationService";
-import { MessageSquare, Send, Template, Users } from "lucide-react";
+import { MessageSquare, Send, FileText, Users } from "lucide-react";
 
 export const AdminCommunication = () => {
   const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([]);
@@ -144,7 +143,7 @@ export const AdminCommunication = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Templates</CardTitle>
-            <Template className="h-4 w-4 text-muted-foreground" />
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{messageTemplates.length}</div>
