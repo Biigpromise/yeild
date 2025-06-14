@@ -484,6 +484,78 @@ export type Database = {
           },
         ]
       }
+      withdrawal_requests: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string
+          id: string
+          payout_details: Json
+          payout_method: string
+          processed_at: string | null
+          requested_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string
+          id?: string
+          payout_details: Json
+          payout_method: string
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          payout_details?: Json
+          payout_method?: string
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      withdrawal_settings: {
+        Row: {
+          created_at: string
+          daily_withdrawal_limit: number | null
+          enabled: boolean
+          id: string
+          minimum_withdrawal_points: number
+          processing_fee_percentage: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_withdrawal_limit?: number | null
+          enabled?: boolean
+          id?: string
+          minimum_withdrawal_points?: number
+          processing_fee_percentage?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_withdrawal_limit?: number | null
+          enabled?: boolean
+          id?: string
+          minimum_withdrawal_points?: number
+          processing_fee_percentage?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

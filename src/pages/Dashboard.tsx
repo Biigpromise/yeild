@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TaskCategories from "@/components/TaskCategories";
@@ -10,6 +9,9 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { RewardsStore } from "@/components/rewards/RewardsStore";
 import { AchievementsList } from "@/components/achievements/AchievementsList";
 import { RedemptionHistory } from "@/components/rewards/RedemptionHistory";
+import { WithdrawalForm } from "@/components/wallet/WithdrawalForm";
+import { WithdrawalHistory } from "@/components/wallet/WithdrawalHistory";
+import { WalletOverview } from "@/components/wallet/WalletOverview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -60,14 +62,12 @@ const Dashboard = () => {
   });
   const [userTasks, setUserTasks] = useState<any[]>([]);
   const [userSubmissions, setUserSubmissions] = useState<any[]>([]);
+  const [withdrawalStats, setWithdrawalStats] = useState({
+    pendingWithdrawals: 0,
+    completedWithdrawals: 0
+  });
   const [loading, setLoading] = useState(true);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-
-  const [notifications] = useState([
-    { id: 1, message: "New task available: Complete Survey", read: false },
-    { id: 2, message: "Achievement unlocked: Early Bird", read: false },
-    { id: 3, message: "Referral bonus: +100 points", read: true }
-  ]);
 
   // Task filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -114,6 +114,26 @@ const Dashboard = () => {
       
       setUserTasks(tasksData);
       setUserSubmissions(submissionsData);
+
+      // Fetch withdrawal stats
+      const { data: withdrawals } = await supabase
+        .from('withdrawal_requests')
+        .select('amount, status')
+        .eq('user_id', user.id);
+
+      if (withdrawals) {
+        const pending = withdrawals
+          .filter(w => w.status === 'pending' || w.status === 'approved')
+          .reduce((sum, w) => sum + w.amount, 0);
+        const completed = withdrawals
+          .filter(w => w.status === 'completed')
+          .reduce((sum, w) => sum + w.amount, 0);
+        
+        setWithdrawalStats({
+          pendingWithdrawals: pending,
+          completedWithdrawals: completed
+        });
+      }
       
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -351,57 +371,21 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="wallet">
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border-0 shadow-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Wallet className="h-4 w-4" />
-                      Current Balance
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="text-2xl font-bold text-primary mb-1">
-                      {userStats.points.toLocaleString()} Points
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      ≈ ${(userStats.points / 100).toFixed(2)} USD
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Total Earned</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="text-xl font-bold text-green-600 mb-1">
-                      {totalPointsEarned.toLocaleString()} Points
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      From {userTasks.length} completed tasks
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Quick Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 pt-0">
-                    <Button size="sm" className="w-full">
-                      <Gift className="h-4 w-4 mr-2" />
-                      Redeem Points
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full">
-                      <TrendingUp className="h-4 w-4 mr-2" />
-                      Withdraw Funds
-                    </Button>
-                  </CardContent>
-                </Card>
+            <div className="space-y-6">
+              <WalletOverview 
+                userPoints={userStats.points}
+                totalPointsEarned={totalPointsEarned}
+                pendingWithdrawals={withdrawalStats.pendingWithdrawals}
+                completedWithdrawals={withdrawalStats.completedWithdrawals}
+              />
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <WithdrawalForm 
+                  userPoints={userStats.points}
+                  onWithdrawalSubmitted={loadUserData}
+                />
+                <WithdrawalHistory />
               </div>
-
-              <RedemptionHistory />
             </div>
           </TabsContent>
 
