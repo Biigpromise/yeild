@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { taskSubmissionService } from "./tasks/taskSubmissionService";
 import { adminTaskService } from "./tasks/adminTaskService";
+import { taskQueries } from "./tasks/taskQueries";
 
 export interface Task {
   id: string;
@@ -19,22 +20,24 @@ export interface Task {
   created_at: string;
 }
 
+export interface TaskCategory {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  created_at: string;
+}
+
 export const taskService = {
   // Get all active tasks for users
   async getTasks(): Promise<Task[]> {
-    try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
+    return await taskQueries.getTasks();
+  },
 
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-      return [];
-    }
+  // Get task categories
+  async getCategories(): Promise<TaskCategory[]> {
+    return await taskQueries.getCategories();
   },
 
   // Submit a task
@@ -68,6 +71,11 @@ export const taskService = {
       console.error('Error fetching user submissions:', error);
       return [];
     }
+  },
+
+  // Get user's completed tasks
+  async getUserTasks(): Promise<any[]> {
+    return await taskQueries.getUserTasks();
   },
 
   // Admin functions

@@ -26,13 +26,31 @@ export const adminTaskService = {
         .from('task_submissions')
         .select(`
           *,
-          tasks(title, points, category, difficulty),
-          profiles(name, email)
+          tasks(title, points, category, difficulty)
         `)
         .order('submitted_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+
+      // Get user profiles separately to avoid relation issues
+      const userIds = [...new Set(data?.map(sub => sub.user_id) || [])];
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .in('id', userIds);
+
+      if (profileError) {
+        console.error('Error fetching profiles:', profileError);
+        return data || [];
+      }
+
+      // Combine submissions with profile data
+      const submissionsWithProfiles = data?.map(submission => ({
+        ...submission,
+        profiles: profiles?.find(profile => profile.id === submission.user_id) || null
+      })) || [];
+
+      return submissionsWithProfiles;
     } catch (error) {
       console.error('Error fetching all submissions:', error);
       return [];
@@ -71,14 +89,25 @@ export const adminTaskService = {
         .from('task_submissions')
         .select(`
           *,
-          tasks(*),
-          profiles(id, level, tasks_completed, points)
+          tasks(*)
         `)
         .eq('id', submissionId)
         .single();
 
       if (fetchError || !submission) {
         console.error('Error fetching submission:', fetchError);
+        return false;
+      }
+
+      // Get user profile separately
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, level, tasks_completed, points')
+        .eq('id', submission.user_id)
+        .single();
+
+      if (profileError || !profile) {
+        console.error('Error fetching user profile:', profileError);
         return false;
       }
 
@@ -97,9 +126,9 @@ export const adminTaskService = {
           const pointFactors: PointCalculationFactors = {
             basePoints: submission.tasks.points,
             difficulty: submission.tasks.difficulty || 'medium',
-            userLevel: submission.profiles.level || 1,
+            userLevel: profile.level || 1,
             tasksCompletedToday: 0,
-            totalTasksCompleted: submission.profiles.tasks_completed || 0,
+            totalTasksCompleted: profile.tasks_completed || 0,
             taskCategory: submission.tasks.category || 'general',
             qualityScore
           };
@@ -115,8 +144,8 @@ export const adminTaskService = {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
-            points: submission.profiles.points + finalPoints,
-            tasks_completed: submission.profiles.tasks_completed + 1,
+            points: profile.points + finalPoints,
+            tasks_completed: profile.tasks_completed + 1,
             updated_at: new Date().toISOString()
           })
           .eq('id', submission.user_id);
