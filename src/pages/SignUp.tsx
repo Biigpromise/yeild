@@ -83,10 +83,6 @@ const SignUp = () => {
     }
   };
 
-  const handleTermsChange = (checked: boolean) => {
-    setAgreeTerms(checked);
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-yeild-black relative">
       {/* Yellow accent graphics */}
@@ -151,18 +147,38 @@ const SignUp = () => {
             />
           </div>
           
-          <div className="flex items-center space-x-2 mt-4">
+          <div className="flex items-start space-x-3 mt-4 p-3 border border-gray-700 rounded-lg bg-gray-900/50">
             <Checkbox 
               id="terms" 
               checked={agreeTerms}
-              onCheckedChange={handleTermsChange}
+              onCheckedChange={(checked) => setAgreeTerms(checked === true)}
+              className="mt-1 flex-shrink-0"
             />
-            <label
-              htmlFor="terms"
-              className="text-sm text-gray-400 cursor-pointer"
-            >
-              I agree to the <a href="#" className="text-yeild-yellow hover:underline">Terms of Service</a> and <a href="#" className="text-yeild-yellow hover:underline">Privacy Policy</a>
-            </label>
+            <div className="flex-1">
+              <Label
+                htmlFor="terms"
+                className="text-sm text-gray-300 cursor-pointer leading-relaxed"
+              >
+                I agree to the{" "}
+                <Link 
+                  to="/terms" 
+                  className="text-yeild-yellow hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Terms of Service
+                </Link>
+                {" "}and{" "}
+                <Link 
+                  to="/privacy" 
+                  className="text-yeild-yellow hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Privacy Policy
+                </Link>
+              </Label>
+            </div>
           </div>
           
           <Button 
