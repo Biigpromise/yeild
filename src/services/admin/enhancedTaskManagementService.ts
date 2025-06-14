@@ -258,50 +258,68 @@ export const enhancedTaskManagementService = {
     limit?: number;
   }): Promise<TaskSubmissionWithDetails[]> {
     try {
-      // First get submissions
-      const { data: submissions, error: submissionsError } = await supabase
+      // Use a single query with proper joins
+      const { data: submissionsWithDetails, error } = await supabase
         .from('task_submissions')
-        .select('*')
+        .select(`
+          id,
+          task_id,
+          user_id,
+          evidence,
+          status,
+          submitted_at,
+          reviewed_at,
+          admin_notes,
+          calculated_points,
+          tasks:tasks!inner (
+            id,
+            title,
+            points,
+            category,
+            difficulty
+          ),
+          profiles:profiles!inner (
+            id,
+            name,
+            email
+          )
+        `)
         .eq('status', 'pending')
         .order('submitted_at', { ascending: false })
         .limit(filters?.limit || 50);
 
-      if (submissionsError) {
-        console.error('Error fetching submissions:', submissionsError);
+      if (error) {
+        console.error('Error fetching submissions with details:', error);
         return [];
       }
 
-      if (!submissions || submissions.length === 0) {
+      if (!submissionsWithDetails || submissionsWithDetails.length === 0) {
         return [];
       }
 
-      // Get task IDs and user IDs
-      const taskIds = [...new Set(submissions.map(s => s.task_id))];
-      const userIds = [...new Set(submissions.map(s => s.user_id))];
-
-      // Fetch tasks and profiles separately
-      const [tasksResult, profilesResult] = await Promise.all([
-        supabase.from('tasks').select('id, title, points, category, difficulty').in('id', taskIds),
-        supabase.from('profiles').select('id, name, email').in('id', userIds)
-      ]);
-
-      const tasks = tasksResult.data || [];
-      const profiles = profilesResult.data || [];
-
-      // Combine the data
-      const transformedData: TaskSubmissionWithDetails[] = submissions.map(submission => ({
-        id: submission.id,
-        task_id: submission.task_id,
-        user_id: submission.user_id,
-        evidence: submission.evidence,
-        status: submission.status,
-        submitted_at: submission.submitted_at,
-        reviewed_at: submission.reviewed_at,
-        admin_notes: submission.admin_notes,
-        calculated_points: submission.calculated_points,
-        tasks: tasks.find(t => t.id === submission.task_id) || null,
-        profiles: profiles.find(p => p.id === submission.user_id) || null
-      }));
+      // Transform the data to match our interface
+      const transformedData: TaskSubmissionWithDetails[] = submissionsWithDetails
+        .filter(submission => 
+          submission.tasks && 
+          submission.profiles && 
+          typeof submission.tasks === 'object' && 
+          typeof submission.profiles === 'object' &&
+          !('error' in submission.tasks) &&
+          !('error' in submission.profiles)
+        )
+        .map(submission => ({
+          id: submission.id,
+          task_id: submission.task_id,
+          user_id: submission.user_id,
+          evidence: submission.evidence,
+          status: submission.status,
+          submitted_at: submission.submitted_at,
+          reviewed_at: submission.reviewed_at,
+          admin_notes: submission.admin_notes,
+          calculated_points: submission.calculated_points,
+          tasks: Array.isArray(submission.tasks) ? submission.tasks[0] : submission.tasks,
+          profiles: Array.isArray(submission.profiles) ? submission.profiles[0] : submission.profiles
+        }));
 
       return transformedData;
     } catch (error) {
