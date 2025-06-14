@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, DollarSign, CreditCard, Bitcoin } from "lucide-react";
+import { AlertTriangle, DollarSign, CreditCard, Banknote } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { paystackService } from "@/services/paystackService";
 
 interface WithdrawalFormProps {
   userPoints: number;
@@ -23,10 +24,9 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
   const [amount, setAmount] = useState("");
   const [payoutMethod, setPayoutMethod] = useState("");
   const [payoutDetails, setPayoutDetails] = useState({
-    email: "",
     accountNumber: "",
-    routingNumber: "",
-    walletAddress: "",
+    bankCode: "",
+    accountName: "",
     notes: ""
   });
 
@@ -37,7 +37,9 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
   const withdrawalAmount = parseInt(amount) || 0;
   const feeAmount = Math.round(withdrawalAmount * (processingFee / 100));
   const netAmount = withdrawalAmount - feeAmount;
-  const cashValue = (netAmount / 100).toFixed(2);
+  const nairaValue = (netAmount / 10).toFixed(0); // 10 points = ₦1
+
+  const nigerianBanks = paystackService.getNigerianBanks();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,23 +49,15 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
     try {
       let details = {};
       
-      switch (payoutMethod) {
-        case 'paypal':
-          details = { email: payoutDetails.email, notes: payoutDetails.notes };
-          break;
-        case 'bank_transfer':
-          details = { 
-            accountNumber: payoutDetails.accountNumber,
-            routingNumber: payoutDetails.routingNumber,
-            notes: payoutDetails.notes
-          };
-          break;
-        case 'crypto':
-          details = { 
-            walletAddress: payoutDetails.walletAddress,
-            notes: payoutDetails.notes
-          };
-          break;
+      if (payoutMethod === 'bank_transfer') {
+        const selectedBank = nigerianBanks.find(bank => bank.code === payoutDetails.bankCode);
+        details = { 
+          accountNumber: payoutDetails.accountNumber,
+          bankCode: payoutDetails.bankCode,
+          bankName: selectedBank?.name,
+          accountName: payoutDetails.accountName,
+          notes: payoutDetails.notes
+        };
       }
 
       const { error } = await supabase
@@ -81,8 +75,7 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
       setAmount("");
       setPayoutMethod("");
       setPayoutDetails({
-        email: "", accountNumber: "", routingNumber: "", 
-        walletAddress: "", notes: ""
+        accountNumber: "", bankCode: "", accountName: "", notes: ""
       });
       onWithdrawalSubmitted();
       
@@ -96,24 +89,18 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
 
   const isValidAmount = withdrawalAmount >= minWithdrawal && withdrawalAmount <= maxWithdrawal;
   const isValidDetails = () => {
-    switch (payoutMethod) {
-      case 'paypal':
-        return payoutDetails.email.includes('@');
-      case 'bank_transfer':
-        return payoutDetails.accountNumber && payoutDetails.routingNumber;
-      case 'crypto':
-        return payoutDetails.walletAddress.length > 20;
-      default:
-        return false;
+    if (payoutMethod === 'bank_transfer') {
+      return payoutDetails.accountNumber && payoutDetails.bankCode && payoutDetails.accountName;
     }
+    return false;
   };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5" />
-          Request Withdrawal
+          <Banknote className="h-5 w-5" />
+          Request Withdrawal (Nigerian Naira)
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -149,7 +136,7 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
               </div>
               <div className="flex justify-between font-medium border-t pt-1">
                 <span>Net Amount:</span>
-                <span>{netAmount.toLocaleString()} points ≈ ${cashValue}</span>
+                <span>{netAmount.toLocaleString()} points ≈ {paystackService.formatNaira(parseInt(nairaValue))}</span>
               </div>
             </div>
           )}
@@ -162,74 +149,53 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
                 <SelectValue placeholder="Select payout method" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="paypal">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4" />
-                    PayPal
-                  </div>
-                </SelectItem>
                 <SelectItem value="bank_transfer">
                   <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
-                    Bank Transfer
-                  </div>
-                </SelectItem>
-                <SelectItem value="crypto">
-                  <div className="flex items-center gap-2">
-                    <Bitcoin className="h-4 w-4" />
-                    Cryptocurrency
+                    <CreditCard className="h-4 w-4" />
+                    Nigerian Bank Transfer
                   </div>
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {/* Payout Details */}
-          {payoutMethod === 'paypal' && (
-            <div className="space-y-2">
-              <Label htmlFor="email">PayPal Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={payoutDetails.email}
-                onChange={(e) => setPayoutDetails({...payoutDetails, email: e.target.value})}
-              />
-            </div>
-          )}
-
+          {/* Bank Details */}
           {payoutMethod === 'bank_transfer' && (
             <div className="space-y-3">
               <div>
-                <Label htmlFor="account">Account Number</Label>
+                <Label htmlFor="bank">Bank</Label>
+                <Select value={payoutDetails.bankCode} onValueChange={(value) => setPayoutDetails({...payoutDetails, bankCode: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your bank" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {nigerianBanks.map((bank) => (
+                      <SelectItem key={bank.code} value={bank.code}>
+                        {bank.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="accountNumber">Account Number</Label>
                 <Input
-                  id="account"
-                  placeholder="Account number"
+                  id="accountNumber"
+                  placeholder="Enter 10-digit account number"
                   value={payoutDetails.accountNumber}
                   onChange={(e) => setPayoutDetails({...payoutDetails, accountNumber: e.target.value})}
+                  maxLength={10}
                 />
               </div>
               <div>
-                <Label htmlFor="routing">Routing Number</Label>
+                <Label htmlFor="accountName">Account Name</Label>
                 <Input
-                  id="routing"
-                  placeholder="Routing number"
-                  value={payoutDetails.routingNumber}
-                  onChange={(e) => setPayoutDetails({...payoutDetails, routingNumber: e.target.value})}
+                  id="accountName"
+                  placeholder="Account holder name as per bank records"
+                  value={payoutDetails.accountName}
+                  onChange={(e) => setPayoutDetails({...payoutDetails, accountName: e.target.value})}
                 />
               </div>
-            </div>
-          )}
-
-          {payoutMethod === 'crypto' && (
-            <div className="space-y-2">
-              <Label htmlFor="wallet">Wallet Address</Label>
-              <Input
-                id="wallet"
-                placeholder="Cryptocurrency wallet address"
-                value={payoutDetails.walletAddress}
-                onChange={(e) => setPayoutDetails({...payoutDetails, walletAddress: e.target.value})}
-              />
             </div>
           )}
 
@@ -257,6 +223,13 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
               </span>
             </div>
           )}
+
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> Withdrawals are processed to Nigerian bank accounts only. 
+              Exchange rate: 10 points = ₦1. Processing typically takes 1-3 business days.
+            </p>
+          </div>
 
           <Button 
             type="submit" 
