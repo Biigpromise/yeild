@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Edit2, Save, X, Camera, Trophy, Target, Flame, Calendar, MapPin, Link as LinkIcon } from "lucide-react";
+import { Edit2, Save, X, Camera, Trophy, Target, Flame, Calendar, MapPin, Link as LinkIcon, Upload, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { fileUploadService } from "@/services/fileUploadService";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UserProfileProps {
   user: {
@@ -32,7 +34,10 @@ interface UserProfileProps {
 }
 
 export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
+  const { user: authUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editData, setEditData] = useState({
     name: user.name,
     bio: user.bio || "",
@@ -53,10 +58,49 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
   };
 
   const handleAvatarUpload = () => {
-    toast({
-      title: "Coming Soon",
-      description: "Avatar upload functionality will be available soon.",
-    });
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !authUser) return;
+
+    setIsUploadingAvatar(true);
+    try {
+      const result = await fileUploadService.uploadProfilePicture(file, authUser.id);
+      if (result) {
+        onUpdate({ avatar: result.url });
+        toast({
+          title: "Profile Picture Updated",
+          description: "Your profile picture has been updated successfully.",
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+    } finally {
+      setIsUploadingAvatar(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!user.avatar) return;
+    
+    // Extract file path from URL
+    const url = new URL(user.avatar);
+    const filePath = url.pathname.split('/').slice(-2).join('/'); // Get userId/filename part
+    
+    const success = await fileUploadService.deleteProfilePicture(filePath);
+    if (success) {
+      onUpdate({ avatar: '' });
+      toast({
+        title: "Profile Picture Removed",
+        description: "Your profile picture has been removed.",
+      });
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -69,6 +113,15 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+
       {/* Main Profile Card */}
       <Card>
         <CardHeader>
@@ -106,13 +159,30 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
                   {user.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <Button
-                size="sm"
-                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
-                onClick={handleAvatarUpload}
-              >
-                <Camera className="h-4 w-4" />
-              </Button>
+              <div className="absolute -bottom-2 -right-2 flex gap-1">
+                <Button
+                  size="sm"
+                  className="h-8 w-8 rounded-full"
+                  onClick={handleAvatarUpload}
+                  disabled={isUploadingAvatar}
+                >
+                  {isUploadingAvatar ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  ) : (
+                    <Camera className="h-4 w-4" />
+                  )}
+                </Button>
+                {user.avatar && (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="h-8 w-8 rounded-full"
+                    onClick={handleRemoveAvatar}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
             
             <div className="flex-1 space-y-4">

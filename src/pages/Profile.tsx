@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { UserProfile } from "@/components/UserProfile";
 import { AchievementSystem } from "@/components/AchievementSystem";
@@ -13,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { taskService } from "@/services/taskService";
+import { userService } from "@/services/userService";
 import { toast } from "sonner";
 import { 
   User, 
@@ -86,6 +88,7 @@ const Profile = () => {
         name: profile.name || user.email || "User",
         email: user.email || "",
         bio: profile.bio || prev.bio,
+        avatar: profile.profile_picture_url || "",
         level: profile.level || 1,
         points: profile.points || 0,
         tasksCompleted: profile.tasks_completed || 0,
@@ -114,24 +117,31 @@ const Profile = () => {
     }
   };
 
-  const handleProfileUpdate = (updatedData: Partial<typeof userData>) => {
+  const handleProfileUpdate = async (updatedData: Partial<typeof userData>) => {
     setUserData(prev => ({ ...prev, ...updatedData }));
     
     // Update profile in database
-    if (user && updatedData.name || updatedData.bio) {
-      supabase
-        .from('profiles')
-        .update({
-          name: updatedData.name,
-          bio: updatedData.bio
-        })
-        .eq('id', user.id)
-        .then(({ error }) => {
-          if (error) {
-            console.error('Error updating profile:', error);
-            toast.error("Failed to update profile");
-          }
-        });
+    if (user) {
+      const updatePayload: any = {};
+      
+      if (updatedData.name !== undefined) updatePayload.name = updatedData.name;
+      if (updatedData.bio !== undefined) updatePayload.bio = updatedData.bio;
+      if (updatedData.avatar !== undefined) updatePayload.profile_picture_url = updatedData.avatar;
+      
+      if (Object.keys(updatePayload).length > 0) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            ...updatePayload,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', user.id);
+
+        if (error) {
+          console.error('Error updating profile:', error);
+          toast.error("Failed to update profile");
+        }
+      }
     }
   };
 

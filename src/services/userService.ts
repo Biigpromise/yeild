@@ -78,6 +78,28 @@ export const userService = {
     }
   },
 
+  // Update profile picture URL
+  async updateProfilePicture(profilePictureUrl: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          profile_picture_url: profilePictureUrl,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
+      return false;
+    }
+  },
+
   // Get user stats for dashboard
   async getUserStats(): Promise<UserStats | null> {
     try {
