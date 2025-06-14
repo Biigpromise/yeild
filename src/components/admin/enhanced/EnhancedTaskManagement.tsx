@@ -26,6 +26,9 @@ import {
 import { LoadingState } from "@/components/ui/loading-state";
 import { SearchInput } from "@/components/ui/search-input";
 import { TooltipWrapper } from "@/components/ui/tooltip-wrapper";
+import { TaskCreationForm } from "@/components/admin/enhanced/TaskCreationForm";
+import { TaskViewModal } from "./TaskViewModal";
+import { TaskEditModal } from "./TaskEditModal";
 
 export const EnhancedTaskManagement = () => {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -37,6 +40,11 @@ export const EnhancedTaskManagement = () => {
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [viewedTask, setViewedTask] = useState<any | null>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editTask, setEditTask] = useState<any | null>(null);
 
   useEffect(() => {
     loadData();
@@ -336,7 +344,7 @@ export const EnhancedTaskManagement = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Task Management</CardTitle>
-                <Button>
+                <Button onClick={() => setCreateModalOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Task
                 </Button>
@@ -430,12 +438,12 @@ export const EnhancedTaskManagement = () => {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <TooltipWrapper content="View task details">
-                                <Button size="sm" variant="outline">
+                                <Button size="sm" variant="outline" onClick={() => { setViewedTask(task); setViewModalOpen(true); }}>
                                   <Eye className="h-4 w-4" />
                                 </Button>
                               </TooltipWrapper>
                               <TooltipWrapper content="Edit task">
-                                <Button size="sm" variant="outline">
+                                <Button size="sm" variant="outline" onClick={() => { setEditTask(task); setEditModalOpen(true); }}>
                                   <Edit className="h-4 w-4" />
                                 </Button>
                               </TooltipWrapper>
@@ -466,6 +474,23 @@ export const EnhancedTaskManagement = () => {
               </div>
             </CardContent>
           </Card>
+          {/* Create Task Modal */}
+          <TaskCreationForm
+            open={createModalOpen}
+            onClose={() => setCreateModalOpen(false)}
+            afterCreate={loadData}
+          />
+          {/* View Task Modal */}
+          <TaskViewModal
+            open={viewModalOpen}
+            onClose={() => setViewModalOpen(false)}
+            task={viewedTask}
+          />
+          {/* Edit Task Modal (placeholder) */}
+          <TaskEditModal
+            open={editModalOpen}
+            onClose={() => setEditModalOpen(false)}
+          />
         </TabsContent>
 
         <TabsContent value="submissions">
@@ -554,31 +579,11 @@ export const EnhancedTaskManagement = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Task Categories</CardTitle>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Category
-                </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Category Name</TableHead>
-                      <TableHead>Tasks</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                        Category management coming soon
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+              <div className="py-8 text-center text-muted-foreground">
+                Category management is not available yet.
               </div>
             </CardContent>
           </Card>
