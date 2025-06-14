@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -146,7 +147,7 @@ export const TaskManagement = () => {
         approvalRate={totalSubmissions > 0 ? Math.round((approvedSubmissions / totalSubmissions) * 100) : 0}
       />
 
-      <Tabs defaultValue="tasks" className="space-y-6 h-full">
+      <Tabs defaultValue="tasks" className="space-y-6 h-full flex flex-col">
         <TabsList>
           <TabsTrigger value="tasks">All Tasks</TabsTrigger>
           <TabsTrigger value="submissions">
@@ -160,7 +161,7 @@ export const TaskManagement = () => {
           <TabsTrigger value="create">Create Task</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="tasks">
+        <TabsContent value="tasks" className="flex-1 overflow-hidden">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -190,29 +191,17 @@ export const TaskManagement = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="submissions">
+        <TabsContent value="submissions" className="flex-1 overflow-hidden">
           <TaskSubmissionReview 
             submissions={submissions}
             onUpdate={handleSubmissionUpdate}
           />
         </TabsContent>
 
-        <TabsContent value="create" className="h-full">
-          <Card className="w-full max-w-2xl mx-auto min-h-[60vh] max-h-[85vh] flex flex-col">
-            <CardHeader>
-              <CardTitle>Create New Task</CardTitle>
-            </CardHeader>
-            <CardContent
-              className="flex-1 overflow-y-auto px-1"
-              style={{
-                maxHeight: "calc(85vh - 70px)",
-                minHeight: "300px",
-                WebkitOverflowScrolling: "touch"
-              }}
-            >
-              <CreateTaskForm onTaskCreated={loadData} />
-            </CardContent>
-          </Card>
+        <TabsContent value="create" className="flex-1 overflow-hidden">
+          <div className="h-full overflow-y-auto">
+            <CreateTaskForm onTaskCreated={loadData} />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
