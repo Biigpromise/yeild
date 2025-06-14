@@ -1,5 +1,25 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+export interface UserSearchFilters {
+  searchTerm?: string;
+  status?: 'all' | 'active' | 'suspended' | 'banned' | 'inactive';
+  sortBy?: 'name' | 'email' | 'points' | 'tasks' | 'joinDate' | 'lastActive';
+  sortOrder?: 'asc' | 'desc';
+  dateRange?: {
+    from?: Date;
+    to?: Date;
+  };
+  pointsRange?: {
+    min?: number;
+    max?: number;
+  };
+  tasksRange?: {
+    min?: number;
+    max?: number;
+  };
+}
 
 export interface UserActivityData {
   userId: string;
@@ -280,7 +300,7 @@ export const enhancedUserManagementService = {
         joinDate: profile.created_at,
         totalLogins: sessionCount || 0,
         lastLogin: profile.last_login_at,
-        taskCompletionRate: profile.task_completion_rate || 0,
+        taskCompletionRate: Number(profile.task_completion_rate) || 0,
         averageSessionDuration: profile.average_session_duration || 0,
         totalSessionTime: profile.total_session_time || 0,
         longestStreak: taskStreak?.longest_streak || 0,
@@ -307,14 +327,14 @@ export const enhancedUserManagementService = {
       return (data || []).map(session => ({
         id: session.id,
         sessionStart: session.session_start,
-        sessionEnd: session.session_end,
-        ipAddress: session.ip_address,
-        userAgent: session.user_agent,
-        deviceType: session.device_type,
-        browser: session.browser,
-        operatingSystem: session.operating_system,
-        locationCountry: session.location_country,
-        locationCity: session.location_city,
+        sessionEnd: session.session_end || undefined,
+        ipAddress: session.ip_address || undefined,
+        userAgent: session.user_agent || undefined,
+        deviceType: session.device_type || undefined,
+        browser: session.browser || undefined,
+        operatingSystem: session.operating_system || undefined,
+        locationCountry: session.location_country || undefined,
+        locationCity: session.location_city || undefined,
         isActive: session.is_active,
         duration: session.session_end 
           ? Math.round((new Date(session.session_end).getTime() - new Date(session.session_start).getTime()) / (1000 * 60))
@@ -341,8 +361,8 @@ export const enhancedUserManagementService = {
         streakType: streak.streak_type,
         currentStreak: streak.current_streak,
         longestStreak: streak.longest_streak,
-        lastActivityDate: streak.last_activity_date,
-        streakStartDate: streak.streak_start_date
+        lastActivityDate: streak.last_activity_date || undefined,
+        streakStartDate: streak.streak_start_date || undefined
       }));
     } catch (error) {
       console.error('Error fetching user streaks:', error);
@@ -367,7 +387,7 @@ export const enhancedUserManagementService = {
         activityType: activity.activity_type,
         activityData: activity.activity_data,
         timestamp: activity.created_at,
-        ipAddress: activity.ip_address,
+        ipAddress: activity.ip_address || undefined,
         description: this.getActivityDescription(activity.activity_type, activity.activity_data)
       }));
     } catch (error) {
@@ -460,7 +480,7 @@ export const enhancedUserManagementService = {
         .from('profiles')
         .update({
           last_login_at: new Date().toISOString(),
-          login_count: supabase.sql`login_count + 1`,
+          login_count: 0, // Will be incremented by trigger or function
           last_active_at: new Date().toISOString()
         })
         .eq('id', userId);
