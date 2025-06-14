@@ -63,18 +63,20 @@ export const taskSubmissionService = {
 
       const pointResult = pointCalculationService.calculatePoints(pointFactors);
 
-      // Submit the task - ensure point_breakdown is properly formatted as JSON
+      // Submit the task - ensure all fields are properly typed
+      const submissionData = {
+        user_id: user.id,
+        task_id: taskId,
+        evidence: evidence,
+        calculated_points: pointResult.finalPoints,
+        point_breakdown: pointResult.breakdown as any,
+        point_explanation: pointResult.explanation,
+        status: 'pending' as const
+      };
+
       const { error } = await supabase
         .from('task_submissions')
-        .insert({
-          user_id: user.id,
-          task_id: taskId,
-          evidence: evidence,
-          calculated_points: pointResult.finalPoints,
-          point_breakdown: JSON.parse(JSON.stringify(pointResult.breakdown)), // Ensure proper JSON format
-          point_explanation: pointResult.explanation,
-          status: 'pending'
-        });
+        .insert(submissionData);
 
       if (error) {
         console.error('Error submitting task:', error);
