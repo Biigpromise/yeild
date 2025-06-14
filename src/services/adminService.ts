@@ -24,16 +24,43 @@ export const adminService = {
   // Get all users for admin management
   async getAllUsers(): Promise<AdminUser[]> {
     try {
-      const { data, error } = await supabase
+      // First get all profiles
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          user_roles(role)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (profilesError) throw profilesError;
+
+      // Try to get user roles separately to handle missing table gracefully
+      let userRolesMap: Record<string, Array<{ role: string }>> = {};
+      
+      try {
+        const { data: userRoles, error: rolesError } = await supabase
+          .from('user_roles')
+          .select('user_id, role');
+
+        if (!rolesError && userRoles) {
+          // Group roles by user_id
+          userRolesMap = userRoles.reduce((acc, roleRecord) => {
+            if (!acc[roleRecord.user_id]) {
+              acc[roleRecord.user_id] = [];
+            }
+            acc[roleRecord.user_id].push({ role: roleRecord.role });
+            return acc;
+          }, {} as Record<string, Array<{ role: string }>>);
+        }
+      } catch (rolesError) {
+        console.log('User roles table not found, continuing without roles');
+      }
+
+      // Combine profiles with roles
+      const usersWithRoles = (profiles || []).map(profile => ({
+        ...profile,
+        user_roles: userRolesMap[profile.id] || []
+      }));
+
+      return usersWithRoles;
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to load users');
