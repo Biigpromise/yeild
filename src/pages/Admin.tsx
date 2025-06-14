@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AdminOverview } from "@/components/admin/AdminOverview";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { TaskManagement } from "@/components/admin/TaskManagement";
@@ -31,6 +31,20 @@ import {
 const Admin = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    // Listen for navigation events from child components
+    const handleNavigateToSubmissions = () => setActiveSection("tasks");
+    const handleNavigateToCreateTask = () => setActiveSection("tasks");
+
+    window.addEventListener('navigateToSubmissions', handleNavigateToSubmissions);
+    window.addEventListener('navigateToCreateTask', handleNavigateToCreateTask);
+
+    return () => {
+      window.removeEventListener('navigateToSubmissions', handleNavigateToSubmissions);
+      window.removeEventListener('navigateToCreateTask', handleNavigateToCreateTask);
+    };
+  }, []);
 
   // Map of sections to their component
   const sectionComponents = {
