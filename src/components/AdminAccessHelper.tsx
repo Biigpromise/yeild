@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Users, Settings } from 'lucide-react';
+import { Shield, Users, Settings, CheckCircle, Loader2 } from 'lucide-react';
 import { adminSetupService } from '@/services/admin/adminSetupService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +14,8 @@ export const AdminAccessHelper: React.FC = () => {
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isAssigning, setIsAssigning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     checkAdminAccess();
@@ -26,25 +28,52 @@ export const AdminAccessHelper: React.FC = () => {
     }
 
     setIsLoading(true);
-    console.log('Checking admin access...');
-    const hasAccess = await adminSetupService.checkAdminAccess();
-    console.log('Admin access result:', hasAccess);
-    setHasAdminAccess(hasAccess);
-    setIsLoading(false);
+    setError(null);
+    console.log('AdminAccessHelper: Checking admin access for user:', user.id);
+    
+    try {
+      const hasAccess = await adminSetupService.checkAdminAccess();
+      console.log('AdminAccessHelper: Admin access result:', hasAccess);
+      setHasAdminAccess(hasAccess);
+    } catch (err) {
+      console.error('AdminAccessHelper: Error checking admin access:', err);
+      setError('Failed to check admin access. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleMakeAdmin = async () => {
-    setIsAssigning(true);
-    console.log('Making user admin...');
-    const success = await adminSetupService.makeCurrentUserAdmin();
-    if (success) {
-      setHasAdminAccess(true);
-      // Add a small delay then redirect to admin
-      setTimeout(() => {
-        navigate('/admin');
-      }, 1000);
+    if (!user) {
+      setError('Please log in first');
+      return;
     }
-    setIsAssigning(false);
+
+    setIsAssigning(true);
+    setError(null);
+    console.log('AdminAccessHelper: Making user admin:', user.id);
+    
+    try {
+      const success = await adminSetupService.makeCurrentUserAdmin();
+      console.log('AdminAccessHelper: Admin assignment result:', success);
+      
+      if (success) {
+        setHasAdminAccess(true);
+        setSuccess(true);
+        
+        // Wait a moment then redirect to admin
+        setTimeout(() => {
+          navigate('/admin');
+        }, 2000);
+      } else {
+        setError('Failed to assign admin role. Please try again.');
+      }
+    } catch (err) {
+      console.error('AdminAccessHelper: Error assigning admin role:', err);
+      setError('An error occurred while assigning admin role. Please try again.');
+    } finally {
+      setIsAssigning(false);
+    }
   };
 
   if (!user) {
@@ -74,7 +103,10 @@ export const AdminAccessHelper: React.FC = () => {
     return (
       <Card className="max-w-md mx-auto">
         <CardContent className="p-6">
-          <div className="text-center">Checking admin access...</div>
+          <div className="flex items-center justify-center gap-3">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Checking admin access...</span>
+          </div>
         </CardContent>
       </Card>
     );
@@ -85,7 +117,7 @@ export const AdminAccessHelper: React.FC = () => {
       <Card className="max-w-md mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-600">
-            <Shield className="h-5 w-5" />
+            <CheckCircle className="h-5 w-5" />
             Admin Access Confirmed
           </CardTitle>
           <CardDescription>
@@ -93,6 +125,14 @@ export const AdminAccessHelper: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {success && (
+            <Alert className="mb-4 border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                Admin role assigned successfully! Redirecting to admin dashboard...
+              </AlertDescription>
+            </Alert>
+          )}
           <Button 
             className="w-full" 
             onClick={() => navigate('/admin')}
@@ -117,6 +157,14 @@ export const AdminAccessHelper: React.FC = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {error && (
+          <Alert className="border-red-200 bg-red-50">
+            <AlertDescription className="text-red-800">
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <Alert>
           <AlertDescription>
             Click the button below to assign yourself admin privileges and access the admin dashboard.
@@ -128,8 +176,26 @@ export const AdminAccessHelper: React.FC = () => {
           onClick={handleMakeAdmin}
           disabled={isAssigning}
         >
-          <Shield className="h-4 w-4 mr-2" />
-          {isAssigning ? 'Setting up admin access...' : 'Make Me Admin'}
+          {isAssigning ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Setting up admin access...
+            </>
+          ) : (
+            <>
+              <Shield className="h-4 w-4 mr-2" />
+              Make Me Admin
+            </>
+          )}
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          className="w-full" 
+          onClick={checkAdminAccess}
+          disabled={isAssigning}
+        >
+          Refresh Admin Status
         </Button>
       </CardContent>
     </Card>

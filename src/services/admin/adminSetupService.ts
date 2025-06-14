@@ -8,32 +8,29 @@ export const adminSetupService = {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.log('No user found');
+        console.log('adminSetupService: No user found');
         return false;
       }
 
-      console.log('Checking admin access for user:', user.id);
+      console.log('adminSetupService: Checking admin access for user:', user.id);
 
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
         .eq('role', 'admin')
-        .single();
+        .maybeSingle();
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          console.log('No admin role found for user');
-          return false;
-        }
-        console.error('Error checking admin access:', error);
+        console.error('adminSetupService: Error checking admin access:', error);
         return false;
       }
 
-      console.log('Admin role found:', data);
-      return !!data;
+      const hasAdmin = !!data;
+      console.log('adminSetupService: Admin role found:', hasAdmin);
+      return hasAdmin;
     } catch (error) {
-      console.error('Error checking admin access:', error);
+      console.error('adminSetupService: Exception checking admin access:', error);
       return false;
     }
   },
@@ -43,48 +40,58 @@ export const adminSetupService = {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        console.error('adminSetupService: No user found for admin assignment');
         toast.error('Please log in first');
         return false;
       }
 
-      console.log('Attempting to make user admin:', user.id);
+      console.log('adminSetupService: Attempting to make user admin:', user.id);
 
       // First check if user already has admin role
-      const { data: existingRole } = await supabase
+      const { data: existingRole, error: checkError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
         .eq('role', 'admin')
         .maybeSingle();
 
+      if (checkError) {
+        console.error('adminSetupService: Error checking existing role:', checkError);
+      }
+
       if (existingRole) {
+        console.log('adminSetupService: User already has admin role');
         toast.success('You already have admin access');
         return true;
       }
 
       // Insert admin role
-      const { error } = await supabase
+      const { error: insertError } = await supabase
         .from('user_roles')
         .insert({
           user_id: user.id,
           role: 'admin'
         });
 
-      if (error) {
-        console.error('Error assigning admin role:', error);
-        if (error.code === '23505') {
+      if (insertError) {
+        console.error('adminSetupService: Error inserting admin role:', insertError);
+        
+        // Check if it's a duplicate key error (user already has admin role)
+        if (insertError.code === '23505') {
+          console.log('adminSetupService: Duplicate key - user already has admin role');
           toast.success('You already have admin access');
           return true;
         }
-        toast.error('Failed to assign admin role: ' + error.message);
+        
+        toast.error('Failed to assign admin role: ' + insertError.message);
         return false;
       }
 
-      console.log('Admin role assigned successfully');
-      toast.success('Admin role assigned successfully');
+      console.log('adminSetupService: Admin role assigned successfully');
+      toast.success('Admin role assigned successfully! Redirecting...');
       return true;
     } catch (error) {
-      console.error('Error assigning admin role:', error);
+      console.error('adminSetupService: Exception assigning admin role:', error);
       toast.error('Failed to assign admin role');
       return false;
     }
@@ -94,7 +101,10 @@ export const adminSetupService = {
   async getCurrentUserRoles(): Promise<string[]> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
+      if (!user) {
+        console.log('adminSetupService: No user found for roles check');
+        return [];
+      }
 
       const { data, error } = await supabase
         .from('user_roles')
@@ -102,15 +112,15 @@ export const adminSetupService = {
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Error fetching user roles:', error);
+        console.error('adminSetupService: Error fetching user roles:', error);
         return [];
       }
       
-      const roles = data.map(r => r.role) || [];
-      console.log('User roles:', roles);
+      const roles = data?.map(r => r.role) || [];
+      console.log('adminSetupService: User roles:', roles);
       return roles;
     } catch (error) {
-      console.error('Error fetching user roles:', error);
+      console.error('adminSetupService: Exception fetching user roles:', error);
       return [];
     }
   }

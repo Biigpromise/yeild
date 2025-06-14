@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Shield, ArrowRight } from 'lucide-react';
+import { Shield, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { adminSetupService } from '@/services/admin/adminSetupService';
 
@@ -14,6 +14,7 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ childr
   const { user } = useAuth();
   const [hasAdminAccess, setHasAdminAccess] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     checkAdminAccess();
@@ -21,16 +22,27 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ childr
 
   const checkAdminAccess = async () => {
     if (!user) {
+      console.log('AdminProtectedRoute: No user found');
       setHasAdminAccess(false);
       setIsLoading(false);
       return;
     }
 
     console.log('AdminProtectedRoute: Checking admin access for user:', user.id);
-    const hasAccess = await adminSetupService.checkAdminAccess();
-    console.log('AdminProtectedRoute: Admin access result:', hasAccess);
-    setHasAdminAccess(hasAccess);
-    setIsLoading(false);
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const hasAccess = await adminSetupService.checkAdminAccess();
+      console.log('AdminProtectedRoute: Admin access result:', hasAccess);
+      setHasAdminAccess(hasAccess);
+    } catch (err) {
+      console.error('AdminProtectedRoute: Error checking admin access:', err);
+      setError('Failed to verify admin access');
+      setHasAdminAccess(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isLoading) {
@@ -56,6 +68,19 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ childr
             <p className="text-muted-foreground mb-6">
               You need administrator privileges to access this page. Set up admin access to continue.
             </p>
+            
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-red-600" />
+                <span className="text-red-800 text-sm">{error}</span>
+              </div>
+            )}
+            
+            {user && (
+              <p className="text-sm text-muted-foreground mb-4">
+                Currently logged in as: {user.email}
+              </p>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -64,6 +89,14 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ childr
                 <Shield className="h-4 w-4 mr-2" />
                 Setup Admin Access
               </Link>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={checkAdminAccess}
+            >
+              Refresh Access Check
             </Button>
             
             <Button asChild variant="outline" className="w-full">
