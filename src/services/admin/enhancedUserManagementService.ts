@@ -328,7 +328,7 @@ export const enhancedUserManagementService = {
         id: session.id,
         sessionStart: session.session_start,
         sessionEnd: session.session_end || undefined,
-        ipAddress: session.ip_address || undefined,
+        ipAddress: session.ip_address ? String(session.ip_address) : undefined,
         userAgent: session.user_agent || undefined,
         deviceType: session.device_type || undefined,
         browser: session.browser || undefined,
@@ -387,7 +387,7 @@ export const enhancedUserManagementService = {
         activityType: activity.activity_type,
         activityData: activity.activity_data,
         timestamp: activity.created_at,
-        ipAddress: activity.ip_address || undefined,
+        ipAddress: activity.ip_address ? String(activity.ip_address) : undefined,
         description: this.getActivityDescription(activity.activity_type, activity.activity_data)
       }));
     } catch (error) {
