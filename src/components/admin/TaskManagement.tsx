@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -311,7 +310,18 @@ export const TaskManagement = () => {
         </TabsContent>
 
         <TabsContent value="create">
-          <CreateTaskForm onTaskCreated={loadData} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Create New Task</CardTitle>
+            </CardHeader>
+            <CardContent 
+              className="space-y-4 overflow-y-auto max-h-[75vh] md:max-h-[65vh] px-1"
+              style={{ minHeight: "350px" }}
+            >
+              {/* Make the form scrollable if it's too tall */}
+              <CreateTaskForm onTaskCreated={loadData} />
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
