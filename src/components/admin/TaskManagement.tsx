@@ -21,6 +21,9 @@ import {
   TrendingUp,
   Filter
 } from "lucide-react";
+import { TaskOverviewStats } from "./TaskOverviewStats";
+import { TaskFilterBar } from "./TaskFilterBar";
+import { TaskTable } from "./TaskTable";
 
 export const TaskManagement = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -136,65 +139,12 @@ export const TaskManagement = () => {
   return (
     <div className="space-y-6 h-full">
       {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Clock className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Active Tasks</p>
-                <p className="text-2xl font-bold">{activeTasksCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-orange-100 rounded-lg">
-                <Users className="h-6 w-6 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Pending Reviews</p>
-                <p className="text-2xl font-bold">{pendingSubmissions.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Submissions</p>
-                <p className="text-2xl font-bold">{totalSubmissions}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Approval Rate</p>
-                <p className="text-2xl font-bold">
-                  {totalSubmissions > 0 ? Math.round((approvedSubmissions / totalSubmissions) * 100) : 0}%
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <TaskOverviewStats 
+        activeTasksCount={activeTasksCount}
+        pendingSubmissionsCount={pendingSubmissions.length}
+        totalSubmissions={totalSubmissions}
+        approvalRate={totalSubmissions > 0 ? Math.round((approvedSubmissions / totalSubmissions) * 100) : 0}
+      />
 
       <Tabs defaultValue="tasks" className="space-y-6 h-full">
         <TabsList>
@@ -223,81 +173,19 @@ export const TaskManagement = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Filters */}
-              <div className="flex gap-4">
-                <Input
-                  placeholder="Search tasks..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="max-w-sm"
-                />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 border rounded-md"
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="draft">Draft</option>
-                  <option value="paused">Paused</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-
+              <TaskFilterBar
+                searchTerm={searchTerm}
+                statusFilter={statusFilter}
+                onSearchChange={setSearchTerm}
+                onStatusFilterChange={setStatusFilter}
+              />
               {/* Tasks Table */}
-              <div className="overflow-x-auto border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Task</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Points</TableHead>
-                      <TableHead>Difficulty</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredTasks.map((task) => (
-                      <TableRow key={task.id}>
-                        <TableCell className="font-medium">{task.title}</TableCell>
-                        <TableCell>{task.category}</TableCell>
-                        <TableCell>{task.points} pts</TableCell>
-                        <TableCell>
-                          <Badge className={getDifficultyColor(task.difficulty)}>
-                            {task.difficulty}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(task.status)}>
-                            {task.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(task.created_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => handleDeleteTask(task.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <TaskTable 
+                tasks={filteredTasks}
+                getDifficultyColor={getDifficultyColor}
+                getStatusColor={getStatusColor}
+                onDeleteTask={handleDeleteTask}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -317,7 +205,7 @@ export const TaskManagement = () => {
             <CardContent
               className="flex-1 overflow-y-auto px-1"
               style={{
-                maxHeight: "calc(85vh - 70px)", // 85vh minus an estimated header size
+                maxHeight: "calc(85vh - 70px)",
                 minHeight: "300px",
                 WebkitOverflowScrolling: "touch"
               }}
