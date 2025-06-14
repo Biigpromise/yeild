@@ -297,39 +297,40 @@ export const enhancedTaskManagementService = {
         return [];
       }
 
-      // Transform the data to match our interface with proper null checks
-      const transformedData: TaskSubmissionWithDetails[] = submissionsWithDetails
-        .filter((submission): submission is typeof submission & { 
-          tasks: NonNullable<typeof submission.tasks>; 
-          profiles: NonNullable<typeof submission.profiles>; 
-        } => {
-          return submission.tasks != null && 
-                 submission.profiles != null && 
-                 typeof submission.tasks === 'object' && 
-                 typeof submission.profiles === 'object' &&
-                 !('error' in submission.tasks) &&
-                 !('error' in submission.profiles);
-        })
-        .map(submission => {
-          // At this point, TypeScript knows tasks and profiles are non-null
-          // Handle array vs object response from Supabase joins
-          const taskData = Array.isArray(submission.tasks) ? submission.tasks[0] : submission.tasks;
-          const profileData = Array.isArray(submission.profiles) ? submission.profiles[0] : submission.profiles;
-          
-          return {
-            id: submission.id,
-            task_id: submission.task_id,
-            user_id: submission.user_id,
-            evidence: submission.evidence,
-            status: submission.status,
-            submitted_at: submission.submitted_at,
-            reviewed_at: submission.reviewed_at,
-            admin_notes: submission.admin_notes,
-            calculated_points: submission.calculated_points,
-            tasks: taskData,
-            profiles: profileData
-          };
+      // Transform the data with explicit type checking
+      const transformedData: TaskSubmissionWithDetails[] = [];
+      
+      for (const submission of submissionsWithDetails) {
+        // Explicit null checks for each submission
+        if (!submission.tasks || !submission.profiles) {
+          console.warn('Skipping submission with missing data:', submission.id);
+          continue;
+        }
+
+        // Handle array vs object response from Supabase joins
+        const taskData = Array.isArray(submission.tasks) ? submission.tasks[0] : submission.tasks;
+        const profileData = Array.isArray(submission.profiles) ? submission.profiles[0] : submission.profiles;
+        
+        // Additional safety checks
+        if (!taskData || !profileData) {
+          console.warn('Skipping submission with invalid join data:', submission.id);
+          continue;
+        }
+
+        transformedData.push({
+          id: submission.id,
+          task_id: submission.task_id,
+          user_id: submission.user_id,
+          evidence: submission.evidence,
+          status: submission.status,
+          submitted_at: submission.submitted_at,
+          reviewed_at: submission.reviewed_at,
+          admin_notes: submission.admin_notes,
+          calculated_points: submission.calculated_points,
+          tasks: taskData,
+          profiles: profileData
         });
+      }
 
       return transformedData;
     } catch (error) {
