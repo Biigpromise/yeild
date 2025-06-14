@@ -356,9 +356,12 @@ export type Database = {
       task_submissions: {
         Row: {
           admin_notes: string | null
+          calculated_points: number | null
           created_at: string | null
           evidence: string | null
           id: string
+          point_breakdown: Json | null
+          point_explanation: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
@@ -369,9 +372,12 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          calculated_points?: number | null
           created_at?: string | null
           evidence?: string | null
           id?: string
+          point_breakdown?: Json | null
+          point_explanation?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
@@ -382,9 +388,12 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          calculated_points?: number | null
           created_at?: string | null
           evidence?: string | null
           id?: string
+          point_breakdown?: Json | null
+          point_explanation?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
