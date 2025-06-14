@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -109,7 +110,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Filter and validate categories
+  // Filter and validate categories - ensure they have valid IDs and names
   const validCategories = categories.filter(category => 
     category && 
     category.id && 
@@ -159,7 +160,10 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
               
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Select value={formData.category_id} onValueChange={(value) => handleInputChange('category_id', value)}>
+                <Select 
+                  value={formData.category_id} 
+                  onValueChange={(value) => handleInputChange('category_id', value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select category"} />
                   </SelectTrigger>
@@ -168,7 +172,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                       <SelectItem value="loading" disabled>Loading categories...</SelectItem>
                     ) : validCategories.length > 0 ? (
                       validCategories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
+                        <SelectItem key={`category-${category.id}`} value={category.id}>
                           {category.name}
                         </SelectItem>
                       ))

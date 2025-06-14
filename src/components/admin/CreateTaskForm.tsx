@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -92,7 +93,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Filter and validate categories
+  // Filter and validate categories - ensure they have valid IDs and names
   const validCategories = categories.filter(category => 
     category && 
     category.id && 
@@ -136,21 +137,24 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
               
               <div>
                 <Label htmlFor="category">Category *</Label>
-                <Select value={formData.category_id} onValueChange={(value) => handleInputChange('category_id', value)}>
+                <Select 
+                  value={formData.category_id} 
+                  onValueChange={(value) => handleInputChange('category_id', value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select category"} />
                   </SelectTrigger>
                   <SelectContent>
                     {categoriesLoading ? (
-                      <SelectItem value="loading" disabled>Loading categories...</SelectItem>
+                      <SelectItem value="loading-placeholder" disabled>Loading categories...</SelectItem>
                     ) : validCategories.length > 0 ? (
                       validCategories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
+                        <SelectItem key={`cat-${category.id}`} value={category.id}>
                           {category.name}
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem value="no-categories" disabled>No categories available</SelectItem>
+                      <SelectItem value="no-categories-placeholder" disabled>No categories available</SelectItem>
                     )}
                   </SelectContent>
                 </Select>

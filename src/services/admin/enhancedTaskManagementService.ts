@@ -65,38 +65,94 @@ export interface TaskSubmissionWithDetails {
 }
 
 export const enhancedTaskManagementService = {
-  // Enhanced task analytics
+  // Enhanced task analytics with fallback to direct queries
   async getTaskAnalytics(dateRange?: { start: Date; end: Date }): Promise<TaskAnalytics> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'get_enhanced_task_analytics',
-          data: { 
-            startDate: dateRange?.start?.toISOString(),
-            endDate: dateRange?.end?.toISOString()
+      // Try edge function first, fallback to direct queries
+      try {
+        const { data, error } = await supabase.functions.invoke('admin-operations', {
+          body: { 
+            action: 'get_enhanced_task_analytics',
+            data: { 
+              startDate: dateRange?.start?.toISOString(),
+              endDate: dateRange?.end?.toISOString()
+            }
           }
-        }
-      });
+        });
 
-      if (error) throw error;
-      return data;
+        if (!error && data) return data;
+      } catch (edgeFunctionError) {
+        console.log('Edge function not available, using direct queries');
+      }
+
+      // Fallback to direct database queries
+      const [tasksData, submissionsData] = await Promise.all([
+        supabase.from('tasks').select('*'),
+        supabase.from('task_submissions').select('*')
+      ]);
+
+      const tasks = tasksData.data || [];
+      const submissions = submissionsData.data || [];
+
+      return {
+        totalTasks: tasks.length,
+        activeTasks: tasks.filter(t => t.status === 'active').length,
+        completedTasks: tasks.filter(t => t.status === 'completed').length,
+        pendingSubmissions: submissions.filter(s => s.status === 'pending').length,
+        approvalRate: submissions.length > 0 ? (submissions.filter(s => s.status === 'approved').length / submissions.length) * 100 : 0,
+        avgCompletionTime: 0,
+        topCategories: [],
+        recentActivity: []
+      };
     } catch (error) {
       console.error('Error fetching task analytics:', error);
       throw error;
     }
   },
 
-  // Enhanced task search and filtering
+  // Enhanced task search with fallback
   async searchTasks(filters: TaskFilters): Promise<any[]> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'search_tasks_enhanced',
-          data: filters
-        }
+      // Try edge function first
+      try {
+        const { data, error } = await supabase.functions.invoke('admin-operations', {
+          body: { 
+            action: 'search_tasks_enhanced',
+            data: filters
+          }
+        });
+
+        if (!error && data) return data;
+      } catch (edgeFunctionError) {
+        console.log('Edge function not available, using direct queries');
+      }
+
+      // Fallback to direct query
+      let query = supabase.from('tasks').select('*');
+      
+      if (filters.searchTerm) {
+        query = query.or(`title.ilike.%${filters.searchTerm}%,description.ilike.%${filters.searchTerm}%`);
+      }
+      
+      if (filters.status) {
+        query = query.eq('status', filters.status);
+      }
+      
+      if (filters.category) {
+        query = query.eq('category', filters.category);
+      }
+      
+      if (filters.difficulty) {
+        query = query.eq('difficulty', filters.difficulty);
+      }
+
+      query = query.order(filters.sortBy || 'created_at', { 
+        ascending: filters.sortOrder === 'asc' 
       });
 
+      const { data, error } = await query;
       if (error) throw error;
+      
       return data || [];
     } catch (error) {
       console.error('Error searching tasks:', error);
@@ -108,15 +164,21 @@ export const enhancedTaskManagementService = {
   // Create task with enhanced validation
   async createTask(taskData: any): Promise<boolean> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'create_task_enhanced',
-          data: {
-            ...taskData,
-            created_at: new Date().toISOString()
-          }
-        }
-      });
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert({
+          title: taskData.title,
+          description: taskData.description,
+          points: taskData.points,
+          category_id: taskData.category_id || null,
+          difficulty: taskData.difficulty,
+          brand_name: taskData.brand_name,
+          brand_logo_url: taskData.brand_logo_url,
+          estimated_time: taskData.estimated_time,
+          expires_at: taskData.expires_at,
+          status: taskData.status || 'active',
+          task_type: taskData.task_type || 'general'
+        });
 
       if (error) throw error;
       
@@ -132,18 +194,13 @@ export const enhancedTaskManagementService = {
   // Update task
   async updateTask(taskId: string, updates: any): Promise<boolean> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'update_task_enhanced',
-          data: { 
-            taskId, 
-            updates: {
-              ...updates,
-              updated_at: new Date().toISOString()
-            }
-          }
-        }
-      });
+      const { data, error } = await supabase
+        .from('tasks')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', taskId);
 
       if (error) throw error;
       
@@ -156,7 +213,7 @@ export const enhancedTaskManagementService = {
     }
   },
 
-  // Enhanced submission processing with detailed feedback
+  // Enhanced submission processing with fallback
   async processTaskSubmission(
     submissionId: string, 
     status: 'approved' | 'rejected',
@@ -165,19 +222,14 @@ export const enhancedTaskManagementService = {
     qualityRating?: number
   ): Promise<boolean> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'process_task_submission_enhanced',
-          data: { 
-            submissionId, 
-            status, 
-            feedback, 
-            pointAdjustment,
-            qualityRating,
-            processedAt: new Date().toISOString()
-          }
-        }
-      });
+      const { data, error } = await supabase
+        .from('task_submissions')
+        .update({
+          status,
+          admin_notes: feedback,
+          reviewed_at: new Date().toISOString()
+        })
+        .eq('id', submissionId);
 
       if (error) throw error;
       
@@ -190,7 +242,7 @@ export const enhancedTaskManagementService = {
     }
   },
 
-  // Get pending submissions with enhanced filtering
+  // Get pending submissions with fallback
   async getPendingSubmissions(filters?: {
     category?: string;
     priority?: 'high' | 'medium' | 'low';
@@ -198,12 +250,16 @@ export const enhancedTaskManagementService = {
     limit?: number;
   }): Promise<TaskSubmissionWithDetails[]> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'get_pending_submissions_enhanced',
-          data: filters
-        }
-      });
+      const { data, error } = await supabase
+        .from('task_submissions')
+        .select(`
+          *,
+          tasks(id, title, points, category, difficulty),
+          profiles(id, name, email)
+        `)
+        .eq('status', 'pending')
+        .order('submitted_at', { ascending: false })
+        .limit(filters?.limit || 50);
 
       if (error) throw error;
       return data || [];
@@ -213,17 +269,43 @@ export const enhancedTaskManagementService = {
     }
   },
 
-  // Bulk task operations
+  // Bulk task operations with fallback
   async performBulkTaskOperation(operation: BulkTaskOperation): Promise<boolean> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'bulk_task_operation_enhanced',
-          data: operation
-        }
-      });
+      let updateData: any = {};
+      
+      switch (operation.operation) {
+        case 'activate':
+          updateData = { status: 'active' };
+          break;
+        case 'deactivate':
+          updateData = { status: 'draft' };
+          break;
+        case 'update_points':
+          updateData = { points: operation.data.points };
+          break;
+        case 'update_category':
+          updateData = { category_id: operation.data.category_id };
+          break;
+        case 'delete':
+          const { error: deleteError } = await supabase
+            .from('tasks')
+            .delete()
+            .in('id', operation.taskIds);
+          
+          if (deleteError) throw deleteError;
+          toast.success(`Deleted ${operation.taskIds.length} tasks`);
+          return true;
+      }
 
-      if (error) throw error;
+      if (Object.keys(updateData).length > 0) {
+        const { error } = await supabase
+          .from('tasks')
+          .update(updateData)
+          .in('id', operation.taskIds);
+
+        if (error) throw error;
+      }
       
       toast.success(`Bulk ${operation.operation} completed for ${operation.taskIds.length} tasks`);
       return true;
