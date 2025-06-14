@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { pointCalculationService, PointCalculationFactors } from "./pointCalculationService";
@@ -207,8 +208,7 @@ export const taskService = {
           .from('task_submissions')
           .select(`
             *,
-            tasks(title, points, category),
-            profiles(name, email)
+            tasks(title, points, category)
           `)
           .order('submitted_at', { ascending: false });
 
@@ -244,31 +244,40 @@ export const taskService = {
 
         // If approving and quality score provided, recalculate points
         if (status === 'approved' && qualityScore) {
+          // Get submission details
           const { data: submission } = await supabase
             .from('task_submissions')
             .select(`
               *,
-              tasks(*),
-              profiles(level, tasks_completed)
+              tasks(*)
             `)
             .eq('id', submissionId)
             .single();
 
           if (submission) {
-            // Recalculate with quality score
-            const pointFactors: PointCalculationFactors = {
-              basePoints: submission.tasks.points,
-              difficulty: submission.tasks.difficulty || 'medium',
-              userLevel: submission.profiles.level || 1,
-              tasksCompletedToday: 0, // Would need to calculate this
-              totalTasksCompleted: submission.profiles.tasks_completed || 0,
-              taskCategory: submission.tasks.category || 'general',
-              qualityScore
-            };
+            // Get user profile separately
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('level, tasks_completed')
+              .eq('id', submission.user_id)
+              .single();
 
-            const pointResult = pointCalculationService.calculatePoints(pointFactors);
-            updateData.final_points = pointResult.finalPoints;
-            updateData.quality_score = qualityScore;
+            if (profile) {
+              // Recalculate with quality score
+              const pointFactors: PointCalculationFactors = {
+                basePoints: submission.tasks.points,
+                difficulty: submission.tasks.difficulty || 'medium',
+                userLevel: profile.level || 1,
+                tasksCompletedToday: 0, // Would need to calculate this
+                totalTasksCompleted: profile.tasks_completed || 0,
+                taskCategory: submission.tasks.category || 'general',
+                qualityScore
+              };
+
+              const pointResult = pointCalculationService.calculatePoints(pointFactors);
+              updateData.final_points = pointResult.finalPoints;
+              updateData.quality_score = qualityScore;
+            }
           }
         }
 
