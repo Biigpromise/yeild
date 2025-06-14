@@ -70,7 +70,7 @@ export const enhancedTaskManagementService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'get_enhanced_task_analytics',
+          action: 'get_enhanced_task_analytics',
           data: { 
             startDate: dateRange?.start?.toISOString(),
             endDate: dateRange?.end?.toISOString()
@@ -91,7 +91,7 @@ export const enhancedTaskManagementService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'search_tasks_enhanced',
+          action: 'search_tasks_enhanced',
           data: filters
         }
       });
@@ -110,7 +110,7 @@ export const enhancedTaskManagementService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'create_task_enhanced',
+          action: 'create_task_enhanced',
           data: {
             ...taskData,
             created_at: new Date().toISOString()
@@ -134,7 +134,7 @@ export const enhancedTaskManagementService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'update_task_enhanced',
+          action: 'update_task_enhanced',
           data: { 
             taskId, 
             updates: {
@@ -167,7 +167,7 @@ export const enhancedTaskManagementService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'process_task_submission_enhanced',
+          action: 'process_task_submission_enhanced',
           data: { 
             submissionId, 
             status, 
@@ -200,7 +200,7 @@ export const enhancedTaskManagementService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'get_pending_submissions_enhanced',
+          action: 'get_pending_submissions_enhanced',
           data: filters
         }
       });
@@ -218,7 +218,7 @@ export const enhancedTaskManagementService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'bulk_task_operation_enhanced',
+          action: 'bulk_task_operation_enhanced',
           data: operation
         }
       });

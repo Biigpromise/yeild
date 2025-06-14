@@ -76,10 +76,13 @@ Deno.serve(async (req) => {
       case 'get_user_activity':
       case 'update_account_status':
       case 'bulk_user_operation':
-      case 'process_task_submission':
-      case 'bulk_task_operation':
-      case 'get_task_analytics':
-      case 'searchTasksEnhanced':
+      case 'create_task_enhanced':
+      case 'update_task_enhanced':
+      case 'process_task_submission_enhanced':
+      case 'bulk_task_operation_enhanced':
+      case 'get_enhanced_task_analytics':
+      case 'get_pending_submissions_enhanced':
+      case 'search_tasks_enhanced':
         console.warn(`Operation '${action}' is not fully implemented yet.`);
         return new Response(JSON.stringify({
             message: `Operation '${action}' not implemented.`
