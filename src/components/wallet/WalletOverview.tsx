@@ -18,56 +18,33 @@ import { userService } from "@/services/userService";
 import { useAuth } from "@/contexts/AuthContext";
 import { paystackService } from "@/services/paystackService";
 
-export const WalletOverview = () => {
+interface WalletOverviewProps {
+  userPoints: number;
+  totalEarned: number;
+  pendingWithdrawals: number;
+  completedWithdrawals: number;
+}
+
+export const WalletOverview: React.FC<WalletOverviewProps> = ({
+  userPoints,
+  totalEarned,
+  pendingWithdrawals,
+  completedWithdrawals
+}) => {
   const { user } = useAuth();
-  const [userStats, setUserStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
-  useEffect(() => {
-    loadUserStats();
-  }, []);
-
-  const loadUserStats = async () => {
-    try {
-      setLoading(true);
-      const stats = await userService.getUserStats();
-      setUserStats(stats);
-    } catch (error) {
-      console.error('Error loading user stats:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadUserStats();
-    setRefreshing(false);
+    // Refresh will be handled by parent component
+    setTimeout(() => setRefreshing(false), 1000);
   };
 
   const handleWithdrawalSubmitted = () => {
-    loadUserStats();
+    // This will be handled by parent component via callback
+    window.location.reload();
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-4">
-                <div className="h-8 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const userPoints = userStats?.points || 0;
   const nairaEquivalent = Math.floor(userPoints / 10); // 10 points = ₦1
 
   return (
