@@ -96,6 +96,78 @@ export type Database = {
         }
         Relationships: []
       }
+      crypto_addresses: {
+        Row: {
+          created_at: string
+          crypto_type: string
+          id: string
+          is_verified: boolean | null
+          network: string | null
+          updated_at: string
+          user_id: string
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          crypto_type: string
+          id?: string
+          is_verified?: boolean | null
+          network?: string | null
+          updated_at?: string
+          user_id: string
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          crypto_type?: string
+          id?: string
+          is_verified?: boolean | null
+          network?: string | null
+          updated_at?: string
+          user_id?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
+      gift_cards: {
+        Row: {
+          created_at: string
+          denomination: number
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          points_required: number
+          provider: string
+          stock_quantity: number | null
+          terms_conditions: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          denomination: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          points_required: number
+          provider: string
+          stock_quantity?: number | null
+          terms_conditions?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          denomination?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          points_required?: number
+          provider?: string
+          stock_quantity?: number | null
+          terms_conditions?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       point_transactions: {
         Row: {
           created_at: string
@@ -488,11 +560,15 @@ export type Database = {
         Row: {
           admin_notes: string | null
           amount: number
+          conversion_amount: number | null
           created_at: string
+          exchange_rate: number | null
+          gift_card_type: string | null
           id: string
           payout_details: Json
           payout_method: string
           processed_at: string | null
+          recipient_address: string | null
           requested_at: string
           status: string
           updated_at: string
@@ -501,11 +577,15 @@ export type Database = {
         Insert: {
           admin_notes?: string | null
           amount: number
+          conversion_amount?: number | null
           created_at?: string
+          exchange_rate?: number | null
+          gift_card_type?: string | null
           id?: string
           payout_details: Json
           payout_method: string
           processed_at?: string | null
+          recipient_address?: string | null
           requested_at?: string
           status?: string
           updated_at?: string
@@ -514,11 +594,15 @@ export type Database = {
         Update: {
           admin_notes?: string | null
           amount?: number
+          conversion_amount?: number | null
           created_at?: string
+          exchange_rate?: number | null
+          gift_card_type?: string | null
           id?: string
           payout_details?: Json
           payout_method?: string
           processed_at?: string | null
+          recipient_address?: string | null
           requested_at?: string
           status?: string
           updated_at?: string
@@ -553,6 +637,74 @@ export type Database = {
           minimum_withdrawal_points?: number
           processing_fee_percentage?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      yield_wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          reference_id: string | null
+          transaction_type: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          transaction_type: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          transaction_type?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yield_wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "yield_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      yield_wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          total_earned: number
+          total_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_earned?: number
+          total_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_earned?: number
+          total_spent?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

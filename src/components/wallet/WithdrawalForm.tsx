@@ -6,10 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertTriangle, CreditCard, Banknote } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertTriangle, CreditCard, Banknote, Bitcoin, Gift, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { CryptoPayment } from "./payment-methods/CryptoPayment";
+import { GiftCardPayment } from "./payment-methods/GiftCardPayment";
+import { YieldWalletPayment } from "./payment-methods/YieldWalletPayment";
 
 interface WithdrawalFormProps {
   userPoints: number;
@@ -51,33 +55,93 @@ const formatNaira = (amount: number): string => {
 export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: WithdrawalFormProps) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("bank_transfer");
   const [amount, setAmount] = useState("");
-  const [payoutMethod, setPayoutMethod] = useState("");
-  const [payoutDetails, setPayoutDetails] = useState({
-    accountNumber: "",
-    bankCode: "",
-    accountName: "",
-    notes: ""
-  });
+  const [payoutDetails, setPayoutDetails] = useState<any>({});
 
   const minWithdrawal = 1000;
   const processingFee = 5; // 5%
   const maxWithdrawal = Math.min(userPoints, 10000);
   
-  const withdrawalAmount = parseInt(amount) || 0;
-  const feeAmount = Math.round(withdrawalAmount * (processingFee / 100));
+  const withdrawalAmount = parseInt(amount) || payoutDetails.amount || 0;
+  const feeAmount = paymentMethod === 'yield_wallet' ? 0 : Math.round(withdrawalAmount * (processingFee / 100));
   const netAmount = withdrawalAmount - feeAmount;
-  const nairaValue = (netAmount / 10).toFixed(0); // 10 points = ₦1
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !payoutMethod || withdrawalAmount < minWithdrawal) return;
+    if (!user || !paymentMethod) return;
+
+    // Validation based on payment method
+    if (paymentMethod === 'gift_card') {
+      if (!payoutDetails.giftCardId) {
+        toast.error("Please select a gift card");
+        return;
+      }
+    } else if (paymentMethod === 'yield_wallet') {
+      if (withdrawalAmount < 100) {
+        toast.error("Minimum transfer to yield wallet is 100 points");
+        return;
+      }
+    } else if (withdrawalAmount < minWithdrawal) {
+      toast.error(`Minimum withdrawal is ${minWithdrawal.toLocaleString()} points`);
+      return;
+    }
 
     setLoading(true);
     try {
-      let details = {};
-      
-      if (payoutMethod === 'bank_transfer') {
+      let details = payoutDetails;
+      let finalAmount = withdrawalAmount;
+
+      // Handle yield wallet transfers differently
+      if (paymentMethod === 'yield_wallet') {
+        // Create/update yield wallet
+        const { data: wallet, error: walletError } = await supabase
+          .from('yield_wallets')
+          .upsert({
+            user_id: user.id,
+            balance: 0,
+            total_earned: 0,
+            total_spent: 0
+          }, { onConflict: 'user_id' })
+          .select()
+          .single();
+
+        if (walletError) throw walletError;
+
+        // Update wallet balance
+        const { error: updateError } = await supabase
+          .from('yield_wallets')
+          .update({ 
+            balance: (wallet.balance || 0) + withdrawalAmount,
+            total_earned: (wallet.total_earned || 0) + withdrawalAmount
+          })
+          .eq('id', wallet.id);
+
+        if (updateError) throw updateError;
+
+        // Record transaction
+        await supabase
+          .from('yield_wallet_transactions')
+          .insert({
+            wallet_id: wallet.id,
+            transaction_type: 'deposit',
+            amount: withdrawalAmount,
+            description: 'Transfer from main balance'
+          });
+
+        // Update user points
+        await supabase
+          .from('profiles')
+          .update({ points: userPoints - withdrawalAmount })
+          .eq('id', user.id);
+
+        toast.success("Points transferred to yield wallet successfully!");
+        onWithdrawalSubmitted();
+        return;
+      }
+
+      // For other payment methods, create withdrawal request
+      if (paymentMethod === 'bank_transfer') {
         const selectedBank = nigerianBanks.find(bank => bank.code === payoutDetails.bankCode);
         details = { 
           accountNumber: payoutDetails.accountNumber,
@@ -86,25 +150,32 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
           accountName: payoutDetails.accountName,
           notes: payoutDetails.notes
         };
+      } else if (paymentMethod === 'gift_card') {
+        finalAmount = payoutDetails.amount; // Use the gift card points requirement
+        details = {
+          giftCardId: payoutDetails.giftCardId,
+          giftCardProvider: payoutDetails.giftCardProvider,
+          giftCardDenomination: payoutDetails.giftCardDenomination
+        };
       }
 
       const { error } = await supabase
         .from('withdrawal_requests')
         .insert({
           user_id: user.id,
-          amount: withdrawalAmount,
-          payout_method: payoutMethod,
-          payout_details: details
+          amount: finalAmount,
+          payout_method: paymentMethod,
+          payout_details: details,
+          recipient_address: payoutDetails.walletAddress,
+          exchange_rate: paymentMethod === 'crypto' ? 1 : null,
+          gift_card_type: paymentMethod === 'gift_card' ? payoutDetails.giftCardProvider : null
         });
 
       if (error) throw error;
 
       toast.success("Withdrawal request submitted successfully!");
       setAmount("");
-      setPayoutMethod("");
-      setPayoutDetails({
-        accountNumber: "", bankCode: "", accountName: "", notes: ""
-      });
+      setPayoutDetails({});
       onWithdrawalSubmitted();
       
     } catch (error) {
@@ -115,10 +186,18 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
     }
   };
 
-  const isValidAmount = withdrawalAmount >= minWithdrawal && withdrawalAmount <= maxWithdrawal;
-  const isValidDetails = () => {
-    if (payoutMethod === 'bank_transfer') {
-      return payoutDetails.accountNumber && payoutDetails.bankCode && payoutDetails.accountName;
+  const isValidRequest = () => {
+    if (paymentMethod === 'gift_card') {
+      return payoutDetails.giftCardId && userPoints >= (payoutDetails.amount || 0);
+    }
+    if (paymentMethod === 'yield_wallet') {
+      return withdrawalAmount >= 100 && withdrawalAmount <= userPoints;
+    }
+    if (paymentMethod === 'crypto') {
+      return payoutDetails.cryptoType && payoutDetails.walletAddress && withdrawalAmount >= minWithdrawal;
+    }
+    if (paymentMethod === 'bank_transfer') {
+      return payoutDetails.accountNumber && payoutDetails.bankCode && payoutDetails.accountName && withdrawalAmount >= minWithdrawal;
     }
     return false;
   };
@@ -128,143 +207,177 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Banknote className="h-5 w-5" />
-          Request Withdrawal (Nigerian Naira)
+          Withdraw or Transfer Points
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Amount Input */}
-          <div className="space-y-2">
-            <Label htmlFor="amount">Withdrawal Amount (Points)</Label>
-            <Input
-              id="amount"
-              type="number"
-              placeholder={`Min: ${minWithdrawal.toLocaleString()}`}
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              min={minWithdrawal}
-              max={maxWithdrawal}
-            />
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Available: {userPoints.toLocaleString()} points</span>
-              <span>Max: {maxWithdrawal.toLocaleString()} points</span>
-            </div>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Tabs value={paymentMethod} onValueChange={setPaymentMethod}>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="bank_transfer" className="flex items-center gap-1">
+                <CreditCard className="h-4 w-4" />
+                Bank
+              </TabsTrigger>
+              <TabsTrigger value="crypto" className="flex items-center gap-1">
+                <Bitcoin className="h-4 w-4" />
+                Crypto
+              </TabsTrigger>
+              <TabsTrigger value="gift_card" className="flex items-center gap-1">
+                <Gift className="h-4 w-4" />
+                Gift Cards
+              </TabsTrigger>
+              <TabsTrigger value="yield_wallet" className="flex items-center gap-1">
+                <Wallet className="h-4 w-4" />
+                Yield Wallet
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Amount Breakdown */}
-          {withdrawalAmount > 0 && (
+            <TabsContent value="bank_transfer" className="space-y-4">
+              {/* Amount Input for bank transfer */}
+              <div className="space-y-2">
+                <Label htmlFor="amount">Withdrawal Amount (Points)</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder={`Min: ${minWithdrawal.toLocaleString()}`}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  min={minWithdrawal}
+                  max={maxWithdrawal}
+                />
+              </div>
+
+              {/* Bank Details */}
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="bank">Bank</Label>
+                  <Select value={payoutDetails.bankCode} onValueChange={(value) => setPayoutDetails({...payoutDetails, bankCode: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your bank" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {nigerianBanks.map((bank) => (
+                        <SelectItem key={bank.code} value={bank.code}>
+                          {bank.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="accountNumber">Account Number</Label>
+                  <Input
+                    id="accountNumber"
+                    placeholder="Enter 10-digit account number"
+                    value={payoutDetails.accountNumber || ''}
+                    onChange={(e) => setPayoutDetails({...payoutDetails, accountNumber: e.target.value})}
+                    maxLength={10}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="accountName">Account Name</Label>
+                  <Input
+                    id="accountName"
+                    placeholder="Account holder name as per bank records"
+                    value={payoutDetails.accountName || ''}
+                    onChange={(e) => setPayoutDetails({...payoutDetails, accountName: e.target.value})}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="crypto">
+              <CryptoPayment 
+                onDetailsChange={setPayoutDetails} 
+                details={payoutDetails}
+              />
+              {payoutDetails.cryptoType && (
+                <div className="space-y-2">
+                  <Label htmlFor="crypto-amount">Withdrawal Amount (Points)</Label>
+                  <Input
+                    id="crypto-amount"
+                    type="number"
+                    placeholder={`Min: ${minWithdrawal.toLocaleString()}`}
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    min={minWithdrawal}
+                    max={maxWithdrawal}
+                  />
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="gift_card">
+              <GiftCardPayment 
+                onDetailsChange={setPayoutDetails} 
+                details={payoutDetails}
+                userPoints={userPoints}
+              />
+            </TabsContent>
+
+            <TabsContent value="yield_wallet">
+              <YieldWalletPayment 
+                onDetailsChange={(details) => setPayoutDetails({...details, userPoints})} 
+                details={payoutDetails}
+              />
+            </TabsContent>
+          </Tabs>
+
+          {/* Amount Breakdown for non-gift card methods */}
+          {withdrawalAmount > 0 && paymentMethod !== 'gift_card' && (
             <div className="p-3 bg-muted rounded-lg space-y-1">
               <div className="flex justify-between text-sm">
-                <span>Withdrawal Amount:</span>
+                <span>{paymentMethod === 'yield_wallet' ? 'Transfer Amount:' : 'Withdrawal Amount:'}</span>
                 <span>{withdrawalAmount.toLocaleString()} points</span>
               </div>
-              <div className="flex justify-between text-sm text-orange-600">
-                <span>Processing Fee ({processingFee}%):</span>
-                <span>-{feeAmount.toLocaleString()} points</span>
-              </div>
+              {paymentMethod !== 'yield_wallet' && (
+                <div className="flex justify-between text-sm text-orange-600">
+                  <span>Processing Fee ({processingFee}%):</span>
+                  <span>-{feeAmount.toLocaleString()} points</span>
+                </div>
+              )}
               <div className="flex justify-between font-medium border-t pt-1">
-                <span>Net Amount:</span>
-                <span>{netAmount.toLocaleString()} points ≈ {formatNaira(parseInt(nairaValue))}</span>
+                <span>{paymentMethod === 'yield_wallet' ? 'You will receive:' : 'Net Amount:'}</span>
+                <span>
+                  {netAmount.toLocaleString()} points
+                  {paymentMethod === 'bank_transfer' && ` ≈ ${formatNaira(netAmount / 10)}`}
+                </span>
               </div>
             </div>
           )}
 
-          {/* Payout Method */}
-          <div className="space-y-2">
-            <Label>Payout Method</Label>
-            <Select value={payoutMethod} onValueChange={setPayoutMethod}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select payout method" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="bank_transfer">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4" />
-                    Nigerian Bank Transfer
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Bank Details */}
-          {payoutMethod === 'bank_transfer' && (
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="bank">Bank</Label>
-                <Select value={payoutDetails.bankCode} onValueChange={(value) => setPayoutDetails({...payoutDetails, bankCode: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your bank" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {nigerianBanks.map((bank) => (
-                      <SelectItem key={bank.code} value={bank.code}>
-                        {bank.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="accountNumber">Account Number</Label>
-                <Input
-                  id="accountNumber"
-                  placeholder="Enter 10-digit account number"
-                  value={payoutDetails.accountNumber}
-                  onChange={(e) => setPayoutDetails({...payoutDetails, accountNumber: e.target.value})}
-                  maxLength={10}
-                />
-              </div>
-              <div>
-                <Label htmlFor="accountName">Account Name</Label>
-                <Input
-                  id="accountName"
-                  placeholder="Account holder name as per bank records"
-                  value={payoutDetails.accountName}
-                  onChange={(e) => setPayoutDetails({...payoutDetails, accountName: e.target.value})}
-                />
-              </div>
-            </div>
-          )}
-
-          {payoutMethod && (
+          {/* Notes for all methods except gift cards */}
+          {paymentMethod !== 'gift_card' && (
             <div className="space-y-2">
               <Label htmlFor="notes">Additional Notes (Optional)</Label>
               <Textarea
                 id="notes"
                 placeholder="Any additional information..."
-                value={payoutDetails.notes}
+                value={payoutDetails.notes || ''}
                 onChange={(e) => setPayoutDetails({...payoutDetails, notes: e.target.value})}
               />
             </div>
           )}
 
-          {/* Warning */}
-          {withdrawalAmount > 0 && !isValidAmount && (
+          {/* Validation Warning */}
+          {withdrawalAmount > 0 && !isValidRequest() && (
             <div className="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
               <AlertTriangle className="h-4 w-4 text-orange-600" />
               <span className="text-sm text-orange-800">
-                {withdrawalAmount < minWithdrawal 
-                  ? `Minimum withdrawal is ${minWithdrawal.toLocaleString()} points`
-                  : `Maximum withdrawal is ${maxWithdrawal.toLocaleString()} points`
-                }
+                Please complete all required fields
               </span>
             </div>
           )}
 
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800">
-              <strong>Note:</strong> Withdrawals are processed to Nigerian bank accounts only. 
-              Exchange rate: 10 points = ₦1. Processing typically takes 1-3 business days.
-            </p>
-          </div>
-
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={loading || !isValidAmount || !isValidDetails()}
+            disabled={loading || !isValidRequest()}
           >
-            {loading ? "Submitting..." : "Submit Withdrawal Request"}
+            {loading ? "Processing..." : 
+             paymentMethod === 'yield_wallet' ? "Transfer to Yield Wallet" : 
+             paymentMethod === 'gift_card' ? "Redeem Gift Card" : 
+             "Submit Withdrawal Request"}
           </Button>
         </form>
       </CardContent>
