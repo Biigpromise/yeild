@@ -18,6 +18,9 @@ export const AdminAccessHelper: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const [checkAttempts, setCheckAttempts] = useState(0);
 
+  // Replace this with your actual email address
+  const AUTHORIZED_ADMIN_EMAIL = "your-email@example.com";
+
   useEffect(() => {
     checkAdminAccess();
   }, [user]);
@@ -80,6 +83,8 @@ export const AdminAccessHelper: React.FC = () => {
     window.location.href = '/admin';
   };
 
+  const isAuthorizedUser = user?.email === AUTHORIZED_ADMIN_EMAIL;
+
   if (!user) {
     return (
       <Card className="max-w-md mx-auto">
@@ -96,6 +101,30 @@ export const AdminAccessHelper: React.FC = () => {
           <Alert>
             <AlertDescription>
               Please log in first, then return to this page to set up admin access.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // If user is not authorized, show access denied message
+  if (!isAuthorizedUser) {
+    return (
+      <Card className="max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Access Restricted
+          </CardTitle>
+          <CardDescription>
+            Admin setup is not available for your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert>
+            <AlertDescription>
+              You don't have permission to access admin setup functionality.
             </AlertDescription>
           </Alert>
         </CardContent>
