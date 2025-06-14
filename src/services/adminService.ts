@@ -32,32 +32,26 @@ export const adminService = {
 
       if (profilesError) throw profilesError;
 
-      // Try to get user roles separately to handle missing table gracefully
-      let userRolesMap: Record<string, Array<{ role: string }>> = {};
-      
-      try {
-        const { data: userRoles, error: rolesError } = await supabase
-          .from('user_roles')
-          .select('user_id, role');
+      // Get user roles
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
 
-        if (!rolesError && userRoles) {
-          // Group roles by user_id
-          userRolesMap = userRoles.reduce((acc, roleRecord) => {
-            if (!acc[roleRecord.user_id]) {
-              acc[roleRecord.user_id] = [];
-            }
-            acc[roleRecord.user_id].push({ role: roleRecord.role });
-            return acc;
-          }, {} as Record<string, Array<{ role: string }>>);
-        }
-      } catch (rolesError) {
-        console.log('User roles table not found, continuing without roles');
+      // Group roles by user_id
+      const userRolesMap: Record<string, Array<{ role: string }>> = {};
+      if (!rolesError && userRoles) {
+        userRoles.forEach(roleRecord => {
+          if (!userRolesMap[roleRecord.user_id]) {
+            userRolesMap[roleRecord.user_id] = [];
+          }
+          userRolesMap[roleRecord.user_id].push({ role: roleRecord.role });
+        });
       }
 
       // Combine profiles with roles
       const usersWithRoles = (profiles || []).map(profile => ({
         ...profile,
-        user_roles: userRolesMap[profile.id] || []
+        user_roles: userRolesMap[profile.id] || [{ role: 'user' }]
       }));
 
       return usersWithRoles;
@@ -102,6 +96,9 @@ export const adminService = {
   // Assign role to user
   async assignUserRole(userId: string, role: string): Promise<boolean> {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
       // First remove any existing roles for this user
       await supabase
         .from('user_roles')
@@ -113,7 +110,8 @@ export const adminService = {
         .from('user_roles')
         .insert({
           user_id: userId,
-          role: role
+          role: role,
+          assigned_by: user.id
         });
 
       if (error) throw error;

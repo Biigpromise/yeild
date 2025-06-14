@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { adminService, AdminUser } from "@/services/adminService";
+import { roleService } from "@/services/roleService";
 import { toast } from "sonner";
 import { Shield, User, Crown } from "lucide-react";
 
@@ -35,7 +36,23 @@ export const AdminUserManagement = () => {
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
-      await adminService.assignUserRole(userId, newRole);
+      const user = users.find(u => u.id === userId);
+      const currentRole = getUserRole(user);
+      
+      if (currentRole === newRole) {
+        toast.info("User already has this role");
+        return;
+      }
+
+      // Remove old role and assign new role
+      if (currentRole !== 'user') {
+        await roleService.removeRole(userId, currentRole);
+      }
+      
+      if (newRole !== 'user') {
+        await roleService.assignRole(userId, newRole);
+      }
+      
       toast.success(`User role updated to ${newRole}`);
       loadUsers(); // Reload to get updated data
     } catch (error) {
@@ -74,8 +91,9 @@ export const AdminUserManagement = () => {
     );
   };
 
-  const getUserRole = (user: AdminUser) => {
-    return user.user_roles?.[0]?.role || 'user';
+  const getUserRole = (user?: AdminUser) => {
+    if (!user?.user_roles || user.user_roles.length === 0) return 'user';
+    return user.user_roles[0].role;
   };
 
   const getRoleIcon = (role: string) => {
@@ -92,11 +110,11 @@ export const AdminUserManagement = () => {
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'admin':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
       case 'moderator':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
   };
 
@@ -209,7 +227,7 @@ export const AdminUserManagement = () => {
                           value={getUserRole(user)} 
                           onValueChange={(value) => handleRoleChange(user.id, value)}
                         >
-                          <SelectTrigger className="w-24">
+                          <SelectTrigger className="w-32">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
