@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -242,7 +241,7 @@ export const enhancedTaskManagementService = {
     }
   },
 
-  // Get pending submissions with fallback
+  // Get pending submissions with proper error handling
   async getPendingSubmissions(filters?: {
     category?: string;
     priority?: 'high' | 'medium' | 'low';
@@ -253,30 +252,53 @@ export const enhancedTaskManagementService = {
       const { data, error } = await supabase
         .from('task_submissions')
         .select(`
-          *,
-          tasks(id, title, points, category, difficulty),
-          profiles(id, name, email)
+          id,
+          task_id,
+          user_id,
+          evidence,
+          status,
+          submitted_at,
+          reviewed_at,
+          admin_notes,
+          calculated_points,
+          tasks!inner(
+            id,
+            title,
+            points,
+            category,
+            difficulty
+          ),
+          profiles!inner(
+            id,
+            name,
+            email
+          )
         `)
         .eq('status', 'pending')
         .order('submitted_at', { ascending: false })
         .limit(filters?.limit || 50);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase query error:', error);
+        return [];
+      }
       
-      // Transform the data to match our interface
-      const transformedData: TaskSubmissionWithDetails[] = (data || []).map(submission => ({
-        id: submission.id,
-        task_id: submission.task_id,
-        user_id: submission.user_id,
-        evidence: submission.evidence,
-        status: submission.status,
-        submitted_at: submission.submitted_at,
-        reviewed_at: submission.reviewed_at,
-        admin_notes: submission.admin_notes,
-        calculated_points: submission.calculated_points,
-        tasks: submission.tasks,
-        profiles: submission.profiles
-      }));
+      // Transform and validate the data
+      const transformedData: TaskSubmissionWithDetails[] = (data || [])
+        .filter(submission => submission.tasks && submission.profiles) // Filter out invalid joins
+        .map(submission => ({
+          id: submission.id,
+          task_id: submission.task_id,
+          user_id: submission.user_id,
+          evidence: submission.evidence,
+          status: submission.status,
+          submitted_at: submission.submitted_at,
+          reviewed_at: submission.reviewed_at,
+          admin_notes: submission.admin_notes,
+          calculated_points: submission.calculated_points,
+          tasks: submission.tasks,
+          profiles: submission.profiles
+        }));
 
       return transformedData;
     } catch (error) {
