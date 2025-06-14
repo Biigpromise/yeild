@@ -69,6 +69,13 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
+  // Mock notifications data - in a real app this would come from an API
+  const notifications = [
+    { id: 1, title: "Task completed", message: "You earned 50 points!", read: false },
+    { id: 2, title: "New achievement", message: "Congratulations on your streak!", read: true },
+    { id: 3, title: "Withdrawal processed", message: "Your payout has been sent", read: false }
+  ];
+
   // Task filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -374,7 +381,7 @@ const Dashboard = () => {
             <div className="space-y-6">
               <WalletOverview 
                 userPoints={userStats.points}
-                totalPointsEarned={totalPointsEarned}
+                totalEarned={totalPointsEarned}
                 pendingWithdrawals={withdrawalStats.pendingWithdrawals}
                 completedWithdrawals={withdrawalStats.completedWithdrawals}
               />
