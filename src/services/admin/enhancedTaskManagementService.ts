@@ -310,19 +310,25 @@ export const enhancedTaskManagementService = {
                  !('error' in submission.tasks) &&
                  !('error' in submission.profiles);
         })
-        .map(submission => ({
-          id: submission.id,
-          task_id: submission.task_id,
-          user_id: submission.user_id,
-          evidence: submission.evidence,
-          status: submission.status,
-          submitted_at: submission.submitted_at,
-          reviewed_at: submission.reviewed_at,
-          admin_notes: submission.admin_notes,
-          calculated_points: submission.calculated_points,
-          tasks: Array.isArray(submission.tasks) ? submission.tasks[0] : submission.tasks,
-          profiles: Array.isArray(submission.profiles) ? submission.profiles[0] : submission.profiles
-        }));
+        .map(submission => {
+          // Handle array vs object response from Supabase joins
+          const taskData = Array.isArray(submission.tasks) ? submission.tasks[0] : submission.tasks;
+          const profileData = Array.isArray(submission.profiles) ? submission.profiles[0] : submission.profiles;
+          
+          return {
+            id: submission.id,
+            task_id: submission.task_id,
+            user_id: submission.user_id,
+            evidence: submission.evidence,
+            status: submission.status,
+            submitted_at: submission.submitted_at,
+            reviewed_at: submission.reviewed_at,
+            admin_notes: submission.admin_notes,
+            calculated_points: submission.calculated_points,
+            tasks: taskData,
+            profiles: profileData
+          };
+        });
 
       return transformedData;
     } catch (error) {
