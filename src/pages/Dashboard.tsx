@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TaskCategories from "@/components/TaskCategories";
@@ -20,6 +21,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
 import { taskService } from "@/services/taskService";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +61,7 @@ const Dashboard = () => {
   const [userTasks, setUserTasks] = useState<any[]>([]);
   const [userSubmissions, setUserSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const [notifications] = useState([
     { id: 1, message: "New task available: Complete Survey", read: false },
@@ -178,14 +185,21 @@ const Dashboard = () => {
             </div>
             <div className="flex items-center gap-2">
               {/* Notifications */}
-              <Button variant="outline" size="sm" className="relative">
-                <Bell className="h-4 w-4" />
-                {unreadCount > 0 && (
-                  <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs">
-                    {unreadCount}
-                  </Badge>
-                )}
-              </Button>
+              <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="relative">
+                    <Bell className="h-4 w-4" />
+                    {unreadCount > 0 && (
+                      <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs">
+                        {unreadCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-96 p-0" align="end">
+                  <NotificationCenter />
+                </PopoverContent>
+              </Popover>
 
               {/* Browse Tasks Button */}
               <Button size="sm" onClick={() => navigate('/tasks')}>
