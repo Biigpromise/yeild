@@ -143,6 +143,23 @@ Deno.serve(async (req) => {
       case 'moderate_content':
         return await moderateContent(supabase, data, user.id);
       
+      case 'search_users_enhanced':
+        return await searchUsersEnhanced(supabase, data);
+      case 'suspend_user_enhanced':
+        return await suspendUserEnhanced(supabase, data, user.id);
+      case 'ban_user':
+        return await banUser(supabase, data, user.id);
+      case 'unsuspend_user':
+        return await unsuspendUser(supabase, data, user.id);
+      case 'bulk_user_operation_enhanced':
+        return await bulkUserOperationEnhanced(supabase, data, user.id);
+      case 'get_user_activity_details':
+        return await getUserActivityDetails(supabase, data);
+      case 'get_user_activity_timeline':
+        return await getUserActivityTimeline(supabase, data);
+      case 'get_user_suspension_history':
+        return await getUserSuspensionHistory(supabase, data);
+      
       default:
         return new Response(JSON.stringify({ error: 'Invalid operation' }), {
           status: 400,
@@ -627,6 +644,185 @@ async function getContentModerationQueue(supabase: any) {
 async function moderateContent(supabase: any, data: any, adminId: string) {
   console.log('Content moderated:', data);
   return new Response(JSON.stringify({ success: true }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function searchUsersEnhanced(supabase: any, data: any) {
+  // Mock enhanced search data with more realistic user profiles
+  const mockUsers = [
+    {
+      userId: '1',
+      userName: 'John Doe',
+      email: 'john@example.com',
+      lastActive: '2025-06-14T10:30:00Z',
+      tasksCompleted: 15,
+      pointsEarned: 750,
+      streakDays: 5,
+      accountStatus: 'active',
+      joinDate: '2025-01-15T00:00:00Z',
+      totalLogins: 47,
+      lastLogin: '2025-06-14T10:30:00Z'
+    },
+    {
+      userId: '2',
+      userName: 'Jane Smith',
+      email: 'jane@example.com',
+      lastActive: '2025-06-13T14:15:00Z',
+      tasksCompleted: 23,
+      pointsEarned: 1150,
+      streakDays: 8,
+      accountStatus: 'suspended',
+      suspensionReason: 'Violation of community guidelines',
+      suspendedUntil: '2025-06-20T00:00:00Z',
+      joinDate: '2025-02-10T00:00:00Z',
+      totalLogins: 62,
+      lastLogin: '2025-06-13T14:15:00Z'
+    },
+    {
+      userId: '3',
+      userName: 'Robert Wilson',
+      email: 'robert@example.com',
+      lastActive: '2025-06-10T09:45:00Z',
+      tasksCompleted: 8,
+      pointsEarned: 400,
+      streakDays: 2,
+      accountStatus: 'banned',
+      suspensionReason: 'Repeated violations and spam',
+      joinDate: '2025-03-05T00:00:00Z',
+      totalLogins: 28,
+      lastLogin: '2025-06-10T09:45:00Z'
+    }
+  ];
+  
+  // Apply filters (simplified for demo)
+  let filteredUsers = mockUsers;
+  
+  if (data.searchTerm) {
+    filteredUsers = filteredUsers.filter(user => 
+      user.userName.toLowerCase().includes(data.searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(data.searchTerm.toLowerCase())
+    );
+  }
+  
+  if (data.status && data.status !== 'all') {
+    filteredUsers = filteredUsers.filter(user => user.accountStatus === data.status);
+  }
+  
+  return new Response(JSON.stringify(filteredUsers), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function suspendUserEnhanced(supabase: any, data: any, adminId: string) {
+  console.log('Enhanced user suspension:', data);
+  // In real implementation, would update user status and log suspension
+  return new Response(JSON.stringify({ 
+    success: true,
+    suspendedUntil: data.suspendedUntil,
+    reason: data.reason
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function banUser(supabase: any, data: any, adminId: string) {
+  console.log('User ban:', data);
+  // In real implementation, would permanently ban user
+  return new Response(JSON.stringify({ 
+    success: true,
+    bannedAt: data.bannedAt,
+    reason: data.reason
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function unsuspendUser(supabase: any, data: any, adminId: string) {
+  console.log('User unsuspension:', data);
+  // In real implementation, would remove suspension/ban
+  return new Response(JSON.stringify({ 
+    success: true,
+    unsuspendedAt: data.unsuspendedAt
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function bulkUserOperationEnhanced(supabase: any, data: any, adminId: string) {
+  console.log('Enhanced bulk user operation:', data);
+  // In real implementation, would process bulk operations with proper logging
+  return new Response(JSON.stringify({ 
+    success: true,
+    affectedUsers: data.userIds.length,
+    operation: data.operation
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function getUserActivityDetails(supabase: any, data: any) {
+  // Mock detailed user activity
+  const mockActivity = {
+    userId: data.userId,
+    userName: 'John Doe',
+    email: 'john@example.com',
+    lastActive: '2025-06-14T10:30:00Z',
+    tasksCompleted: 15,
+    pointsEarned: 750,
+    streakDays: 5,
+    accountStatus: 'active',
+    joinDate: '2025-01-15T00:00:00Z',
+    totalLogins: 47,
+    lastLogin: '2025-06-14T10:30:00Z',
+    averageSessionLength: '24 minutes',
+    preferredTaskTypes: ['Social Media', 'Survey'],
+    completionRate: 87.5
+  };
+  
+  return new Response(JSON.stringify(mockActivity), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function getUserActivityTimeline(supabase: any, data: any) {
+  // Mock activity timeline
+  const mockTimeline = [
+    {
+      id: '1',
+      timestamp: '2025-06-14T10:30:00Z',
+      action: 'Task Completed',
+      details: 'Completed Instagram Follow task',
+      points: 50
+    },
+    {
+      id: '2',
+      timestamp: '2025-06-14T09:15:00Z',
+      action: 'Login',
+      details: 'User logged in from mobile app',
+      points: 0
+    }
+  ];
+  
+  return new Response(JSON.stringify(mockTimeline), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+async function getUserSuspensionHistory(supabase: any, data: any) {
+  // Mock suspension history
+  const mockHistory = [
+    {
+      id: '1',
+      suspendedAt: '2025-05-15T00:00:00Z',
+      suspendedUntil: '2025-05-20T00:00:00Z',
+      reason: 'Minor guideline violation',
+      suspendedBy: 'admin-1',
+      unsuspendedAt: '2025-05-20T00:00:00Z'
+    }
+  ];
+  
+  return new Response(JSON.stringify(mockHistory), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   });
 }

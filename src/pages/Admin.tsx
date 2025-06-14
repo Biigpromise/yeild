@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { AdminOverview } from "@/components/admin/AdminOverview";
-import { EnhancedUserManagement } from "@/components/admin/enhanced/EnhancedUserManagement";
+import { EnhancedUserManagementSystem } from "@/components/admin/enhanced/EnhancedUserManagementSystem";
 import { EnhancedTaskManagement } from "@/components/admin/enhanced/EnhancedTaskManagement";
 import { AdminWallet } from "@/components/admin/AdminWallet";
 import { AdminFinancialManagement } from "@/components/admin/AdminFinancialManagement";
@@ -55,10 +54,10 @@ const Admin = () => {
     };
   }, []);
 
-  // Map of sections to their component - Updated to include all new components
+  // Map of sections to their component - Updated to use enhanced user management
   const sectionComponents = {
     dashboard: <AdminOverview />,
-    users: <EnhancedUserManagement />,
+    users: <EnhancedUserManagementSystem />,
     tasks: <EnhancedTaskManagement />,
     wallet: <AdminWallet />,
     referrals: <AdminReferrals />,
