@@ -51,7 +51,9 @@ import {
   User,
   Wallet,
   ChevronDown,
-  Home
+  Home,
+  Calendar,
+  Clock
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -63,9 +65,9 @@ const Dashboard = () => {
     points: 0,
     level: 1,
     tasksCompleted: 0,
-    currentStreak: 5,
-    rank: 142,
-    referrals: 3
+    currentStreak: 0,
+    rank: 0,
+    referrals: 0
   });
   const [userTasks, setUserTasks] = useState<any[]>([]);
   const [userSubmissions, setUserSubmissions] = useState<any[]>([]);
@@ -77,12 +79,8 @@ const Dashboard = () => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
 
-  // Mock notifications data - in a real app this would come from an API
-  const notifications = [
-    { id: 1, title: "Task completed", message: "You earned 50 points!", read: false },
-    { id: 2, title: "New achievement", message: "Congratulations on your streak!", read: true },
-    { id: 3, title: "Withdrawal processed", message: "Your payout has been sent", read: false }
-  ];
+  // Real notifications from database - will be empty for new users
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   // Task filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -191,12 +189,12 @@ const Dashboard = () => {
     }
   };
 
-  // Calculate task counts
+  // Calculate task counts from real data
   const taskCounts = {
-    available: 45, // This would come from a real API call
+    available: 0, // Will be populated from real data
     in_progress: userSubmissions.filter(s => s.status === 'pending').length,
     completed: userTasks.length,
-    total: 50
+    total: 0
   };
 
   const totalPointsEarned = userTasks.reduce((sum, task) => sum + (task.points_earned || 0), 0);
@@ -288,7 +286,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Compact Quick Stats */}
+          {/* Real User Stats */}
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 sm:gap-2">
             <Card className="border-0 shadow-sm">
               <CardContent className="p-2 text-center">
@@ -316,7 +314,9 @@ const Dashboard = () => {
             </Card>
             <Card className="border-0 shadow-sm">
               <CardContent className="p-2 text-center">
-                <div className="text-sm sm:text-lg font-bold text-blue-600">#{userStats.rank}</div>
+                <div className="text-sm sm:text-lg font-bold text-blue-600">
+                  {userStats.rank > 0 ? `#${userStats.rank}` : '-'}
+                </div>
                 <div className="text-xs text-muted-foreground">Rank</div>
               </CardContent>
             </Card>
@@ -385,40 +385,55 @@ const Dashboard = () => {
                     <CardTitle className="text-base">Quick Actions</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2 pt-0">
-                    <Button size="sm" className="w-full justify-start">
-                      <Star className="h-4 w-4 mr-2" />
-                      Daily Check-in
+                    <Button size="sm" className="w-full justify-start" onClick={() => navigate('/tasks')}>
+                      <Target className="h-4 w-4 mr-2" />
+                      Browse Tasks
                     </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
+                    <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setActiveTab('rewards')}>
                       <Gift className="h-4 w-4 mr-2" />
-                      Claim Rewards
+                      View Rewards
                     </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <TrendingUp className="h-4 w-4 mr-2" />
-                      View Progress
+                    <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setActiveTab('wallet')}>
+                      <Wallet className="h-4 w-4 mr-2" />
+                      Wallet
                     </Button>
                   </CardContent>
                 </Card>
 
-                {/* Recent Activity */}
+                {/* Getting Started */}
                 <Card className="border-0 shadow-sm">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Recent Activity</CardTitle>
+                    <CardTitle className="text-base">Getting Started</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2 pt-0">
-                    {userTasks.slice(0, 3).map((task, index) => (
-                      <div key={task.id} className="text-sm">
-                        <div className="flex justify-between items-center">
-                          <span className="truncate">{task.tasks?.title || 'Task completed'}</span>
-                          <span className="text-muted-foreground">+{task.points_earned || 0} pts</span>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {task.completed_at ? new Date(task.completed_at).toLocaleDateString() : 'Recently'}
-                        </div>
+                  <CardContent className="space-y-3 pt-0">
+                    {userStats.tasksCompleted === 0 ? (
+                      <div className="text-center p-4">
+                        <Target className="h-12 w-12 mx-auto mb-3 text-blue-500" />
+                        <h4 className="font-medium mb-2">Ready to earn?</h4>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          Complete your first task to start earning points!
+                        </p>
+                        <Button size="sm" onClick={() => navigate('/tasks')} className="w-full">
+                          Get Started
+                        </Button>
                       </div>
-                    ))}
-                    {userTasks.length === 0 && (
-                      <p className="text-sm text-muted-foreground">No recent activity</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {userTasks.slice(0, 3).map((task, index) => (
+                          <div key={task.id} className="text-sm">
+                            <div className="flex justify-between items-center">
+                              <span className="truncate">{task.tasks?.title || 'Task completed'}</span>
+                              <span className="text-muted-foreground">+{task.points_earned || 0} pts</span>
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {task.completed_at ? new Date(task.completed_at).toLocaleDateString() : 'Recently'}
+                            </div>
+                          </div>
+                        ))}
+                        {userTasks.length === 0 && (
+                          <p className="text-sm text-muted-foreground">No recent activity</p>
+                        )}
+                      </div>
                     )}
                   </CardContent>
                 </Card>

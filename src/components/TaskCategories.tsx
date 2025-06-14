@@ -11,8 +11,11 @@ import {
   Smartphone,
   PenTool,
   Share2,
-  Search
+  Search,
+  Target,
+  Plus
 } from "lucide-react";
+import { Button } from "./ui/button";
 
 interface TaskCategoriesProps {
   categories?: TaskCategory[];
@@ -94,47 +97,59 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
     <>
       <div className="space-y-8">
         {/* Category Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {categories.map((category) => {
-            const IconComponent = iconMap[category.icon as keyof typeof iconMap] || FileText;
-            const categoryTasks = tasks.filter(task => task.category === category.name);
-            
-            return (
-              <Card 
-                key={category.id} 
-                className="cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => onCategorySelect?.(category.name)}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg bg-gray-100 ${category.color}`}>
-                      <IconComponent className="h-5 w-5" />
+        {categories.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {categories.map((category) => {
+              const IconComponent = iconMap[category.icon as keyof typeof iconMap] || FileText;
+              const categoryTasks = tasks.filter(task => task.category === category.name);
+              
+              return (
+                <Card 
+                  key={category.id} 
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => onCategorySelect?.(category.name)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg bg-gray-100 ${category.color}`}>
+                        <IconComponent className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <CardTitle className="text-sm font-medium">{category.name}</CardTitle>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <CardTitle className="text-sm font-medium">{category.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                      {category.description}
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <Badge variant="outline" className="text-xs">
+                        {categoryTasks.length} tasks
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {categoryTasks.length > 0 
+                          ? `~${Math.round(categoryTasks.reduce((sum, t) => sum + t.points, 0) / categoryTasks.length)} pts avg`
+                          : "No tasks"
+                        }
+                      </span>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                    {category.description}
-                  </p>
-                  <div className="flex justify-between items-center">
-                    <Badge variant="outline" className="text-xs">
-                      {categoryTasks.length} tasks
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {categoryTasks.length > 0 
-                        ? `~${Math.round(categoryTasks.reduce((sum, t) => sum + t.points, 0) / categoryTasks.length)} pts avg`
-                        : "No tasks"
-                      }
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Target className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
+              <h3 className="font-semibold mb-2">No categories available yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Task categories will appear here once they're created by administrators.
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Available Tasks */}
         <div>
@@ -148,8 +163,14 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
           {tasks.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
-                <p className="text-muted-foreground">No tasks available at the moment.</p>
-                <p className="text-sm text-muted-foreground mt-1">Check back soon for new opportunities!</p>
+                <Target className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
+                <h3 className="font-semibold mb-2">No tasks available</h3>
+                <p className="text-muted-foreground mb-4">
+                  Tasks will appear here once they're created by administrators.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Check back soon for new opportunities to earn points!
+                </p>
               </CardContent>
             </Card>
           ) : (

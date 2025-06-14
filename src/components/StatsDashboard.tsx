@@ -20,7 +20,6 @@ import {
 } from "recharts";
 import {
   TrendingUp,
-  TrendingDown,
   Target,
   Calendar,
   Clock,
@@ -60,7 +59,10 @@ export const StatsDashboard = ({ userStats: propUserStats }: StatsDashboardProps
 
   // Generate chart data from real transactions
   const pointsOverTime = React.useMemo(() => {
-    if (!pointTransactions.length) return [];
+    if (!pointTransactions.length) {
+      // Return empty data for new users
+      return [];
+    }
     
     const last6Months = [];
     const now = new Date();
@@ -81,31 +83,6 @@ export const StatsDashboard = ({ userStats: propUserStats }: StatsDashboardProps
     
     return last6Months;
   }, [pointTransactions]);
-
-  // Mock data for categories and weekly activity (you can implement real data later)
-  const tasksPerCategory = [
-    { category: "Social Media", completed: 12, total: 15 },
-    { category: "Survey", completed: 8, total: 10 },
-    { category: "Review", completed: 5, total: 8 },
-    { category: "Video", completed: 3, total: 5 },
-    { category: "Download", completed: 7, total: 9 },
-  ];
-
-  const weeklyActivity = [
-    { day: "Mon", tasks: 2 },
-    { day: "Tue", tasks: 1 },
-    { day: "Wed", tasks: 3 },
-    { day: "Thu", tasks: 2 },
-    { day: "Fri", tasks: 4 },
-    { day: "Sat", tasks: 1 },
-    { day: "Sun", tasks: 2 },
-  ];
-
-  const difficultyBreakdown = [
-    { name: "Easy", value: 45, color: "#22c55e" },
-    { name: "Medium", value: 35, color: "#f59e0b" },
-    { name: "Hard", value: 20, color: "#ef4444" },
-  ];
 
   if (loading) {
     return (
@@ -135,8 +112,6 @@ export const StatsDashboard = ({ userStats: propUserStats }: StatsDashboardProps
     );
   }
 
-  const totalTasks = tasksPerCategory.reduce((sum, cat) => sum + cat.completed, 0);
-  const completionRate = tasksPerCategory.reduce((sum, cat) => sum + cat.total, 0);
   const avgPointsPerTask = userStats.tasksCompleted > 0 ? Math.round(userStats.points / userStats.tasksCompleted) : 0;
 
   return (
@@ -220,7 +195,11 @@ export const StatsDashboard = ({ userStats: propUserStats }: StatsDashboardProps
               </ResponsiveContainer>
             ) : (
               <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                No point history available yet
+                <div className="text-center">
+                  <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <p>No point history available yet</p>
+                  <p className="text-sm">Complete tasks to see your progress over time</p>
+                </div>
               </div>
             )}
           </CardContent>
@@ -228,18 +207,26 @@ export const StatsDashboard = ({ userStats: propUserStats }: StatsDashboardProps
 
         <Card>
           <CardHeader>
-            <CardTitle>Weekly Activity</CardTitle>
+            <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={weeklyActivity}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="tasks" fill="#22c55e" />
-              </BarChart>
-            </ResponsiveContainer>
+            {userStats.tasksCompleted > 0 ? (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                <div className="text-center">
+                  <Award className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <p>Activity tracking coming soon</p>
+                  <p className="text-sm">Your daily activity will be displayed here</p>
+                </div>
+              </div>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                <div className="text-center">
+                  <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <p>No activity yet</p>
+                  <p className="text-sm">Complete your first task to get started!</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -250,7 +237,11 @@ export const StatsDashboard = ({ userStats: propUserStats }: StatsDashboardProps
           <CardContent>
             <div className="space-y-2 max-h-[300px] overflow-y-auto">
               {pointTransactions.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No transactions yet</p>
+                <div className="text-center py-8 text-muted-foreground">
+                  <Clock className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <p>No transactions yet</p>
+                  <p className="text-sm">Your point history will appear here</p>
+                </div>
               ) : (
                 pointTransactions.slice(0, 10).map((transaction, index) => (
                   <div key={transaction.id || index} className="flex justify-between items-center p-2 border rounded">
@@ -272,27 +263,32 @@ export const StatsDashboard = ({ userStats: propUserStats }: StatsDashboardProps
 
         <Card>
           <CardHeader>
-            <CardTitle>Task Difficulty</CardTitle>
+            <CardTitle>Getting Started</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={difficultyBreakdown}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={120}
-                  dataKey="value"
-                  label={({ name, value }) => `${name}: ${value}%`}
-                >
-                  {difficultyBreakdown.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="space-y-4">
+              <div className="text-center p-6">
+                <Target className="h-16 w-16 mx-auto mb-4 text-blue-500" />
+                <h3 className="font-semibold mb-2">Ready to earn points?</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Browse available tasks and start earning points today!
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                    Complete simple tasks
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    Earn points instantly
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                    Redeem for rewards
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
