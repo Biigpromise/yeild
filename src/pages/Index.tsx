@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AdminAccessBanner } from "@/components/AdminAccessBanner";
 
@@ -33,10 +33,26 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-yeild-black text-white">
-      {/* Admin Access Banner */}
+      {/* Admin Access Banner - More Prominent */}
       {showAdminBanner && (
-        <div className="bg-yeild-black border-b border-gray-800 p-4">
-          <AdminAccessBanner />
+        <div className="bg-yellow-600 text-black p-4 border-b">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Shield className="h-5 w-5" />
+              <span className="font-medium">
+                Set up admin access to manage the platform
+              </span>
+            </div>
+            <Button 
+              asChild 
+              size="sm" 
+              className="bg-black text-white hover:bg-gray-800"
+            >
+              <Link to="/admin-setup">
+                Make Me Admin
+              </Link>
+            </Button>
+          </div>
         </div>
       )}
 
@@ -99,6 +115,21 @@ const Index = () => {
                 onClick={handleLoginClick}
               >
                 Login
+              </Button>
+            )}
+
+            {/* Admin Setup Button for Logged In Users */}
+            {user && (
+              <Button 
+                asChild
+                variant="outline" 
+                size="lg" 
+                className="border-yeild-yellow text-yeild-yellow hover:bg-yeild-yellow hover:text-black text-lg px-8 py-6 w-full sm:w-auto"
+              >
+                <Link to="/admin-setup">
+                  <Shield className="mr-2 h-5 w-5" />
+                  Admin Setup
+                </Link>
               </Button>
             )}
           </div>
