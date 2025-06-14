@@ -22,6 +22,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   onCancel 
 }) => {
   const [categories, setCategories] = useState<any[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -58,10 +59,15 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
 
   const loadCategories = async () => {
     try {
+      setCategoriesLoading(true);
       const data = await enhancedTaskManagementService.getTaskCategories();
-      setCategories(data);
+      console.log("Loaded categories:", data);
+      setCategories(data || []);
     } catch (error) {
       console.error("Error loading categories:", error);
+      setCategories([]);
+    } finally {
+      setCategoriesLoading(false);
     }
   };
 
@@ -102,6 +108,17 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  // Filter and validate categories
+  const validCategories = categories.filter(category => 
+    category && 
+    category.id && 
+    typeof category.id === 'string' && 
+    category.id.trim() !== '' &&
+    category.name && 
+    typeof category.name === 'string' && 
+    category.name.trim() !== ''
+  );
 
   return (
     <Card>
@@ -144,14 +161,20 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                 <Label htmlFor="category">Category</Label>
                 <Select value={formData.category_id} onValueChange={(value) => handleInputChange('category_id', value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select category"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.filter(c => c && c.id).map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
+                    {categoriesLoading ? (
+                      <SelectItem value="loading" disabled>Loading categories...</SelectItem>
+                    ) : validCategories.length > 0 ? (
+                      validCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-categories" disabled>No categories available</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
