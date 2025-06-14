@@ -311,6 +311,7 @@ export const enhancedTaskManagementService = {
                  !('error' in submission.profiles);
         })
         .map(submission => {
+          // At this point, TypeScript knows tasks and profiles are non-null
           // Handle array vs object response from Supabase joins
           const taskData = Array.isArray(submission.tasks) ? submission.tasks[0] : submission.tasks;
           const profileData = Array.isArray(submission.profiles) ? submission.profiles[0] : submission.profiles;
