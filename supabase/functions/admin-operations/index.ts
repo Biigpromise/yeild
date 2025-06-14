@@ -160,17 +160,39 @@ Deno.serve(async (req) => {
       case 'get_user_suspension_history':
         return await getUserSuspensionHistory(supabase, data);
       
+      // Enhanced Task Management Operations
+      case 'get_enhanced_task_analytics':
+        return await getEnhancedTaskAnalytics(data);
+      
+      case 'search_tasks_enhanced':
+        return await searchTasksEnhanced(data);
+      
+      case 'create_task_enhanced':
+        return await createTaskEnhanced(data);
+      
+      case 'update_task_enhanced':
+        return await updateTaskEnhanced(data);
+      
+      case 'process_task_submission_enhanced':
+        return await processTaskSubmissionEnhanced(data);
+      
+      case 'get_pending_submissions_enhanced':
+        return await getPendingSubmissionsEnhanced(data);
+      
+      case 'bulk_task_operation_enhanced':
+        return await bulkTaskOperationEnhanced(data);
+      
       default:
-        return new Response(JSON.stringify({ error: 'Invalid operation' }), {
+        return new Response(JSON.stringify({ error: 'Unknown operation' }), {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
     }
   } catch (error) {
-    console.error('Admin operations error:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    console.error('Error in admin operations:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
@@ -825,4 +847,251 @@ async function getUserSuspensionHistory(supabase: any, data: any) {
   return new Response(JSON.stringify(mockHistory), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   });
+}
+
+async function getEnhancedTaskAnalytics(data: any) {
+  const { startDate, endDate } = data;
+  
+  try {
+    // Get basic task statistics
+    const { data: taskStats, error: taskStatsError } = await supabase
+      .from('tasks')
+      .select('id, status, category, created_at');
+    
+    if (taskStatsError) throw taskStatsError;
+
+    // Get submission statistics
+    const { data: submissionStats, error: submissionStatsError } = await supabase
+      .from('task_submissions')
+      .select('id, status, submitted_at, task_id');
+    
+    if (submissionStatsError) throw submissionStatsError;
+
+    // Calculate analytics
+    const totalTasks = taskStats?.length || 0;
+    const activeTasks = taskStats?.filter(t => t.status === 'active').length || 0;
+    const pendingSubmissions = submissionStats?.filter(s => s.status === 'pending').length || 0;
+    const approvedSubmissions = submissionStats?.filter(s => s.status === 'approved').length || 0;
+    const totalSubmissions = submissionStats?.length || 0;
+    
+    const approvalRate = totalSubmissions > 0 ? Math.round((approvedSubmissions / totalSubmissions) * 100) : 0;
+    
+    // Calculate category distribution
+    const categoryMap = new Map();
+    taskStats?.forEach(task => {
+      const category = task.category || 'General';
+      categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
+    });
+    
+    const topCategories = Array.from(categoryMap.entries()).map(([category, count]) => ({
+      category,
+      count
+    }));
+
+    // Generate recent activity data (mock for now)
+    const recentActivity = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      recentActivity.push({
+        date: date.toISOString().split('T')[0],
+        submissions: Math.floor(Math.random() * 20) + 5,
+        approvals: Math.floor(Math.random() * 15) + 3
+      });
+    }
+
+    const analytics = {
+      totalTasks,
+      activeTasks,
+      completedTasks: approvedSubmissions,
+      pendingSubmissions,
+      approvalRate,
+      avgCompletionTime: 24, // Mock data
+      topCategories,
+      recentActivity
+    };
+
+    return new Response(JSON.stringify(analytics), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Error getting task analytics:', error);
+    throw error;
+  }
+}
+
+async function searchTasksEnhanced(filters: any) {
+  try {
+    let query = supabase.from('tasks').select('*');
+    
+    if (filters.searchTerm) {
+      query = query.or(`title.ilike.%${filters.searchTerm}%,description.ilike.%${filters.searchTerm}%`);
+    }
+    
+    if (filters.status) {
+      query = query.eq('status', filters.status);
+    }
+    
+    if (filters.category) {
+      query = query.eq('category', filters.category);
+    }
+    
+    if (filters.difficulty) {
+      query = query.eq('difficulty', filters.difficulty);
+    }
+    
+    if (filters.sortBy) {
+      query = query.order(filters.sortBy, { ascending: filters.sortOrder === 'asc' });
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    
+    return new Response(JSON.stringify(data), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Error searching tasks:', error);
+    throw error;
+  }
+}
+
+async function createTaskEnhanced(taskData: any) {
+  try {
+    const { error } = await supabase
+      .from('tasks')
+      .insert(taskData);
+    
+    if (error) throw error;
+    
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Error creating task:', error);
+    throw error;
+  }
+}
+
+async function updateTaskEnhanced(data: any) {
+  try {
+    const { taskId, updates } = data;
+    
+    const { error } = await supabase
+      .from('tasks')
+      .update(updates)
+      .eq('id', taskId);
+    
+    if (error) throw error;
+    
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Error updating task:', error);
+    throw error;
+  }
+}
+
+async function processTaskSubmissionEnhanced(data: any) {
+  try {
+    const { submissionId, status, feedback, processedAt } = data;
+    
+    const { error } = await supabase
+      .from('task_submissions')
+      .update({
+        status,
+        admin_notes: feedback,
+        reviewed_at: processedAt
+      })
+      .eq('id', submissionId);
+    
+    if (error) throw error;
+    
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Error processing submission:', error);
+    throw error;
+  }
+}
+
+async function getPendingSubmissionsEnhanced(filters: any = {}) {
+  try {
+    let query = supabase
+      .from('task_submissions')
+      .select(`
+        *,
+        tasks(id, title, points, category, difficulty),
+        profiles(id, name, email)
+      `)
+      .eq('status', 'pending');
+    
+    if (filters.category) {
+      query = query.eq('tasks.category', filters.category);
+    }
+    
+    if (filters.limit) {
+      query = query.limit(filters.limit);
+    }
+    
+    query = query.order('submitted_at', { ascending: false });
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    
+    return new Response(JSON.stringify(data), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Error getting pending submissions:', error);
+    throw error;
+  }
+}
+
+async function bulkTaskOperationEnhanced(operation: any) {
+  try {
+    const { taskIds, operation: operationType } = operation;
+    
+    let updateData: any = {};
+    
+    switch (operationType) {
+      case 'activate':
+        updateData = { status: 'active' };
+        break;
+      case 'deactivate':
+        updateData = { status: 'draft' };
+        break;
+      case 'delete':
+        const { error: deleteError } = await supabase
+          .from('tasks')
+          .delete()
+          .in('id', taskIds);
+        
+        if (deleteError) throw deleteError;
+        
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+    }
+    
+    if (Object.keys(updateData).length > 0) {
+      const { error } = await supabase
+        .from('tasks')
+        .update(updateData)
+        .in('id', taskIds);
+      
+      if (error) throw error;
+    }
+    
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Error performing bulk operation:', error);
+    throw error;
+  }
 }

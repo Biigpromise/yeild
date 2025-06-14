@@ -54,7 +54,7 @@ const Admin = () => {
     };
   }, []);
 
-  // Map of sections to their component - Updated to use enhanced user management
+  // Map of sections to their component - Updated to use enhanced task management
   const sectionComponents = {
     dashboard: <AdminOverview />,
     users: <EnhancedUserManagementSystem />,
