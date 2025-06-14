@@ -134,7 +134,7 @@ export const TaskManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-full">
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
@@ -196,7 +196,7 @@ export const TaskManagement = () => {
         </Card>
       </div>
 
-      <Tabs defaultValue="tasks" className="space-y-6">
+      <Tabs defaultValue="tasks" className="space-y-6 h-full">
         <TabsList>
           <TabsTrigger value="tasks">All Tasks</TabsTrigger>
           <TabsTrigger value="submissions">
@@ -309,19 +309,20 @@ export const TaskManagement = () => {
           />
         </TabsContent>
 
-        <TabsContent value="create">
-          <Card>
-            <CardHeader>
-              <CardTitle>Create New Task</CardTitle>
-            </CardHeader>
-            <CardContent 
-              className="space-y-4 overflow-y-auto max-h-[75vh] md:max-h-[65vh] px-1"
-              style={{ minHeight: "350px" }}
-            >
-              {/* Make the form scrollable if it's too tall */}
-              <CreateTaskForm onTaskCreated={loadData} />
-            </CardContent>
-          </Card>
+        <TabsContent value="create" className="h-full">
+          <div className="h-full min-h-[80vh] flex flex-col">
+            <Card className="flex-1 flex flex-col h-full min-h-[80vh]">
+              <CardHeader>
+                <CardTitle>Create New Task</CardTitle>
+              </CardHeader>
+              <CardContent 
+                className="flex-1 overflow-y-auto min-h-[400px] pt-4 px-1"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
+                <CreateTaskForm onTaskCreated={loadData} />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
