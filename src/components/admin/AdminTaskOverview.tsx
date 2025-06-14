@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { taskService } from "@/services/taskService";
 
 interface TaskStats {
   pendingApproval: number;
@@ -22,25 +21,25 @@ export const AdminTaskOverview = () => {
     try {
       setLoading(true);
       
-      // Get pending approvals
-      const { data: pendingSubmissions, error: pendingError } = await supabase
+      // Get pending approvals count
+      const { count: pendingCount, error: pendingError } = await supabase
         .from('task_submissions')
-        .select('id', { count: 'exact', head: true })
+        .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
 
       if (pendingError) throw pendingError;
 
-      // Get active tasks
-      const { data: activeTasks, error: activeError } = await supabase
+      // Get active tasks count
+      const { count: activeCount, error: activeError } = await supabase
         .from('tasks')
-        .select('id', { count: 'exact', head: true })
+        .select('*', { count: 'exact', head: true })
         .eq('status', 'active');
 
       if (activeError) throw activeError;
 
       setStats({
-        pendingApproval: pendingSubmissions?.count || 0,
-        activeTasks: activeTasks?.count || 0
+        pendingApproval: pendingCount || 0,
+        activeTasks: activeCount || 0
       });
     } catch (error) {
       console.error('Error loading task stats:', error);
