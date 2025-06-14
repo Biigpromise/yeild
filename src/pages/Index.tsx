@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Star, Trophy, Users, Shield, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AdminAccessBanner } from "@/components/AdminAccessBanner";
 
@@ -48,22 +47,23 @@ const Index = () => {
         </div>
         <div className="flex items-center space-x-4">
           {user ? (
-            <>
-              <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-                Dashboard
-              </Button>
-              <Button variant="ghost" onClick={() => navigate("/admin-setup")}>
-                <Shield className="h-4 w-4 mr-2" />
-                Admin Setup
-              </Button>
-            </>
+            <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+              Dashboard
+            </Button>
           ) : (
             <>
-              <Button variant="ghost" onClick={handleLoginClick}>
-                Log In
+              <Button 
+                variant="outline" 
+                onClick={handleLoginClick}
+                className="border-gray-600 text-white hover:bg-gray-800"
+              >
+                Login
               </Button>
-              <Button className="yeild-btn-primary" onClick={handleGetStarted}>
-                Get Started
+              <Button 
+                className="bg-white text-black hover:bg-gray-200" 
+                onClick={handleGetStarted}
+              >
+                Sign Up
               </Button>
             </>
           )}
@@ -72,34 +72,22 @@ const Index = () => {
 
       {/* Hero Section */}
       <div className="relative">
-        {/* Background graphics */}
-        <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-yeild-yellow opacity-10 blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-1/4 h-1/4 bg-yeild-yellow opacity-10 blur-3xl"></div>
-        
         <div className="relative z-10 max-w-4xl mx-auto px-6 py-20 text-center">
-          <Badge variant="secondary" className="mb-6 bg-yeild-yellow/20 text-yeild-yellow border-yeild-yellow/30">
-            🚀 Transform Your Social Media Into Income
-          </Badge>
-          
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            Turn Your
-            <span className="text-yeild-yellow"> Social Influence</span>
-            <br />
-            Into Real Money
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-yeild-yellow">
+            Earn Rewards
           </h1>
           
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Join thousands of creators earning daily rewards through simple social media tasks. 
-            No followers required - just authentic engagement.
+          <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Join thousands of users making money by completing simple tasks from your phone or computer.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <Button 
               size="lg" 
-              className="yeild-btn-primary text-lg px-8 py-6 w-full sm:w-auto"
+              className="bg-white text-black hover:bg-gray-200 text-lg px-8 py-6 w-full sm:w-auto"
               onClick={handleGetStarted}
             >
-              Start Earning Today
+              Get Started
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             
@@ -110,112 +98,58 @@ const Index = () => {
                 className="border-gray-600 text-white hover:bg-gray-800 text-lg px-8 py-6 w-full sm:w-auto"
                 onClick={handleLoginClick}
               >
-                I Have an Account
+                Login
               </Button>
             )}
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-yeild-yellow mb-2">$50K+</div>
-              <div className="text-gray-400">Paid to Creators</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-yeild-yellow mb-2">10K+</div>
-              <div className="text-gray-400">Active Users</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-yeild-yellow mb-2">24hrs</div>
-              <div className="text-gray-400">Average Payout Time</div>
-            </div>
+          {/* Star Icon Section */}
+          <div className="mx-auto w-32 h-32 bg-gray-800/50 rounded-lg flex items-center justify-center border border-gray-700">
+            <div className="text-yeild-yellow text-6xl">✦</div>
           </div>
         </div>
       </div>
 
       {/* How It Works Section */}
-      <section className="py-20 bg-gray-900/50">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">How YEILD Works</h2>
-            <p className="text-xl text-gray-300">Three simple steps to start earning</p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="bg-gray-800/50 border-gray-700">
-              <CardHeader>
-                <div className="w-12 h-12 bg-yeild-yellow/20 rounded-lg flex items-center justify-center mb-4">
-                  <Users className="h-6 w-6 text-yeild-yellow" />
-                </div>
-                <CardTitle className="text-white">1. Sign Up</CardTitle>
-                <CardDescription className="text-gray-300">
-                  Create your free account and connect your social media profiles
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            <Card className="bg-gray-800/50 border-gray-700">
-              <CardHeader>
-                <div className="w-12 h-12 bg-yeild-yellow/20 rounded-lg flex items-center justify-center mb-4">
-                  <CheckCircle className="h-6 w-6 text-yeild-yellow" />
-                </div>
-                <CardTitle className="text-white">2. Complete Tasks</CardTitle>
-                <CardDescription className="text-gray-300">
-                  Choose from hundreds of available social media tasks from top brands
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            <Card className="bg-gray-800/50 border-gray-700">
-              <CardHeader>
-                <div className="w-12 h-12 bg-yeild-yellow/20 rounded-lg flex items-center justify-center mb-4">
-                  <Trophy className="h-6 w-6 text-yeild-yellow" />
-                </div>
-                <CardTitle className="text-white">3. Get Paid</CardTitle>
-                <CardDescription className="text-gray-300">
-                  Earn points instantly and cash out to your preferred payment method
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
       <section className="py-20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Why Choose YEILD?</h2>
-            <p className="text-xl text-gray-300">The most trusted platform for social media monetization</p>
+            <h2 className="text-4xl font-bold mb-4 text-yeild-yellow">How It Works</h2>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="bg-gray-800/30 border-gray-700">
+          <div className="grid md:grid-cols-1 gap-8 max-w-2xl mx-auto">
+            <Card className="bg-gray-800/50 border-gray-700">
               <CardHeader>
-                <Star className="h-8 w-8 text-yeild-yellow mb-4" />
-                <CardTitle className="text-white">Instant Payments</CardTitle>
-                <CardDescription className="text-gray-300">
-                  Get paid within 24 hours through multiple payment methods
+                <div className="w-12 h-12 bg-yeild-yellow rounded-full flex items-center justify-center mb-4">
+                  <span className="text-black font-bold text-xl">1</span>
+                </div>
+                <CardTitle className="text-white text-2xl">Sign Up</CardTitle>
+                <CardDescription className="text-gray-300 text-lg">
+                  Create your account in less than 2 minutes and set your preferences.
                 </CardDescription>
               </CardHeader>
             </Card>
             
-            <Card className="bg-gray-800/30 border-gray-700">
+            <Card className="bg-gray-800/50 border-gray-700">
               <CardHeader>
-                <CheckCircle className="h-8 w-8 text-yeild-yellow mb-4" />
-                <CardTitle className="text-white">Verified Tasks</CardTitle>
-                <CardDescription className="text-gray-300">
-                  All tasks are verified and come from legitimate brand partners
+                <div className="w-12 h-12 bg-yeild-yellow rounded-full flex items-center justify-center mb-4">
+                  <span className="text-black font-bold text-xl">2</span>
+                </div>
+                <CardTitle className="text-white text-2xl">Complete Tasks</CardTitle>
+                <CardDescription className="text-gray-300 text-lg">
+                  Choose from available tasks that match your interests and skills.
                 </CardDescription>
               </CardHeader>
             </Card>
             
-            <Card className="bg-gray-800/30 border-gray-700">
+            <Card className="bg-gray-800/50 border-gray-700">
               <CardHeader>
-                <Users className="h-8 w-8 text-yeild-yellow mb-4" />
-                <CardTitle className="text-white">Growing Community</CardTitle>
-                <CardDescription className="text-gray-300">
-                  Join thousands of creators already earning with YEILD
+                <div className="w-12 h-12 bg-yeild-yellow rounded-full flex items-center justify-center mb-4">
+                  <span className="text-black font-bold text-xl">3</span>
+                </div>
+                <CardTitle className="text-white text-2xl">Earn Rewards</CardTitle>
+                <CardDescription className="text-gray-300 text-lg">
+                  Get paid directly to your account after task verification.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -223,21 +157,47 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-yeild-yellow/10 to-transparent">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to Start Earning?</h2>
-          <p className="text-xl text-gray-300 mb-8">
-            Join the YEILD community today and transform your social media presence into a revenue stream.
-          </p>
-          <Button 
-            size="lg" 
-            className="yeild-btn-primary text-lg px-8 py-6"
-            onClick={handleGetStarted}
-          >
-            Get Started Now
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+      {/* For Brands Section */}
+      <section className="py-20 bg-gray-900/50">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4 text-yeild-yellow">For Brands</h2>
+          </div>
+          
+          <div className="grid md:grid-cols-1 gap-8 max-w-2xl mx-auto">
+            <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white text-2xl">Reach Your Audience</CardTitle>
+                <CardDescription className="text-gray-300 text-lg mb-6">
+                  Connect with targeted users who are interested in your products and services.
+                </CardDescription>
+                <Button 
+                  asChild
+                  className="bg-white text-black hover:bg-gray-200 w-fit"
+                >
+                  <Link to="/brand-signup">
+                    Partner With Us
+                  </Link>
+                </Button>
+              </CardHeader>
+            </Card>
+            
+            <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white text-2xl">Measurable Results</CardTitle>
+                <CardDescription className="text-gray-300 text-lg mb-6">
+                  Track campaign performance and user engagement with our analytics dashboard.
+                </CardDescription>
+                <Button 
+                  variant="outline"
+                  className="border-gray-600 text-white hover:bg-gray-800 w-fit"
+                >
+                  View Case Studies
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </CardHeader>
+            </Card>
+          </div>
         </div>
       </section>
 
