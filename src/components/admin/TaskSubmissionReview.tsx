@@ -200,6 +200,31 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
                       View Link
                     </a>
                   )}
+                  {selectedSubmission.evidence_file_url && (
+                    <div className="mt-2">
+                      {selectedSubmission.evidence_file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                        <img
+                          src={selectedSubmission.evidence_file_url}
+                          alt="Evidence"
+                          className="h-32 w-32 object-cover rounded border"
+                        />
+                      ) : selectedSubmission.evidence_file_url.match(/\.(mp4|mov|avi|webm)$/i) ? (
+                        <video width="220" height="180" controls className="rounded border">
+                          <source src={selectedSubmission.evidence_file_url} />
+                          Your browser does not support the video tag.
+                        </video>
+                      ) : (
+                        <a
+                          href={selectedSubmission.evidence_file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          Download evidence file
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               

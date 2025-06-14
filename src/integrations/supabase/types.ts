@@ -377,6 +377,7 @@ export type Database = {
           calculated_points: number | null
           created_at: string | null
           evidence: string | null
+          evidence_file_url: string | null
           id: string
           point_breakdown: Json | null
           point_explanation: string | null
@@ -393,6 +394,7 @@ export type Database = {
           calculated_points?: number | null
           created_at?: string | null
           evidence?: string | null
+          evidence_file_url?: string | null
           id?: string
           point_breakdown?: Json | null
           point_explanation?: string | null
@@ -409,6 +411,7 @@ export type Database = {
           calculated_points?: number | null
           created_at?: string | null
           evidence?: string | null
+          evidence_file_url?: string | null
           id?: string
           point_breakdown?: Json | null
           point_explanation?: string | null

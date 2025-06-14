@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { pointCalculationService, PointCalculationFactors } from "../pointCalculationService";
 
 export const taskSubmissionService = {
-  async submitTask(taskId: string, evidence: string, timeSpent?: number): Promise<boolean> {
+  async submitTask(taskId: string, evidence: string, timeSpent?: number, evidenceFile?: File): Promise<boolean> {
     try {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) {
@@ -52,7 +52,7 @@ export const taskSubmissionService = {
       }
 
       // Calculate points with advanced factors
-      const pointFactors: PointCalculationFactors = {
+      const pointFactors = {
         basePoints: task.points,
         difficulty: task.difficulty || 'medium',
         userLevel: profile?.level || 1,
@@ -63,14 +63,39 @@ export const taskSubmissionService = {
 
       const pointResult = pointCalculationService.calculatePoints(pointFactors);
 
+      // File upload logic
+      let evidenceFileUrl: string | undefined = undefined;
+      if (evidenceFile) {
+        const ext = evidenceFile.name.split('.').pop();
+        const filePath = `${user.id}/${taskId}/${Date.now()}.${ext}`;
+        const { data: uploadData, error: uploadError } = await supabase
+          .storage
+          .from('task-evidence')
+          .upload(filePath, evidenceFile);
+
+        if (uploadError) {
+          console.error("File upload failed:", uploadError);
+          toast.error("Failed to upload evidence file");
+          return false;
+        }
+
+        // Build a public URL (the bucket is private, but project can serve files via download endpoint)
+        const { data: pubUrl } = supabase
+          .storage
+          .from('task-evidence')
+          .getPublicUrl(filePath);
+        evidenceFileUrl = pubUrl?.publicUrl || null;
+      }
+
       // Submit the task - ensure all fields are properly typed
       const submissionData = {
         user_id: user.id,
         task_id: taskId,
         evidence: evidence,
+        evidence_file_url: evidenceFileUrl,
         calculated_points: pointResult.finalPoints,
         point_breakdown: pointResult.breakdown as any,
-        point_explanation: pointResult.explanation.join('\n'), // Convert array to string
+        point_explanation: pointResult.explanation.join('\n'),
         status: 'pending' as const
       };
 

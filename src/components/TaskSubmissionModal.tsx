@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, CheckCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle, FileImage, FileVideo } from "lucide-react";
 import { toast } from "sonner";
 import { taskService, Task } from "@/services/taskService";
 
@@ -25,20 +25,50 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
   const [evidence, setEvidence] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
 
   const validateEvidence = (text: string): boolean => {
-    if (!text.trim()) {
-      setValidationError("Evidence is required");
+    if (!text.trim() && !evidenceFile) {
+      setValidationError("Evidence is required (text or file).");
       return false;
     }
-    
-    if (text.trim().length < 10) {
+    if (text.trim() && text.trim().length < 10) {
       setValidationError("Please provide more detailed evidence (at least 10 characters)");
       return false;
     }
-    
     setValidationError("");
     return true;
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Check file type: Accept only images and videos
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+      toast.error("Only image and video files are allowed.");
+      setEvidenceFile(null);
+      setFilePreview(null);
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("File should be less than 15MB.");
+      setEvidenceFile(null);
+      setFilePreview(null);
+      return;
+    }
+    setEvidenceFile(file);
+
+    // Show file preview
+    if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
+      const reader = new FileReader();
+      reader.onload = (ev: ProgressEvent<FileReader>) => {
+        setFilePreview(ev.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setFilePreview(null);
+    }
   };
 
   const handleSubmit = async () => {
@@ -52,14 +82,25 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
     }
 
     setIsSubmitting(true);
-    
+
     try {
-      console.log(`Submitting task: ${task.id}`);
-      const success = await taskService.submitTask(task.id, evidence.trim());
-      
+      // If both text and file are empty, block
+      if (!evidence.trim() && !evidenceFile) {
+        setValidationError("Please provide text or file evidence.");
+        setIsSubmitting(false);
+        return;
+      }
+      const success = await taskService.submitTask(
+        task.id,
+        evidence.trim(),
+        undefined,
+        evidenceFile || undefined
+      );
       if (success) {
         setEvidence("");
         setValidationError("");
+        setEvidenceFile(null);
+        setFilePreview(null);
         onSubmitted();
         onClose();
       }
@@ -74,6 +115,8 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
   const handleClose = () => {
     setEvidence("");
     setValidationError("");
+    setEvidenceFile(null);
+    setFilePreview(null);
     onClose();
   };
 
@@ -90,14 +133,13 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
             </Badge>
           </DialogTitle>
         </DialogHeader>
-        
         <div className="space-y-4">
           <div>
             <Label className="text-sm font-medium">Task</Label>
             <p className="text-sm font-semibold mt-1">{task.title}</p>
             <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
           </div>
-          
+
           <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-600" />
@@ -105,7 +147,7 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
             </div>
             <span className="text-sm font-bold text-green-600">{task.points} points</span>
           </div>
-          
+
           <div>
             <Label htmlFor="evidence" className="text-sm font-medium">
               Evidence of Completion *
@@ -122,7 +164,44 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
               }}
               rows={4}
               className={`mt-1 ${validationError ? 'border-red-500' : ''}`}
+              disabled={isSubmitting}
             />
+            <div className="mt-2">
+              <input
+                id="evidence-file"
+                type="file"
+                accept="image/*,video/*"
+                onChange={handleFileChange}
+                disabled={isSubmitting}
+                className="block"
+              />
+              {evidenceFile && (
+                <div className="mt-2 flex items-center gap-2">
+                  {evidenceFile.type.startsWith("image/") && filePreview && (
+                    <img src={filePreview} alt="Preview" className="h-16 w-16 object-cover rounded-md border" />
+                  )}
+                  {evidenceFile.type.startsWith("video/") && filePreview && (
+                    <video width="80" height="60" controls className="rounded-md border">
+                      <source src={filePreview} type={evidenceFile.type} />
+                      Your browser does not support the video tag.
+                    </video>
+                  )}
+                  <span className="text-xs">{evidenceFile.name}</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-red-500"
+                    onClick={() => {
+                      setEvidenceFile(null);
+                      setFilePreview(null);
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
+            </div>
             {validationError && (
               <div className="flex items-center gap-1 mt-1 text-red-600">
                 <AlertTriangle className="h-3 w-3" />
@@ -130,18 +209,17 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
               </div>
             )}
             <p className="text-xs text-muted-foreground mt-1">
-              Provide clear details or links that prove you completed this task. 
-              Be specific and thorough to avoid delays in approval.
+              Provide clear details or upload a screenshot/video to prove you completed this task.
             </p>
           </div>
-          
+
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
               Cancel
             </Button>
             <Button 
               onClick={handleSubmit} 
-              disabled={!evidence.trim() || isSubmitting || !!validationError}
+              disabled={isSubmitting || (!!validationError)}
             >
               {isSubmitting ? "Submitting..." : "Submit Task"}
             </Button>
