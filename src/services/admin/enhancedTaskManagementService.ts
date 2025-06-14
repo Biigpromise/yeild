@@ -297,16 +297,19 @@ export const enhancedTaskManagementService = {
         return [];
       }
 
-      // Transform the data to match our interface
+      // Transform the data to match our interface with proper null checks
       const transformedData: TaskSubmissionWithDetails[] = submissionsWithDetails
-        .filter(submission => 
-          submission.tasks && 
-          submission.profiles && 
-          typeof submission.tasks === 'object' && 
-          typeof submission.profiles === 'object' &&
-          !('error' in submission.tasks) &&
-          !('error' in submission.profiles)
-        )
+        .filter((submission): submission is typeof submission & { 
+          tasks: NonNullable<typeof submission.tasks>; 
+          profiles: NonNullable<typeof submission.profiles>; 
+        } => {
+          return submission.tasks != null && 
+                 submission.profiles != null && 
+                 typeof submission.tasks === 'object' && 
+                 typeof submission.profiles === 'object' &&
+                 !('error' in submission.tasks) &&
+                 !('error' in submission.profiles);
+        })
         .map(submission => ({
           id: submission.id,
           task_id: submission.task_id,
