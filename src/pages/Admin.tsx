@@ -4,6 +4,7 @@ import { AdminOverview } from "@/components/admin/AdminOverview";
 import { EnhancedUserManagement } from "@/components/admin/enhanced/EnhancedUserManagement";
 import { EnhancedTaskManagement } from "@/components/admin/enhanced/EnhancedTaskManagement";
 import { AdminWallet } from "@/components/admin/AdminWallet";
+import { AdminFinancialManagement } from "@/components/admin/AdminFinancialManagement";
 import { AdminReferrals } from "@/components/admin/AdminReferrals";
 import { AdminStreaks } from "@/components/admin/AdminStreaks";
 import { AdminBrands } from "@/components/admin/AdminBrands";
@@ -20,6 +21,7 @@ import {
   Users,
   ClipboardList,
   Wallet,
+  DollarSign,
   Award,
   Medal,
   Flag,
