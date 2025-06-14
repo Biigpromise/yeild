@@ -1,65 +1,28 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-type Brand = {
-  id: string;
-  name: string;
-  logo: string;
-  campaigns: number;
-  activeTasks: number;
-  status: "active" | "inactive" | "pending";
-  joinDate: string;
-};
-
-const mockBrands: Brand[] = [
-  {
-    id: "1",
-    name: "TechCorp",
-    logo: "TC",
-    campaigns: 3,
-    activeTasks: 5,
-    status: "active",
-    joinDate: "2025-01-15",
-  },
-  {
-    id: "2",
-    name: "FitLife",
-    logo: "FL",
-    campaigns: 2,
-    activeTasks: 3,
-    status: "active",
-    joinDate: "2025-02-20",
-  },
-  {
-    id: "3",
-    name: "EcoFriendly",
-    logo: "EF",
-    campaigns: 1,
-    activeTasks: 0,
-    status: "inactive",
-    joinDate: "2025-03-10",
-  },
-  {
-    id: "4",
-    name: "MusicBox",
-    logo: "MB",
-    campaigns: 0,
-    activeTasks: 0,
-    status: "pending",
-    joinDate: "2025-05-05",
-  },
-];
+import { LoadingState } from "@/components/ui/loading-state";
 
 export const AdminBrands = () => {
   const [isAddingBrand, setIsAddingBrand] = useState(false);
-  const [brands, setBrands] = useState<Brand[]>(mockBrands);
-  
+  const [brands, setBrands] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // In a real implementation, this would fetch brands from Supabase
+    // For now, we'll show an empty state
+    setLoading(false);
+  }, []);
+
+  if (loading) {
+    return <LoadingState text="Loading brands..." />;
+  }
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="brands">
@@ -119,40 +82,11 @@ export const AdminBrands = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {brands.map((brand) => (
-                      <TableRow key={brand.id}>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center mr-2">
-                              {brand.logo}
-                            </div>
-                            <span className="font-medium">{brand.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{brand.campaigns}</TableCell>
-                        <TableCell>{brand.activeTasks}</TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            brand.status === "active" ? "bg-green-100 text-green-800" :
-                            brand.status === "inactive" ? "bg-gray-100 text-gray-800" :
-                            "bg-yellow-100 text-yellow-800"
-                          }`}>
-                            {brand.status}
-                          </span>
-                        </TableCell>
-                        <TableCell>{brand.joinDate}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button size="sm" variant="outline">
-                              Edit
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              View
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        No brands found. Brand management system needs to be implemented.
+                      </TableCell>
+                    </TableRow>
                   </TableBody>
                 </Table>
               </div>

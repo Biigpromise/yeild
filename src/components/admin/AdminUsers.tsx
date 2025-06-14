@@ -1,81 +1,49 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { realAdminUserService } from "@/services/admin/realAdminUserService";
+import { LoadingState } from "@/components/ui/loading-state";
 
 type User = {
   id: string;
   name: string;
   email: string;
-  referrals: number;
-  streak: number;
-  level: string;
-  status: "active" | "inactive" | "suspended";
-  joinDate: string;
+  points: number;
+  level: number;
+  tasks_completed: number;
+  created_at: string;
+  user_roles?: Array<{ role: string }>;
+  user_streaks?: Array<{ current_streak: number }>;
 };
-
-const mockUsers: User[] = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    referrals: 5,
-    streak: 7,
-    level: "Silver",
-    status: "active",
-    joinDate: "2025-02-15",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    referrals: 2,
-    streak: 3,
-    level: "Bronze",
-    status: "active",
-    joinDate: "2025-03-20",
-  },
-  {
-    id: "3",
-    name: "Robert Johnson",
-    email: "robert@example.com",
-    referrals: 0,
-    streak: 0,
-    level: "Bronze",
-    status: "suspended",
-    joinDate: "2025-04-10",
-  },
-  {
-    id: "4",
-    name: "Lisa Brown",
-    email: "lisa@example.com",
-    referrals: 12,
-    streak: 15,
-    level: "Gold",
-    status: "active",
-    joinDate: "2025-01-05",
-  },
-  {
-    id: "5",
-    name: "Michael Wilson",
-    email: "michael@example.com",
-    referrals: 8,
-    streak: 10,
-    level: "Silver",
-    status: "inactive",
-    joinDate: "2025-02-25",
-  }
-];
 
 export const AdminUsers = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredUsers = mockUsers.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    setLoading(true);
+    try {
+      const userData = await realAdminUserService.getAllUsers();
+      setUsers(userData);
+    } catch (error) {
+      console.error('Error loading users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredUsers = users.filter(user => 
+    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const toggleSelectUser = (userId: string) => {
@@ -86,10 +54,31 @@ export const AdminUsers = () => {
     );
   };
 
-  const handleSuspendUsers = () => {
-    console.log("Suspending users:", selectedUsers);
-    // Implementation would go here
+  const handleSuspendUsers = async () => {
+    for (const userId of selectedUsers) {
+      await realAdminUserService.updateUserStatus(userId, 'suspended');
+    }
+    setSelectedUsers([]);
+    loadUsers();
   };
+
+  const getUserLevel = (points: number) => {
+    if (points >= 10000) return "Gold";
+    if (points >= 5000) return "Silver";
+    return "Bronze";
+  };
+
+  const getUserStreak = (user: User) => {
+    return user.user_streaks?.[0]?.current_streak || 0;
+  };
+
+  const getUserRole = (user: User) => {
+    return user.user_roles?.[0]?.role || 'user';
+  };
+
+  if (loading) {
+    return <LoadingState text="Loading users..." />;
+  }
 
   return (
     <div className="space-y-6">
@@ -134,10 +123,10 @@ export const AdminUsers = () => {
                   </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Referrals</TableHead>
+                  <TableHead>Points</TableHead>
                   <TableHead>Streak</TableHead>
                   <TableHead>Level</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Role</TableHead>
                   <TableHead>Join Date</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -153,44 +142,48 @@ export const AdminUsers = () => {
                         onChange={() => toggleSelectUser(user.id)}
                       />
                     </TableCell>
-                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell className="font-medium">{user.name || 'Unknown'}</TableCell>
                     <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.referrals}</TableCell>
-                    <TableCell>{user.streak}</TableCell>
+                    <TableCell>{user.points || 0}</TableCell>
+                    <TableCell>{getUserStreak(user)}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        user.level === "Gold" ? "bg-yellow-100 text-yellow-800" :
-                        user.level === "Silver" ? "bg-gray-100 text-gray-800" :
+                        getUserLevel(user.points || 0) === "Gold" ? "bg-yellow-100 text-yellow-800" :
+                        getUserLevel(user.points || 0) === "Silver" ? "bg-gray-100 text-gray-800" :
                         "bg-amber-100 text-amber-800"
                       }`}>
-                        {user.level}
+                        {getUserLevel(user.points || 0)}
                       </span>
                     </TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        user.status === "active" ? "bg-green-100 text-green-800" :
-                        user.status === "inactive" ? "bg-gray-100 text-gray-800" :
-                        "bg-red-100 text-red-800"
+                        getUserRole(user) === "admin" ? "bg-red-100 text-red-800" :
+                        getUserRole(user) === "moderator" ? "bg-blue-100 text-blue-800" :
+                        "bg-green-100 text-green-800"
                       }`}>
-                        {user.status}
+                        {getUserRole(user)}
                       </span>
                     </TableCell>
-                    <TableCell>{user.joinDate}</TableCell>
+                    <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button size="sm" variant="outline">
                           Edit
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant={user.status === "suspended" ? "outline" : "destructive"}
-                        >
-                          {user.status === "suspended" ? "Activate" : "Suspend"}
+                        <Button size="sm" variant="destructive">
+                          Suspend
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
                 ))}
+                {filteredUsers.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
+                      No users found
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>

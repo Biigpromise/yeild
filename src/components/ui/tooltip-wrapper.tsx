@@ -1,31 +1,21 @@
 
 import React from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TooltipWrapperProps {
-  content: React.ReactNode;
+  content: string;
   children: React.ReactNode;
-  side?: "top" | "right" | "bottom" | "left";
-  align?: "start" | "center" | "end";
 }
 
-export const TooltipWrapper: React.FC<TooltipWrapperProps> = ({
-  content,
-  children,
-  side = "top",
-  align = "center",
-}) => {
+export const TooltipWrapper: React.FC<TooltipWrapperProps> = ({ content, children }) => {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipContent side={side} align={align}>
-          {content}
+        <TooltipTrigger asChild>
+          {children}
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{content}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
