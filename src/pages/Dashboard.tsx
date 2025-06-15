@@ -36,10 +36,17 @@ import { toast } from "sonner";
 import { useTouchGestures } from "@/hooks/use-touch-gestures";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { CommunityChat } from "@/components/community/CommunityChat";
+import { CommunityChatTab } from "@/components/dashboard/CommunityChatTab";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { 
+import { HistoryTab } from "@/components/dashboard/HistoryTab";
+import { LeaderboardTab } from "@/components/dashboard/LeaderboardTab";
+import { ReferralsTab } from "@/components/dashboard/ReferralsTab";
+import { RewardsTab } from "@/components/dashboard/RewardsTab";
+import { TasksTab } from "@/components/dashboard/TasksTab";
+import { WalletTab } from "@/components/dashboard/WalletTab";
+import { AchievementsTab } from "@/components/dashboard/AchievementsTab";
+import {
   Trophy, 
   Users, 
   Bell, 
@@ -268,150 +275,66 @@ const Dashboard = () => {
                 Leaderboard
               </TabsTrigger>
               <TabsTrigger value="community-chat">
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Community Chat
+                 <MessageCircle className="h-4 w-4 mr-2" />
+                 Community Chat
               </TabsTrigger>
             </TabsList>
           )}
 
           <TabsContent value="tasks" className="space-y-4 mt-3">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-              <div className="lg:col-span-3 space-y-4">
-                <TaskFilter
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  selectedCategory={selectedCategory}
-                  onCategoryChange={setSelectedCategory}
-                  selectedDifficulty={selectedDifficulty}
-                  onDifficultyChange={setSelectedDifficulty}
-                  selectedStatus={selectedStatus}
-                  onStatusChange={setSelectedStatus}
-                  taskCounts={taskCounts}
-                  onClearFilters={handleClearFilters}
-                />
-                <TaskCategories onCategorySelect={handleCategorySelect} />
-              </div>
-              <div className="space-y-4">
-                {/* Quick Actions */}
-                <Card className="border-0 shadow-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Quick Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 pt-0">
-                    <Button size="sm" className="w-full justify-start" onClick={() => navigate('/tasks')}>
-                      <Target className="h-4 w-4 mr-2" />
-                      Browse Tasks
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setActiveTab('rewards')}>
-                      <Gift className="h-4 w-4 mr-2" />
-                      View Rewards
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setActiveTab('wallet')}>
-                      <Wallet className="h-4 w-4 mr-2" />
-                      Wallet
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Getting Started */}
-                <Card className="border-0 shadow-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Getting Started</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 pt-0">
-                    {userStats.tasksCompleted === 0 ? (
-                      <div className="text-center p-4">
-                        <Target className="h-12 w-12 mx-auto mb-3 text-blue-500" />
-                        <h4 className="font-medium mb-2">Ready to earn?</h4>
-                        <p className="text-xs text-muted-foreground mb-3">
-                          Complete your first task to start earning points!
-                        </p>
-                        <Button size="sm" onClick={() => navigate('/tasks')} className="w-full">
-                          Get Started
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {userTasks.slice(0, 3).map((task, index) => (
-                          <div key={task.id} className="text-sm">
-                            <div className="flex justify-between items-center">
-                              <span className="truncate">{task.tasks?.title || 'Task completed'}</span>
-                              <span className="text-muted-foreground">+{task.points_earned || 0} pts</span>
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {task.completed_at ? new Date(task.completed_at).toLocaleDateString() : 'Recently'}
-                            </div>
-                          </div>
-                        ))}
-                        {userTasks.length === 0 && (
-                          <p className="text-sm text-muted-foreground">No recent activity</p>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+            <TasksTab
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              selectedDifficulty={selectedDifficulty}
+              onDifficultyChange={setSelectedDifficulty}
+              selectedStatus={selectedStatus}
+              onStatusChange={setSelectedStatus}
+              taskCounts={taskCounts}
+              onClearFilters={handleClearFilters}
+              handleCategorySelect={handleCategorySelect}
+              setActiveTab={setActiveTab}
+              userStats={userStats}
+              userTasks={userTasks}
+            />
           </TabsContent>
 
           <TabsContent value="rewards">
-            <RewardsStore userPoints={userStats.points} onRedemption={loadUserData} />
+            <RewardsTab userPoints={userStats.points} onRedemption={loadUserData} />
           </TabsContent>
 
           <TabsContent value="achievements">
-            <AchievementsList userStats={userStats} />
+            <AchievementsTab userStats={userStats} />
           </TabsContent>
 
           <TabsContent value="wallet">
-            {loading ? (
-              <WalletSkeleton />
-            ) : (
-              <div className="space-y-6">
-                <WalletOverview 
-                  userPoints={userStats.points}
-                  totalEarned={totalPointsEarned}
-                  pendingWithdrawals={withdrawalStats.pendingWithdrawals}
-                  completedWithdrawals={withdrawalStats.completedWithdrawals}
-                />
-                
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <WithdrawalForm 
-                    userPoints={userStats.points}
-                    onWithdrawalSubmitted={loadUserData}
-                  />
-                  <WithdrawalHistory />
-                </div>
-              </div>
-            )}
+            <WalletTab 
+              loading={loading}
+              userPoints={userStats.points}
+              totalEarned={totalPointsEarned}
+              pendingWithdrawals={withdrawalStats.pendingWithdrawals}
+              completedWithdrawals={withdrawalStats.completedWithdrawals}
+              onWithdrawalSubmitted={loadUserData}
+            />
           </TabsContent>
 
           <TabsContent value="leaderboard">
-            <Leaderboard />
+            <LeaderboardTab />
           </TabsContent>
 
           <TabsContent value="referrals">
-            <ReferralSystem />
+            <ReferralsTab />
           </TabsContent>
 
           <TabsContent value="community-chat">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageCircle className="h-5 w-5" />
-                  Global Community Chat
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CommunityChat />
-              </CardContent>
-            </Card>
+            <CommunityChatTab />
           </TabsContent>
 
           <TabsContent value="history">
-            <TaskHistory
+            <HistoryTab
               completedTasks={userTasks}
               totalPointsEarned={totalPointsEarned}
-              totalTasksCompleted={userTasks.length}
             />
           </TabsContent>
 
