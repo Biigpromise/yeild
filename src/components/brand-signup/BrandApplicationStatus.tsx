@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle, XCircle } from 'lucide-react';
 import { BrandApplication } from '@/hooks/useBrandApplicationStatus';
+import InviteTeamModal from "./InviteTeamModal";
 
 const StatusInfo = ({ status }: { status: BrandApplication['status'] }) => {
     const navigate = useNavigate();
@@ -63,6 +63,14 @@ const StatusInfo = ({ status }: { status: BrandApplication['status'] }) => {
 export const BrandApplicationStatus = ({ application }: { application: BrandApplication }) => {
   const navigate = useNavigate();
   const statusInfo = StatusInfo({ status: application.status });
+  const [showInvite, setShowInvite] = useState(
+    application.status === "approved"
+  );
+
+  React.useEffect(() => {
+    if (application.status === "approved") setShowInvite(true);
+    else setShowInvite(false);
+  }, [application.status]);
 
   return (
     <Card className="w-full max-w-2xl bg-transparent border-0 shadow-none">
@@ -87,6 +95,10 @@ export const BrandApplicationStatus = ({ application }: { application: BrandAppl
                 {statusInfo.action}
             </div>
         </CardContent>
+        {/* Invite Team Modal only if approved */}
+        {application.status === "approved" && (
+          <InviteTeamModal open={showInvite} onClose={() => setShowInvite(false)} />
+        )}
     </Card>
   );
 };
