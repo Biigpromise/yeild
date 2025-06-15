@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TaskCategories from "@/components/TaskCategories";
@@ -6,7 +5,6 @@ import TaskFilter from "@/components/TaskFilter";
 import TaskHistory from "@/components/TaskHistory";
 import { Leaderboard } from "@/components/Leaderboard";
 import { ReferralSystem } from "@/components/ReferralSystem";
-import { NotificationCenter } from "@/components/NotificationCenter";
 import { RewardsStore } from "@/components/rewards/RewardsStore";
 import { AchievementsList } from "@/components/achievements/AchievementsList";
 import { RedemptionHistory } from "@/components/rewards/RedemptionHistory";
@@ -39,6 +37,8 @@ import { useTouchGestures } from "@/hooks/use-touch-gestures";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { CommunityChat } from "@/components/community/CommunityChat";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { 
   Trophy, 
   Users, 
@@ -228,111 +228,18 @@ const Dashboard = () => {
       <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4 max-w-7xl">
         {/* Compact Header */}
         <div className="mb-3 sm:mb-4">
-          <div className="flex justify-between items-center mb-2 sm:mb-3">
-            <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-xl font-bold mb-1 truncate">Dashboard</h1>
-              <p className="text-xs text-muted-foreground truncate">
-                Welcome back, {userProfile?.name || user?.email}!
-              </p>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-              {/* Notifications */}
-              <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="relative">
-                    <Bell className="h-4 w-4" />
-                    {unreadCount > 0 && (
-                      <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs">
-                        {unreadCount}
-                      </Badge>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 sm:w-96 p-0" align="end">
-                  <NotificationCenter />
-                </PopoverContent>
-              </Popover>
-
-              {/* Browse Tasks Button - Hidden on mobile */}
-              {!isMobile && (
-                <Button size="sm" onClick={() => navigate('/tasks')}>
-                  <Target className="h-4 w-4 mr-1" />
-                  Browse Tasks
-                </Button>
-              )}
-
-              {/* User Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    {!isMobile && <ChevronDown className="h-3 w-3" />}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => window.location.href = "/profile"}>
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/tasks')}>
-                    <Target className="h-4 w-4 mr-2" />
-                    Browse Tasks
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setActiveTab('referrals')}>
-                    <Users className="h-4 w-4 mr-2" />
-                    Referrals
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+          <DashboardHeader
+            userProfile={userProfile}
+            user={user}
+            unreadCount={unreadCount}
+            isNotificationsOpen={isNotificationsOpen}
+            setIsNotificationsOpen={setIsNotificationsOpen}
+            handleLogout={handleLogout}
+            setActiveTab={setActiveTab}
+          />
 
           {/* Real User Stats */}
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 sm:gap-2">
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-2 text-center">
-                <div className="text-sm sm:text-lg font-bold text-primary">{userStats.points.toLocaleString()}</div>
-                <div className="text-xs text-muted-foreground">Points</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-2 text-center">
-                <div className="text-sm sm:text-lg font-bold text-purple-600">{userStats.level}</div>
-                <div className="text-xs text-muted-foreground">Level</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-2 text-center">
-                <div className="text-sm sm:text-lg font-bold text-green-600">{userStats.tasksCompleted}</div>
-                <div className="text-xs text-muted-foreground">Tasks</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-2 text-center">
-                <div className="text-sm sm:text-lg font-bold text-orange-600">{userStats.currentStreak}</div>
-                <div className="text-xs text-muted-foreground">Streak</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-2 text-center">
-                <div className="text-sm sm:text-lg font-bold text-blue-600">
-                  {userStats.rank > 0 ? `#${userStats.rank}` : '-'}
-                </div>
-                <div className="text-xs text-muted-foreground">Rank</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-2 text-center">
-                <div className="text-sm sm:text-lg font-bold text-pink-600">{userStats.referrals}</div>
-                <div className="text-xs text-muted-foreground">Referrals</div>
-              </CardContent>
-            </Card>
-          </div>
+          <DashboardStats userStats={userStats} />
         </div>
 
         {/* Main Content */}
