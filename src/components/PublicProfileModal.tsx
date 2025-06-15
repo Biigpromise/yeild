@@ -19,9 +19,10 @@ interface PublicProfileModalProps {
   userId: string | null;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  extraActions?: React.ReactNode;  // <-- Added this line
 }
 
-export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({ userId, isOpen, onOpenChange }) => {
+export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({ userId, isOpen, onOpenChange, extraActions }) => {
   const { user: currentUser } = useAuth();
   const [profile, setProfile] = useState<Partial<UserProfile> | null>(null);
   const [loading, setLoading] = useState(false);
@@ -156,6 +157,13 @@ export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({ userId, 
               </div>
             </div>
 
+            {/* Render extraActions if provided */}
+            {extraActions && (
+              <div className="mt-4">
+                {extraActions}
+              </div>
+            )}
+
             <div className="border-t pt-6">
                 <h3 className="text-lg font-semibold mb-4">Key Statistics</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -186,3 +194,4 @@ export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({ userId, 
     </Dialog>
   );
 };
+
