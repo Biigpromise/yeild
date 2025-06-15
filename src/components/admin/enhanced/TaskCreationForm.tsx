@@ -129,7 +129,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 flex flex-col">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>

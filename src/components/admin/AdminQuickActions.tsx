@@ -189,7 +189,7 @@ export const AdminQuickActions = () => {
       </Dialog>
       {/* Create Task Dialog */}
       <Dialog open={createTaskOpen} onOpenChange={setCreateTaskOpen}>
-        <DialogContent>
+        <DialogContent className="overflow-y-auto max-h-[90vh]">
           <TaskCreationForm
             onTaskCreated={() => setCreateTaskOpen(false)}
             onCancel={() => setCreateTaskOpen(false)}
