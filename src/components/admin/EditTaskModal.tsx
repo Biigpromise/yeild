@@ -48,7 +48,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ open, onClose, tas
     e.preventDefault();
     setLoading(true);
     try {
-      // POST/PATCH to Supabase - basic task fields
       const { supabase } = await import("@/integrations/supabase/client");
       const { error } = await supabase
         .from("tasks")
