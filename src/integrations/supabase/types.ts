@@ -51,6 +51,39 @@ export type Database = {
         }
         Relationships: []
       }
+      announcements: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_active: boolean
+          scheduled_for: string | null
+          target_audience: string
+          title: string
+          type: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          scheduled_for?: string | null
+          target_audience?: string
+          title: string
+          type?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          scheduled_for?: string | null
+          target_audience?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       colors: {
         Row: {
           blue: number | null
@@ -165,6 +198,24 @@ export type Database = {
           stock_quantity?: number | null
           terms_conditions?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json | null
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json | null
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json | null
         }
         Relationships: []
       }

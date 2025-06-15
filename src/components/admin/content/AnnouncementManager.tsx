@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { adminContentService, Announcement } from "@/services/admin/adminContentService";
-import { Megaphone, Plus, Trash2, Send, Eye } from "lucide-react";
+import { Megaphone, Plus, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export const AnnouncementManager = () => {
@@ -18,7 +17,7 @@ export const AnnouncementManager = () => {
     title: '',
     content: '',
     type: 'info' as const,
-    targetAudience: 'all' as const
+    target_audience: 'all' as const
   });
 
   useEffect(() => {
@@ -48,8 +47,11 @@ export const AnnouncementManager = () => {
     }
 
     const success = await adminContentService.createAnnouncement({
-      ...newAnnouncement,
-      isActive: true
+      title: newAnnouncement.title,
+      content: newAnnouncement.content,
+      type: newAnnouncement.type,
+      target_audience: newAnnouncement.target_audience,
+      is_active: true
     });
 
     if (success) {
@@ -57,14 +59,10 @@ export const AnnouncementManager = () => {
         title: '',
         content: '',
         type: 'info',
-        targetAudience: 'all'
+        target_audience: 'all'
       });
       loadAnnouncements();
     }
-  };
-
-  const handleBroadcast = async (announcementId: string, targetAudience: string) => {
-    await adminContentService.broadcastAnnouncement(announcementId, targetAudience);
   };
 
   const handleDelete = async (announcementId: string) => {
@@ -117,8 +115,8 @@ export const AnnouncementManager = () => {
           </div>
 
           <Select
-            value={newAnnouncement.targetAudience}
-            onValueChange={(value: any) => setNewAnnouncement({...newAnnouncement, targetAudience: value})}
+            value={newAnnouncement.target_audience}
+            onValueChange={(value: any) => setNewAnnouncement({...newAnnouncement, target_audience: value})}
           >
             <SelectTrigger>
               <SelectValue placeholder="Target audience" />
@@ -140,7 +138,7 @@ export const AnnouncementManager = () => {
 
           <Button onClick={handleCreateAnnouncement} className="w-full">
             <Megaphone className="h-4 w-4 mr-2" />
-            Create & Broadcast Announcement
+            Create Announcement
           </Button>
         </CardContent>
       </Card>
@@ -169,9 +167,9 @@ export const AnnouncementManager = () => {
                             {announcement.type}
                           </Badge>
                           <Badge variant="outline">
-                            {announcement.targetAudience}
+                            {announcement.target_audience}
                           </Badge>
-                          {announcement.isActive && (
+                          {announcement.is_active && (
                             <Badge variant="default">Active</Badge>
                           )}
                         </div>
@@ -179,17 +177,10 @@ export const AnnouncementManager = () => {
                           {announcement.content}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Created: {new Date(announcement.createdAt).toLocaleDateString()}
+                          Created: {new Date(announcement.created_at).toLocaleDateString()}
                         </p>
                       </div>
                       <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleBroadcast(announcement.id, announcement.targetAudience)}
-                        >
-                          <Send className="h-4 w-4" />
-                        </Button>
                         <Button
                           size="sm"
                           variant="destructive"

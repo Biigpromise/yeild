@@ -153,7 +153,7 @@ const Admin = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto pl-0 lg:pl-64">
+      <main className="flex-1 overflow-y-auto">
         <div className="p-6 md:p-8 max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <div>
@@ -179,7 +179,7 @@ const Admin = () => {
             {sectionComponents[activeSection]}
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

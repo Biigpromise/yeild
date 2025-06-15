@@ -17,32 +17,38 @@ export interface Announcement {
   title: string;
   content: string;
   type: 'info' | 'warning' | 'success' | 'error';
-  targetAudience: 'all' | 'active' | 'new' | 'inactive';
-  isActive: boolean;
-  createdAt: string;
-  scheduledFor?: string;
-}
-
-export interface ContentPolicy {
-  autoApproval: boolean;
-  moderationRequired: boolean;
-  bannedWords: string[];
-  maxSubmissionSize: number;
-  allowedFileTypes: string[];
+  target_audience: 'all' | 'active' | 'new' | 'inactive';
+  is_active: boolean;
+  created_at: string;
+  scheduled_for?: string;
 }
 
 export const adminContentService = {
   // Platform settings management
   async getPlatformSettings(): Promise<PlatformSettings> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'get_platform_settings'
-        }
-      });
+      const { data, error } = await supabase.from('platform_settings').select('key, value');
 
       if (error) throw error;
-      return data || {
+
+      const settings = data.reduce((acc, { key, value }) => {
+        acc[key] = value;
+        return acc;
+      }, {} as any);
+
+      return {
+        siteName: settings.siteName || "YEILD",
+        maintenanceMode: settings.maintenanceMode || false,
+        registrationEnabled: settings.registrationEnabled || true,
+        taskSubmissionEnabled: settings.taskSubmissionEnabled || true,
+        withdrawalEnabled: settings.withdrawalEnabled || true,
+        maxTasksPerUser: settings.maxTasksPerUser || 10,
+        pointsPerTask: settings.pointsPerTask || 50,
+      };
+    } catch (error) {
+      console.error('Error fetching platform settings:', error);
+      // Return defaults on error
+      return {
         siteName: "YEILD",
         maintenanceMode: false,
         registrationEnabled: true,
@@ -51,20 +57,17 @@ export const adminContentService = {
         maxTasksPerUser: 10,
         pointsPerTask: 50
       };
-    } catch (error) {
-      console.error('Error fetching platform settings:', error);
-      throw error;
     }
   },
 
   async updatePlatformSettings(settings: PlatformSettings): Promise<boolean> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'update_platform_settings',
-          data: settings
-        }
-      });
+      const updates = Object.entries(settings).map(([key, value]) => ({
+        key,
+        value,
+      }));
+
+      const { error } = await supabase.from('platform_settings').upsert(updates);
 
       if (error) throw error;
       toast.success('Platform settings updated successfully');
@@ -77,14 +80,18 @@ export const adminContentService = {
   },
 
   // Announcement management
-  async createAnnouncement(announcement: Omit<Announcement, 'id' | 'createdAt'>): Promise<boolean> {
+  async createAnnouncement(announcement: Omit<Announcement, 'id' | 'created_at'>): Promise<boolean> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'create_announcement',
-          data: announcement
-        }
-      });
+      const { error } = await supabase
+        .from('announcements')
+        .insert({
+          title: announcement.title,
+          content: announcement.content,
+          type: announcement.type,
+          target_audience: announcement.target_audience,
+          is_active: announcement.is_active,
+          scheduled_for: announcement.scheduled_for,
+        });
 
       if (error) throw error;
       toast.success('Announcement created successfully');
@@ -96,43 +103,28 @@ export const adminContentService = {
     }
   },
 
-  async broadcastAnnouncement(
-    announcementId: string,
-    targetAudience: string = 'all'
-  ): Promise<boolean> {
-    try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'broadcast_announcement',
-          data: { announcementId, targetAudience }
-        }
-      });
-
-      if (error) throw error;
-      toast.success(`Announcement broadcasted to ${targetAudience} users`);
-      return true;
-    } catch (error) {
-      console.error('Error broadcasting announcement:', error);
-      toast.error('Failed to broadcast announcement');
-      return false;
-    }
-  },
-
   async getAnnouncements(filters?: {
     isActive?: boolean;
     type?: string;
     targetAudience?: string;
   }): Promise<Announcement[]> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'get_announcements',
-          data: filters
-        }
-      });
+      let query = supabase.from('announcements').select('*').order('created_at', { ascending: false });
 
+      if (filters?.isActive !== undefined) {
+        query = query.eq('is_active', filters.isActive);
+      }
+      if (filters?.type) {
+        query = query.eq('type', filters.type);
+      }
+      if (filters?.targetAudience) {
+        query = query.eq('target_audience', filters.targetAudience);
+      }
+
+      const { data, error } = await query;
+      
       if (error) throw error;
-      return data || [];
+      return (data || []) as Announcement[];
     } catch (error) {
       console.error('Error fetching announcements:', error);
       return [];
@@ -141,12 +133,10 @@ export const adminContentService = {
 
   async deleteAnnouncement(announcementId: string): Promise<boolean> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'delete_announcement',
-          data: { announcementId }
-        }
-      });
+      const { error } = await supabase
+        .from('announcements')
+        .delete()
+        .eq('id', announcementId);
 
       if (error) throw error;
       toast.success('Announcement deleted successfully');
@@ -158,57 +148,12 @@ export const adminContentService = {
     }
   },
 
-  // Content policy management
-  async getContentPolicy(): Promise<ContentPolicy> {
-    try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'get_content_policy'
-        }
-      });
-
-      if (error) throw error;
-      return data || {
-        autoApproval: false,
-        moderationRequired: true,
-        bannedWords: [],
-        maxSubmissionSize: 5,
-        allowedFileTypes: ['jpg', 'png', 'pdf', 'doc']
-      };
-    } catch (error) {
-      console.error('Error fetching content policy:', error);
-      throw error;
-    }
-  },
-
-  async updateContentPolicy(policy: ContentPolicy): Promise<boolean> {
-    try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'update_content_policy',
-          data: policy
-        }
-      });
-
-      if (error) throw error;
-      toast.success('Content policy updated successfully');
-      return true;
-    } catch (error) {
-      console.error('Error updating content policy:', error);
-      toast.error('Failed to update content policy');
-      return false;
-    }
-  },
-
   // System maintenance
   async toggleMaintenanceMode(enabled: boolean): Promise<boolean> {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'toggle_maintenance_mode',
-          data: { enabled }
-        }
-      });
+      const { error } = await supabase
+        .from('platform_settings')
+        .upsert({ key: 'maintenanceMode', value: enabled });
 
       if (error) throw error;
       toast.success(`Maintenance mode ${enabled ? 'enabled' : 'disabled'}`);
@@ -219,44 +164,4 @@ export const adminContentService = {
       return false;
     }
   },
-
-  // Content moderation
-  async getContentModerationQueue(): Promise<any[]> {
-    try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'get_content_moderation_queue'
-        }
-      });
-
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.error('Error fetching moderation queue:', error);
-      return [];
-    }
-  },
-
-  async moderateContent(
-    contentId: string,
-    action: 'approve' | 'reject',
-    reason?: string
-  ): Promise<boolean> {
-    try {
-      const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { 
-          action: 'moderate_content',
-          data: { contentId, action, reason }
-        }
-      });
-
-      if (error) throw error;
-      toast.success(`Content ${action}d successfully`);
-      return true;
-    } catch (error) {
-      console.error('Error moderating content:', error);
-      toast.error('Failed to moderate content');
-      return false;
-    }
-  }
 };
