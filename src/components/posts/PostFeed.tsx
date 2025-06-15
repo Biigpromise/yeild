@@ -1,192 +1,32 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+
+import React, { useState, useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, ThumbsUp, Eye } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
 import { PublicProfileModal } from "@/components/PublicProfileModal";
-
-type Profile = {
-  id: string;
-  name: string | null;
-  profile_picture_url?: string | null;
-};
-
-type PostLike = {
-  user_id: string;
-};
-
-type Post = {
-  id: string;
-  user_id: string;
-  content: string;
-  created_at: string;
-  profile: Profile | null;
-  view_count: number;
-  likes_count: number;
-  post_likes: PostLike[];
-};
-
-const OFFENSIVE_WORDS = [
-  'sex', 'fuck', 'shit', 'bitch', 'asshole', 'dick', 'pussy', 'cunt', 'nigger', 'fag', 'slut'
-];
-
-function containsProfanity(text: string) {
-  const lowerText = text.toLowerCase();
-  return OFFENSIVE_WORDS.some(word => lowerText.includes(word));
-}
+import { usePosts } from '@/hooks/use-posts';
+import { PostForm } from './PostForm';
+import { PostItem } from './PostItem';
 
 export const PostFeed: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [newPost, setNewPost] = useState("");
-  const [userId, setUserId] = useState<string | null>(null);
-  const { toast } = useToast();
-
-  // Profile modal state
+  const {
+    posts,
+    loading,
+    newPost,
+    setNewPost,
+    userId,
+    handlePostSubmit,
+    handleLikePost,
+    incrementViewCount
+  } = usePosts();
+  
   const [profileModalUserId, setProfileModalUserId] = useState<string | null>(null);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
-  const viewedPostsRef = useRef(new Set<string>());
-
-  // Get current user
-  useEffect(() => {
-    (async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error("PostFeed: Error getting user:", error.message);
-      }
-      setUserId(data?.user?.id ?? null);
-    })();
-  }, []);
-
-  // Fetch posts with user profile info
-  const fetchPosts = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("posts")
-      .select("*, profile:profiles(id, name, profile_picture_url), post_likes(user_id)")
-      .order("created_at", { ascending: false });
-
-    if (!error && data) {
-      setPosts(data as any[]); // Using any because generated types won't have new fields yet
-    } else {
-      if (error) console.error("Error fetching posts:", error);
-      toast({
-        title: "Error",
-        description: "Could not load posts.",
-        variant: "destructive",
-      });
-    }
-    setLoading(false);
-  }, [toast]);
-
-  useEffect(() => {
-    fetchPosts();
-    const channel = supabase
-      .channel("public-posts-feed")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "posts" },
-        () => fetchPosts()
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "post_likes" },
-        () => fetchPosts()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [fetchPosts]);
-
-  const handlePostSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!userId || newPost.trim() === "") return;
-    if (containsProfanity(newPost)) {
-      toast({
-        title: "Post Blocked",
-        description: "Your post contains inappropriate language and cannot be published.",
-        variant: "destructive"
-      });
-      return;
-    }
-    const { error } = await supabase
-      .from("posts")
-      .insert({ user_id: userId, content: newPost });
-    if (error) {
-      console.error("Error publishing post:", error);
-      toast({
-        title: "Error",
-        description: `Failed to publish your post: ${error.message}`,
-        variant: "destructive"
-      });
-    } else {
-      setNewPost("");
-      // fetchPosts(); // Not needed if realtime enabled
-    }
-  };
-
-  const handleLikePost = async (post: Post) => {
-    if (!userId) {
-      toast({ description: "You need to be logged in to like a post." });
-      return;
-    }
-    const hasLiked = post.post_likes?.some(like => like.user_id === userId);
-
-    const originalPosts = posts;
-    setPosts(currentPosts => 
-      currentPosts.map(p => {
-        if (p.id === post.id) {
-          return {
-            ...p,
-            likes_count: hasLiked ? p.likes_count - 1 : p.likes_count + 1,
-            post_likes: hasLiked 
-              ? p.post_likes.filter(like => like.user_id !== userId)
-              : [...(p.post_likes || []), { user_id: userId }]
-          };
-        }
-        return p;
-      })
-    );
-
-    if (hasLiked) {
-      const { error } = await supabase
-        .from('post_likes')
-        .delete()
-        .match({ post_id: post.id, user_id: userId });
-      if (error) {
-        toast({ variant: 'destructive', description: "Couldn't unlike post. " + error.message });
-        setPosts(originalPosts);
-      }
-    } else {
-      const { error } = await supabase
-        .from('post_likes')
-        .insert({ post_id: post.id, user_id: userId });
-      if (error) {
-        toast({ variant: 'destructive', description: "Couldn't like post. " + error.message });
-        setPosts(originalPosts);
-      }
-    }
-  };
-
-  const incrementViewCount = useCallback(async (postId: string) => {
-    if (viewedPostsRef.current.has(postId)) return;
-    viewedPostsRef.current.add(postId);
-    
-    setPosts(prev => prev.map(p => p.id === postId ? {...p, view_count: (p.view_count || 0) + 1} : p));
-
-    const { error } = await supabase.rpc('increment_post_view', { post_id_to_inc: postId });
-    if (error) {
-      console.error('Failed to increment view count:', error.message);
-    }
-  }, []);
 
   const postRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
+    // Reset refs when posts change to avoid observing detached elements
+    postRefs.current = postRefs.current.slice(0, posts.length);
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -221,106 +61,33 @@ export const PostFeed: React.FC = () => {
 
   return (
     <div className="flex flex-col h-[600px] border rounded-lg">
-      <div className="p-4 border-b bg-muted">
-        <form onSubmit={handlePostSubmit} className="flex gap-2">
-          <Input
-            value={newPost}
-            onChange={(e) => setNewPost(e.target.value)}
-            placeholder="What's on your mind?"
-            disabled={!userId}
-            autoComplete="off"
-          />
-          <Button type="submit" disabled={!userId || newPost.trim() === ""}>
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
-      </div>
+      <PostForm
+        newPost={newPost}
+        setNewPost={setNewPost}
+        handlePostSubmit={handlePostSubmit}
+        userId={userId}
+      />
       <ScrollArea className="flex-1 p-4">
         {loading ? (
           <div className="flex justify-center p-8 text-muted-foreground">Loading feed...</div>
         ) : (
           <div className="space-y-6">
             {posts.map((post, index) => (
-              <div
+              <PostItem
                 key={post.id}
-                ref={el => {
-                  if (postRefs.current) {
-                      postRefs.current[index] = el;
-                  }
-                }}
-                data-post-id={post.id}
-                className="border-b pb-4 last:border-b-0 flex gap-3"
-              >
-                <button
-                  type="button"
-                  className="outline-none focus:ring-2 rounded-full"
-                  onClick={() => openProfile(post.user_id)}
-                  tabIndex={0}
-                  aria-label={`View profile of ${post.profile?.name ?? "User"}`}
-                >
-                  <Avatar className="h-10 w-10 hover:scale-105 transition">
-                    <AvatarImage
-                      src={
-                        post.profile?.profile_picture_url ||
-                        `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(post.profile?.name || 'U')}`
-                      }
-                      alt={post.profile?.name || ""}
-                    />
-                    <AvatarFallback>
-                      {(post.profile?.name || "U").charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                </button>
-                <div className="flex-1 min-w-0">
-                  <div className="flex gap-3 items-center">
-                    <button
-                      type="button"
-                      className="text-sm font-semibold hover:underline hover:text-primary focus:outline-none"
-                      style={{ textAlign: "left" }}
-                      onClick={() => openProfile(post.user_id)}
-                    >
-                      {post.profile?.name || "Anonymous"}
-                    </button>
-                    <span className="text-xs opacity-50">
-                      {new Date(post.created_at).toLocaleString([], {
-                        year: "2-digit",
-                        month: "short",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                  <div className="mt-1 text-base break-words whitespace-pre-line">
-                    {post.content}
-                  </div>
-                  <div className="flex items-center gap-4 text-muted-foreground mt-3">
-                    <button
-                      onClick={() => handleLikePost(post)}
-                      disabled={!userId}
-                      className="flex items-center gap-1.5 group disabled:cursor-not-allowed"
-                      aria-label={`Like post by ${post.profile?.name ?? "User"}`}
-                    >
-                      <ThumbsUp
-                        className={`h-4 w-4 group-hover:text-primary transition-colors ${post.post_likes?.some(like => like.user_id === userId) ? 'text-primary fill-primary' : ''}`}
-                      />
-                      <span className="text-sm">{post.likes_count ?? 0}</span>
-                    </button>
-                    <div className="flex items-center gap-1.5" title={`${post.view_count ?? 0} views`}>
-                      <Eye className="h-4 w-4" />
-                      <span className="text-sm">{post.view_count ?? 0}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                ref={el => { postRefs.current[index] = el; }}
+                post={post}
+                userId={userId}
+                handleLikePost={handleLikePost}
+                openProfile={openProfile}
+              />
             ))}
-            {posts.length === 0 && (
+            {posts.length === 0 && !loading && (
               <div className="text-center text-muted-foreground pt-12">No posts yet.</div>
             )}
           </div>
         )}
       </ScrollArea>
-      {/* Profile Modal */}
       <PublicProfileModal
         userId={profileModalUserId}
         isOpen={profileModalOpen}
