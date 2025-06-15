@@ -35,7 +35,18 @@ export const AdminWallet = () => {
 
   return (
     <WalletDataProvider>
-      {({ payoutRequests, settings, totalPendingAmount, totalProcessedAmount, isLoading, updatePayoutRequest, setPayoutRequests, setSettings, chartData }) => (
+      {({
+        payoutRequests,
+        settings,
+        totalPendingAmount,
+        totalProcessedAmount,
+        totalPlatformBalance,
+        isLoading,
+        updatePayoutRequest,
+        setPayoutRequests,
+        setSettings,
+        chartData,
+      }) => (
         <div className="space-y-6">
           <AutomationProcessor
             payoutRequests={payoutRequests}
@@ -47,6 +58,7 @@ export const AdminWallet = () => {
             <WalletSummary
               totalPendingAmount={totalPendingAmount}
               totalProcessedAmount={totalProcessedAmount}
+              totalPlatformBalance={totalPlatformBalance}
               lastSyncTime="Just now"
             />
             <PayoutTrendsChart

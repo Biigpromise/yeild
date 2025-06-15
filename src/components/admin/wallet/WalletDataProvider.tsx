@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from "react";
 import { PayoutRequest, WalletChartData } from "./types";
 import { adminFinancialService } from "@/services/admin/adminFinancialService";
+import { supabase } from "@/integrations/supabase/client";
 
 // Assuming AutomationSetting is still local and not in DB (unless you request otherwise)
 export type AutomationSetting = {
@@ -16,10 +18,12 @@ type WalletContextData = {
   settings: AutomationSetting[];
   totalPendingAmount: number;
   totalProcessedAmount: number;
+  totalPlatformBalance: number; // <-- Add this
   isLoading: {
     chart: boolean;
     requests: boolean;
     history: boolean;
+    platformBalance?: boolean;
   };
   setPayoutRequests: (requests: PayoutRequest[]) => void;
   setSettings: (settings: AutomationSetting[]) => void;
@@ -31,6 +35,7 @@ type WalletDataProviderProps = {
     payoutRequests?: PayoutRequest[];
     chartData?: WalletChartData[];
     automationSettings?: AutomationSetting[];
+    totalPlatformBalance?: number;
   };
   children: (data: WalletContextData) => React.ReactNode;
 };
@@ -76,8 +81,11 @@ export const WalletDataProvider: React.FC<WalletDataProviderProps> = ({
   const [isLoading, setIsLoading] = useState({
     chart: true,
     requests: true,
-    history: true
+    history: true,
+    platformBalance: true,
   });
+
+  const [totalPlatformBalance, setTotalPlatformBalance] = useState<number>(initialData.totalPlatformBalance ?? 0);
 
   // Fetch payout requests
   useEffect(() => {
@@ -88,7 +96,7 @@ export const WalletDataProvider: React.FC<WalletDataProviderProps> = ({
         setPayoutRequests(
           requests.map(req => ({
             ...req,
-            method: req.payoutMethod,
+            method: req.payoutMethod as "paypal" | "bank" | "crypto",
             requestDate: req.requestedAt?.split("T")[0] || req.requestedAt,
             processingDate: req.processedAt?.split("T")[0] || req.processedAt,
             taskCompleted: true, // You may want to change depending on your backend
@@ -128,6 +136,32 @@ export const WalletDataProvider: React.FC<WalletDataProviderProps> = ({
     fetchChart();
   }, []);
 
+  // Fetch platform balance from yield_wallets (sum of all balances)
+  useEffect(() => {
+    const fetchPlatformBalance = async () => {
+      setIsLoading(prev => ({ ...prev, platformBalance: true }));
+      try {
+        const { data, error } = await supabase
+          .from("yield_wallets")
+          .select("balance")
+          .neq("user_id", null);
+        if (error) {
+          setTotalPlatformBalance(0);
+          setIsLoading(prev => ({ ...prev, platformBalance: false }));
+          return;
+        }
+        // Sum up all balances
+        const sum = (data ?? []).reduce((acc, curr) => acc + (typeof curr.balance === "number" ? curr.balance : parseFloat(curr.balance || 0)), 0);
+        setTotalPlatformBalance(sum);
+      } catch {
+        setTotalPlatformBalance(0);
+      } finally {
+        setIsLoading(prev => ({ ...prev, platformBalance: false }));
+      }
+    };
+    fetchPlatformBalance();
+  }, []);
+
   // Simulate history loading delay
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -155,6 +189,7 @@ export const WalletDataProvider: React.FC<WalletDataProviderProps> = ({
     settings,
     totalPendingAmount,
     totalProcessedAmount,
+    totalPlatformBalance,
     isLoading,
     setPayoutRequests,
     setSettings,
