@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { TaskFilterBar } from "./TaskFilterBar";
 import { TaskTable } from "./TaskTable";
 import { useAdminTaskManagement } from "./hooks/useAdminTaskManagement";
 import { getStatusColor, getDifficultyColor } from "./utils/taskColorUtils";
+import { EditTaskModal } from "./EditTaskModal";
 
 export const TaskManagement = () => {
   const {
@@ -36,6 +36,10 @@ export const TaskManagement = () => {
     approvedSubmissions,
     loadData,
   } = useAdminTaskManagement();
+
+  // Edit task modal state
+  const [editTaskModalOpen, setEditTaskModalOpen] = React.useState(false);
+  const [taskToEdit, setTaskToEdit] = React.useState(null);
 
   if (loading) {
     return (
@@ -105,6 +109,11 @@ export const TaskManagement = () => {
                   getStatusColor={getStatusColor}
                   onDeleteTask={handleDeleteTask}
                   deleteLoading={deleteLoading}
+                  // Add onEditTask prop for triggering the edit modal
+                  onEditTask={(task) => {
+                    setTaskToEdit(task);
+                    setEditTaskModalOpen(true);
+                  }}
                 />
               </div>
             </CardContent>
@@ -131,6 +140,14 @@ export const TaskManagement = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Edit Modal (appears over everything) */}
+      <EditTaskModal
+        open={editTaskModalOpen}
+        onClose={() => setEditTaskModalOpen(false)}
+        task={taskToEdit}
+        onTaskUpdated={loadData}
+      />
     </div>
   );
 };

@@ -11,6 +11,7 @@ interface TaskTableProps {
   getStatusColor: (status: string) => string;
   onDeleteTask: (taskId: string) => void;
   deleteLoading?: string | null;
+  onEditTask: (task: Task) => void;
 }
 
 export const TaskTable: React.FC<TaskTableProps> = ({
@@ -18,7 +19,8 @@ export const TaskTable: React.FC<TaskTableProps> = ({
   getDifficultyColor,
   getStatusColor,
   onDeleteTask,
-  deleteLoading
+  deleteLoading,
+  onEditTask
 }) => (
   <div className="overflow-x-auto border rounded-md">
     <Table>
@@ -57,7 +59,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                 <Button size="sm" variant="outline">
                   <Eye className="h-4 w-4" />
                 </Button>
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={() => onEditTask(task)}>
                   <Edit className="h-4 w-4" />
                 </Button>
                 <Button 
