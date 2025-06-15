@@ -7,7 +7,7 @@ const CRISP_WEBSITE_ID = "509c9eaa-bb98-408f-9d91-2dabcb03e8df"; // demo ID
 const CrispChatWidget = () => {
   useEffect(() => {
     // Only add once
-    if (window.$crisp) return;
+    if ((window as any).$crisp) return;
     (window as any).$crisp = [];
     (function () {
       const d = document;
