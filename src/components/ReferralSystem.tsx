@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,7 @@ import {
   Award,
   Star
 } from "lucide-react";
+import { ReferralProgressBanner } from "@/components/referral/ReferralProgressBanner";
 
 type ReferralTier = {
   name: string;
@@ -97,6 +97,20 @@ export const ReferralSystem = () => {
   const [totalEarnings] = useState(1250);
   const [currentTier] = useState(referralTiers[0]);
 
+  // Define referral milestones - adjust as desired!
+  const referralMilestones = [
+    { required: 1, reward: "50 bonus pts" },
+    { required: 3, reward: "Silver Tier & 200 pts" },
+    { required: 5, reward: "Gold Tier & 500 pts" },
+    { required: 15, reward: "Gold Gift Box" },
+    { required: 30, reward: "Platinum VIP" }
+  ];
+
+  // Find the next milestone for the user
+  const nextMilestone = referralMilestones.find(
+    (m) => m.required > totalReferrals
+  ) || null;
+
   const referralLink = `https://yield-app.com/signup?ref=${referralCode}`;
 
   const copyReferralLink = () => {
@@ -130,6 +144,15 @@ export const ReferralSystem = () => {
 
   return (
     <div className="space-y-6">
+      {/* New Referral Progress Banner */}
+      <ReferralProgressBanner
+        referralCode={referralCode}
+        currentReferrals={totalReferrals}
+        nextMilestone={nextMilestone}
+        onCopy={copyReferralLink}
+        onShare={shareReferralLink}
+      />
+
       {/* Referral Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
