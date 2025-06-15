@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { taskSubmissionService } from "./tasks/taskSubmissionService";
@@ -28,6 +27,16 @@ export interface TaskCategory {
   icon: string;
   color: string;
   created_at: string;
+}
+
+interface CreateCampaignPayload {
+  title: string;
+  description: string;
+  points: number;
+  category: string;
+  difficulty: string;
+  estimated_time?: string;
+  expires_at?: string;
 }
 
 export const taskService = {
@@ -83,7 +92,7 @@ export const taskService = {
   admin: adminTaskService,
 
   // Brand functions
-  async createCampaign(campaignData: Partial<Task>): Promise<Task | null> {
+  async createCampaign(campaignData: CreateCampaignPayload): Promise<Task | null> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast.error("You must be logged in to create a campaign.");
