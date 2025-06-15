@@ -100,19 +100,38 @@ export const CommunityChat = () => {
     fetchStories();
   }, []);
 
+  // Add a list of offensive words
+  const OFFENSIVE_WORDS = ['sex', 'fuck', 'shit', 'bitch', 'asshole', 'dick', 'pussy', 'cunt', 'nigger', 'fag', 'slut'];
+
+  // Utility function to check for profanity (case-insensitive, simple match)
+  const containsProfanity = (text: string) => {
+    const lowerText = text.toLowerCase();
+    return OFFENSIVE_WORDS.some((word) => lowerText.includes(word));
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newMessage.trim() === '' || !userId) return;
+
+    // Check for offensive language
+    if (containsProfanity(newMessage)) {
+      toast({
+        title: "Message Blocked",
+        description: "Your message contains inappropriate language and cannot be sent.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     const success = await chatService.sendMessage(newMessage, userId);
     if (success) {
       setNewMessage('');
     } else {
-        toast({
-            title: "Error",
-            description: "Could not send message. Please try again.",
-            variant: "destructive"
-        })
+      toast({
+          title: "Error",
+          description: "Could not send message. Please try again.",
+          variant: "destructive"
+      })
     }
   };
 
