@@ -38,16 +38,16 @@ export const BrandCampaignsTab: React.FC = () => {
     return (
         <>
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>Your Campaigns</CardTitle>
-                        <CardDescription>View and manage your marketing campaigns.</CardDescription>
-                    </div>
-                    <Button onClick={handleCreateClick}>
-                        <PlusCircle className="mr-2 h-4 w-4" /> Create Campaign
-                    </Button>
+                <CardHeader>
+                    <CardTitle>Your Campaigns</CardTitle>
+                    <CardDescription>View and manage your marketing campaigns.</CardDescription>
                 </CardHeader>
                 <CardContent>
+                    <div className="flex justify-end mb-4">
+                        <Button onClick={handleCreateClick}>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Create Campaign
+                        </Button>
+                    </div>
                     {campaigns.length > 0 ? (
                         <Table>
                             <TableHeader>
@@ -89,10 +89,7 @@ export const BrandCampaignsTab: React.FC = () => {
                     ) : (
                         <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg">
                             <h3 className="text-lg font-medium mb-2">No campaigns yet</h3>
-                            <p className="text-muted-foreground mb-4">Click "Create Campaign" to get started.</p>
-                            <Button onClick={handleCreateClick}>
-                                <PlusCircle className="mr-2 h-4 w-4" /> Create Campaign
-                            </Button>
+                            <p className="text-muted-foreground mb-4">Click "Create Campaign" above to get started.</p>
                         </div>
                     )}
                 </CardContent>
