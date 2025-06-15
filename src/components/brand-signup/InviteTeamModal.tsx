@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -98,7 +97,6 @@ export const InviteTeamModal: React.FC<InviteTeamModalProps> = ({ open, onClose 
             <Button
               type="submit"
               className="yeild-btn-primary flex-1"
-              loading={loading}
               disabled={loading || emails.length === 0}
             >
               {loading ? "Sending..." : "Send Invites"}
