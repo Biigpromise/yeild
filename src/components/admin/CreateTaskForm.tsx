@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ interface CreateTaskFormProps {
 export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated }) => {
   const [categories, setCategories] = useState<TaskCategory[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -36,12 +36,21 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
   const loadCategories = async () => {
     try {
       setCategoriesLoading(true);
+      setLoadError(null);
       const data = await taskService.getCategories();
       console.log("Loaded categories:", data);
-      setCategories(data || []);
-    } catch (error) {
+      if (!data || data.length === 0) {
+        setLoadError("No categories available. Please check your database or category permissions.");
+        toast.error("Unable to load categories. Please contact admin if this persists.");
+        setCategories([]);
+      } else {
+        setCategories(data);
+      }
+    } catch (error: any) {
       console.error("Error loading categories:", error);
       setCategories([]);
+      setLoadError("Failed to load categories.");
+      toast.error("Failed to load categories. Please check your permissions or database setup.");
     } finally {
       setCategoriesLoading(false);
     }
@@ -49,7 +58,6 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!formData.title || !formData.description || !formData.points || !formData.category_id) {
       toast.error("Please fill in all required fields");
       return;
@@ -63,11 +71,8 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
         expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null,
         status: 'active'
       };
-
       await taskService.admin.createTask(taskData);
       toast.success("Task created successfully!");
-      
-      // Reset form
       setFormData({
         title: "",
         description: "",
@@ -79,7 +84,6 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
         estimated_time: "",
         expires_at: ""
       });
-      
       onTaskCreated();
     } catch (error) {
       console.error("Error creating task:", error);
@@ -94,13 +98,13 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
   };
 
   // Filter and validate categories - ensure they have valid IDs and names
-  const validCategories = categories.filter(category => 
-    category && 
-    category.id && 
-    typeof category.id === 'string' && 
+  const validCategories = categories.filter(category =>
+    category &&
+    category.id &&
+    typeof category.id === 'string' &&
     category.id.trim() !== '' &&
-    category.name && 
-    typeof category.name === 'string' && 
+    category.name &&
+    typeof category.name === 'string' &&
     category.name.trim() !== ''
   );
 
@@ -110,12 +114,17 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
         <CardHeader className="px-4 pt-4">
           <CardTitle>Create New Task</CardTitle>
         </CardHeader>
-        <CardContent 
+        <CardContent
           className="p-4 pt-0 overflow-y-auto"
           style={{ maxHeight: "80vh" }}
         >
-          <form 
-            onSubmit={handleSubmit} 
+          {loadError && (
+            <div className="mb-4 p-2 bg-red-50 text-red-600 border border-red-200 rounded text-center text-sm">
+              {loadError}
+            </div>
+          )}
+          <form
+            onSubmit={handleSubmit}
             className="space-y-6"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -129,7 +138,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                     placeholder="Enter task title"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="points">Points Reward *</Label>
                   <Input
@@ -141,19 +150,22 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                     min="1"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="category">Category *</Label>
-                  <Select 
-                    value={formData.category_id} 
+                  <Select
+                    value={formData.category_id}
                     onValueChange={(value) => handleInputChange('category_id', value)}
+                    disabled={categoriesLoading || !!loadError}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select category"} />
+                      <SelectValue placeholder={categoriesLoading ? "Loading categories..." : (loadError ? "Failed to load" : "Select category")} />
                     </SelectTrigger>
                     <SelectContent>
                       {categoriesLoading ? (
                         <SelectItem value="loading-placeholder" disabled>Loading categories...</SelectItem>
+                      ) : loadError ? (
+                        <SelectItem value="error" disabled>{loadError}</SelectItem>
                       ) : validCategories.length > 0 ? (
                         validCategories.map((category) => (
                           <SelectItem key={`cat-${category.id}`} value={category.id}>
@@ -166,7 +178,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="difficulty">Difficulty</Label>
                   <Select value={formData.difficulty} onValueChange={(value) => handleInputChange('difficulty', value)}>
@@ -181,7 +193,6 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                   </Select>
                 </div>
               </div>
-              
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="brand_name">Brand Name</Label>
@@ -192,7 +203,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                     placeholder="Brand or company name"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="brand_logo_url">Brand Logo URL</Label>
                   <Input
@@ -202,7 +213,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                     placeholder="https://example.com/logo.png"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="estimated_time">Estimated Time</Label>
                   <Input
@@ -212,7 +223,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                     placeholder="e.g., 5 minutes, 1 hour"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="expires_at">Expiration Date</Label>
                   <Input
@@ -224,7 +235,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                 </div>
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="description">Task Description *</Label>
               <Textarea
@@ -235,7 +246,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                 rows={4}
               />
             </div>
-            
+
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
               <Button type="button" variant="outline" className="w-full sm:w-auto">
                 Save as Draft

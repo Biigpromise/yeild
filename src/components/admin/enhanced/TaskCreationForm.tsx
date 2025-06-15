@@ -37,13 +37,14 @@ const initialFormData = {
   }
 };
 
-export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({ 
-  taskToEdit, 
-  onTaskCreated, 
-  onCancel 
+export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
+  taskToEdit,
+  onTaskCreated,
+  onCancel
 }) => {
   const [categories, setCategories] = useState<any[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -72,12 +73,21 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   const loadCategories = async () => {
     try {
       setCategoriesLoading(true);
+      setCategoriesError(null);
       const data = await enhancedTaskManagementService.getTaskCategories();
       console.log("Loaded categories:", data);
-      setCategories(data || []);
-    } catch (error) {
+      if (!data || data.length === 0) {
+        setCategoriesError("No categories available. Please check your database or permissions.");
+        toast.error("Unable to load categories. Please contact admin if this persists.");
+        setCategories([]);
+      } else {
+        setCategories(data);
+      }
+    } catch (error: any) {
       console.error("Error loading categories:", error);
       setCategories([]);
+      setCategoriesError("Failed to load categories.");
+      toast.error("Failed to load categories. Please check your permissions or database setup.");
     } finally {
       setCategoriesLoading(false);
     }
@@ -136,14 +146,13 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
     }));
   };
 
-  // Filter and validate categories - ensure they have valid IDs and names
-  const validCategories = categories.filter(category => 
-    category && 
-    category.id && 
-    typeof category.id === 'string' && 
+  const validCategories = categories.filter(category =>
+    category &&
+    category.id &&
+    typeof category.id === 'string' &&
     category.id.trim() !== '' &&
-    category.name && 
-    typeof category.name === 'string' && 
+    category.name &&
+    typeof category.name === 'string' &&
     category.name.trim() !== ''
   );
 
@@ -155,6 +164,11 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {categoriesError && (
+          <div className="mb-4 p-2 bg-red-50 text-red-600 border border-red-200 rounded text-center text-sm">
+            {categoriesError}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-6 flex flex-col">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
@@ -186,16 +200,19 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
               
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Select 
-                  value={formData.category_id} 
+                <Select
+                  value={formData.category_id}
                   onValueChange={(value) => handleInputChange('category_id', value)}
+                  disabled={categoriesLoading || !!categoriesError}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select category"} />
+                    <SelectValue placeholder={categoriesLoading ? "Loading categories..." : (categoriesError ? "Failed to load" : "Select category")} />
                   </SelectTrigger>
                   <SelectContent>
                     {categoriesLoading ? (
                       <SelectItem value="loading" disabled>Loading categories...</SelectItem>
+                    ) : categoriesError ? (
+                      <SelectItem value="error" disabled>{categoriesError}</SelectItem>
                     ) : validCategories.length > 0 ? (
                       validCategories.map((category) => (
                         <SelectItem key={`category-${category.id}`} value={category.id}>
