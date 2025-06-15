@@ -37,7 +37,7 @@ export const supportService = {
     }
     
     toast.success('Support ticket created successfully!');
-    return data;
+    return data as SupportTicket;
   },
 
   async getUserTickets(): Promise<SupportTicket[]> {
@@ -56,6 +56,6 @@ export const supportService = {
       return [];
     }
     
-    return data || [];
+    return (data as SupportTicket[]) || [];
   },
 };
