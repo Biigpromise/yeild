@@ -138,7 +138,7 @@ export const TaskManagement = () => {
   }
 
   return (
-    <div className="space-y-6 h-full">
+    <div className="h-full flex flex-col gap-6">
       {/* Overview Stats */}
       <TaskOverviewStats 
         activeTasksCount={activeTasksCount}
@@ -147,7 +147,7 @@ export const TaskManagement = () => {
         approvalRate={totalSubmissions > 0 ? Math.round((approvedSubmissions / totalSubmissions) * 100) : 0}
       />
 
-      <Tabs defaultValue="tasks" className="space-y-6 h-full flex flex-col">
+      <Tabs defaultValue="tasks" className="flex-1 flex flex-col gap-6">
         <TabsList>
           <TabsTrigger value="tasks">All Tasks</TabsTrigger>
           <TabsTrigger value="submissions">
