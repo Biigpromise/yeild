@@ -10,6 +10,7 @@ export interface TaskAnalytics {
   approvalRate: number;
   avgCompletionTime: number;
   topCategories: Array<{ category: string; count: number }>;
+  recentActivity: any[];
 }
 
 export interface BulkTaskOperation {
@@ -30,7 +31,7 @@ export const adminTaskManagementService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'process_task_submission',
+          action: 'process_task_submission',
           data: { 
             submissionId, 
             status, 
@@ -58,15 +59,16 @@ export const adminTaskManagementService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'bulk_task_operation',
+          action: 'bulk_task_operation',
           data: operation
         }
       });
 
       if (error) throw error;
       
-      toast.success(`Bulk ${operation.operation} completed for ${operation.taskIds.length} tasks`);
-      return true;
+      // The service shouldn't toast, the component should.
+      // toast.success(`Bulk ${operation.operation} completed for ${operation.taskIds.length} tasks`);
+      return data.success;
     } catch (error) {
       console.error('Error performing bulk operation:', error);
       toast.error('Failed to perform bulk operation');
@@ -79,7 +81,7 @@ export const adminTaskManagementService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'get_task_analytics',
+          action: 'get_task_analytics',
           data: { 
             startDate: dateRange?.start?.toISOString(),
             endDate: dateRange?.end?.toISOString()
@@ -104,7 +106,7 @@ export const adminTaskManagementService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'get_pending_submissions',
+          action: 'get_pending_submissions',
           data: filters
         }
       });

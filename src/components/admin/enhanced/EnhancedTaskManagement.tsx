@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { enhancedTaskManagementService, TaskAnalytics, TaskSubmissionWithDetails } from "@/services/admin/enhancedTaskManagementService";
+import { adminTaskManagementService, TaskAnalytics } from "@/services/admin/adminTaskManagementService";
+import { adminTaskService } from "@/services/tasks/adminTaskService";
 import { toast } from "sonner";
 import { 
   Plus, 
@@ -33,7 +34,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export const EnhancedTaskManagement = () => {
   const [tasks, setTasks] = useState<any[]>([]);
-  const [submissions, setSubmissions] = useState<TaskSubmissionWithDetails[]>([]);
+  const [submissions, setSubmissions] = useState<any[]>([]);
   const [analytics, setAnalytics] = useState<TaskAnalytics | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -57,9 +58,9 @@ export const EnhancedTaskManagement = () => {
       
       // Load tasks, submissions, and analytics in parallel
       const [tasksData, submissionsData, analyticsData] = await Promise.all([
-        enhancedTaskManagementService.searchTasks({}),
-        enhancedTaskManagementService.getPendingSubmissions(),
-        enhancedTaskManagementService.getTaskAnalytics()
+        adminTaskService.getAllTasks(),
+        adminTaskManagementService.getPendingSubmissions(),
+        adminTaskManagementService.getTaskAnalytics()
       ]);
       
       setTasks(tasksData);
@@ -77,7 +78,7 @@ export const EnhancedTaskManagement = () => {
     if (!confirm("Are you sure you want to delete this task?")) return;
     
     try {
-      const success = await enhancedTaskManagementService.performBulkTaskOperation({
+      const success = await adminTaskManagementService.performBulkTaskOperation({
         taskIds: [taskId],
         operation: 'delete'
       });
@@ -85,6 +86,8 @@ export const EnhancedTaskManagement = () => {
       if (success) {
         toast.success("Task deleted successfully");
         loadData();
+      } else {
+        toast.error("Failed to delete task.");
       }
     } catch (error) {
       console.error("Error deleting task:", error);
@@ -94,7 +97,7 @@ export const EnhancedTaskManagement = () => {
 
   const handleSubmissionUpdate = async (submissionId: string, status: 'approved' | 'rejected', notes?: string) => {
     try {
-      const success = await enhancedTaskManagementService.processTaskSubmission(
+      const success = await adminTaskManagementService.processTaskSubmission(
         submissionId, 
         status, 
         notes
@@ -103,6 +106,8 @@ export const EnhancedTaskManagement = () => {
       if (success) {
         toast.success(`Submission ${status} successfully`);
         loadData();
+      } else {
+        toast.error("Failed to update submission");
       }
     } catch (error) {
       console.error("Error updating submission:", error);
