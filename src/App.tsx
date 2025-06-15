@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -14,7 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import Tasks from "./pages/Tasks";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
-import AdminSetup from "./pages/AdminSetup";
+// Removed: import AdminSetup from "./pages/AdminSetup";
 import BrandSignup from "./pages/BrandSignup";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -63,7 +64,7 @@ function App() {
                     <Route path="/brand-signup" element={<BrandSignup />} />
                     <Route path="/terms" element={<TermsOfService />} />
                     <Route path="/privacy" element={<PrivacyPolicy />} />
-                    <Route path="/admin-setup" element={<AdminSetup />} />
+                    {/* Removed: <Route path="/admin-setup" element={<AdminSetup />} /> */}
                     <Route
                       path="/dashboard"
                       element={
@@ -111,3 +112,4 @@ function App() {
 }
 
 export default App;
+
