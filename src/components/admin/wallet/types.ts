@@ -1,10 +1,9 @@
-
 export type PayoutRequest = {
   id: string;
   userId: string;
   userName: string;
   amount: number;
-  status: "pending" | "approved" | "rejected" | "processing";
+  status: "pending" | "approved" | "rejected" | "processing" | "processed";
   requestDate: string;
   method: "paypal" | "bank" | "crypto";
   taskCompleted?: boolean;

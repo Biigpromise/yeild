@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { PayoutRequest, WalletChartData } from "./types";
 import { adminFinancialService } from "@/services/admin/adminFinancialService";
@@ -94,6 +93,7 @@ export const WalletDataProvider: React.FC<WalletDataProviderProps> = ({
             processingDate: req.processedAt?.split("T")[0] || req.processedAt,
             taskCompleted: true, // You may want to change depending on your backend
             notificationSent: true, // Set based on your backend if you track this
+            // Note: No status mapping here, `status` can now be "processed"
           }))
         );
       } catch (e) {
