@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -152,18 +151,14 @@ const FormStepTwo = ({
           <Checkbox 
             id="termsCheckbox" 
             checked={agreeTerms}
-            onCheckedChange={(checked) => {
-              if (typeof checked === 'boolean') {
-                setAgreeTerms(checked);
-              }
-            }}
+            onCheckedChange={(checked) => setAgreeTerms(checked === true)}
           />
-          <Label 
+          <label 
             htmlFor="termsCheckbox" 
             className="text-sm text-gray-400 cursor-pointer"
           >
             I agree to the <a href="#" className="text-yeild-yellow hover:underline">Terms of Service</a> and <a href="#" className="text-yeild-yellow hover:underline">Privacy Policy</a>
-          </Label>
+          </label>
         </div>
       </div>
     </>
