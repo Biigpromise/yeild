@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TaskCategories from "@/components/TaskCategories";
@@ -67,6 +66,7 @@ import {
   MessageCircle,
   LifeBuoy,
 } from "lucide-react";
+import { StoryReel } from "@/components/stories";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -289,6 +289,7 @@ const Dashboard = () => {
           )}
 
           <TabsContent value="tasks" className="space-y-4 mt-3">
+            <StoryReel />
             <TasksTab
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
