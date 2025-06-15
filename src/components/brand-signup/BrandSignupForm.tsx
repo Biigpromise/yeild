@@ -6,6 +6,7 @@ import * as z from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useBrandSignupFormPersistence } from "@/hooks/useBrandSignupFormPersistence";
+import { useFormPersistence } from "@/hooks/useFormPersistence";
 
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -172,7 +173,8 @@ const BrandSignupForm = () => {
     return () => clearTimeout(debounce);
   }, [emailValue]);
 
-  const { clearDraft } = useBrandSignupFormPersistence(form, true);
+  // Use the generic hook to persist brand signup form
+  const { clearDraft } = useFormPersistence(form, "brandSignupFormDraft", true);
 
   // We'll store the last submitted email/company for resend logic
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);

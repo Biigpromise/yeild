@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,6 +14,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { supportService } from '@/services/supportService';
+import { useFormPersistence } from "@/hooks/useFormPersistence";
 
 const formSchema = z.object({
   subject: z.string().min(5, 'Subject must be at least 5 characters.'),
@@ -35,12 +35,15 @@ export const SupportTicketForm: React.FC<SupportTicketFormProps> = ({ onTicketCr
     },
   });
 
+  const { clearDraft } = useFormPersistence(form, "supportTicketDraft", true);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     const newTicket = await supportService.createTicket(values.subject, values.message);
     if (newTicket) {
       onTicketCreated();
       form.reset();
+      clearDraft();
     }
     setIsSubmitting(false);
   }
