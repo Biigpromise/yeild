@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -72,14 +71,13 @@ const FormStepOne = ({
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="website">Company Website*</Label>
+          <Label htmlFor="website">Company Website</Label>
           <Input
             id="website"
             placeholder="https://"
             value={website}
             onChange={(e) => setWebsite(e.target.value)}
             className="yeild-input"
-            required
           />
         </div>
         

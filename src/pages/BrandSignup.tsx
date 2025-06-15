@@ -38,7 +38,7 @@ const BrandSignup = () => {
     e.preventDefault();
     
     if (step === 1) {
-      if (!companyName || !email || !password || !website || !companySize) {
+      if (!companyName || !email || !password || !companySize) {
         toast.error("Please fill out all required fields");
         return;
       }
