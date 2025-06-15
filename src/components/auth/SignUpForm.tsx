@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff } from "lucide-react";
 import { useSignUp } from '@/hooks/useSignUp';
+import PasswordStrengthMeter from "@/components/ui/PasswordStrengthMeter";
 
 const SignUpForm = () => {
   const {
@@ -71,6 +72,7 @@ const SignUpForm = () => {
             )}
           </button>
         </div>
+        <PasswordStrengthMeter password={password} />
       </div>
       
       <div className="flex items-start space-x-3 mt-4 p-3 border border-gray-700 rounded-lg bg-gray-900/50">
