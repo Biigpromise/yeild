@@ -33,7 +33,7 @@ export interface TaskCategory {
 export interface CreateCampaignPayload {
   title: string;
   description: string;
-  points: number;
+  points?: number;
   category: string;
   difficulty: string;
   estimated_time?: string;
@@ -102,6 +102,7 @@ export const taskService = {
 
     const campaignToInsert = {
       ...campaignData,
+      points: campaignData.points ?? 0,
       brand_user_id: user.id,
       brand_name: user.user_metadata?.company_name,
       status: 'active'

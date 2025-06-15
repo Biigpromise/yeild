@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,7 +36,6 @@ import { LoadingState } from "../ui/loading-state";
 const campaignSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters long."),
   description: z.string().min(10, "Description must be at least 10 characters long."),
-  points: z.coerce.number().int().positive("Points must be a positive number."),
   category: z.string().min(1, "Category is required."),
   difficulty: z.enum(["Easy", "Medium", "Hard"]),
   estimated_time: z.string().optional(),
@@ -62,7 +60,6 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({ open, on
     defaultValues: {
       title: "",
       description: "",
-      points: 10,
       category: "",
       difficulty: "Easy",
       estimated_time: "",
@@ -80,7 +77,6 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({ open, on
       form.reset({
         title: campaign.title,
         description: campaign.description,
-        points: campaign.points,
         category: campaign.category,
         difficulty: campaign.difficulty as "Easy" | "Medium" | "Hard",
         estimated_time: campaign.estimated_time || "",
@@ -151,41 +147,26 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({ open, on
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="points"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Points</FormLabel>
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                   <Select onValueChange={field.onChange} value={field.value || ''}>
                     <FormControl>
-                      <Input type="number" placeholder="100" {...field} />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {categories?.map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    <SelectContent>
+                      {categories?.map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <FormField
                 control={form.control}
@@ -193,7 +174,7 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({ open, on
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Difficulty</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select difficulty" />
