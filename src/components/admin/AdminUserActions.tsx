@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { realAdminUserService } from "@/services/admin/realAdminUserService";
 import { UserPlus, Users, Download, Upload } from "lucide-react";
+import { toast } from "sonner";
 
 export const AdminUserActions = () => {
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
@@ -14,19 +14,28 @@ export const AdminUserActions = () => {
   const [newUser, setNewUser] = useState({ email: "", name: "", password: "" });
   const [importFile, setImportFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAddUser = async () => {
     if (!newUser.email || !newUser.name || !newUser.password) {
+      setError("All fields are required.");
       return;
     }
 
     setIsLoading(true);
+    setError(null);
     try {
       const success = await realAdminUserService.createUser(newUser);
       if (success) {
         setNewUser({ email: "", name: "", password: "" });
         setIsAddUserOpen(false);
+        toast.success("User created successfully");
+      } else {
+        setError("Failed to create user. Email may already be registered or your connection failed.");
       }
+    } catch (e: any) {
+      setError(e?.message || "Unknown error occurred");
+      toast.error("Failed to create user: " + (e?.message || ""));
     } finally {
       setIsLoading(false);
     }
@@ -58,10 +67,15 @@ export const AdminUserActions = () => {
     }
   };
 
+  const handleDialogChange = (open: boolean) => {
+    setIsAddUserOpen(open);
+    if (!open) setError(null);
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Add New User */}
-      <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+      <Dialog open={isAddUserOpen} onOpenChange={handleDialogChange}>
         <DialogTrigger asChild>
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardContent className="p-4">
@@ -87,6 +101,7 @@ export const AdminUserActions = () => {
                 value={newUser.email}
                 onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                 placeholder="user@example.com"
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -96,6 +111,7 @@ export const AdminUserActions = () => {
                 value={newUser.name}
                 onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
                 placeholder="User Name"
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -107,8 +123,10 @@ export const AdminUserActions = () => {
                 onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                 placeholder="Password (min 6 characters)"
                 minLength={6}
+                disabled={isLoading}
               />
             </div>
+            {error && <div className="text-red-600 text-sm">{error}</div>}
             <Button 
               onClick={handleAddUser} 
               className="w-full"
