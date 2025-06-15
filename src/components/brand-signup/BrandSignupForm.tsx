@@ -14,6 +14,7 @@ import { ArrowLeft } from "lucide-react";
 import FormStepOne from "@/components/brand-signup/FormStepOne";
 import FormStepTwo from "@/components/brand-signup/FormStepTwo";
 import ProgressSteps from "@/components/brand-signup/ProgressSteps";
+import SubmittedScreen from "@/components/brand-signup/SubmittedScreen";
 
 const formSchema = z
   .object({
@@ -44,13 +45,11 @@ type BrandSignupFormValues = z.infer<typeof formSchema>;
 // Utility function to check if company name or email exists
 async function checkFieldUniqueness(field: 'companyName' | 'email', value: string) {
   if (field === "companyName") {
-    // Check brand_applications for existing company name
     const { data, error } = await supabase
       .from("brand_applications")
       .select("id")
       .eq("company_name", value)
       .limit(1);
-
     if (error) {
       console.warn(`Error checking company name uniqueness`, error);
       return false;
@@ -58,14 +57,11 @@ async function checkFieldUniqueness(field: 'companyName' | 'email', value: strin
     return data && data.length > 0;
   }
   if (field === "email") {
-    // Check auth.users for existing email via Supabase's REST API.
-    // The only way to check is through the profiles table, which mirrors Supabase users by trigger.
     const { data, error } = await supabase
       .from("profiles")
       .select("id")
       .eq("email", value)
       .limit(1);
-
     if (error) {
       console.warn("Error checking email uniqueness", error);
       return false;
@@ -120,24 +116,18 @@ const BrandSignupForm = () => {
     ...rhfRest
   } = form;
 
-  // Watchers to trigger validation on blur or change
   const companyNameValue = watch("companyName");
   const emailValue = watch("email");
 
   // Effect for live company name validation
-  // Only trigger if not empty, has changed, and is valid format so far
-  // (using debounce pattern with setTimeout for real-world UX)
-  // Debounce inside useEffect for best-practice
   useEffect(() => {
     if (!companyNameValue || companyNameValue.length < 2) return;
-
     let debounce: NodeJS.Timeout;
     debounce = setTimeout(async () => {
       if (
         companyNameCheckRef.current.value === companyNameValue &&
         companyNameCheckRef.current.exists !== undefined
       ) {
-        // already checked, use cached
         if (companyNameCheckRef.current.exists) {
           setError("companyName", { type: "manual", message: "A company with this name already exists." });
         } else {
@@ -145,7 +135,6 @@ const BrandSignupForm = () => {
         }
         return;
       }
-
       const exists = await checkFieldUniqueness("companyName", companyNameValue);
       companyNameCheckRef.current = { value: companyNameValue, exists };
       if (exists) {
@@ -154,14 +143,11 @@ const BrandSignupForm = () => {
         clearErrors("companyName");
       }
     }, 600);
-
     return () => clearTimeout(debounce);
   }, [companyNameValue]);
 
-  // Effect for live email validation
   useEffect(() => {
     if (!emailValue || !/^[^@]+@[^@]+\.[^@]+/.test(emailValue)) return;
-
     let debounce: NodeJS.Timeout;
     debounce = setTimeout(async () => {
       if (
@@ -175,7 +161,6 @@ const BrandSignupForm = () => {
         }
         return;
       }
-
       const exists = await checkFieldUniqueness("email", emailValue);
       emailCheckRef.current = { value: emailValue, exists };
       if (exists) {
@@ -184,14 +169,10 @@ const BrandSignupForm = () => {
         clearErrors("email");
       }
     }, 600);
-
     return () => clearTimeout(debounce);
   }, [emailValue]);
 
-  // Persist form progress across reloads
   const { clearDraft } = useBrandSignupFormPersistence(form, true);
-
-  const [resendLoading, setResendLoading] = useState(false);
 
   // We'll store the last submitted email/company for resend logic
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
@@ -201,11 +182,7 @@ const BrandSignupForm = () => {
     const fields: (keyof BrandSignupFormValues)[] = ["companyName", "email", "password", "companySize", "website"];
     const output = await form.trigger(fields, { shouldFocus: true });
 
-    // Re-check server-side uniqueness error
-    // (in case the user bypassed live check)
     if (!output) return;
-
-    // Double-check for uniqueness on Next
     if (await checkFieldUniqueness("companyName", form.getValues().companyName)) {
       setError("companyName", { type: "manual", message: "A company with this name already exists." });
       return;
@@ -214,14 +191,12 @@ const BrandSignupForm = () => {
       setError("email", { type: "manual", message: "This email is already registered." });
       return;
     }
-
     setStep(2);
   };
 
   const onSubmit = async (data: BrandSignupFormValues) => {
     setIsLoading(true);
     try {
-      // Final check just in case
       if (await checkFieldUniqueness("companyName", data.companyName)) {
         setError("companyName", { type: "manual", message: "A company with this name already exists." });
         setIsLoading(false);
@@ -259,26 +234,21 @@ const BrandSignupForm = () => {
       setSubmittedEmail(data.email);
       setSubmittedCompany(data.companyName);
 
-      // Invoke edge function to send custom confirmation email
       try {
         const { error: emailError } = await supabase.functions.invoke('send-brand-confirmation-email', {
           body: { email: data.email, companyName: data.companyName },
         });
-
-        if (emailError) {
-          throw emailError;
-        }
-
+        if (emailError) throw emailError;
         toast.success("Application submitted! Please check your email to confirm your account.");
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error("Error sending confirmation email:", error);
         toast.warning("Your application was submitted, but we had an issue sending the confirmation email. Please contact support if you don't receive it.");
       }
-
       setSubmitted(true);
-      clearDraft(); // Clear progress after success
-
+      clearDraft();
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("An unexpected error occurred during signup:", error);
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
@@ -286,57 +256,9 @@ const BrandSignupForm = () => {
     }
   };
 
-  // Handler for resending confirmation email
-  const handleResendConfirmEmail = async () => {
-    if (!submittedEmail || !submittedCompany) {
-      toast.error('Missing application context, please refresh and try again.');
-      return;
-    }
-    setResendLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke('send-brand-confirmation-email', {
-        body: { email: submittedEmail, companyName: submittedCompany },
-      });
-
-      if (error) {
-        throw error;
-      }
-      toast.success('Confirmation email sent! Please check your inbox.');
-    } catch (error: any) {
-      console.error('Failed to resend confirmation email', error);
-      toast.error('Failed to resend confirmation email. Please try again shortly.');
-    } finally {
-      setResendLoading(false);
-    }
-  };
-
   if (submitted) {
     return (
-      <div className="text-center p-8 bg-gray-900/50 rounded-lg">
-        <h1 className="text-2xl font-bold">Thank You for Applying!</h1>
-        <p className="text-gray-400 mt-4">
-          Your application has been submitted for review.
-        </p>
-        <p className="text-gray-400 mt-2">
-          Please check your email to confirm your account. Once confirmed, you can log in to check your application status.
-        </p>
-        <Button onClick={() => navigate('/login')} className="mt-6 yeild-btn-primary">
-          Go to Login
-        </Button>
-        <div className="mt-4">
-          <Button
-            variant="outline"
-            onClick={handleResendConfirmEmail}
-            disabled={resendLoading}
-            className="yeild-btn-secondary"
-          >
-            {resendLoading ? "Resending..." : "Resend Confirmation Email"}
-          </Button>
-        </div>
-        <div className="mt-4 text-sm text-gray-400">
-          Didn&apos;t get the email? Check your spam or click above to resend.
-        </div>
-      </div>
+      <SubmittedScreen email={submittedEmail} company={submittedCompany} />
     );
   }
 
@@ -356,7 +278,7 @@ const BrandSignupForm = () => {
             <FormStepOne
               form={{
                 ...form,
-                register, // so FormStepOne can use register
+                register,
               }}
             />
           )}
@@ -372,13 +294,11 @@ const BrandSignupForm = () => {
                 Back
               </Button>
             )}
-
             {step === 1 && (
               <Button type="button" className="yeild-btn-primary" onClick={handleNextStep}>
                 Continue
               </Button>
             )}
-
             {step === 2 && (
               <Button type="submit" className="yeild-btn-primary" disabled={isLoading}>
                 {isLoading ? "Processing..." : "Submit Application"}
@@ -402,4 +322,4 @@ const BrandSignupForm = () => {
 
 export default BrandSignupForm;
 
-// NOTE: This file is over 210 lines long. Consider asking me to help refactor it into smaller pieces for maintainability!
+// NOTE: This file is over 210 lines long. Now is refactored for maintainability.
