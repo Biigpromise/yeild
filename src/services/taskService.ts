@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { taskSubmissionService } from "./tasks/taskSubmissionService";
@@ -79,5 +80,54 @@ export const taskService = {
   },
 
   // Admin functions
-  admin: adminTaskService
+  admin: adminTaskService,
+
+  // Brand functions
+  async createCampaign(campaignData: Partial<Task>): Promise<Task | null> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("You must be logged in to create a campaign.");
+      return null;
+    }
+
+    const campaignToInsert = {
+      ...campaignData,
+      brand_user_id: user.id,
+      brand_name: user.user_metadata?.company_name,
+      status: 'active'
+    };
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert(campaignToInsert)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating campaign:", error);
+      toast.error(`Failed to create campaign: ${error.message}`);
+      return null;
+    }
+
+    toast.success("Campaign created successfully!");
+    return data;
+  },
+
+  async updateCampaign(campaignId: string, campaignData: Partial<Task>): Promise<Task | null> {
+    const { data, error } = await supabase
+      .from('tasks')
+      .update(campaignData)
+      .eq('id', campaignId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating campaign:", error);
+      toast.error(`Failed to update campaign: ${error.message}`);
+      return null;
+    }
+
+    toast.success("Campaign updated successfully!");
+    return data;
+  }
 };
