@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -13,6 +14,8 @@ export interface UserProfile {
   bio?: string;
   profile_picture_url?: string;
   social_media_links?: string[];
+  followers_count: number;
+  following_count: number;
 }
 
 export interface UserStats {
@@ -104,7 +107,7 @@ export const userService = {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, points, level, tasks_completed, created_at, bio, profile_picture_url')
+        .select('id, name, points, level, tasks_completed, created_at, bio, profile_picture_url, followers_count, following_count')
         .eq('id', userId)
         .maybeSingle();
 
@@ -113,6 +116,68 @@ export const userService = {
     } catch (error) {
       console.error('Error fetching user profile by ID:', error);
       return null;
+    }
+  },
+
+  // Follow a user
+  async followUser(followingId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || user.id === followingId) return false;
+
+      const { error } = await supabase
+        .from('user_followers')
+        .insert({ follower_id: user.id, following_id: followingId });
+
+      if (error) throw error;
+      toast.success('User followed!');
+      return true;
+    } catch (error) {
+      console.error('Error following user:', error);
+      toast.error('Failed to follow user');
+      return false;
+    }
+  },
+
+  // Unfollow a user
+  async unfollowUser(followingId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('user_followers')
+        .delete()
+        .eq('follower_id', user.id)
+        .eq('following_id', followingId);
+
+      if (error) throw error;
+      toast.success('User unfollowed!');
+      return true;
+    } catch (error) {
+      console.error('Error unfollowing user:', error);
+      toast.error('Failed to unfollow user');
+      return false;
+    }
+  },
+
+  // Check if current user is following another user
+  async isFollowing(followingId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { count, error } = await supabase
+        .from('user_followers')
+        .select('*', { count: 'exact', head: true })
+        .eq('follower_id', user.id)
+        .eq('following_id', followingId);
+
+      if (error) throw error;
+      return (count ?? 0) > 0;
+    } catch (error) {
+      console.error('Error checking follow status:', error);
+      return false;
     }
   },
 

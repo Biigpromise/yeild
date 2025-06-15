@@ -284,6 +284,8 @@ export type Database = {
           bio: string | null
           created_at: string | null
           email: string | null
+          followers_count: number
+          following_count: number
           id: string
           last_active_at: string | null
           last_login_at: string | null
@@ -303,6 +305,8 @@ export type Database = {
           bio?: string | null
           created_at?: string | null
           email?: string | null
+          followers_count?: number
+          following_count?: number
           id: string
           last_active_at?: string | null
           last_login_at?: string | null
@@ -322,6 +326,8 @@ export type Database = {
           bio?: string | null
           created_at?: string | null
           email?: string | null
+          followers_count?: number
+          following_count?: number
           id?: string
           last_active_at?: string | null
           last_login_at?: string | null
@@ -630,6 +636,42 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_followers: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_followers_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_followers_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

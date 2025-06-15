@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { userService, UserProfile } from '@/services/userService';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Target, Trophy } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Calendar, Target, Trophy, Users, UserPlus, UserCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface PublicProfileModalProps {
@@ -20,17 +22,28 @@ interface PublicProfileModalProps {
 }
 
 export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({ userId, isOpen, onOpenChange }) => {
+  const { user: currentUser } = useAuth();
   const [profile, setProfile] = useState<Partial<UserProfile> | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen && userId) {
       const fetchProfile = async () => {
         setLoading(true);
         setProfile(null);
+        setIsFollowing(false);
         try {
           const userProfile = await userService.getUserProfileById(userId);
           setProfile(userProfile);
+
+          if (currentUser && userId && currentUser.id !== userId) {
+            setIsFollowLoading(true);
+            const following = await userService.isFollowing(userId);
+            setIsFollowing(following);
+            setIsFollowLoading(false);
+          }
         } catch (err) {
           console.error("Failed to fetch user profile.", err);
         } finally {
@@ -40,8 +53,29 @@ export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({ userId, 
 
       fetchProfile();
     }
-  }, [isOpen, userId]);
+  }, [isOpen, userId, currentUser]);
   
+  const handleFollowToggle = async () => {
+    if (!currentUser || !userId || isFollowLoading) return;
+
+    setIsFollowLoading(true);
+    const success = isFollowing 
+      ? await userService.unfollowUser(userId)
+      : await userService.followUser(userId);
+
+    if (success) {
+      setIsFollowing(!isFollowing);
+      setProfile(prevProfile => {
+        if (!prevProfile) return null;
+        const newFollowersCount = isFollowing
+          ? (prevProfile.followers_count ?? 1) - 1
+          : (prevProfile.followers_count ?? 0) + 1;
+        return { ...prevProfile, followers_count: newFollowersCount };
+      });
+    }
+    setIsFollowLoading(false);
+  };
+
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -85,11 +119,37 @@ export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({ userId, 
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-2">
-                <h2 className="text-2xl font-bold">{profile.name}</h2>
+                <div className="flex justify-between items-start">
+                    <h2 className="text-2xl font-bold">{profile.name}</h2>
+                    {currentUser && userId && currentUser.id !== userId && (
+                        <Button 
+                            onClick={handleFollowToggle} 
+                            disabled={isFollowLoading}
+                            variant={isFollowing ? 'outline' : 'default'}
+                            size="sm"
+                        >
+                            {isFollowLoading ? '...' : isFollowing ? (
+                                <><UserCheck className="mr-2 h-4 w-4" /> Following</>
+                            ) : (
+                                <><UserPlus className="mr-2 h-4 w-4" /> Follow</>
+                            )}
+                        </Button>
+                    )}
+                </div>
                 <p className="text-muted-foreground">
                     {profile.bio || "This user hasn't set a bio yet."}
                 </p>
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <div className="flex items-center gap-6 text-sm text-muted-foreground pt-2">
+                  <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      <span><span className="font-bold">{profile.followers_count ?? 0}</span> followers</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      <span><span className="font-bold">{profile.following_count ?? 0}</span> following</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-muted-foreground pt-2">
                     <Calendar className="h-4 w-4" />
                     <span>Joined on {formatDate(profile.created_at)}</span>
                 </div>
