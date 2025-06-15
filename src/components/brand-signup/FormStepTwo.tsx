@@ -146,22 +146,16 @@ const FormStepTwo = ({
         />
       </div>
       
-      <div className="flex items-center space-x-2 mt-4">
-        <Checkbox 
-          id="termsCheckbox" 
+      <Label className="flex items-center space-x-2 mt-4 cursor-pointer">
+        <Checkbox
+          id="termsCheckbox"
           checked={agreeTerms}
-          onCheckedChange={(checked) => {
-            console.log('Checkbox state changed:', checked);
-            setAgreeTerms(checked === true);
-          }}
+          onCheckedChange={(checked) => setAgreeTerms(checked === true)}
         />
-        <Label
-          htmlFor="termsCheckbox"
-          className="text-sm text-gray-400 cursor-pointer"
-        >
+        <span className="text-sm text-gray-400">
           I agree to the <a href="#" className="text-yeild-yellow hover:underline">Terms of Service</a> and <a href="#" className="text-yeild-yellow hover:underline">Privacy Policy</a>
-        </Label>
-      </div>
+        </span>
+      </Label>
     </>
   );
 };
