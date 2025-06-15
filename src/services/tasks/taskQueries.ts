@@ -27,11 +27,11 @@ export const taskQueries = {
     try {
       const { data, error } = await supabase
         .from('task_categories')
-        .select('*')
+        .select('id, name')
         .order('name');
 
       if (error) throw error;
-      return data || [];
+      return (data as any) || [];
     } catch (error) {
       console.error('Error fetching categories:', error);
       toast.error('Failed to load categories');
