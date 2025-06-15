@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 
 interface TermsCheckboxProps {
   checked: boolean;
@@ -29,7 +28,8 @@ const TermsCheckbox: React.FC<TermsCheckboxProps> = ({ checked, onCheckedChange,
         tabIndex={0}
         aria-describedby={`${id}-description`}
       />
-      <Label
+      <span
+        id={`${id}-description`}
         className="flex-1 ml-3 text-sm text-gray-300 leading-relaxed select-none"
       >
         I agree to the{" "}
@@ -50,7 +50,7 @@ const TermsCheckbox: React.FC<TermsCheckboxProps> = ({ checked, onCheckedChange,
         >
           Privacy Policy
         </a>
-      </Label>
+      </span>
     </div>
   );
 };
