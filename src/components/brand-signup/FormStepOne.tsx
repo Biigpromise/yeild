@@ -1,15 +1,18 @@
-
+import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Eye, EyeOff } from "lucide-react";
 
 interface FormStepOneProps {
   form: UseFormReturn<any>;
 }
 
 const FormStepOne = ({ form }: FormStepOneProps) => {
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <div className="space-y-4">
       <FormField
@@ -47,7 +50,25 @@ const FormStepOne = ({ form }: FormStepOneProps) => {
           <FormItem>
             <FormLabel>Create Password*</FormLabel>
             <FormControl>
-              <Input type="password" placeholder="Create a password (min 8 characters)" {...field} className="yeild-input" />
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Create a password (min 8 characters)"
+                  {...field}
+                  className="yeild-input pr-10"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </button>
+              </div>
             </FormControl>
             <FormMessage />
           </FormItem>
