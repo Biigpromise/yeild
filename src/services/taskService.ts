@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { taskSubmissionService } from "./tasks/taskSubmissionService";
@@ -29,7 +30,7 @@ export interface TaskCategory {
   created_at: string;
 }
 
-interface CreateCampaignPayload {
+export interface CreateCampaignPayload {
   title: string;
   description: string;
   points: number;

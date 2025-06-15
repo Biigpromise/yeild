@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,7 +30,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { taskService, Task } from "@/services/taskService";
+import { taskService, Task, CreateCampaignPayload } from "@/services/taskService";
 import { LoadingState } from "../ui/loading-state";
 
 const campaignSchema = z.object({
@@ -98,9 +97,9 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({ open, on
             expires_at: data.expires_at?.toISOString(),
         };
         if (isEditMode) {
-            return taskService.updateCampaign(campaign.id, campaignData);
+            return taskService.updateCampaign(campaign!.id, campaignData);
         }
-        return taskService.createCampaign(campaignData);
+        return taskService.createCampaign(campaignData as CreateCampaignPayload);
     },
     onSuccess: () => {
         onCampaignSaved();
@@ -274,4 +273,3 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({ open, on
     </Dialog>
   );
 };
-
