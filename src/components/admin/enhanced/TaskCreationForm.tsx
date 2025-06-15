@@ -75,19 +75,15 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
       setCategoriesLoading(true);
       setCategoriesError(null);
       const data = await enhancedTaskManagementService.getTaskCategories();
-      console.log("Loaded categories:", data);
       if (!data || data.length === 0) {
-        setCategoriesError("No categories available. Please check your database or permissions.");
-        toast.error("Unable to load categories. Please contact admin if this persists.");
+        setCategoriesError("No categories found. Please add at least one category via the admin dashboard.");
         setCategories([]);
       } else {
         setCategories(data);
       }
     } catch (error: any) {
-      console.error("Error loading categories:", error);
+      setCategoriesError("There was an error loading categories. Please check your permissions and database.");
       setCategories([]);
-      setCategoriesError("Failed to load categories.");
-      toast.error("Failed to load categories. Please check your permissions or database setup.");
     } finally {
       setCategoriesLoading(false);
     }
@@ -173,7 +169,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         )}
         {showCategoryEmptyWarning && (
           <div className="mb-4 p-2 bg-yellow-50 text-yellow-700 border border-yellow-300 rounded text-center text-sm">
-            No categories available. Use the "Add Category" button above to create at least one category before creating a task.
+            No categories found. Use the "Add Category" button above to create at least one before creating a task.
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-6 flex flex-col">
@@ -409,3 +405,5 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
     </Card>
   );
 };
+
+export default TaskCreationForm;

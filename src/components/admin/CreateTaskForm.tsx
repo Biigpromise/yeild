@@ -38,19 +38,15 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
       setCategoriesLoading(true);
       setLoadError(null);
       const data = await taskService.getCategories();
-      console.log("Loaded categories:", data);
       if (!data || data.length === 0) {
-        setLoadError("No categories available. Please check your database or category permissions.");
-        toast.error("Unable to load categories. Please contact admin if this persists.");
+        setLoadError("No categories found. Please add at least one category via the admin dashboard.");
         setCategories([]);
       } else {
         setCategories(data);
       }
     } catch (error: any) {
-      console.error("Error loading categories:", error);
+      setLoadError("There was an error loading categories. Please check your permissions and database.");
       setCategories([]);
-      setLoadError("Failed to load categories.");
-      toast.error("Failed to load categories. Please check your permissions or database setup.");
     } finally {
       setCategoriesLoading(false);
     }
@@ -108,7 +104,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
     category.name.trim() !== ''
   );
 
-  // Show stronger warning if categories are still empty after successful load
+  // Show warning if categories are still empty after load (and not due to error)
   const showCategoryEmptyWarning = !categoriesLoading && !loadError && validCategories.length === 0;
 
   return (
@@ -128,7 +124,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
           )}
           {showCategoryEmptyWarning && (
             <div className="mb-4 p-2 bg-yellow-50 text-yellow-700 border border-yellow-300 rounded text-center text-sm">
-              No categories available. Go to the "Task Categories" section to add one before you can create a task.
+              No categories found. Please add one in "Task Categories" before creating a task.
             </div>
           )}
           <form
@@ -179,9 +175,13 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                     </SelectTrigger>
                     <SelectContent>
                       {categoriesLoading ? (
-                        <SelectItem value="loading-placeholder" disabled>Loading categories...</SelectItem>
+                        <SelectItem value="loading-placeholder" disabled>
+                          Loading categories...
+                        </SelectItem>
                       ) : loadError ? (
-                        <SelectItem value="error" disabled>{loadError}</SelectItem>
+                        <SelectItem value="error" disabled>
+                          {loadError}
+                        </SelectItem>
                       ) : validCategories.length > 0 ? (
                         validCategories.map((category) => (
                           <SelectItem key={`cat-${category.id}`} value={category.id}>
@@ -189,7 +189,9 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="no-categories-placeholder" disabled>No categories available</SelectItem>
+                        <SelectItem value="no-categories-placeholder" disabled>
+                          No categories available
+                        </SelectItem>
                       )}
                     </SelectContent>
                   </Select>
