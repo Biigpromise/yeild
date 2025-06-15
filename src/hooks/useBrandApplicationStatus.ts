@@ -39,6 +39,28 @@ export const useBrandApplicationStatus = () => {
     };
 
     fetchApplication();
+
+    const channel = supabase
+      .channel(`brand-application-status-${user.id}`)
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'brand_applications', 
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          if (payload.new) {
+            setApplication(payload.new as BrandApplication);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   return { application, checkingStatus };
