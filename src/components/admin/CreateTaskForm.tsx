@@ -108,6 +108,9 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
     category.name.trim() !== ''
   );
 
+  // Show stronger warning if categories are still empty after successful load
+  const showCategoryEmptyWarning = !categoriesLoading && !loadError && validCategories.length === 0;
+
   return (
     <div className="w-full flex justify-center items-center sm:p-4 p-0">
       <Card className="w-full max-w-2xl shadow-lg rounded-lg border sm:my-6 my-0 sm:p-6 p-0 bg-white">
@@ -121,6 +124,11 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
           {loadError && (
             <div className="mb-4 p-2 bg-red-50 text-red-600 border border-red-200 rounded text-center text-sm">
               {loadError}
+            </div>
+          )}
+          {showCategoryEmptyWarning && (
+            <div className="mb-4 p-2 bg-yellow-50 text-yellow-700 border border-yellow-300 rounded text-center text-sm">
+              No categories available. Go to the "Task Categories" section to add one before you can create a task.
             </div>
           )}
           <form
@@ -156,10 +164,18 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                   <Select
                     value={formData.category_id}
                     onValueChange={(value) => handleInputChange('category_id', value)}
-                    disabled={categoriesLoading || !!loadError}
+                    disabled={categoriesLoading || !!loadError || validCategories.length === 0}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={categoriesLoading ? "Loading categories..." : (loadError ? "Failed to load" : "Select category")} />
+                      <SelectValue placeholder={
+                        categoriesLoading
+                          ? "Loading categories..."
+                          : (loadError
+                              ? "Failed to load"
+                              : (validCategories.length === 0
+                                  ? "No categories available"
+                                  : "Select category"))
+                      } />
                     </SelectTrigger>
                     <SelectContent>
                       {categoriesLoading ? (
