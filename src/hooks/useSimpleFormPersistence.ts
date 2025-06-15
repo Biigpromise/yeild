@@ -26,10 +26,8 @@ export function useSimpleFormPersistence<T = any>({
       const data = localStorage.getItem(storageKey);
       if (data) {
         const parsed = JSON.parse(data);
-        setFormData((prev: T) => ({
-          ...prev,
-          ...parsed,
-        }));
+        // FIX: setFormData expects T, not a function!
+        setFormData({ ...formData, ...parsed });
       }
     } catch (e) {
       localStorage.removeItem(storageKey);
@@ -37,7 +35,7 @@ export function useSimpleFormPersistence<T = any>({
     loaded.current = true;
     // eslint-disable-next-line
   }, [enabled, storageKey]);
-
+  
   // Save draft
   useEffect(() => {
     if (!enabled) return;
@@ -70,3 +68,4 @@ export function useSimpleFormPersistence<T = any>({
 
   return { clearDraft };
 }
+
