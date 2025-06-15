@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TaskCategories from "@/components/TaskCategories";
 import TaskFilter from "@/components/TaskFilter";
@@ -11,7 +12,7 @@ import { RedemptionHistory } from "@/components/rewards/RedemptionHistory";
 import { WithdrawalForm } from "@/components/wallet/WithdrawalForm";
 import { WithdrawalHistory } from "@/components/wallet/WithdrawalHistory";
 import { WalletOverview } from "@/components/wallet/WalletOverview";
-import { DashboardSkeleton, WalletSkeleton } from "@/components/ui/dashboard-skeleton";
+import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
 import { MobileTabNavigation } from "@/components/ui/mobile-tab-navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,8 +31,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
-import { taskService } from "@/services/taskService";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTouchGestures } from "@/hooks/use-touch-gestures";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -67,27 +66,24 @@ import {
   LifeBuoy,
 } from "lucide-react";
 import { StoryReel } from "@/components/stories";
+import { useDashboard } from "@/hooks/useDashboard";
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [userStats, setUserStats] = useState({
-    points: 0,
-    level: 1,
-    tasksCompleted: 0,
-    currentStreak: 0,
-    rank: 0,
-    referrals: 0
-  });
-  const [userTasks, setUserTasks] = useState<any[]>([]);
-  const [userSubmissions, setUserSubmissions] = useState<any[]>([]);
-  const [withdrawalStats, setWithdrawalStats] = useState({
-    pendingWithdrawals: 0,
-    completedWithdrawals: 0
-  });
-  const [loading, setLoading] = useState(true);
+  
+  const {
+    user,
+    userProfile,
+    userStats,
+    userTasks,
+    userSubmissions,
+    withdrawalStats,
+    loading,
+    loadUserData,
+  } = useDashboard();
+
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
 
@@ -123,74 +119,6 @@ const Dashboard = () => {
     threshold: 50,
     enabled: isMobile
   });
-
-  // Fetch user data
-  useEffect(() => {
-    loadUserData();
-  }, [user]);
-
-  const loadUserData = async () => {
-    if (!user) return;
-    
-    try {
-      setLoading(true);
-      
-      // Fetch user profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (profileError) {
-        console.error('Error fetching profile:', profileError);
-        return;
-      }
-      
-      setUserProfile(profile);
-      setUserStats(prev => ({
-        ...prev,
-        points: profile.points || 0,
-        level: profile.level || 1,
-        tasksCompleted: profile.tasks_completed || 0
-      }));
-
-      // Fetch user tasks and submissions
-      const [tasksData, submissionsData] = await Promise.all([
-        taskService.getUserTasks(),
-        taskService.getUserSubmissions()
-      ]);
-      
-      setUserTasks(tasksData);
-      setUserSubmissions(submissionsData);
-
-      // Fetch withdrawal stats
-      const { data: withdrawals } = await supabase
-        .from('withdrawal_requests')
-        .select('amount, status')
-        .eq('user_id', user.id);
-
-      if (withdrawals) {
-        const pending = withdrawals
-          .filter(w => w.status === 'pending' || w.status === 'approved')
-          .reduce((sum, w) => sum + w.amount, 0);
-        const completed = withdrawals
-          .filter(w => w.status === 'completed')
-          .reduce((sum, w) => sum + w.amount, 0);
-        
-        setWithdrawalStats({
-          pendingWithdrawals: pending,
-          completedWithdrawals: completed
-        });
-      }
-      
-    } catch (error) {
-      console.error('Error loading user data:', error);
-      toast.error("Failed to load user data");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLogout = async () => {
     try {
