@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -128,8 +128,6 @@ const BrandSignupForm = () => {
   // Only trigger if not empty, has changed, and is valid format so far
   // (using debounce pattern with setTimeout for real-world UX)
   // Debounce inside useEffect for best-practice
-  // eslint-disable-next-line
-  import { useEffect } from "react";
   useEffect(() => {
     if (!companyNameValue || companyNameValue.length < 2) return;
 
@@ -158,7 +156,6 @@ const BrandSignupForm = () => {
     }, 600);
 
     return () => clearTimeout(debounce);
-    // eslint-disable-next-line
   }, [companyNameValue]);
 
   // Effect for live email validation
@@ -189,7 +186,6 @@ const BrandSignupForm = () => {
     }, 600);
 
     return () => clearTimeout(debounce);
-    // eslint-disable-next-line
   }, [emailValue]);
 
   // Persist form progress across reloads
