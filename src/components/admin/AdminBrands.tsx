@@ -24,6 +24,33 @@ export const AdminBrands = () => {
 
   useEffect(() => {
     fetchBrandApplications();
+
+    const channel = supabase
+      .channel('public:brand_applications')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'brand_applications' },
+        (payload) => {
+          toast.info("New brand application received!");
+          setApplications((prev) => [payload.new as BrandApplication, ...prev]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'brand_applications' },
+        (payload) => {
+          setApplications((prev) =>
+            prev.map((app) =>
+              app.id === payload.new.id ? (payload.new as BrandApplication) : app
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchBrandApplications = async () => {
@@ -72,7 +99,8 @@ export const AdminBrands = () => {
        toast.success(`Application has been ${newStatus}.`);
     }
 
-    fetchBrandApplications(); // Re-fetch to update the list
+    // No longer need to fetch, realtime listener will update UI.
+    // fetchBrandApplications();
   };
 
   if (loading) {

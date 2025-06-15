@@ -51,6 +51,33 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          link_to: string | null
+          message: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link_to?: string | null
+          message: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link_to?: string | null
+          message?: string
+          type?: string
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           content: string
