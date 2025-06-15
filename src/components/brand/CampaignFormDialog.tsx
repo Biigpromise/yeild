@@ -32,6 +32,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { taskService, Task, CreateCampaignPayload } from "@/services/taskService";
 import { LoadingState } from "../ui/loading-state";
+import { useAuth } from "@/contexts/AuthContext";
 
 const campaignSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters long."),
@@ -53,6 +54,7 @@ interface CampaignFormDialogProps {
 
 export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({ open, onOpenChange, onCampaignSaved, campaign }) => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const isEditMode = !!campaign;
 
   const form = useForm<CampaignFormData>({
@@ -68,8 +70,9 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({ open, on
   });
 
   const { data: categories, isLoading: isLoadingCategories } = useQuery({
-    queryKey: ["taskCategories"],
+    queryKey: ["taskCategories", user?.id],
     queryFn: taskService.getCategories,
+    enabled: !!user,
   });
 
   useEffect(() => {
