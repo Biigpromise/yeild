@@ -1,4 +1,3 @@
-
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield } from "lucide-react";
@@ -67,9 +66,7 @@ export const Hero = () => {
           )}
         </div>
 
-        <div className="mx-auto w-32 h-32 bg-gray-800/50 rounded-lg flex items-center justify-center border border-gray-700">
-          <div className="text-yeild-yellow text-6xl">✦</div>
-        </div>
+        {/* REMOVED: Star box with ✦ */}
       </div>
     </div>
   );
