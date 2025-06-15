@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { realAdminUserService } from "@/services/admin/realAdminUserService";
 import { LoadingState } from "@/components/ui/loading-state";
-import { UserSearchAutocomplete } from "@/components/ui/user-search-autocomplete";
+import { UserSearchAutocomplete } from "@/components/admin/UserSearchAutocomplete";
 
 type User = {
   id: string;
