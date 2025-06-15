@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,13 +8,34 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { enhancedTaskManagementService } from "@/services/admin/enhancedTaskManagementService";
 import { toast } from "sonner";
-import { CalendarIcon, ImageIcon, DollarSign } from "lucide-react";
+import { CalendarIcon, ImageIcon, DollarSign, Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
 
 interface TaskCreationFormProps {
   taskToEdit?: any;
   onTaskCreated: () => void;
   onCancel: () => void;
 }
+
+const initialFormData = {
+  title: "",
+  description: "",
+  points: "",
+  category_id: "",
+  difficulty: "medium",
+  brand_name: "",
+  brand_logo_url: "",
+  estimated_time: "",
+  expires_at: "",
+  status: "active",
+  task_type: "general",
+  social_media_links: {
+    facebook: "",
+    twitter: "",
+    instagram: "",
+    linkedin: "",
+    youtube: ""
+  }
+};
 
 export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({ 
   taskToEdit, 
@@ -24,19 +44,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
 }) => {
   const [categories, setCategories] = useState<any[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    points: "",
-    category_id: "",
-    difficulty: "medium",
-    brand_name: "",
-    brand_logo_url: "",
-    estimated_time: "",
-    expires_at: "",
-    status: "active",
-    task_type: "general"
-  });
+  const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -53,8 +61,11 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         estimated_time: taskToEdit.estimated_time || "",
         expires_at: taskToEdit.expires_at ? new Date(taskToEdit.expires_at).toISOString().slice(0, 16) : "",
         status: taskToEdit.status || "active",
-        task_type: taskToEdit.task_type || "general"
+        task_type: taskToEdit.task_type || "general",
+        social_media_links: taskToEdit.social_media_links || initialFormData.social_media_links,
       });
+    } else {
+      setFormData(initialFormData);
     }
   }, [taskToEdit]);
 
@@ -82,10 +93,15 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
 
     setIsSubmitting(true);
     try {
+      const socialLinks = Object.entries(formData.social_media_links)
+        .filter(([_, value]) => value && value.trim() !== '')
+        .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
+
       const taskData = {
         ...formData,
         points: parseInt(formData.points),
-        expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null
+        expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null,
+        social_media_links: formData.task_type === 'social_media' && Object.keys(socialLinks).length > 0 ? socialLinks : null,
       };
 
       let success;
@@ -108,6 +124,16 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSocialLinkChange = (platform: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      social_media_links: {
+        ...prev.social_media_links,
+        [platform]: value
+      }
+    }));
   };
 
   // Filter and validate categories - ensure they have valid IDs and names
@@ -273,6 +299,59 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
               </div>
             </div>
           </div>
+          
+          {formData.task_type === 'social_media' && (
+            <div className="md:col-span-2 space-y-2">
+              <Label>Social Media Links</Label>
+              <div className="space-y-2">
+                <div className="relative flex items-center">
+                  <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={formData.social_media_links.facebook}
+                    onChange={(e) => handleSocialLinkChange('facebook', e.target.value)}
+                    placeholder="Facebook URL"
+                    className="pl-10"
+                  />
+                </div>
+                <div className="relative flex items-center">
+                  <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={formData.social_media_links.twitter}
+                    onChange={(e) => handleSocialLinkChange('twitter', e.target.value)}
+                    placeholder="Twitter URL"
+                    className="pl-10"
+                  />
+                </div>
+                <div className="relative flex items-center">
+                  <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={formData.social_media_links.instagram}
+                    onChange={(e) => handleSocialLinkChange('instagram', e.target.value)}
+                    placeholder="Instagram URL"
+                    className="pl-10"
+                  />
+                </div>
+                <div className="relative flex items-center">
+                  <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={formData.social_media_links.linkedin}
+                    onChange={(e) => handleSocialLinkChange('linkedin', e.target.value)}
+                    placeholder="LinkedIn URL"
+                    className="pl-10"
+                  />
+                </div>
+                <div className="relative flex items-center">
+                  <Youtube className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={formData.social_media_links.youtube}
+                    onChange={(e) => handleSocialLinkChange('youtube', e.target.value)}
+                    placeholder="YouTube URL"
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
           
           <div>
             <Label htmlFor="description">Task Description *</Label>

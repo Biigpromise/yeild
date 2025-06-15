@@ -184,7 +184,8 @@ export const enhancedTaskManagementService = {
           estimated_time: taskData.estimated_time,
           expires_at: taskData.expires_at,
           status: taskData.status || 'active',
-          task_type: taskData.task_type || 'general'
+          task_type: taskData.task_type || 'general',
+          social_media_links: taskData.social_media_links,
         });
 
       if (error) throw error;

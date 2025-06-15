@@ -1,4 +1,3 @@
-
 export interface Task {
   id: string;
   title: string;
@@ -13,6 +12,7 @@ export interface Task {
   status: string;
   created_at: string;
   expires_at?: string;
+  social_media_links?: Record<string, string>;
 }
 
 export interface TaskCategory {
