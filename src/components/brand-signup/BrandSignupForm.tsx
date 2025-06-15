@@ -191,6 +191,12 @@ const BrandSignupForm = () => {
   // Persist form progress across reloads
   const { clearDraft } = useBrandSignupFormPersistence(form, true);
 
+  const [resendLoading, setResendLoading] = useState(false);
+
+  // We'll store the last submitted email/company for resend logic
+  const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
+  const [submittedCompany, setSubmittedCompany] = useState<string | null>(null);
+
   const handleNextStep = async () => {
     const fields: (keyof BrandSignupFormValues)[] = ["companyName", "email", "password", "companySize", "website"];
     const output = await form.trigger(fields, { shouldFocus: true });
@@ -249,6 +255,10 @@ const BrandSignupForm = () => {
         return;
       }
 
+      // Always save submitted company and email for resend
+      setSubmittedEmail(data.email);
+      setSubmittedCompany(data.companyName);
+
       // Invoke edge function to send custom confirmation email
       try {
         const { error: emailError } = await supabase.functions.invoke('send-brand-confirmation-email', {
@@ -276,6 +286,30 @@ const BrandSignupForm = () => {
     }
   };
 
+  // Handler for resending confirmation email
+  const handleResendConfirmEmail = async () => {
+    if (!submittedEmail || !submittedCompany) {
+      toast.error('Missing application context, please refresh and try again.');
+      return;
+    }
+    setResendLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-brand-confirmation-email', {
+        body: { email: submittedEmail, companyName: submittedCompany },
+      });
+
+      if (error) {
+        throw error;
+      }
+      toast.success('Confirmation email sent! Please check your inbox.');
+    } catch (error: any) {
+      console.error('Failed to resend confirmation email', error);
+      toast.error('Failed to resend confirmation email. Please try again shortly.');
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   if (submitted) {
     return (
       <div className="text-center p-8 bg-gray-900/50 rounded-lg">
@@ -289,6 +323,19 @@ const BrandSignupForm = () => {
         <Button onClick={() => navigate('/login')} className="mt-6 yeild-btn-primary">
           Go to Login
         </Button>
+        <div className="mt-4">
+          <Button
+            variant="outline"
+            onClick={handleResendConfirmEmail}
+            disabled={resendLoading}
+            className="yeild-btn-secondary"
+          >
+            {resendLoading ? "Resending..." : "Resend Confirmation Email"}
+          </Button>
+        </div>
+        <div className="mt-4 text-sm text-gray-400">
+          Didn&apos;t get the email? Check your spam or click above to resend.
+        </div>
       </div>
     );
   }
