@@ -1,9 +1,11 @@
 
-import BrandDashboard from "@/pages/BrandDashboard";
+import BrandApplicationStatus from "@/components/brand-signup/BrandApplicationStatus";
 
 const BrandSignup = () => {
-  // Temporarily rendering the BrandDashboard directly to bypass the application status check.
-  return <BrandDashboard />;
+  // We are now rendering the BrandApplicationStatus component, which handles the entire
+  // brand signup flow, from application to status checking.
+  // This replaces the temporary direct rendering of the BrandDashboard.
+  return <BrandApplicationStatus />;
 };
 
 export default BrandSignup;
