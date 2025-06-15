@@ -16,6 +16,10 @@ type BrandApplication = {
   website: string | null;
   status: "pending" | "approved" | "rejected";
   created_at: string;
+  company_size: string;
+  industry: string;
+  budget: string;
+  goals: string;
 };
 
 export const AdminBrands = () => {
@@ -26,11 +30,12 @@ export const AdminBrands = () => {
     fetchBrandApplications();
 
     const channel = supabase
-      .channel('public:brand_applications')
+      .channel('admin-brand-applications')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'brand_applications' },
         (payload) => {
+          console.log('New brand application received:', payload);
           toast.info("New brand application received!");
           setApplications((prev) => [payload.new as BrandApplication, ...prev]);
         }
@@ -39,6 +44,7 @@ export const AdminBrands = () => {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'brand_applications' },
         (payload) => {
+          console.log('Brand application updated:', payload);
           setApplications((prev) =>
             prev.map((app) =>
               app.id === payload.new.id ? (payload.new as BrandApplication) : app
@@ -54,53 +60,70 @@ export const AdminBrands = () => {
   }, []);
 
   const fetchBrandApplications = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('brand_applications')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      setLoading(true);
+      console.log('Fetching brand applications...');
+      
+      const { data, error } = await supabase
+        .from('brand_applications')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error("Error fetching brand applications:", error);
-      toast.error("Failed to load brand applications.");
+      if (error) {
+        console.error("Error fetching brand applications:", error);
+        toast.error("Failed to load brand applications: " + error.message);
+        setApplications([]);
+      } else {
+        console.log('Brand applications fetched:', data);
+        setApplications(data as BrandApplication[]);
+      }
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      toast.error("An unexpected error occurred");
       setApplications([]);
-    } else {
-      setApplications(data as BrandApplication[]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
   
   const handleUpdateStatus = async (applicationId: string, userId: string, newStatus: 'approved' | 'rejected') => {
-    // First, update the application status
-    const { error: statusError } = await supabase
-      .from('brand_applications')
-      .update({ status: newStatus })
-      .eq('id', applicationId);
+    try {
+      console.log(`Updating application ${applicationId} to ${newStatus}`);
+      
+      // First, update the application status
+      const { error: statusError } = await supabase
+        .from('brand_applications')
+        .update({ status: newStatus })
+        .eq('id', applicationId);
 
-    if (statusError) {
-      toast.error(`Failed to ${newStatus} application.`);
-      console.error("Error updating status:", statusError);
-      return;
-    }
-    
-    // If approved, assign the 'brand' role to the user
-    if (newStatus === 'approved') {
+      if (statusError) {
+        console.error("Error updating status:", statusError);
+        toast.error(`Failed to ${newStatus} application: ${statusError.message}`);
+        return;
+      }
+      
+      // If approved, assign the 'brand' role to the user
+      if (newStatus === 'approved') {
         const { error: roleError } = await supabase
-            .from('user_roles')
-            .insert({ user_id: userId, role: 'brand' });
+          .from('user_roles')
+          .insert({ user_id: userId, role: 'brand' });
 
         if (roleError && roleError.code !== '23505') { // 23505 is unique violation, meaning role already exists
-            toast.error("Application approved, but failed to assign 'brand' role.");
-            console.error("Error assigning role:", roleError);
+          console.error("Error assigning role:", roleError);
+          toast.error("Application approved, but failed to assign 'brand' role: " + roleError.message);
         } else {
-           toast.success("Application approved and 'brand' role assigned.");
+          toast.success("Application approved and 'brand' role assigned.");
         }
-    } else {
-       toast.success(`Application has been ${newStatus}.`);
-    }
+      } else {
+        toast.success(`Application has been ${newStatus}.`);
+      }
 
-    // No longer need to fetch, realtime listener will update UI.
-    // fetchBrandApplications();
+      // Refresh the data to show updated status
+      fetchBrandApplications();
+    } catch (error) {
+      console.error("Unexpected error updating status:", error);
+      toast.error("An unexpected error occurred while updating status");
+    }
   };
 
   if (loading) {
@@ -120,7 +143,10 @@ export const AdminBrands = () => {
           <Card>
             <CardHeader>
               <CardTitle>Brand Applications</CardTitle>
-              <CardDescription>Review and manage new brand partnership requests.</CardDescription>
+              <CardDescription>
+                Review and manage new brand partnership requests. 
+                {applications.length > 0 && ` (${applications.length} total applications)`}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto border rounded-md">
@@ -128,6 +154,7 @@ export const AdminBrands = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Brand</TableHead>
+                      <TableHead>Company Details</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Application Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -145,8 +172,15 @@ export const AdminBrands = () => {
                           )}
                         </TableCell>
                         <TableCell>
+                          <div className="text-sm space-y-1">
+                            <div><span className="font-medium">Size:</span> {app.company_size}</div>
+                            <div><span className="font-medium">Industry:</span> {app.industry}</div>
+                            <div><span className="font-medium">Budget:</span> {app.budget}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
                            <Badge variant={
-                              app.status === 'approved' ? 'success' : 
+                              app.status === 'approved' ? 'default' : 
                               app.status === 'rejected' ? 'destructive' : 'secondary'
                             }>
                               {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
@@ -157,16 +191,30 @@ export const AdminBrands = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex gap-2 justify-end">
-                            <Button size="sm" onClick={() => handleUpdateStatus(app.id, app.user_id, 'approved')} disabled={app.status !== 'pending'}>Approve</Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleUpdateStatus(app.id, app.user_id, 'rejected')} disabled={app.status !== 'pending'}>Reject</Button>
+                            <Button 
+                              size="sm" 
+                              onClick={() => handleUpdateStatus(app.id, app.user_id, 'approved')} 
+                              disabled={app.status !== 'pending'}
+                              variant={app.status === 'approved' ? 'outline' : 'default'}
+                            >
+                              {app.status === 'approved' ? 'Approved' : 'Approve'}
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive" 
+                              onClick={() => handleUpdateStatus(app.id, app.user_id, 'rejected')} 
+                              disabled={app.status !== 'pending'}
+                            >
+                              {app.status === 'rejected' ? 'Rejected' : 'Reject'}
+                            </Button>
                             <Button size="sm" variant="outline">Details</Button>
                           </div>
                         </TableCell>
                       </TableRow>
                     )) : (
                        <TableRow>
-                        <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                          No pending brand applications.
+                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          No brand applications found. Applications will appear here once brands sign up.
                         </TableCell>
                       </TableRow>
                     )}
