@@ -20,7 +20,10 @@ export const useBrandAnalytics = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchAnalytics = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const { data: campaigns, error: campaignsError } = await supabase
