@@ -14,6 +14,7 @@ import {
   SuspensionAction 
 } from "@/services/admin/enhancedUserManagementService";
 import { toast } from "sonner";
+import { useRole } from "@/hooks/useRole";
 
 export const EnhancedUserManagementSystem = () => {
   const [users, setUsers] = useState<UserActivityData[]>([]);
@@ -25,6 +26,9 @@ export const EnhancedUserManagementSystem = () => {
     sortBy: "joinDate",
     sortOrder: "desc"
   });
+
+  // Add admin role check
+  const { userRoles, isAdmin, loading: roleLoading } = useRole();
 
   // Dialog states
   const [suspensionDialog, setSuspensionDialog] = useState<{ open: boolean; userId?: string }>({ open: false });
@@ -40,12 +44,19 @@ export const EnhancedUserManagementSystem = () => {
   const [banReason, setBanReason] = useState("");
   const [bulkReason, setBulkReason] = useState("");
 
+  // New: feedback for admin only view
+  useEffect(() => {
+    if (!loading && !roleLoading && !isAdmin()) {
+      toast.error("You do not have permission to view all users.");
+    }
+  }, [loading, roleLoading, isAdmin]);
+
   // Load users when filters change with enhanced activity data
   useEffect(() => {
-    if (filters.searchTerm || filters.status !== 'all' || Object.keys(filters.dateRange || {}).length > 0) {
+    if (!roleLoading && isAdmin() && (filters.searchTerm || filters.status !== 'all' || Object.keys(filters.dateRange || {}).length > 0)) {
       loadUsers();
     }
-  }, []);
+  }, [roleLoading, filters, isAdmin]);
 
   const loadUsers = async () => {
     try {
@@ -53,6 +64,7 @@ export const EnhancedUserManagementSystem = () => {
       // Use the enhanced search with activity data
       const data = await enhancedUserManagementService.searchUsersWithActivity(filters);
       setUsers(data);
+      console.log("Loaded users for admin:", data);
     } catch (error) {
       console.error("Error loading users:", error);
       toast.error("Failed to load users");
