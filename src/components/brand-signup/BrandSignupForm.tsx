@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useBrandSignupFormPersistence } from "@/hooks/useBrandSignupFormPersistence";
 
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -70,6 +71,9 @@ const BrandSignupForm = () => {
     mode: "onChange",
   });
 
+  // Persist form progress across reloads
+  const { clearDraft } = useBrandSignupFormPersistence(form, true);
+
   const handleNextStep = async () => {
     const fields: (keyof BrandSignupFormValues)[] = ["companyName", "email", "password", "companySize", "website"];
     const output = await form.trigger(fields, { shouldFocus: true });
@@ -118,11 +122,11 @@ const BrandSignupForm = () => {
         toast.success("Application submitted! Please check your email to confirm your account.");
       } catch (error) {
         console.error("Error sending confirmation email:", error);
-        // Don't fail the whole process if email sending fails, just warn the user.
         toast.warning("Your application was submitted, but we had an issue sending the confirmation email. Please contact support if you don't receive it.");
       }
       
       setSubmitted(true);
+      clearDraft(); // Clear progress after success
 
     } catch (error) {
       console.error("An unexpected error occurred during signup:", error);
