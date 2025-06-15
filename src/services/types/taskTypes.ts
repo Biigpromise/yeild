@@ -1,3 +1,4 @@
+
 export interface Task {
   id: string;
   title: string;
@@ -18,10 +19,10 @@ export interface Task {
 export interface TaskCategory {
   id: string;
   name: string;
-  description: string;
-  icon: string;
-  color: string;
-  created_at: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  created_at?: string;
 }
 
 export interface TaskSubmission {

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Task, TaskCategory, TaskSubmission } from "../types/taskTypes";
@@ -31,7 +30,7 @@ export const taskQueries = {
         .order('name');
 
       if (error) throw error;
-      return (data as any) || [];
+      return data || [];
     } catch (error) {
       console.error('Error fetching categories:', error);
       toast.error('Failed to load categories');
