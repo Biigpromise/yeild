@@ -164,4 +164,16 @@ export const adminContentService = {
       return false;
     }
   },
+
+  // Content Moderation (mocked to prevent build errors)
+  async getContentModerationQueue(): Promise<any[]> {
+    console.warn("getContentModerationQueue is a mock implementation and does not fetch real data.");
+    return [];
+  },
+
+  async moderateContent(contentId: string, action: 'approve' | 'reject', reason?: string): Promise<boolean> {
+    console.warn(`moderateContent is a mock implementation. Called with id: ${contentId}, action: ${action}, reason: ${reason}`);
+    toast.info("Content moderation functionality is not yet implemented.");
+    return true;
+  },
 };

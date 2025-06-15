@@ -33,9 +33,9 @@ export const AnnouncementDialog: React.FC<AnnouncementDialogProps> = ({ open, on
         title,
         content,
         type: "info",
-        targetAudience: "all",
-        isActive: true,
-        scheduledFor: undefined,
+        target_audience: "all",
+        is_active: true,
+        scheduled_for: undefined,
       });
       toast({
         title: "Announcement sent!",

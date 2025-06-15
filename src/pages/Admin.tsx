@@ -11,7 +11,6 @@ import { AdminNotifications } from "@/components/admin/AdminNotifications";
 import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
 import { AdminSupport } from "@/components/admin/AdminSupport";
 import { AdminSettings } from "@/components/admin/AdminSettings";
-import { AdminAnnouncements } from "@/components/admin/AdminAnnouncements";
 import { AdminSecurity } from "@/components/admin/AdminSecurity";
 import { AdminCommunication } from "@/components/admin/AdminCommunication";
 import { AdminContentManagement } from "@/components/admin/AdminContentManagement";
@@ -53,6 +52,12 @@ const Admin = () => {
       window.removeEventListener('navigateToCreateTask', handleNavigateToCreateTask);
     };
   }, []);
+  
+  useEffect(() => {
+    if (activeSection === "announcements") {
+      setActiveSection("content");
+    }
+  }, [activeSection]);
 
   // Map of sections to their component - Updated to use enhanced task management
   const sectionComponents = {
@@ -64,7 +69,6 @@ const Admin = () => {
     streaks: <AdminStreaks />,
     brands: <AdminBrands />,
     notifications: <AdminNotifications />,
-    announcements: <AdminAnnouncements />,
     analytics: <AdminAnalytics />,
     support: <AdminSupport />,
     settings: <AdminSettings />,
@@ -83,7 +87,6 @@ const Admin = () => {
     { id: "streaks", label: "Streaks", icon: Medal },
     { id: "brands", label: "Brands", icon: Flag },
     { id: "notifications", label: "Notifications", icon: Bell },
-    { id: "announcements", label: "Announcements", icon: Megaphone },
     { id: "communication", label: "Communication", icon: MessageSquare },
     { id: "content", label: "Content", icon: Database },
     { id: "analytics", label: "Analytics", icon: BarChart2 },
