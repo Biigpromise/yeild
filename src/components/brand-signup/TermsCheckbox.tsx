@@ -11,7 +11,7 @@ interface TermsCheckboxProps {
 
 const TermsCheckbox: React.FC<TermsCheckboxProps> = ({ checked, onCheckedChange, id = "termsCheckbox" }) => {
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    // Prevent the label's onClick from firing when a link is clicked.
+    // Prevent any parent handlers from firing.
     e.stopPropagation();
     // Prevent the default link behavior.
     e.preventDefault();
@@ -30,9 +30,7 @@ const TermsCheckbox: React.FC<TermsCheckboxProps> = ({ checked, onCheckedChange,
         aria-describedby={`${id}-description`}
       />
       <Label
-        // Use a direct onClick handler for the label text.
-        onClick={() => onCheckedChange(!checked)}
-        className="flex-1 ml-3 cursor-pointer text-sm text-gray-300 leading-relaxed select-none"
+        className="flex-1 ml-3 text-sm text-gray-300 leading-relaxed select-none"
       >
         I agree to the{" "}
         <a
