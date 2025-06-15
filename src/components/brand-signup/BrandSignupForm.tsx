@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -84,36 +83,29 @@ const BrandSignupForm = () => {
   const onSubmit = async (data: BrandSignupFormValues) => {
     setIsLoading(true);
     try {
-      const { user, error: signUpError } = await signUp(data.email, data.password, data.companyName);
-
-      if (signUpError || !user) {
-        toast.error(signUpError?.message || "Could not create account. Please try again.");
-        setIsLoading(false);
-        return;
-      }
-      
       const applicationData = {
-        user_id: user.id,
-        company_name: data.companyName,
+        companyName: data.companyName,
         website: data.website,
-        company_size: data.companySize,
+        companySize: data.companySize,
         industry: data.industry,
-        task_types: data.taskTypes,
+        taskTypes: data.taskTypes,
         budget: data.budget,
         goals: data.goals,
       };
 
-      const { error: insertError } = await supabase
-        .from('brand_applications')
-        .insert(applicationData);
+      const { error: signUpError } = await signUp(
+        data.email, 
+        data.password, 
+        data.companyName, 
+        { brand_application_data: applicationData }
+      );
 
-      if (insertError) {
-        console.error("Error saving brand application:", insertError);
-        toast.error("Your account was created, but we failed to save your application. Please contact support.");
+      if (signUpError) {
+        toast.error(signUpError.message || "Could not create account. Please try again.");
         setIsLoading(false);
         return;
       }
-
+      
       setFormCompleted(true);
 
     } catch (error) {
