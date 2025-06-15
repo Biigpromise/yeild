@@ -105,140 +105,148 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
   );
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Create New Task</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="title">Task Title *</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
-                  placeholder="Enter task title"
-                />
+    <div className="w-full flex justify-center items-center sm:p-4 p-0">
+      <Card className="w-full max-w-2xl shadow-lg rounded-lg border sm:my-6 my-0 sm:p-6 p-0 bg-white">
+        <CardHeader className="px-4 pt-4">
+          <CardTitle>Create New Task</CardTitle>
+        </CardHeader>
+        <CardContent 
+          className="p-4 pt-0 overflow-y-auto"
+          style={{ maxHeight: "80vh" }}
+        >
+          <form 
+            onSubmit={handleSubmit} 
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Task Title *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    placeholder="Enter task title"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="points">Points Reward *</Label>
+                  <Input
+                    id="points"
+                    type="number"
+                    value={formData.points}
+                    onChange={(e) => handleInputChange('points', e.target.value)}
+                    placeholder="50"
+                    min="1"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="category">Category *</Label>
+                  <Select 
+                    value={formData.category_id} 
+                    onValueChange={(value) => handleInputChange('category_id', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select category"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoriesLoading ? (
+                        <SelectItem value="loading-placeholder" disabled>Loading categories...</SelectItem>
+                      ) : validCategories.length > 0 ? (
+                        validCategories.map((category) => (
+                          <SelectItem key={`cat-${category.id}`} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-categories-placeholder" disabled>No categories available</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="difficulty">Difficulty</Label>
+                  <Select value={formData.difficulty} onValueChange={(value) => handleInputChange('difficulty', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="easy">Easy</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
-              <div>
-                <Label htmlFor="points">Points Reward *</Label>
-                <Input
-                  id="points"
-                  type="number"
-                  value={formData.points}
-                  onChange={(e) => handleInputChange('points', e.target.value)}
-                  placeholder="50"
-                  min="1"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="category">Category *</Label>
-                <Select 
-                  value={formData.category_id} 
-                  onValueChange={(value) => handleInputChange('category_id', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select category"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categoriesLoading ? (
-                      <SelectItem value="loading-placeholder" disabled>Loading categories...</SelectItem>
-                    ) : validCategories.length > 0 ? (
-                      validCategories.map((category) => (
-                        <SelectItem key={`cat-${category.id}`} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="no-categories-placeholder" disabled>No categories available</SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="difficulty">Difficulty</Label>
-                <Select value={formData.difficulty} onValueChange={(value) => handleInputChange('difficulty', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select difficulty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="easy">Easy</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="hard">Hard</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="brand_name">Brand Name</Label>
+                  <Input
+                    id="brand_name"
+                    value={formData.brand_name}
+                    onChange={(e) => handleInputChange('brand_name', e.target.value)}
+                    placeholder="Brand or company name"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="brand_logo_url">Brand Logo URL</Label>
+                  <Input
+                    id="brand_logo_url"
+                    value={formData.brand_logo_url}
+                    onChange={(e) => handleInputChange('brand_logo_url', e.target.value)}
+                    placeholder="https://example.com/logo.png"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="estimated_time">Estimated Time</Label>
+                  <Input
+                    id="estimated_time"
+                    value={formData.estimated_time}
+                    onChange={(e) => handleInputChange('estimated_time', e.target.value)}
+                    placeholder="e.g., 5 minutes, 1 hour"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="expires_at">Expiration Date</Label>
+                  <Input
+                    id="expires_at"
+                    type="datetime-local"
+                    value={formData.expires_at}
+                    onChange={(e) => handleInputChange('expires_at', e.target.value)}
+                  />
+                </div>
               </div>
             </div>
             
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="brand_name">Brand Name</Label>
-                <Input
-                  id="brand_name"
-                  value={formData.brand_name}
-                  onChange={(e) => handleInputChange('brand_name', e.target.value)}
-                  placeholder="Brand or company name"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="brand_logo_url">Brand Logo URL</Label>
-                <Input
-                  id="brand_logo_url"
-                  value={formData.brand_logo_url}
-                  onChange={(e) => handleInputChange('brand_logo_url', e.target.value)}
-                  placeholder="https://example.com/logo.png"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="estimated_time">Estimated Time</Label>
-                <Input
-                  id="estimated_time"
-                  value={formData.estimated_time}
-                  onChange={(e) => handleInputChange('estimated_time', e.target.value)}
-                  placeholder="e.g., 5 minutes, 1 hour"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="expires_at">Expiration Date</Label>
-                <Input
-                  id="expires_at"
-                  type="datetime-local"
-                  value={formData.expires_at}
-                  onChange={(e) => handleInputChange('expires_at', e.target.value)}
-                />
-              </div>
+            <div>
+              <Label htmlFor="description">Task Description *</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder="Describe what users need to do to complete this task..."
+                rows={4}
+              />
             </div>
-          </div>
-          
-          <div>
-            <Label htmlFor="description">Task Description *</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Describe what users need to do to complete this task..."
-              rows={4}
-            />
-          </div>
-          
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline">
-              Save as Draft
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create & Publish Task"}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+            
+            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" className="w-full sm:w-auto">
+                Save as Draft
+              </Button>
+              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+                {isSubmitting ? "Creating..." : "Create & Publish Task"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
