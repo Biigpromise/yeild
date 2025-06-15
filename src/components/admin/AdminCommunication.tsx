@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { adminCommunicationService, SupportTicket, MessageTemplate } from "@/services/admin/adminCommunicationService";
-import { MessageSquare, Send, FileText, Users } from "lucide-react";
+import { MessageSquare, Send, FileText, Users, MessageCircle } from "lucide-react";
+import { CommunityChat } from "@/components/community/CommunityChat";
 
 export const AdminCommunication = () => {
   const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([]);
@@ -164,10 +165,11 @@ export const AdminCommunication = () => {
       </div>
 
       <Tabs defaultValue="tickets">
-        <TabsList>
+        <TabsList className="grid grid-cols-1 md:grid-cols-4">
           <TabsTrigger value="tickets">Support Tickets</TabsTrigger>
           <TabsTrigger value="templates">Message Templates</TabsTrigger>
           <TabsTrigger value="bulk">Bulk Messaging</TabsTrigger>
+          <TabsTrigger value="community-chat">Community Chat</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tickets">
@@ -324,6 +326,20 @@ export const AdminCommunication = () => {
                 <Send className="h-4 w-4" />
                 Send to All Users
               </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="community-chat">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageCircle className="h-5 w-5" />
+                Global Community Chat
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CommunityChat />
             </CardContent>
           </Card>
         </TabsContent>
