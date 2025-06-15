@@ -153,13 +153,34 @@ const FormStepTwo = ({
           onCheckedChange={(checked) => setAgreeTerms(checked === true)}
           className="mt-1 flex-shrink-0"
         />
-        <div className="flex-1">
+        <div className="flex-1 text-sm text-gray-300 leading-relaxed select-none">
           <Label
             htmlFor="termsCheckbox"
-            className="text-sm text-gray-300 cursor-pointer leading-relaxed"
+            className="cursor-pointer select-none"
           >
-            I agree to the <a href="#" className="text-yeild-yellow hover:underline">Terms of Service</a> and <a href="#" className="text-yeild-yellow hover:underline">Privacy Policy</a>
+            I agree to the{" "}
           </Label>
+          <a
+            href="#"
+            className="text-yeild-yellow hover:underline"
+            tabIndex={0}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+          >
+            Terms of Service
+          </a>
+          {" "}and{" "}
+          <a
+            href="#"
+            className="text-yeild-yellow hover:underline"
+            tabIndex={0}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+          >
+            Privacy Policy
+          </a>
         </div>
       </div>
     </>
