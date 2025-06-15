@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,10 +41,15 @@ export const TaskManagement = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      console.log("Loading admin data...");
+      
       const [tasksData, submissionsData] = await Promise.all([
         taskService.admin.getAllTasks(),
         taskService.admin.getAllSubmissions()
       ]);
+      
+      console.log("Tasks loaded:", tasksData.length);
+      console.log("Submissions loaded:", submissionsData.length);
       
       setTasks(tasksData);
       setSubmissions(submissionsData);
@@ -59,9 +65,16 @@ export const TaskManagement = () => {
     if (!confirm("Are you sure you want to delete this task?")) return;
     
     try {
-      await taskService.admin.deleteTask(taskId);
-      toast.success("Task deleted successfully");
-      loadData();
+      console.log("Deleting task:", taskId);
+      const success = await taskService.admin.deleteTask(taskId);
+      
+      if (success) {
+        toast.success("Task deleted successfully");
+        // Force reload the data
+        await loadData();
+      } else {
+        toast.error("Failed to delete task");
+      }
     } catch (error) {
       console.error("Error deleting task:", error);
       toast.error("Failed to delete task");
@@ -137,7 +150,7 @@ export const TaskManagement = () => {
   }
 
   return (
-    <div className="h-full flex flex-col gap-6 overflow-hidden">
+    <div className="h-screen flex flex-col gap-6 p-6 overflow-hidden">
       {/* Overview Stats */}
       <TaskOverviewStats 
         activeTasksCount={activeTasksCount}
@@ -146,7 +159,7 @@ export const TaskManagement = () => {
         approvalRate={totalSubmissions > 0 ? Math.round((approvedSubmissions / totalSubmissions) * 100) : 0}
       />
 
-      <Tabs defaultValue="tasks" className="flex-1 flex flex-col gap-6 min-h-0 overflow-hidden">
+      <Tabs defaultValue="tasks" className="flex-1 flex flex-col min-h-0">
         <TabsList>
           <TabsTrigger value="tasks">All Tasks</TabsTrigger>
           <TabsTrigger value="submissions">
@@ -161,7 +174,7 @@ export const TaskManagement = () => {
         </TabsList>
 
         <TabsContent value="tasks" className="flex-1 overflow-hidden">
-          <Card>
+          <Card className="h-full flex flex-col">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Task Management</CardTitle>
@@ -171,7 +184,7 @@ export const TaskManagement = () => {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex-1 flex flex-col space-y-4 overflow-hidden">
               {/* Filters */}
               <TaskFilterBar
                 searchTerm={searchTerm}
@@ -180,12 +193,14 @@ export const TaskManagement = () => {
                 onStatusFilterChange={setStatusFilter}
               />
               {/* Tasks Table */}
-              <TaskTable 
-                tasks={filteredTasks}
-                getDifficultyColor={getDifficultyColor}
-                getStatusColor={getStatusColor}
-                onDeleteTask={handleDeleteTask}
-              />
+              <div className="flex-1 overflow-auto">
+                <TaskTable 
+                  tasks={filteredTasks}
+                  getDifficultyColor={getDifficultyColor}
+                  getStatusColor={getStatusColor}
+                  onDeleteTask={handleDeleteTask}
+                />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -197,8 +212,17 @@ export const TaskManagement = () => {
           />
         </TabsContent>
 
-        <TabsContent value="create" className="flex-1 overflow-y-auto">
-          <CreateTaskForm onTaskCreated={loadData} />
+        <TabsContent value="create" className="flex-1 overflow-hidden">
+          <div className="h-full">
+            <Card className="h-full flex flex-col">
+              <CardHeader>
+                <CardTitle>Create New Task</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-y-auto">
+                <CreateTaskForm onTaskCreated={loadData} />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
