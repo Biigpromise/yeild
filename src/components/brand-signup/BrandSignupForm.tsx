@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -44,6 +45,7 @@ const BrandSignupForm = () => {
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
+  const [submitted, setSubmitted] = useState(false);
 
   const form = useForm<BrandSignupFormValues>({
     resolver: zodResolver(formSchema),
@@ -104,6 +106,7 @@ const BrandSignupForm = () => {
       }
       
       toast.success("Application submitted successfully!");
+      setSubmitted(true);
 
     } catch (error) {
       console.error("An unexpected error occurred during signup:", error);
@@ -112,6 +115,23 @@ const BrandSignupForm = () => {
       setIsLoading(false);
     }
   };
+
+  if (submitted) {
+    return (
+      <div className="text-center p-8 bg-gray-900/50 rounded-lg">
+        <h1 className="text-2xl font-bold">Thank You for Applying!</h1>
+        <p className="text-gray-400 mt-4">
+          Your application has been submitted for review.
+        </p>
+        <p className="text-gray-400 mt-2">
+          Please check your email to confirm your account. Once confirmed, you can log in to check your application status.
+        </p>
+        <Button onClick={() => navigate('/login')} className="mt-6 yeild-btn-primary">
+          Go to Login
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <>
