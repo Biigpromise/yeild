@@ -430,27 +430,69 @@ export type Database = {
         }
         Relationships: []
       }
+      post_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           content: string
           created_at: string | null
           id: string
+          likes_count: number
           updated_at: string | null
           user_id: string
+          view_count: number
         }
         Insert: {
           content: string
           created_at?: string | null
           id?: string
+          likes_count?: number
           updated_at?: string | null
           user_id: string
+          view_count?: number
         }
         Update: {
           content?: string
           created_at?: string | null
           id?: string
+          likes_count?: number
           updated_at?: string | null
           user_id?: string
+          view_count?: number
         }
         Relationships: [
           {
@@ -1263,6 +1305,10 @@ export type Database = {
       has_role: {
         Args: { _user_id: string; _role: string }
         Returns: boolean
+      }
+      increment_post_view: {
+        Args: { post_id_to_inc: string }
+        Returns: undefined
       }
       is_admin: {
         Args: { user_id: string }

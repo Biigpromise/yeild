@@ -1,11 +1,10 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send } from "lucide-react";
+import { Send, ThumbsUp, Eye } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { PublicProfileModal } from "@/components/PublicProfileModal";
 
@@ -15,12 +14,19 @@ type Profile = {
   profile_picture_url?: string | null;
 };
 
+type PostLike = {
+  user_id: string;
+};
+
 type Post = {
   id: string;
   user_id: string;
   content: string;
   created_at: string;
   profile: Profile | null;
+  view_count: number;
+  likes_count: number;
+  post_likes: PostLike[];
 };
 
 const OFFENSIVE_WORDS = [
@@ -42,6 +48,7 @@ export const PostFeed: React.FC = () => {
   // Profile modal state
   const [profileModalUserId, setProfileModalUserId] = useState<string | null>(null);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const viewedPostsRef = useRef(new Set<string>());
 
   // Get current user
   useEffect(() => {
@@ -55,15 +62,14 @@ export const PostFeed: React.FC = () => {
   }, []);
 
   // Fetch posts with user profile info
-  const fetchPosts = async () => {
-    setLoading(true);
+  const fetchPosts = useCallback(async () => {
     const { data, error } = await supabase
       .from("posts")
-      .select("*, profile:profiles(id, name, profile_picture_url)")
+      .select("*, profile:profiles(id, name, profile_picture_url), post_likes(user_id)")
       .order("created_at", { ascending: false });
 
     if (!error && data) {
-      setPosts(data as Post[]);
+      setPosts(data as any[]); // Using any because generated types won't have new fields yet
     } else {
       if (error) console.error("Error fetching posts:", error);
       toast({
@@ -73,28 +79,28 @@ export const PostFeed: React.FC = () => {
       });
     }
     setLoading(false);
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchPosts();
-    // Optionally: realtime subscription for new posts
     const channel = supabase
-      .channel("public:posts")
+      .channel("public-posts-feed")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "posts" },
-        (payload) => {
-          console.log("Realtime event received, refetching posts.", payload);
-          fetchPosts();
-        }
+        { event: "*", schema: "public", table: "posts" },
+        () => fetchPosts()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "post_likes" },
+        () => fetchPosts()
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line
-  }, []);
+  }, [fetchPosts]);
 
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,6 +129,90 @@ export const PostFeed: React.FC = () => {
     }
   };
 
+  const handleLikePost = async (post: Post) => {
+    if (!userId) {
+      toast({ description: "You need to be logged in to like a post." });
+      return;
+    }
+    const hasLiked = post.post_likes?.some(like => like.user_id === userId);
+
+    const originalPosts = posts;
+    setPosts(currentPosts => 
+      currentPosts.map(p => {
+        if (p.id === post.id) {
+          return {
+            ...p,
+            likes_count: hasLiked ? p.likes_count - 1 : p.likes_count + 1,
+            post_likes: hasLiked 
+              ? p.post_likes.filter(like => like.user_id !== userId)
+              : [...(p.post_likes || []), { user_id: userId }]
+          };
+        }
+        return p;
+      })
+    );
+
+    if (hasLiked) {
+      const { error } = await supabase
+        .from('post_likes')
+        .delete()
+        .match({ post_id: post.id, user_id: userId });
+      if (error) {
+        toast({ variant: 'destructive', description: "Couldn't unlike post. " + error.message });
+        setPosts(originalPosts);
+      }
+    } else {
+      const { error } = await supabase
+        .from('post_likes')
+        .insert({ post_id: post.id, user_id: userId });
+      if (error) {
+        toast({ variant: 'destructive', description: "Couldn't like post. " + error.message });
+        setPosts(originalPosts);
+      }
+    }
+  };
+
+  const incrementViewCount = useCallback(async (postId: string) => {
+    if (viewedPostsRef.current.has(postId)) return;
+    viewedPostsRef.current.add(postId);
+    
+    setPosts(prev => prev.map(p => p.id === postId ? {...p, view_count: (p.view_count || 0) + 1} : p));
+
+    const { error } = await supabase.rpc('increment_post_view', { post_id_to_inc: postId });
+    if (error) {
+      console.error('Failed to increment view count:', error.message);
+    }
+  }, []);
+
+  const postRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const postId = (entry.target as HTMLDivElement).dataset.postId;
+            if (postId) {
+              incrementViewCount(postId);
+            }
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    const currentRefs = postRefs.current;
+    currentRefs.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => {
+      currentRefs.forEach((ref) => {
+        if (ref) observer.unobserve(ref);
+      });
+    };
+  }, [posts, incrementViewCount]);
+
   const openProfile = (uId: string | null) => {
     if (!uId) return;
     setProfileModalUserId(uId);
@@ -150,9 +240,15 @@ export const PostFeed: React.FC = () => {
           <div className="flex justify-center p-8 text-muted-foreground">Loading feed...</div>
         ) : (
           <div className="space-y-6">
-            {posts.map((post) => (
+            {posts.map((post, index) => (
               <div
                 key={post.id}
+                ref={el => {
+                  if (postRefs.current) {
+                      postRefs.current[index] = el;
+                  }
+                }}
+                data-post-id={post.id}
                 className="border-b pb-4 last:border-b-0 flex gap-3"
               >
                 <button
@@ -197,6 +293,23 @@ export const PostFeed: React.FC = () => {
                   </div>
                   <div className="mt-1 text-base break-words whitespace-pre-line">
                     {post.content}
+                  </div>
+                  <div className="flex items-center gap-4 text-muted-foreground mt-3">
+                    <button
+                      onClick={() => handleLikePost(post)}
+                      disabled={!userId}
+                      className="flex items-center gap-1.5 group disabled:cursor-not-allowed"
+                      aria-label={`Like post by ${post.profile?.name ?? "User"}`}
+                    >
+                      <ThumbsUp
+                        className={`h-4 w-4 group-hover:text-primary transition-colors ${post.post_likes?.some(like => like.user_id === userId) ? 'text-primary fill-primary' : ''}`}
+                      />
+                      <span className="text-sm">{post.likes_count ?? 0}</span>
+                    </button>
+                    <div className="flex items-center gap-1.5" title={`${post.view_count ?? 0} views`}>
+                      <Eye className="h-4 w-4" />
+                      <span className="text-sm">{post.view_count ?? 0}</span>
+                    </div>
                   </div>
                 </div>
               </div>
