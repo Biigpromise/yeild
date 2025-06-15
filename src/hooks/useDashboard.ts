@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +13,9 @@ export const useDashboard = () => {
     tasksCompleted: 0,
     currentStreak: 0,
     rank: 0,
-    referrals: 0
+    referrals: 0,
+    followers: 0,
+    following: 0
   });
   const [userTasks, setUserTasks] = useState<any[]>([]);
   const [userSubmissions, setUserSubmissions] = useState<any[]>([]);
@@ -49,7 +50,9 @@ export const useDashboard = () => {
             ...prev,
             points: profile.points || 0,
             level: profile.level || 1,
-            tasksCompleted: profile.tasks_completed || 0
+            tasksCompleted: profile.tasks_completed || 0,
+            followers: profile.followers_count || 0,
+            following: profile.following_count || 0,
           }));
       }
 

@@ -46,6 +46,7 @@ import { TasksTab } from "@/components/dashboard/TasksTab";
 import { WalletTab } from "@/components/dashboard/WalletTab";
 import { AchievementsTab } from "@/components/dashboard/AchievementsTab";
 import { SupportTab } from "@/components/dashboard/SupportTab";
+import { ProfileTab } from "@/components/dashboard/ProfileTab";
 import {
   Trophy, 
   Users, 
@@ -97,7 +98,7 @@ const Dashboard = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
 
   // Touch gesture navigation
-  const tabs = ['tasks', 'rewards', 'achievements', 'wallet', 'leaderboard', 'community-chat', 'support'];
+  const tabs = ['tasks', 'rewards', 'achievements', 'wallet', 'leaderboard', 'profile', 'community-chat', 'support'];
   
   const handleSwipeLeft = () => {
     const currentIndex = tabs.indexOf(activeTab);
@@ -184,7 +185,7 @@ const Dashboard = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3">
           {/* Desktop Tab Navigation */}
           {!isMobile && (
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="tasks">
                 <Home className="h-4 w-4 mr-2" />
                 Home
@@ -204,6 +205,10 @@ const Dashboard = () => {
               <TabsTrigger value="leaderboard">
                 <Trophy className="h-4 w-4 mr-2" />
                 Leaderboard
+              </TabsTrigger>
+              <TabsTrigger value="profile">
+                 <User className="h-4 w-4 mr-2" />
+                 Profile
               </TabsTrigger>
               <TabsTrigger value="community-chat">
                  <MessageCircle className="h-4 w-4 mr-2" />
@@ -261,6 +266,15 @@ const Dashboard = () => {
 
           <TabsContent value="referrals">
             <ReferralsTab />
+          </TabsContent>
+
+          <TabsContent value="profile">
+            <ProfileTab
+              userProfile={userProfile}
+              userStats={userStats}
+              totalPointsEarned={totalPointsEarned}
+              onProfileUpdate={loadUserData}
+            />
           </TabsContent>
 
           <TabsContent value="community-chat">

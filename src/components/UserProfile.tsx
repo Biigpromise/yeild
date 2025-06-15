@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Edit2, Save, X, Camera, Trophy, Target, Flame, Calendar, MapPin, Link as LinkIcon, Upload, Trash2 } from "lucide-react";
+import { Edit2, Save, X, Camera, Trophy, Target, Flame, Calendar, MapPin, Link as LinkIcon, Upload, Trash2, Users } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { fileUploadService } from "@/services/fileUploadService";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,6 +28,8 @@ interface UserProfileProps {
     averageTaskRating?: number;
     favoriteCategory?: string;
     completionRate?: number;
+    followers_count: number;
+    following_count: number;
   };
   onUpdate: (data: Partial<UserProfileProps['user']>) => void;
 }
@@ -220,6 +221,16 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
                     {user.bio || "No bio provided yet."}
                   </p>
                 )}
+              </div>
+              <div className="flex items-center gap-6 text-sm text-muted-foreground pt-2">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  <span><span className="font-bold">{user.followers_count ?? 0}</span> followers</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  <span><span className="font-bold">{user.following_count ?? 0}</span> following</span>
+                </div>
               </div>
             </div>
           </div>
