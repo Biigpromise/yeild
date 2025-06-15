@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -13,7 +12,6 @@ import FormStepOne from "@/components/brand-signup/FormStepOne";
 import FormStepTwo from "@/components/brand-signup/FormStepTwo";
 import SuccessMessage from "@/components/brand-signup/SuccessMessage";
 import ProgressSteps from "@/components/brand-signup/ProgressSteps";
-import FormButtons from "@/components/brand-signup/FormButtons";
 
 const formSchema = z
   .object({
