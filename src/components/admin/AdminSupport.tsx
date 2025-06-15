@@ -7,16 +7,40 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState } from "@/components/ui/loading-state";
+import { adminSupportService, AdminSupportTicket } from "@/services/admin/adminSupportService";
+import { formatDistanceToNow } from "date-fns";
 
 export const AdminSupport = () => {
-  const [tickets, setTickets] = useState([]);
+  const [tickets, setTickets] = useState<AdminSupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real implementation, this would fetch tickets from Supabase
-    // For now, we'll show an empty state
-    setLoading(false);
+    const fetchTickets = async () => {
+      setLoading(true);
+      try {
+        const fetchedTickets = await adminSupportService.getAllTickets();
+        setTickets(fetchedTickets);
+      } catch (error) {
+        console.error("Failed to fetch tickets", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTickets();
   }, []);
+
+  const getStatusBadgeVariant = (status: AdminSupportTicket['status']) => {
+    switch (status) {
+      case 'open':
+        return 'destructive';
+      case 'in_progress':
+        return 'secondary';
+      case 'resolved':
+        return 'default';
+      default:
+        return 'default';
+    }
+  };
 
   if (loading) {
     return <LoadingState text="Loading support tickets..." />;
@@ -45,13 +69,7 @@ export const AdminSupport = () => {
                     <option value="all">All Status</option>
                     <option value="open">Open</option>
                     <option value="in-progress">In Progress</option>
-                    <option value="closed">Closed</option>
-                  </select>
-                  <select className="h-10 border border-input rounded-md px-3">
-                    <option value="all">All Priorities</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
+                    <option value="resolved">Resolved</option>
                   </select>
                 </div>
               </div>
@@ -64,18 +82,37 @@ export const AdminSupport = () => {
                       <TableHead>Subject</TableHead>
                       <TableHead>User</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Priority</TableHead>
                       <TableHead>Created</TableHead>
                       <TableHead>Last Update</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                        No support tickets found. Support ticket system needs to be implemented.
-                      </TableCell>
-                    </TableRow>
+                    {tickets.length > 0 ? (
+                      tickets.map((ticket) => (
+                        <TableRow key={ticket.id}>
+                          <TableCell className="font-mono text-xs">{ticket.id.substring(0, 8)}</TableCell>
+                          <TableCell className="font-medium">{ticket.subject}</TableCell>
+                          <TableCell>{ticket.profiles?.name || ticket.profiles?.email || ticket.user_id}</TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusBadgeVariant(ticket.status)} className="capitalize">
+                              {ticket.status.replace('_', ' ')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}</TableCell>
+                          <TableCell>{formatDistanceToNow(new Date(ticket.updated_at), { addSuffix: true })}</TableCell>
+                          <TableCell>
+                            <Button variant="outline" size="sm">View</Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          No support tickets found.
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>

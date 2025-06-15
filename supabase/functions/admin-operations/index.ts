@@ -41,6 +41,16 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ has_admin_access: !!data }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
+      
+      case 'get_all_support_tickets':
+        ({ data, error } = await supabaseAdmin
+          .from('customer_support_tickets')
+          .select('*, profiles(name, email)')
+          .order('created_at', { ascending: false }));
+        if (error) throw error;
+        return new Response(JSON.stringify(data), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
 
       case 'assign_admin_role':
         ({ data, error } = await supabaseAdmin
