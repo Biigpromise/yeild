@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { TaskTable } from "./TaskTable";
 import { useAdminTaskManagement } from "./hooks/useAdminTaskManagement";
 import { getStatusColor, getDifficultyColor } from "./utils/taskColorUtils";
 import { EditTaskModal } from "./EditTaskModal";
+import { TaskCategoryManager } from "./enhanced/TaskCategoryManager";
 
 export const TaskManagement = () => {
   const {
@@ -80,6 +82,7 @@ export const TaskManagement = () => {
             )}
           </TabsTrigger>
           <TabsTrigger value="create">Create Task</TabsTrigger>
+          <TabsTrigger value="categories">Manage Categories</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="flex-1 overflow-hidden">
@@ -138,6 +141,10 @@ export const TaskManagement = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+        
+        <TabsContent value="categories" className="flex-1 overflow-y-auto">
+          <TaskCategoryManager onCategoryUpdated={loadData} />
         </TabsContent>
       </Tabs>
 
