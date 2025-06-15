@@ -10,3 +10,6 @@ max_rows = 1000
 
 [functions.admin-operations]
 verify_jwt = true
+
+[functions.send-brand-confirmation-email]
+verify_jwt = true

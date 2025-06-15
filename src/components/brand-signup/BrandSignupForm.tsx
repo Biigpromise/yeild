@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -105,7 +105,23 @@ const BrandSignupForm = () => {
         return;
       }
       
-      toast.success("Application submitted successfully!");
+      // Invoke edge function to send custom confirmation email
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-brand-confirmation-email', {
+          body: { email: data.email, companyName: data.companyName },
+        });
+
+        if (emailError) {
+          throw emailError;
+        }
+        
+        toast.success("Application submitted! Please check your email to confirm your account.");
+      } catch (error) {
+        console.error("Error sending confirmation email:", error);
+        // Don't fail the whole process if email sending fails, just warn the user.
+        toast.warning("Your application was submitted, but we had an issue sending the confirmation email. Please contact support if you don't receive it.");
+      }
+      
       setSubmitted(true);
 
     } catch (error) {
