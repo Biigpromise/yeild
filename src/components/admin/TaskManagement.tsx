@@ -137,7 +137,7 @@ export const TaskManagement = () => {
   }
 
   return (
-    <div className="h-full flex flex-col gap-6">
+    <div className="h-full flex flex-col gap-6 overflow-hidden">
       {/* Overview Stats */}
       <TaskOverviewStats 
         activeTasksCount={activeTasksCount}
@@ -146,7 +146,7 @@ export const TaskManagement = () => {
         approvalRate={totalSubmissions > 0 ? Math.round((approvedSubmissions / totalSubmissions) * 100) : 0}
       />
 
-      <Tabs defaultValue="tasks" className="flex-1 flex flex-col gap-6 min-h-0">
+      <Tabs defaultValue="tasks" className="flex-1 flex flex-col gap-6 min-h-0 overflow-hidden">
         <TabsList>
           <TabsTrigger value="tasks">All Tasks</TabsTrigger>
           <TabsTrigger value="submissions">
@@ -197,10 +197,8 @@ export const TaskManagement = () => {
           />
         </TabsContent>
 
-        <TabsContent value="create" className="flex-1 min-h-0">
-          <div className="h-full overflow-y-auto">
-            <CreateTaskForm onTaskCreated={loadData} />
-          </div>
+        <TabsContent value="create" className="flex-1 overflow-y-auto">
+          <CreateTaskForm onTaskCreated={loadData} />
         </TabsContent>
       </Tabs>
     </div>
