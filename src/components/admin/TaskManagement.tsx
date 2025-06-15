@@ -1,159 +1,41 @@
-import React, { useState, useEffect } from "react";
+
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TaskSubmissionReview } from "./TaskSubmissionReview";
 import { CreateTaskForm } from "./CreateTaskForm";
-import { taskService, Task } from "@/services/taskService";
 import { toast } from "sonner";
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Clock, 
-  CheckCircle, 
-  XCircle,
-  Users,
-  TrendingUp,
-  Filter
-} from "lucide-react";
+import { Plus } from "lucide-react";
 import { TaskOverviewStats } from "./TaskOverviewStats";
 import { TaskFilterBar } from "./TaskFilterBar";
 import { TaskTable } from "./TaskTable";
+import { useAdminTaskManagement } from "./hooks/useAdminTaskManagement";
+import { getStatusColor, getDifficultyColor } from "./utils/taskColorUtils";
 
 export const TaskManagement = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [submissions, setSubmissions] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [loading, setLoading] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      console.log("Loading admin data...");
-      const [tasksData, submissionsData] = await Promise.all([
-        taskService.admin.getAllTasks(),
-        taskService.admin.getAllSubmissions()
-      ]);
-      console.log("Tasks loaded:", tasksData.length, tasksData.map(t => t.id));
-      setTasks(tasksData);
-      setSubmissions(submissionsData);
-    } catch (error) {
-      console.error("Error loading data:", error);
-      toast.error("Failed to load data");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteTask = async (taskId: string) => {
-    if (!confirm("Are you sure you want to delete this task?")) return;
-
-    try {
-      setDeleteLoading(taskId);
-
-      // Optimistically remove the task for a snappier UI
-      setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
-      console.log("Optimistically removed task:", taskId);
-
-      const success = await taskService.admin.deleteTask(taskId);
-
-      if (success) {
-        toast.success("Task deleted successfully");
-        // Reload data and do a check *after* the new tasks arrive
-        await loadData();
-
-        // The newly loaded tasks will have the correct state now
-        setTimeout(() => {
-          // tasks may still be stale, use the state from setTasks above
-          setTasks(currentTasks => {
-            const stillThere = currentTasks.some(t => t.id === taskId);
-            console.log(
-              "[DEBUG] Task IDs after deletion:",
-              currentTasks.map(t => t.id),
-              "\nDeleted Task ID:",
-              taskId,
-              "\nStill present after reload: ",
-              stillThere
-            );
-            return currentTasks;
-          });
-        }, 200);
-      } else {
-        toast.error("Failed to delete task");
-        // If backend failed, reload to restore the task list
-        await loadData();
-      }
-    } catch (error) {
-      console.error("Error deleting task:", error);
-      toast.error("Failed to delete task");
-      await loadData();
-    } finally {
-      setDeleteLoading(null);
-    }
-  };
-
-  const handleSubmissionUpdate = async (submissionId: string, status: 'approved' | 'rejected', notes?: string) => {
-    try {
-      await taskService.admin.updateSubmissionStatus(submissionId, status, notes);
-      toast.success(`Submission ${status} successfully`);
-      loadData();
-    } catch (error) {
-      console.error("Error updating submission:", error);
-      toast.error("Failed to update submission");
-    }
-  };
-
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.category?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || task.status?.toLowerCase() === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const pendingSubmissions = submissions.filter(s => s.status === 'pending');
-  const activeTasksCount = tasks.filter(t => t.status === 'active').length;
-  const totalSubmissions = submissions.length;
-  const approvedSubmissions = submissions.filter(s => s.status === 'approved').length;
-
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "draft":
-        return "bg-gray-100 text-gray-800";
-      case "paused":
-        return "bg-yellow-100 text-yellow-800";
-      case "completed":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty?.toLowerCase()) {
-      case "easy":
-        return "bg-green-100 text-green-800";
-      case "medium":
-        return "bg-yellow-100 text-yellow-800";
-      case "hard":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  const {
+    tasks,
+    setTasks,
+    submissions,
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    loading,
+    showCreateForm,
+    setShowCreateForm,
+    deleteLoading,
+    handleDeleteTask,
+    handleSubmissionUpdate,
+    filteredTasks,
+    pendingSubmissions,
+    activeTasksCount,
+    totalSubmissions,
+    approvedSubmissions,
+    loadData,
+  } = useAdminTaskManagement();
 
   if (loading) {
     return (
