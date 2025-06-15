@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, MailCheck } from "lucide-react";
 import { useSignUp } from '@/hooks/useSignUp';
 import PasswordStrengthMeter from "@/components/ui/PasswordStrengthMeter";
 
@@ -18,7 +18,69 @@ const SignUpForm = () => {
     showPassword, setShowPassword,
     isLoading,
     handleSignUp,
+    awaitingConfirmation,
+    signUpError,
+    resendConfirmation,
+    resending,
+    resendDone,
+    setAwaitingConfirmation,
   } = useSignUp();
+
+  const navigate = useNavigate();
+
+  if (awaitingConfirmation) {
+    // Confirmation Screen after sign up
+    return (
+      <div className="text-center flex flex-col items-center p-6">
+        <MailCheck className="mx-auto h-12 w-12 text-yeild-yellow mb-2" />
+        <h2 className="text-xl font-bold mb-2">Confirm Your Email</h2>
+        <p className="text-gray-300 mb-3">
+          We&apos;ve sent a confirmation email to:
+        </p>
+        <div className="font-semibold text-gray-100 mb-3">{email}</div>
+        <p className="text-gray-400 mb-4">
+          Please check your inbox and click the confirmation link. You can close this tab and finish later.
+        </p>
+        <Button
+          disabled={resending}
+          className="w-full mb-2"
+          variant="outline"
+          onClick={resendConfirmation}
+        >
+          {resending ? "Resending..." : "Resend Confirmation Email"}
+        </Button>
+        {resendDone ? (
+          <div className="text-green-400 text-sm mt-1">
+            Confirmation email resent! Check your inbox.
+          </div>
+        ) : null}
+        <div className="mt-4 text-gray-400 text-sm">
+          Didn&apos;t get the email? Check your spam or promotions folder. If you still can&apos;t find it, click <b>Resend</b> above.
+        </div>
+        <Button
+          variant="ghost"
+          className="w-full mt-6 text-gray-400 hover:text-white"
+          onClick={() => {
+            setAwaitingConfirmation(false);
+          }}
+        >
+          &larr; Back to Sign Up
+        </Button>
+        <div className="mt-4 text-center">
+          <p className="text-gray-400">
+            Already confirmed?{" "}
+            <span
+              role="button"
+              className="text-yeild-yellow hover:underline cursor-pointer ml-1"
+              onClick={() => navigate("/login")}
+            >
+              Log in
+            </span>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSignUp} className="space-y-4">
@@ -108,7 +170,9 @@ const SignUpForm = () => {
           </Label>
         </div>
       </div>
-      
+      {signUpError && (
+        <div className="text-red-400 text-sm mt-1">{signUpError}</div>
+      )}
       <Button 
         type="submit" 
         className="w-full yeild-btn-primary mt-6" 
