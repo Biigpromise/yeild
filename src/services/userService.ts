@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -16,6 +15,17 @@ export interface UserProfile {
   social_media_links?: string[];
   followers_count: number;
   following_count: number;
+}
+
+export interface Story {
+  id: string;
+  user_id: string;
+  media_url: string;
+  media_type: string;
+  caption?: string;
+  created_at: string;
+  expires_at: string;
+  user?: Pick<UserProfile, 'id' | 'name' | 'profile_picture_url'>;
 }
 
 export interface UserStats {
@@ -221,6 +231,80 @@ export const userService = {
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
       return [];
+    }
+  },
+
+  // Get stories for the feed
+  async getStories(): Promise<Story[]> {
+    try {
+      const { data, error } = await supabase
+        .from('stories')
+        .select(`
+          id,
+          user_id,
+          media_url,
+          media_type,
+          caption,
+          created_at,
+          expires_at,
+          user:profiles(id, name, profile_picture_url)
+        `)
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching stories:', error);
+        throw error;
+      };
+      
+      return (data || []).map(s => ({...s, user: Array.isArray(s.user) ? s.user[0] : s.user})).filter(s => s.user) as Story[];
+    } catch (error) {
+      console.error('Error fetching stories:', error);
+      return [];
+    }
+  },
+
+  // Create a new story
+  async createStory(mediaUrl: string, caption?: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase.from('stories').insert({
+        user_id: user.id,
+        media_url: mediaUrl,
+        caption: caption || undefined,
+      });
+
+      if (error) throw error;
+      toast.success('Story posted!');
+      return true;
+    } catch (error) {
+      console.error('Error creating story:', error);
+      toast.error('Failed to post story');
+      return false;
+    }
+  },
+
+  // Delete a story
+  async deleteStory(storyId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('stories')
+        .delete()
+        .eq('id', storyId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      toast.success('Story deleted');
+      return true;
+    } catch (error) {
+      console.error('Error deleting story:', error);
+      toast.error('Failed to delete story');
+      return false;
     }
   },
 
