@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -177,7 +178,7 @@ export const enhancedTaskManagementService = {
           title: taskData.title,
           description: taskData.description,
           points: taskData.points,
-          category_id: taskData.category_id || null,
+          category_id: taskData.category_id ? taskData.category_id : null,
           difficulty: taskData.difficulty,
           brand_name: taskData.brand_name,
           brand_logo_url: taskData.brand_logo_url,
@@ -206,6 +207,7 @@ export const enhancedTaskManagementService = {
         .from('tasks')
         .update({
           ...updates,
+          category_id: updates.category_id ? updates.category_id : null,
           updated_at: new Date().toISOString()
         })
         .eq('id', taskId);
