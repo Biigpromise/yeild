@@ -23,7 +23,8 @@ import {
   LogOut,
   User,
   ChevronDown,
-  Users
+  Users,
+  LifeBuoy
 } from 'lucide-react';
 
 interface DashboardHeaderProps {
@@ -102,6 +103,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <DropdownMenuItem onClick={() => setActiveTab('referrals')}>
               <Users className="h-4 w-4 mr-2" />
               Referrals
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setActiveTab('support')}>
+              <LifeBuoy className="h-4 w-4 mr-2" />
+              Support
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>

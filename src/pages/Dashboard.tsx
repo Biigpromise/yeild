@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TaskCategories from "@/components/TaskCategories";
@@ -46,6 +47,7 @@ import { RewardsTab } from "@/components/dashboard/RewardsTab";
 import { TasksTab } from "@/components/dashboard/TasksTab";
 import { WalletTab } from "@/components/dashboard/WalletTab";
 import { AchievementsTab } from "@/components/dashboard/AchievementsTab";
+import { SupportTab } from "@/components/dashboard/SupportTab";
 import {
   Trophy, 
   Users, 
@@ -63,6 +65,7 @@ import {
   Calendar,
   Clock,
   MessageCircle,
+  LifeBuoy,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -98,7 +101,7 @@ const Dashboard = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
 
   // Touch gesture navigation
-  const tabs = ['tasks', 'rewards', 'achievements', 'wallet', 'leaderboard', 'community-chat'];
+  const tabs = ['tasks', 'rewards', 'achievements', 'wallet', 'leaderboard', 'community-chat', 'support'];
   
   const handleSwipeLeft = () => {
     const currentIndex = tabs.indexOf(activeTab);
@@ -253,7 +256,7 @@ const Dashboard = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3">
           {/* Desktop Tab Navigation */}
           {!isMobile && (
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="tasks">
                 <Home className="h-4 w-4 mr-2" />
                 Home
@@ -277,6 +280,10 @@ const Dashboard = () => {
               <TabsTrigger value="community-chat">
                  <MessageCircle className="h-4 w-4 mr-2" />
                  Community Chat
+              </TabsTrigger>
+              <TabsTrigger value="support">
+                 <LifeBuoy className="h-4 w-4 mr-2" />
+                 Support
               </TabsTrigger>
             </TabsList>
           )}
@@ -329,6 +336,10 @@ const Dashboard = () => {
 
           <TabsContent value="community-chat">
             <CommunityChatTab />
+          </TabsContent>
+
+          <TabsContent value="support">
+            <SupportTab />
           </TabsContent>
 
           <TabsContent value="history">
