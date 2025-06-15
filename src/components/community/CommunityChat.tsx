@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { chatService, Message } from '@/services/chatService';
@@ -9,6 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Send } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { PublicProfileModal } from '@/components/PublicProfileModal';
+import { userService, Story, UserProfile } from '@/services/userService';
+import { StoryViewer } from '@/components/stories/StoryViewer';
 
 export const CommunityChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -21,6 +22,19 @@ export const CommunityChat = () => {
   // State for public profile modal
   const [profileModalUserId, setProfileModalUserId] = useState<string | null>(null);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+
+  // Stories
+  const [stories, setStories] = useState<Story[]>([]);
+  const [groupedStories, setGroupedStories] = useState<
+    { user: Pick<UserProfile, 'id' | 'name' | 'profile_picture_url'>; stories: Story[] }[]
+  >([]);
+  const [storyViewerOpen, setStoryViewerOpen] = useState(false);
+  const [storyViewerStories, setStoryViewerStories] = useState<Story[]>([]);
+  const [storyViewerUserGroupIndex, setStoryViewerUserGroupIndex] = useState(0);
+  const [storyViewerInitIndex, setStoryViewerInitIndex] = useState(0);
+
+  // Keep a list of user IDs with at least one active story for quick lookup
+  const userIdsWithActiveStories = groupedStories.map(g => g.user.id);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -65,6 +79,27 @@ export const CommunityChat = () => {
     };
   }, []);
 
+  // Fetch all stories for feed, group by user
+  useEffect(() => {
+    const fetchStories = async () => {
+      const fetchedStories = await userService.getStories();
+      setStories(fetchedStories);
+
+      // Group by user_id
+      const groups: { [key: string]: { user: Pick<UserProfile, 'id' | 'name' | 'profile_picture_url'>; stories: Story[] } } = {};
+      fetchedStories.forEach(story => {
+        if (story.user) {
+          if (!groups[story.user_id]) {
+            groups[story.user_id] = { user: story.user, stories: [] };
+          }
+          groups[story.user_id].stories.push(story);
+        }
+      });
+      setGroupedStories(Object.values(groups));
+    };
+    fetchStories();
+  }, []);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newMessage.trim() === '' || !userId) return;
@@ -81,15 +116,67 @@ export const CommunityChat = () => {
     }
   };
 
+  // Open profile modal (from avatar or name)
   const openProfile = (userId: string | null) => {
     if (!userId || userId === null) return;
     setProfileModalUserId(userId);
     setProfileModalOpen(true);
   };
 
+  // Open story viewer for a given user if they have stories
+  const openStoryViewerForUser = (userId: string) => {
+    const groupIndex = groupedStories.findIndex(g => g.user.id === userId);
+    if (groupIndex !== -1) {
+      setStoryViewerStories(groupedStories[groupIndex].stories);
+      setStoryViewerInitIndex(0);
+      setStoryViewerUserGroupIndex(groupIndex);
+      setStoryViewerOpen(true);
+    } else {
+      toast({
+        title: "No stories",
+        description: "This user has no recent stories.",
+        variant: "default"
+      });
+    }
+  };
+
+  // Called when closing the viewer, to reset
+  const closeStoryViewer = () => {
+    setStoryViewerOpen(false);
+    setStoryViewerStories([]);
+  };
+
   if (loading) {
     return <div className="flex justify-center p-8">Loading chat...</div>;
   }
+
+  // Render PublicProfileModal with an additional "View Stories" button if available
+  const renderProfileModal = () => {
+    if (!profileModalUserId) return null;
+
+    const hasStories = userIdsWithActiveStories.includes(profileModalUserId);
+
+    return (
+      <PublicProfileModal
+        userId={profileModalUserId}
+        isOpen={profileModalOpen}
+        onOpenChange={(open) => setProfileModalOpen(open)}
+        extraActions={hasStories ? [
+          <Button
+            key="view-stories"
+            variant="secondary"
+            className="w-full mt-2"
+            onClick={() => {
+              setProfileModalOpen(false);
+              setTimeout(() => openStoryViewerForUser(profileModalUserId), 150); // ensure modal closes before opening viewer
+            }}
+          >
+            View Stories
+          </Button>
+        ] : undefined}
+      />
+    );
+  };
 
   return (
     <>
@@ -160,12 +247,18 @@ export const CommunityChat = () => {
         </div>
       </div>
 
-      {/* Public Profile Modal */}
-      {profileModalUserId && (
-        <PublicProfileModal
-          userId={profileModalUserId}
-          isOpen={profileModalOpen}
-          onOpenChange={(open) => setProfileModalOpen(open)}
+      {/* Public Profile Modal (with View Stories action if user has stories) */}
+      {renderProfileModal()}
+
+      {/* Story Viewer for selected user */}
+      {storyViewerOpen && (
+        <StoryViewer
+          isOpen={storyViewerOpen}
+          onOpenChange={open => setStoryViewerOpen(open)}
+          stories={storyViewerStories}
+          initialStoryIndex={storyViewerInitIndex}
+          allGroupedStories={groupedStories}
+          onClose={closeStoryViewer}
         />
       )}
     </>
