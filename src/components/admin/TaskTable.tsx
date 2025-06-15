@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,13 +10,15 @@ interface TaskTableProps {
   getDifficultyColor: (difficulty: string) => string;
   getStatusColor: (status: string) => string;
   onDeleteTask: (taskId: string) => void;
+  deleteLoading?: string | null;
 }
 
 export const TaskTable: React.FC<TaskTableProps> = ({
   tasks,
   getDifficultyColor,
   getStatusColor,
-  onDeleteTask
+  onDeleteTask,
+  deleteLoading
 }) => (
   <div className="overflow-x-auto border rounded-md">
     <Table>
@@ -63,8 +64,13 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                   size="sm" 
                   variant="outline"
                   onClick={() => onDeleteTask(task.id)}
+                  disabled={deleteLoading === task.id}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  {deleteLoading === task.id ? (
+                    <span className="animate-spin inline-block mr-1 w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </TableCell>

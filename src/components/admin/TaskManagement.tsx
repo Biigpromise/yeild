@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +32,7 @@ export const TaskManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -42,15 +42,11 @@ export const TaskManagement = () => {
     try {
       setLoading(true);
       console.log("Loading admin data...");
-      
       const [tasksData, submissionsData] = await Promise.all([
         taskService.admin.getAllTasks(),
         taskService.admin.getAllSubmissions()
       ]);
-      
-      console.log("Tasks loaded:", tasksData.length);
-      console.log("Submissions loaded:", submissionsData.length);
-      
+      console.log("Tasks loaded:", tasksData.length, tasksData.map(t => t.id));
       setTasks(tasksData);
       setSubmissions(submissionsData);
     } catch (error) {
@@ -63,21 +59,36 @@ export const TaskManagement = () => {
 
   const handleDeleteTask = async (taskId: string) => {
     if (!confirm("Are you sure you want to delete this task?")) return;
-    
+
     try {
+      setDeleteLoading(taskId);
       console.log("Deleting task:", taskId);
       const success = await taskService.admin.deleteTask(taskId);
-      
+
       if (success) {
         toast.success("Task deleted successfully");
         // Force reload the data
         await loadData();
+        // Additional check: does the deleted task still exist?
+        setTimeout(() => {
+          const stillThere = tasks.some(t => t.id === taskId);
+          console.log(
+            "Task IDs after deletion:",
+            tasks.map(t => t.id),
+            "\nDeleted Task ID:",
+            taskId,
+            "\nStill present after reload: ",
+            stillThere
+          );
+        }, 200); // wait a tick for state update
       } else {
         toast.error("Failed to delete task");
       }
     } catch (error) {
       console.error("Error deleting task:", error);
       toast.error("Failed to delete task");
+    } finally {
+      setDeleteLoading(null);
     }
   };
 
@@ -199,6 +210,7 @@ export const TaskManagement = () => {
                   getDifficultyColor={getDifficultyColor}
                   getStatusColor={getStatusColor}
                   onDeleteTask={handleDeleteTask}
+                  deleteLoading={deleteLoading}
                 />
               </div>
             </CardContent>
