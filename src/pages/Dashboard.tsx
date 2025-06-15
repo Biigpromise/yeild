@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TaskCategories from "@/components/TaskCategories";
@@ -48,26 +47,7 @@ import { AchievementsTab } from "@/components/dashboard/AchievementsTab";
 import { SupportTab } from "@/components/dashboard/SupportTab";
 import { ProfileTab } from "@/components/dashboard/ProfileTab";
 import { UserSearchTab } from "@/components/dashboard/UserSearchTab";
-import {
-  Trophy, 
-  Users, 
-  Bell, 
-  Gift,
-  TrendingUp,
-  Award,
-  Star,
-  Target,
-  LogOut,
-  User,
-  Wallet,
-  ChevronDown,
-  Home,
-  Calendar,
-  Clock,
-  MessageCircle,
-  LifeBuoy,
-  Search,
-} from "lucide-react";
+import { DesktopTabNavigation } from "@/components/dashboard/DesktopTabNavigation";
 import { StoryReel } from "@/components/stories";
 import { useDashboard } from "@/hooks/useDashboard";
 
@@ -186,46 +166,7 @@ const Dashboard = () => {
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3">
           {/* Desktop Tab Navigation */}
-          {!isMobile && (
-            <TabsList className="grid w-full grid-cols-9">
-              <TabsTrigger value="tasks">
-                <Home className="h-4 w-4 mr-2" />
-                Home
-              </TabsTrigger>
-              <TabsTrigger value="rewards">
-                <Gift className="h-4 w-4 mr-2" />
-                Rewards
-              </TabsTrigger>
-              <TabsTrigger value="achievements">
-                <Award className="h-4 w-4 mr-2" />
-                Achievements
-              </TabsTrigger>
-              <TabsTrigger value="wallet">
-                <Wallet className="h-4 w-4 mr-2" />
-                Wallet
-              </TabsTrigger>
-              <TabsTrigger value="leaderboard">
-                <Trophy className="h-4 w-4 mr-2" />
-                Leaderboard
-              </TabsTrigger>
-              <TabsTrigger value="profile">
-                 <User className="h-4 w-4 mr-2" />
-                 Profile
-              </TabsTrigger>
-              <TabsTrigger value="user-search">
-                 <Search className="h-4 w-4 mr-2" />
-                 Find Users
-              </TabsTrigger>
-              <TabsTrigger value="community-chat">
-                 <MessageCircle className="h-4 w-4 mr-2" />
-                 Community Chat
-              </TabsTrigger>
-              <TabsTrigger value="support">
-                 <LifeBuoy className="h-4 w-4 mr-2" />
-                 Support
-              </TabsTrigger>
-            </TabsList>
-          )}
+          {!isMobile && <DesktopTabNavigation />}
 
           <TabsContent value="tasks" className="space-y-4 mt-3">
             <StoryReel />
