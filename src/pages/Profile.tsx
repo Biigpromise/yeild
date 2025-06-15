@@ -54,7 +54,9 @@ const Profile = () => {
     totalPointsEarned: 3200,
     averageTaskRating: 4.8,
     favoriteCategory: "Social Media",
-    completionRate: 92
+    completionRate: 92,
+    followers_count: 0,
+    following_count: 0,
   });
 
   useEffect(() => {
@@ -92,7 +94,9 @@ const Profile = () => {
         level: profile.level || 1,
         points: profile.points || 0,
         tasksCompleted: profile.tasks_completed || 0,
-        joinDate: profile.created_at ? new Date(profile.created_at).toISOString().split('T')[0] : prev.joinDate
+        joinDate: profile.created_at ? new Date(profile.created_at).toISOString().split('T')[0] : prev.joinDate,
+        followers_count: profile.followers_count || 0,
+        following_count: profile.following_count || 0,
       }));
 
       // Fetch user tasks
