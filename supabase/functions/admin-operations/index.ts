@@ -70,18 +70,43 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
 
+      case 'get_dashboard_stats':
+        const { count: totalUsers, error: usersError } = await supabaseAdmin.from('profiles').select('id', { count: 'exact', head: true });
+        if (usersError) throw usersError;
+
+        const { count: activeTasks, error: tasksError } = await supabaseAdmin.from('tasks').select('id', { count: 'exact', head: true }).eq('status', 'active');
+        if (tasksError) throw tasksError;
+
+        const { data: submissionsData, error: submissionsError } = await supabaseAdmin.from('task_submissions').select('status');
+        if (submissionsError) throw submissionsError;
+
+        const totalSubmissions = submissionsData.length;
+        const pendingSubmissions = submissionsData.filter(s => s.status === 'pending').length;
+        const approvedSubmissions = submissionsData.filter(s => s.status === 'approved').length;
+        const approvalRate = totalSubmissions > 0 ? Math.round((approvedSubmissions / totalSubmissions) * 100) : 0;
+        
+        const stats = {
+          totalUsers: totalUsers ?? 0,
+          activeTasks: activeTasks ?? 0,
+          pendingSubmissions: pendingSubmissions,
+          totalSubmissions: totalSubmissions,
+          approvedSubmissions: approvedSubmissions,
+          approvalRate: approvalRate
+        };
+
+        return new Response(JSON.stringify(stats), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+
       // Placeholder for other operations to avoid breaking the app
       // I will implement these as we go
+      case 'get_all_users':
+      case 'update_user_status':
+      case 'assign_user_role':
+      case 'bulk_update_users':
+      case 'get_system_metrics':
       case 'assign_user_role_enhanced':
       case 'get_user_activity':
-      case 'update_account_status':
-      case 'bulk_user_operation':
-      case 'create_task_enhanced':
-      case 'update_task_enhanced':
-      case 'process_task_submission_enhanced':
-      case 'bulk_task_operation_enhanced':
-      case 'get_enhanced_task_analytics':
-      case 'get_pending_submissions_enhanced':
       case 'search_tasks_enhanced':
         console.warn(`Operation '${action}' is not fully implemented yet.`);
         return new Response(JSON.stringify({

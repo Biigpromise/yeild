@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -56,7 +57,7 @@ export const adminService = {
 
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { operation: 'get_dashboard_stats' }
+        body: { action: 'get_dashboard_stats' }
       });
 
       if (error) throw error;
@@ -76,7 +77,7 @@ export const adminService = {
 
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { operation: 'get_all_users' }
+        body: { action: 'get_all_users' }
       });
 
       if (error) throw error;
@@ -98,7 +99,7 @@ export const adminService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'update_user_status',
+          action: 'update_user_status',
           data: { userId, status }
         }
       });
@@ -124,7 +125,7 @@ export const adminService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'assign_user_role',
+          action: 'assign_user_role',
           data: { userId, role }
         }
       });
@@ -150,7 +151,7 @@ export const adminService = {
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
         body: { 
-          operation: 'bulk_update_users',
+          action: 'bulk_update_users',
           data: { userIds, action }
         }
       });
@@ -172,7 +173,7 @@ export const adminService = {
 
     try {
       const { data, error } = await supabase.functions.invoke('admin-operations', {
-        body: { operation: 'get_system_metrics' }
+        body: { action: 'get_system_metrics' }
       });
 
       if (error) throw error;
