@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,6 +14,8 @@ import FormStepOne from "@/components/brand-signup/FormStepOne";
 import FormStepTwo from "@/components/brand-signup/FormStepTwo";
 import SuccessMessage from "@/components/brand-signup/SuccessMessage";
 import ProgressSteps from "@/components/brand-signup/ProgressSteps";
+import { LoadingState } from "@/components/ui/loading-state";
+import { BrandApplicationStatus } from "@/components/brand-signup/BrandApplicationStatus";
 
 const formSchema = z
   .object({
@@ -44,10 +45,33 @@ type BrandSignupFormValues = z.infer<typeof formSchema>;
 
 const BrandSignup = () => {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const { user, signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [formCompleted, setFormCompleted] = useState(false);
+  const [application, setApplication] = useState<any>(null);
+  const [checkingStatus, setCheckingStatus] = useState(true);
+
+  useEffect(() => {
+    const fetchApplication = async () => {
+      if (user) {
+        setCheckingStatus(true);
+        const { data } = await supabase
+          .from('brand_applications')
+          .select('id, company_name, status, created_at')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (data) {
+          setApplication(data);
+        }
+        setCheckingStatus(false);
+      } else {
+        setCheckingStatus(false);
+      }
+    };
+    fetchApplication();
+  }, [user]);
 
   const form = useForm<BrandSignupFormValues>({
     resolver: zodResolver(formSchema),
@@ -128,6 +152,69 @@ const BrandSignup = () => {
     }
   };
 
+  const renderRightPanelContent = () => {
+    if (checkingStatus) {
+      return <LoadingState text="Checking application status..." />;
+    }
+    if (application) {
+      return <BrandApplicationStatus application={application} />;
+    }
+    if (formCompleted) {
+      return <SuccessMessage />;
+    }
+    return (
+      <>
+        <div className="text-center mb-4">
+          <span className="text-yeild-yellow text-3xl font-bold lg:hidden">YEILD</span>
+          <h1 className="text-2xl font-bold mt-2">Brand Partnership Application</h1>
+          <p className="text-gray-400 mt-2">Connect with our engaged community of users</p>
+        </div>
+
+        <ProgressSteps step={step} />
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {step === 1 && <FormStepOne form={form} />}
+            {step === 2 && <FormStepTwo form={form} />}
+            
+            <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-800">
+              {step === 1 ? (
+                <Button variant="ghost" className="text-gray-400 hover:text-white" onClick={() => navigate("/")}>
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
+                </Button>
+              ) : (
+                <Button type="button" variant="outline" className="yeild-btn-secondary" onClick={() => setStep(1)} disabled={isLoading}>
+                  Back
+                </Button>
+              )}
+
+              {step === 1 && (
+                <Button type="button" className="yeild-btn-primary" onClick={handleNextStep}>
+                  Continue
+                </Button>
+              )}
+              
+              {step === 2 && (
+                <Button type="submit" className="yeild-btn-primary" disabled={isLoading}>
+                  {isLoading ? "Processing..." : "Submit Application"}
+                </Button>
+              )}
+            </div>
+          </form>
+        </Form>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-400">
+            Already have a brand account?{" "}
+            <Link to="/login" className="font-semibold text-yeild-yellow hover:underline">
+              Log in
+            </Link>
+          </p>
+        </div>
+      </>
+    );
+  };
+
   return (
     <div className="min-h-screen w-full lg:grid lg:grid-cols-2 bg-yeild-black">
       <div className="hidden lg:block relative">
@@ -145,59 +232,7 @@ const BrandSignup = () => {
       </div>
       <div className="flex items-center justify-center p-6 sm:p-12 relative overflow-y-auto">
         <div className="w-full max-w-2xl">
-          {formCompleted ? (
-            <SuccessMessage />
-          ) : (
-            <>
-              <div className="text-center mb-4">
-                <span className="text-yeild-yellow text-3xl font-bold lg:hidden">YEILD</span>
-                <h1 className="text-2xl font-bold mt-2">Brand Partnership Application</h1>
-                <p className="text-gray-400 mt-2">Connect with our engaged community of users</p>
-              </div>
-
-              <ProgressSteps step={step} />
-
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  {step === 1 && <FormStepOne form={form} />}
-                  {step === 2 && <FormStepTwo form={form} />}
-                  
-                  <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-800">
-                    {step === 1 ? (
-                      <Button variant="ghost" className="text-gray-400 hover:text-white" onClick={() => navigate("/")}>
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
-                      </Button>
-                    ) : (
-                      <Button type="button" variant="outline" className="yeild-btn-secondary" onClick={() => setStep(1)} disabled={isLoading}>
-                        Back
-                      </Button>
-                    )}
-
-                    {step === 1 && (
-                      <Button type="button" className="yeild-btn-primary" onClick={handleNextStep}>
-                        Continue
-                      </Button>
-                    )}
-                    
-                    {step === 2 && (
-                      <Button type="submit" className="yeild-btn-primary" disabled={isLoading}>
-                        {isLoading ? "Processing..." : "Submit Application"}
-                      </Button>
-                    )}
-                  </div>
-                </form>
-              </Form>
-
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-400">
-                  Already have a brand account?{" "}
-                  <Link to="/login" className="font-semibold text-yeild-yellow hover:underline">
-                    Log in
-                  </Link>
-                </p>
-              </div>
-            </>
-          )}
+          {renderRightPanelContent()}
         </div>
       </div>
     </div>
