@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -9,15 +10,13 @@ interface TermsCheckboxProps {
 }
 
 const TermsCheckbox: React.FC<TermsCheckboxProps> = ({ checked, onCheckedChange, id = "termsCheckbox" }) => {
-  // Handle label click (excluding interactive children like anchors)
-  const handleLabelClick: React.MouseEventHandler<HTMLLabelElement> = (e) => {
-    // If clicking on a link, don't toggle
-    const target = e.target as HTMLElement;
-    if (target.tagName === "A") {
-      return;
-    }
-    // Otherwise toggle
-    onCheckedChange(!checked);
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Prevent the label from toggling the checkbox.
+    e.preventDefault();
+    // Stop the event from propagating further up the DOM tree.
+    e.stopPropagation();
+    // Manually open the link in a new tab.
+    window.open(e.currentTarget.href, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -33,32 +32,22 @@ const TermsCheckbox: React.FC<TermsCheckboxProps> = ({ checked, onCheckedChange,
       <Label
         htmlFor={id}
         className="flex-1 ml-3 cursor-pointer text-sm text-gray-300 leading-relaxed select-none"
-        onClick={handleLabelClick}
       >
         I agree to the{" "}
         <a
-          href="#"
+          href="/terms-of-service"
           className="text-yeild-yellow hover:underline"
-          target="_blank"
-          rel="noopener noreferrer"
+          onClick={handleLinkClick}
           tabIndex={0}
-          onClick={(e) => {
-            // allow link to work but not toggle checkbox
-            e.stopPropagation();
-          }}
         >
           Terms of Service
         </a>
         {" "}and{" "}
         <a
-          href="#"
+          href="/privacy-policy"
           className="text-yeild-yellow hover:underline"
-          target="_blank"
-          rel="noopener noreferrer"
+          onClick={handleLinkClick}
           tabIndex={0}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
         >
           Privacy Policy
         </a>
