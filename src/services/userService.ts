@@ -46,6 +46,24 @@ export interface LeaderboardUser {
 }
 
 export const userService = {
+  // Search for users by name
+  async searchUsers(query: string, limit: number = 20): Promise<Pick<UserProfile, 'id' | 'name' | 'profile_picture_url'>[]> {
+    if (!query) return [];
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, profile_picture_url')
+        .ilike('name', `%${query}%`)
+        .limit(limit);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error searching users:', error);
+      return [];
+    }
+  },
+
   // Get current user profile
   async getCurrentUser(): Promise<UserProfile | null> {
     try {
