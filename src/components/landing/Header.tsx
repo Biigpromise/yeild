@@ -33,19 +33,7 @@ export const Header = () => {
             <Button variant="ghost" onClick={() => navigate("/dashboard")}>
               Dashboard
             </Button>
-            {/* Only show Admin Setup if user is logged in but is not already admin */}
-            {!isAdmin() && (
-              <Button
-                asChild
-                variant="outline"
-                className="border-yeild-yellow text-yeild-yellow hover:bg-yeild-yellow hover:text-black"
-              >
-                <Link to="/admin-setup">
-                  <Shield className="mr-2 h-4 w-4" />
-                  Admin Setup
-                </Link>
-              </Button>
-            )}
+            {/* Admin Setup button removed */}
           </>
         ) : (
           <>
