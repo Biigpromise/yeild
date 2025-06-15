@@ -11,10 +11,10 @@ interface TermsCheckboxProps {
 
 const TermsCheckbox: React.FC<TermsCheckboxProps> = ({ checked, onCheckedChange, id = "termsCheckbox" }) => {
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    // Prevent the label from toggling the checkbox.
-    e.preventDefault();
-    // Stop the event from propagating further up the DOM tree.
+    // Prevent the label's onClick from firing when a link is clicked.
     e.stopPropagation();
+    // Prevent the default link behavior.
+    e.preventDefault();
     // Manually open the link in a new tab.
     window.open(e.currentTarget.href, "_blank", "noopener,noreferrer");
   };
@@ -30,7 +30,8 @@ const TermsCheckbox: React.FC<TermsCheckboxProps> = ({ checked, onCheckedChange,
         aria-describedby={`${id}-description`}
       />
       <Label
-        htmlFor={id}
+        // Use a direct onClick handler for the label text.
+        onClick={() => onCheckedChange(!checked)}
         className="flex-1 ml-3 cursor-pointer text-sm text-gray-300 leading-relaxed select-none"
       >
         I agree to the{" "}
