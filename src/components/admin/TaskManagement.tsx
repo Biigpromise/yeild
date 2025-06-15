@@ -62,31 +62,43 @@ export const TaskManagement = () => {
 
     try {
       setDeleteLoading(taskId);
-      console.log("Deleting task:", taskId);
+
+      // Optimistically remove the task for a snappier UI
+      setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
+      console.log("Optimistically removed task:", taskId);
+
       const success = await taskService.admin.deleteTask(taskId);
 
       if (success) {
         toast.success("Task deleted successfully");
-        // Force reload the data
+        // Reload data and do a check *after* the new tasks arrive
         await loadData();
-        // Additional check: does the deleted task still exist?
+
+        // The newly loaded tasks will have the correct state now
         setTimeout(() => {
-          const stillThere = tasks.some(t => t.id === taskId);
-          console.log(
-            "Task IDs after deletion:",
-            tasks.map(t => t.id),
-            "\nDeleted Task ID:",
-            taskId,
-            "\nStill present after reload: ",
-            stillThere
-          );
-        }, 200); // wait a tick for state update
+          // tasks may still be stale, use the state from setTasks above
+          setTasks(currentTasks => {
+            const stillThere = currentTasks.some(t => t.id === taskId);
+            console.log(
+              "[DEBUG] Task IDs after deletion:",
+              currentTasks.map(t => t.id),
+              "\nDeleted Task ID:",
+              taskId,
+              "\nStill present after reload: ",
+              stillThere
+            );
+            return currentTasks;
+          });
+        }, 200);
       } else {
         toast.error("Failed to delete task");
+        // If backend failed, reload to restore the task list
+        await loadData();
       }
     } catch (error) {
       console.error("Error deleting task:", error);
       toast.error("Failed to delete task");
+      await loadData();
     } finally {
       setDeleteLoading(null);
     }
