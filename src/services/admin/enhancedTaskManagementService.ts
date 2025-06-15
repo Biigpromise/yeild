@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -441,9 +440,9 @@ export const enhancedTaskManagementService = {
       
       toast.success('Category created successfully');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating category:', error);
-      toast.error('Failed to create category');
+      toast.error(`Failed to create category: ${error.message}`);
       return false;
     }
   },
@@ -459,9 +458,9 @@ export const enhancedTaskManagementService = {
       
       toast.success('Category updated successfully');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating category:', error);
-      toast.error('Failed to update category');
+      toast.error(`Failed to update category: ${error.message}`);
       return false;
     }
   },
@@ -477,9 +476,9 @@ export const enhancedTaskManagementService = {
       
       toast.success('Category deleted successfully');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting category:', error);
-      toast.error('Failed to delete category');
+      toast.error(`Failed to delete category: ${error.message}`);
       return false;
     }
   }
