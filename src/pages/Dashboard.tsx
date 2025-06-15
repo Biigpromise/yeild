@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import { useTouchGestures } from "@/hooks/use-touch-gestures";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { CommunityChat } from "@/components/community/CommunityChat";
 import { 
   Trophy, 
   Users, 
@@ -53,7 +54,8 @@ import {
   ChevronDown,
   Home,
   Calendar,
-  Clock
+  Clock,
+  MessageCircle,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -89,7 +91,7 @@ const Dashboard = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
 
   // Touch gesture navigation
-  const tabs = ['tasks', 'rewards', 'achievements', 'wallet', 'leaderboard', 'referrals'];
+  const tabs = ['tasks', 'rewards', 'achievements', 'wallet', 'leaderboard', 'community-chat'];
   
   const handleSwipeLeft = () => {
     const currentIndex = tabs.indexOf(activeTab);
@@ -276,6 +278,10 @@ const Dashboard = () => {
                     <Target className="h-4 w-4 mr-2" />
                     Browse Tasks
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setActiveTab('referrals')}>
+                    <Users className="h-4 w-4 mr-2" />
+                    Referrals
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="h-4 w-4 mr-2" />
@@ -353,10 +359,10 @@ const Dashboard = () => {
               <TabsTrigger value="leaderboard">
                 <Trophy className="h-4 w-4 mr-2" />
                 Leaderboard
-              </TabsTrigger>
-              <TabsTrigger value="referrals">
-                <Users className="h-4 w-4 mr-2" />
-                Referrals
+              </Tabs-Trigger>
+              <TabsTrigger value="community-chat">
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Community Chat
               </TabsTrigger>
             </TabsList>
           )}
@@ -478,6 +484,20 @@ const Dashboard = () => {
 
           <TabsContent value="referrals">
             <ReferralSystem />
+          </TabsContent>
+
+          <TabsContent value="community-chat">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5" />
+                  Global Community Chat
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CommunityChat />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="history">
