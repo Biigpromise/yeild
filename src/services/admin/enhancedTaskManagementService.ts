@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -217,6 +216,33 @@ export const enhancedTaskManagementService = {
     } catch (error) {
       console.error('Error updating task:', error);
       toast.error('Failed to update task');
+      return false;
+    }
+  },
+
+  // Get all tasks
+  async getTasks(): Promise<any[]> {
+    try {
+      const { data, error } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      toast.error('Failed to fetch tasks');
+      return [];
+    }
+  },
+
+  // Delete a single task
+  async deleteTask(taskId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase.from('tasks').delete().eq('id', taskId);
+      if (error) {
+        throw error;
+      }
+      return true;
+    } catch (error) {
+      console.error('Error deleting task:', error);
       return false;
     }
   },

@@ -11,7 +11,11 @@ import { enhancedTaskManagementService } from "@/services/admin/enhancedTaskMana
 import { toast } from "sonner";
 import { Plus, Edit, Trash2, Palette } from "lucide-react";
 
-export const TaskCategoryManager = () => {
+interface TaskCategoryManagerProps {
+  onCategoryUpdated?: () => void;
+}
+
+export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCategoryUpdated }) => {
   const [categories, setCategories] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
@@ -60,6 +64,7 @@ export const TaskCategoryManager = () => {
         loadCategories();
         resetForm();
         setIsDialogOpen(false);
+        if (onCategoryUpdated) onCategoryUpdated();
       }
     } catch (error) {
       console.error("Error saving category:", error);
@@ -78,12 +83,13 @@ export const TaskCategoryManager = () => {
   };
 
   const handleDelete = async (categoryId: string) => {
-    if (!confirm("Are you sure you want to delete this category?")) return;
+    if (!window.confirm("Are you sure you want to delete this category?")) return;
     
     try {
       const success = await enhancedTaskManagementService.deleteTaskCategory(categoryId);
       if (success) {
         loadCategories();
+        if (onCategoryUpdated) onCategoryUpdated();
       }
     } catch (error) {
       console.error("Error deleting category:", error);
