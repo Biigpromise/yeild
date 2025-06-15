@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password:string, name?: string) => Promise<{ user: User | null; error: any }>;
+  signUp: (email: string, password:string, name?: string, additionalData?: Record<string, any>) => Promise<{ user: User | null; error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   signInWithProvider: (provider: 'google' | 'github' | 'twitter') => Promise<{ error: any }>;
@@ -118,7 +117,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, name?: string) => {
+  const signUp = async (email: string, password: string, name?: string, additionalData?: Record<string, any>) => {
     try {
       console.log("Attempting signup for:", email);
       
@@ -136,13 +135,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Use the current origin as the redirect URL - this will work for both preview and deployed versions
       const redirectUrl = window.location.origin;
       console.log("Using redirect URL:", redirectUrl);
+
+      const signUpData = {
+        ...(name ? { name } : {}),
+        ...additionalData
+      };
       
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: redirectUrl,
-          data: name ? { name } : undefined
+          data: Object.keys(signUpData).length > 0 ? signUpData : undefined
         }
       });
       
