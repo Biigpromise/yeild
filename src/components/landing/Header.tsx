@@ -2,10 +2,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/hooks/useRole";
+import { Shield } from "lucide-react";
 
 export const Header = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isAdmin } = useRole();
 
   const handleGetStarted = () => {
     if (user) {
@@ -26,9 +29,24 @@ export const Header = () => {
       </div>
       <div className="flex items-center space-x-4">
         {user ? (
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            Dashboard
-          </Button>
+          <>
+            <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+              Dashboard
+            </Button>
+            {/* Only show Admin Setup if user is logged in but is not already admin */}
+            {!isAdmin() && (
+              <Button
+                asChild
+                variant="outline"
+                className="border-yeild-yellow text-yeild-yellow hover:bg-yeild-yellow hover:text-black"
+              >
+                <Link to="/admin-setup">
+                  <Shield className="mr-2 h-4 w-4" />
+                  Admin Setup
+                </Link>
+              </Button>
+            )}
+          </>
         ) : (
           <>
             <Button 
