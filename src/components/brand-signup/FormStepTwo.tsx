@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import TermsCheckbox from "./TermsCheckbox";
 
 interface TaskTypes {
   surveys: boolean;
@@ -145,44 +146,11 @@ const FormStepTwo = ({
           required
         />
       </div>
-      
-      <div className="flex items-start mt-4 p-3 border border-gray-700 rounded-lg bg-gray-900/50">
-        <Label
-          htmlFor="termsCheckbox"
-          className="flex items-start space-x-3 w-full cursor-pointer"
-        >
-          <Checkbox
-            id="termsCheckbox"
-            checked={agreeTerms}
-            onCheckedChange={(checked) => setAgreeTerms(checked === true)}
-            className="mt-1 flex-shrink-0"
-          />
-          <span className="flex-1 text-sm text-gray-300 leading-relaxed">
-            I agree to the{' '}
-            <a
-              href="#"
-              className="text-yeild-yellow hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-              tabIndex={0}
-              onClick={e => e.stopPropagation()}
-            >
-              Terms of Service
-            </a>
-            {' '}and{' '}
-            <a
-              href="#"
-              className="text-yeild-yellow hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-              tabIndex={0}
-              onClick={e => e.stopPropagation()}
-            >
-              Privacy Policy
-            </a>
-          </span>
-        </Label>
-      </div>
+
+      <TermsCheckbox
+        checked={agreeTerms}
+        onCheckedChange={setAgreeTerms}
+      />
     </>
   );
 };
