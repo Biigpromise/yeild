@@ -147,41 +147,42 @@ const FormStepTwo = ({
       </div>
       
       <div className="flex items-start space-x-3 mt-4 p-3 border border-gray-700 rounded-lg bg-gray-900/50">
-        <Checkbox
-          id="termsCheckbox"
-          checked={agreeTerms}
-          onCheckedChange={(checked) => setAgreeTerms(checked === true)}
-          className="mt-1 flex-shrink-0"
-        />
-        <div className="flex-1 text-sm text-gray-300 leading-relaxed select-none">
-          <Label
-            htmlFor="termsCheckbox"
-            className="cursor-pointer select-none"
-          >
+        <label 
+          htmlFor="termsCheckbox" 
+          className="flex items-start space-x-3 w-full cursor-pointer"
+        >
+          <Checkbox
+            id="termsCheckbox"
+            checked={agreeTerms}
+            onCheckedChange={(checked) => setAgreeTerms(checked === true)}
+            className="mt-1 flex-shrink-0"
+            tabIndex={0}
+          />
+          <span className="flex-1 text-sm text-gray-300 leading-relaxed select-none">
             I agree to the{" "}
-          </Label>
-          <a
-            href="#"
-            className="text-yeild-yellow hover:underline"
-            tabIndex={0}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
-          >
-            Terms of Service
-          </a>
-          {" "}and{" "}
-          <a
-            href="#"
-            className="text-yeild-yellow hover:underline"
-            tabIndex={0}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
-          >
-            Privacy Policy
-          </a>
-        </div>
+            <a
+              href="#"
+              className="text-yeild-yellow hover:underline"
+              tabIndex={0}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+            >
+              Terms of Service
+            </a>
+            {" "}and{" "}
+            <a
+              href="#"
+              className="text-yeild-yellow hover:underline"
+              tabIndex={0}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+            >
+              Privacy Policy
+            </a>
+          </span>
+        </label>
       </div>
     </>
   );
