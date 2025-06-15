@@ -19,9 +19,10 @@ import BrandSignup from "./pages/BrandSignup";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { AdminProtectedRoute } from "./components/AdminProtectedRoute";
-import CrispChatWidget from "@/components/CrispChatWidget";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
+// Remove CrispChatWidget import
+// import CrispChatWidget from "@/components/CrispChatWidget";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,7 +46,7 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <>
-      <CrispChatWidget />
+      {/* <CrispChatWidget /> */}
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
