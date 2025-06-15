@@ -382,6 +382,36 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_levels: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string
+          name: string
+          required_referrals: number
+          rewards_description: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          required_referrals: number
+          rewards_description?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          required_referrals?: number
+          rewards_description?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       reward_redemptions: {
         Row: {
           admin_notes: string | null
