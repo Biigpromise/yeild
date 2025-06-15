@@ -1,8 +1,11 @@
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -41,6 +44,7 @@ type BrandSignupFormValues = z.infer<typeof formSchema>;
 
 const BrandSignup = () => {
   const navigate = useNavigate();
+  const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [formCompleted, setFormCompleted] = useState(false);
@@ -79,14 +83,47 @@ const BrandSignup = () => {
 
   const onSubmit = async (data: BrandSignupFormValues) => {
     setIsLoading(true);
-    // Simulate API call
     try {
-      console.log("Form submitted:", data);
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // 1. Sign up the user (creates an entry in auth.users)
+      const { user, error: signUpError } = await signUp(data.email, data.password, data.companyName);
+
+      if (signUpError || !user) {
+        toast.error(signUpError?.message || "Could not create account. Please try again.");
+        setIsLoading(false);
+        return;
+      }
+      
+      // 2. Save application details to our custom table
+      const applicationData = {
+        user_id: user.id,
+        company_name: data.companyName,
+        website: data.website,
+        company_size: data.companySize,
+        industry: data.industry,
+        task_types: data.taskTypes,
+        budget: data.budget,
+        goals: data.goals,
+      };
+
+      const { error: insertError } = await supabase
+        .from('brand_applications')
+        .insert(applicationData);
+
+      if (insertError) {
+        // In a production app, we might want to clean up the created user if this step fails.
+        console.error("Error saving brand application:", insertError);
+        toast.error("Your account was created, but we failed to save your application. Please contact support.");
+        setIsLoading(false);
+        return;
+      }
+
+      // 3. Show success message
       setFormCompleted(true);
-      setIsLoading(false);
+
     } catch (error) {
-      toast.error("Something went wrong. Please try again.");
+      console.error("An unexpected error occurred during signup:", error);
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
       setIsLoading(false);
     }
   };

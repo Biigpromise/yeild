@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, name?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password:string, name?: string) => Promise<{ user: User | null; error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   signInWithProvider: (provider: 'google' | 'github' | 'twitter') => Promise<{ error: any }>;
@@ -124,19 +125,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Input validation
       if (!email || !password) {
         const error = new Error("Email and password are required");
-        return { error };
+        return { user: null, error };
       }
 
       if (password.length < 6) {
         const error = new Error("Password must be at least 6 characters long");
-        return { error };
+        return { user: null, error };
       }
 
       // Use the current origin as the redirect URL - this will work for both preview and deployed versions
       const redirectUrl = window.location.origin;
       console.log("Using redirect URL:", redirectUrl);
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -147,15 +148,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (error) {
         const friendlyMessage = handleAuthError(error, 'signup');
-        return { error: { ...error, message: friendlyMessage } };
+        return { user: null, error: { ...error, message: friendlyMessage } };
       }
 
       console.log("Signup successful");
-      return { error: null };
+      return { user: data.user, error: null };
     } catch (error) {
       console.error("Signup unexpected error:", error);
       const friendlyMessage = handleAuthError(error, 'signup');
-      return { error: { message: friendlyMessage } };
+      return { user: null, error: { message: friendlyMessage } };
     }
   };
 

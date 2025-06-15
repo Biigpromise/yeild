@@ -84,6 +84,51 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_applications: {
+        Row: {
+          budget: string
+          company_name: string
+          company_size: string
+          created_at: string
+          goals: string
+          id: string
+          industry: string
+          status: string
+          task_types: Json
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          budget: string
+          company_name: string
+          company_size: string
+          created_at?: string
+          goals: string
+          id?: string
+          industry: string
+          status?: string
+          task_types: Json
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          budget?: string
+          company_name?: string
+          company_size?: string
+          created_at?: string
+          goals?: string
+          id?: string
+          industry?: string
+          status?: string
+          task_types?: Json
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       colors: {
         Row: {
           blue: number | null
