@@ -46,7 +46,10 @@ export const PostFeed: React.FC = () => {
   // Get current user
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.auth.getUser();
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error("PostFeed: Error getting user:", error.message);
+      }
       setUserId(data?.user?.id ?? null);
     })();
   }, []);
@@ -62,6 +65,7 @@ export const PostFeed: React.FC = () => {
     if (!error && data) {
       setPosts(data as Post[]);
     } else {
+      if (error) console.error("Error fetching posts:", error);
       toast({
         title: "Error",
         description: "Could not load posts.",
@@ -79,7 +83,10 @@ export const PostFeed: React.FC = () => {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "posts" },
-        fetchPosts
+        (payload) => {
+          console.log("Realtime event received, refetching posts.", payload);
+          fetchPosts();
+        }
       )
       .subscribe();
 
@@ -104,9 +111,10 @@ export const PostFeed: React.FC = () => {
       .from("posts")
       .insert({ user_id: userId, content: newPost });
     if (error) {
+      console.error("Error publishing post:", error);
       toast({
         title: "Error",
-        description: "Failed to publish your post.",
+        description: `Failed to publish your post: ${error.message}`,
         variant: "destructive"
       });
     } else {
