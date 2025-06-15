@@ -13,29 +13,32 @@ export type BrandApplication = {
 export const useBrandApplicationStatus = () => {
   const { user } = useAuth();
   const [application, setApplication] = useState<BrandApplication | null>(null);
-  const [checkingStatus, setCheckingStatus] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (!user) {
-        setCheckingStatus(false);
+        setIsLoading(false);
         setApplication(null);
         return;
     }
 
     const fetchApplication = async () => {
-        setCheckingStatus(true);
-        const { data, error } = await supabase
+        setIsLoading(true);
+        setError(null);
+        const { data, error: fetchError } = await supabase
           .from('brand_applications')
           .select('id, company_name, status, created_at')
           .eq('user_id', user.id)
           .maybeSingle();
         
-        if (error) {
-            console.error("Error fetching brand application:", error);
+        if (fetchError) {
+            console.error("Error fetching brand application:", fetchError);
+            setError(fetchError);
         } else if (data) {
           setApplication(data as BrandApplication);
         }
-        setCheckingStatus(false);
+        setIsLoading(false);
     };
 
     fetchApplication();
@@ -63,5 +66,5 @@ export const useBrandApplicationStatus = () => {
     };
   }, [user]);
 
-  return { application, checkingStatus };
+  return { application, isLoading, error };
 };
