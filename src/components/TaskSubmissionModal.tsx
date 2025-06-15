@@ -8,6 +8,7 @@ import { AlertTriangle, CheckCircle, FileImage, FileVideo } from "lucide-react";
 import { toast } from "sonner";
 import { taskService, Task } from "@/services/taskService";
 import { taskSubmissionService } from "@/services/tasks/taskSubmissionService";
+import { useTaskSubmissionPersistence } from "@/hooks/useTaskSubmissionPersistence";
 
 interface TaskSubmissionModalProps {
   task: Task | null;
@@ -27,6 +28,18 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
   const [validationError, setValidationError] = useState("");
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+
+  // NEW: Persist form draft (evidence text + preview)
+  const { clearDraft } = useTaskSubmissionPersistence(
+    task ? task.id : null,
+    evidence,
+    setEvidence,
+    evidenceFile,
+    setEvidenceFile,
+    filePreview,
+    setFilePreview,
+    isOpen // Only enable persistence when modal is open
+  );
 
   const validateEvidence = (text: string): boolean => {
     if (!text.trim() && !evidenceFile) {
@@ -100,6 +113,7 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
         setValidationError("");
         setEvidenceFile(null);
         setFilePreview(null);
+        clearDraft();    // Clear persisted draft
         onSubmitted();
         onClose();
       }
@@ -116,6 +130,7 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
     setValidationError("");
     setEvidenceFile(null);
     setFilePreview(null);
+    clearDraft();      // Clear persisted draft
     onClose();
   };
 
