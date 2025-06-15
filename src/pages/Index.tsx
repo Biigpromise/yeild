@@ -1,16 +1,47 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { ArrowRight, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { AdminAccessBanner } from "@/components/AdminAccessBanner";
+import { taskService, Task } from "@/services/taskService";
+
+const testimonials = [
+  {
+    quote: "YEILD has been a game-changer for me. I can earn extra cash in my spare time doing simple tasks. It's so easy and rewarding!",
+    name: "Jessica P.",
+    role: "Verified User",
+  },
+  {
+    quote: "As a brand, YEILD helped us connect with our target audience in a meaningful way. The campaign results exceeded our expectations.",
+    name: "Mike D.",
+    role: "Marketing Manager, Acme Corp",
+  },
+  {
+    quote: "I love the variety of tasks available. From surveys to social media tasks, there's always something interesting to do. Payouts are fast too!",
+    name: "Sarah K.",
+    role: "Verified User",
+  },
+];
 
 const Index = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [showAdminBanner, setShowAdminBanner] = useState(false);
+  const [featuredTasks, setFeaturedTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const allTasks = await taskService.getTasks();
+        const activeTasks = allTasks.filter(task => task.status === 'active').slice(0, 3);
+        setFeaturedTasks(activeTasks);
+      } catch (error) {
+        console.error("Failed to fetch featured tasks:", error);
+      }
+    };
+    fetchTasks();
+  }, []);
 
   useEffect(() => {
     // Show admin banner for logged in users
@@ -184,6 +215,68 @@ const Index = () => {
                 </CardDescription>
               </CardHeader>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Tasks Section */}
+      <section className="py-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4 text-yeild-yellow">Featured Tasks</h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">Here's a taste of the tasks you can complete to earn rewards.</p>
+          </div>
+          {featuredTasks.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredTasks.map(task => (
+                <Card key={task.id} className="bg-gray-800/50 border-gray-700 flex flex-col justify-between">
+                  <CardHeader>
+                    <CardTitle className="text-white text-xl">{task.title}</CardTitle>
+                    <CardDescription className="text-gray-400">{task.category}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-300 mb-4">{(task.description || '').substring(0, 100)}{task.description && task.description.length > 100 ? '...' : ''}</p>
+                  </CardContent>
+                  <CardFooter>
+                    <div className="flex justify-between items-center w-full">
+                      <span className="text-yeild-yellow font-bold text-lg">{task.points} Points</span>
+                    </div>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-400">Loading tasks...</div>
+          )}
+          <div className="text-center mt-16">
+            <Button size="lg" className="bg-white text-black hover:bg-gray-200 text-lg px-8 py-6" onClick={() => navigate('/tasks')}>
+              View All Tasks
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 bg-gray-900/50">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4 text-yeild-yellow">What Our Community Says</h2>
+          </div>
+          <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="bg-gray-800/50 border-gray-700">
+                <CardContent className="pt-6">
+                  <p className="text-gray-300 mb-6 italic">"{testimonial.quote}"</p>
+                  <div className="flex items-center">
+                    <div>
+                      <p className="font-semibold text-white">{testimonial.name}</p>
+                      <p className="text-sm text-gray-400">{testimonial.role}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
