@@ -1,17 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle, XCircle } from 'lucide-react';
-
-type BrandApplication = {
-  id: string;
-  company_name: string;
-  status: "pending" | "approved" | "rejected";
-  created_at: string;
-};
+import { BrandApplication } from '@/hooks/useBrandApplicationStatus';
 
 const StatusInfo = ({ status }: { status: BrandApplication['status'] }) => {
     const navigate = useNavigate();
