@@ -1,7 +1,6 @@
-
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const Hero = () => {
@@ -49,6 +48,20 @@ export const Hero = () => {
               onClick={handleLoginClick}
             >
               Login
+            </Button>
+          )}
+
+          {user && (
+            <Button 
+              asChild
+              variant="outline" 
+              size="lg" 
+              className="border-yeild-yellow text-yeild-yellow hover:bg-yeild-yellow hover:text-black text-lg px-8 py-6 w-full sm:w-auto"
+            >
+              <Link to="/admin-setup">
+                <Shield className="mr-2 h-5 w-5" />
+                Admin Setup
+              </Link>
             </Button>
           )}
         </div>
