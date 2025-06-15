@@ -43,7 +43,7 @@ serve(async (req) => {
 
     // Send the email using Resend
     const { data, error: resendError } = await resend.emails.send({
-      from: 'Yeild <onboarding@resend.dev>',
+      from: 'Yeild <noreply@yeildsocials.com>',
       to: [email],
       subject: 'Log in to Yeild and confirm your account',
       html: `
@@ -70,3 +70,4 @@ serve(async (req) => {
     })
   }
 })
+
