@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -12,7 +11,6 @@ import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import FormStepOne from "@/components/brand-signup/FormStepOne";
 import FormStepTwo from "@/components/brand-signup/FormStepTwo";
-import SuccessMessage from "@/components/brand-signup/SuccessMessage";
 import ProgressSteps from "@/components/brand-signup/ProgressSteps";
 
 const formSchema = z
@@ -46,7 +44,6 @@ const BrandSignupForm = () => {
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
-  const [formCompleted, setFormCompleted] = useState(false);
 
   const form = useForm<BrandSignupFormValues>({
     resolver: zodResolver(formSchema),
@@ -106,7 +103,7 @@ const BrandSignupForm = () => {
         return;
       }
       
-      setFormCompleted(true);
+      toast.success("Application submitted successfully!");
 
     } catch (error) {
       console.error("An unexpected error occurred during signup:", error);
@@ -115,10 +112,6 @@ const BrandSignupForm = () => {
       setIsLoading(false);
     }
   };
-
-  if (formCompleted) {
-    return <SuccessMessage />;
-  }
 
   return (
     <>

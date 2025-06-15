@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +16,12 @@ const StatusInfo = ({ status }: { status: BrandApplication['status'] }) => {
             title: "Application Approved!",
             description: "Congratulations! You can now access all brand features.",
             badgeVariant: 'success' as const,
-            action: <Button onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
+            action: (
+              <>
+                <Button onClick={() => navigate('/dashboard')} className="yeild-btn-primary w-full sm:w-auto">Go to Dashboard</Button>
+                <Button variant="ghost" className="text-gray-400 hover:text-white w-full sm:w-auto" onClick={() => navigate('/')}>Back to Home</Button>
+              </>
+            )
         };
     }
     if (status === 'rejected') {
@@ -24,7 +30,12 @@ const StatusInfo = ({ status }: { status: BrandApplication['status'] }) => {
             title: "Application Status",
             description: "We regret to inform you that your application has not been approved at this time. For more details, please contact support.",
             badgeVariant: 'destructive' as const,
-            action: <Button variant="outline" onClick={() => navigate('/support')}>Contact Support</Button>
+            action: (
+              <>
+                <Button variant="outline" onClick={() => navigate('/support')} className="yeild-btn-secondary w-full sm:w-auto">Contact Support</Button>
+                <Button variant="ghost" className="text-gray-400 hover:text-white w-full sm:w-auto" onClick={() => navigate('/')}>Back to Home</Button>
+              </>
+            )
         };
     }
     return { // pending
@@ -32,7 +43,20 @@ const StatusInfo = ({ status }: { status: BrandApplication['status'] }) => {
         title: "Application Pending",
         description: "Your application is currently under review. We will notify you via email once a decision has been made. This usually takes 2-3 business days.",
         badgeVariant: 'secondary' as const,
-        action: null
+        action: (
+          <>
+            <Button className="yeild-btn-primary w-full sm:w-auto" onClick={() => navigate("/")}>
+              Return to Home
+            </Button>
+            <Button 
+              variant="outline" 
+              className="yeild-btn-secondary w-full sm:w-auto"
+              onClick={() => window.open("https://calendly.com", "_blank")}
+            >
+              Schedule Demo Call
+            </Button>
+          </>
+        )
     };
 };
 
@@ -59,9 +83,8 @@ export const BrandApplicationStatus = ({ application }: { application: BrandAppl
                 <p><strong>Company:</strong> {application.company_name}</p>
                 <p><strong>Application Date:</strong> {new Date(application.created_at).toLocaleDateString()}</p>
             </div>
-             <div className="mt-8 flex gap-4 justify-center">
+             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
                 {statusInfo.action}
-                <Button variant="ghost" className="text-gray-400 hover:text-white" onClick={() => navigate('/')}>Back to Home</Button>
             </div>
         </CardContent>
     </Card>
