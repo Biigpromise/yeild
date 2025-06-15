@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Shield, ArrowRight, AlertCircle } from 'lucide-react';
+import { Shield, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { adminSetupService } from '@/services/admin/adminSetupService';
 
@@ -11,62 +11,51 @@ interface AdminProtectedRouteProps {
 }
 
 export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [hasAdminAccess, setHasAdminAccess] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isChecking, setIsChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    checkAdminAccess();
-  }, [user, retryCount]);
-
-  const checkAdminAccess = async () => {
-    if (!user) {
-      console.log('AdminProtectedRoute: No user found');
-      setHasAdminAccess(false);
-      setIsLoading(false);
-      return;
-    }
-
-    console.log('AdminProtectedRoute: Checking admin access for user:', user.id, 'retry:', retryCount);
-    setIsLoading(true);
-    setError(null);
+    const checkAccess = async () => {
+      if (authLoading) {
+        setIsChecking(true);
+        return;
+      }
+  
+      if (!user) {
+        console.log('AdminProtectedRoute: No user found');
+        setHasAdminAccess(false);
+        setIsChecking(false);
+        return;
+      }
+  
+      console.log('AdminProtectedRoute: Checking admin access for user:', user.id);
+      setIsChecking(true);
+      setError(null);
+      
+      try {
+        const hasAccess = await adminSetupService.checkAdminAccess();
+        console.log('AdminProtectedRoute: Admin access result:', hasAccess);
+        setHasAdminAccess(hasAccess);
+      } catch (err) {
+        console.error('AdminProtectedRoute: Error checking admin access:', err);
+        setError('Failed to verify admin access');
+        setHasAdminAccess(false);
+      } finally {
+        setIsChecking(false);
+      }
+    };
     
-    try {
-      // Add a small delay on retries to allow for database consistency
-      if (retryCount > 0) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-      
-      const hasAccess = await adminSetupService.checkAdminAccess();
-      console.log('AdminProtectedRoute: Admin access result:', hasAccess);
-      setHasAdminAccess(hasAccess);
-      
-      // If we still don't have access after 3 retries, stop trying
-      if (!hasAccess && retryCount < 3) {
-        console.log('AdminProtectedRoute: No admin access, will retry in 2 seconds');
-        setTimeout(() => setRetryCount(prev => prev + 1), 2000);
-      }
-    } catch (err) {
-      console.error('AdminProtectedRoute: Error checking admin access:', err);
-      setError('Failed to verify admin access');
-      setHasAdminAccess(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    checkAccess();
+  }, [user, authLoading]);
 
-  if (isLoading) {
+  if (isChecking) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-pulse text-muted-foreground">
-          Checking admin access...
-          {retryCount > 0 && (
-            <span className="block text-sm mt-2">
-              Retry {retryCount}/3...
-            </span>
-          )}
+        <div className="flex items-center gap-3 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Verifying admin access...</span>
         </div>
       </div>
     );
@@ -76,14 +65,14 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ childr
     return (
       <div className="flex items-center justify-center min-h-screen p-4">
         <div className="max-w-md text-center space-y-6">
-          <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
-            <Shield className="h-8 w-8 text-yellow-600" />
+          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+            <Shield className="h-8 w-8 text-red-600" />
           </div>
           
           <div>
-            <h1 className="text-2xl font-bold text-foreground mb-4">Admin Access Required</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-4">Access Denied</h1>
             <p className="text-muted-foreground mb-6">
-              You need administrator privileges to access this page. Set up admin access to continue.
+              You do not have the necessary administrator privileges to access this page.
             </p>
             
             {error && (
@@ -95,31 +84,13 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ childr
             
             {user && (
               <p className="text-sm text-muted-foreground mb-4">
-                Currently logged in as: {user.email}
+                Logged in as: {user.email}
               </p>
             )}
           </div>
 
           <div className="space-y-3">
             <Button asChild className="w-full">
-              <Link to="/admin-setup">
-                <Shield className="h-4 w-4 mr-2" />
-                Setup Admin Access
-              </Link>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="w-full" 
-              onClick={() => {
-                setRetryCount(0);
-                checkAdminAccess();
-              }}
-            >
-              Refresh Access Check
-            </Button>
-            
-            <Button asChild variant="outline" className="w-full">
               <Link to="/dashboard">
                 <ArrowRight className="h-4 w-4 mr-2" />
                 Back to Dashboard

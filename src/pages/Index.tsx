@@ -1,5 +1,4 @@
 
-import { AdminBanner } from "@/components/landing/AdminBanner";
 import { ForBrands } from "@/components/landing/ForBrands";
 import { Footer } from "@/components/landing/Footer";
 import { Header } from "@/components/landing/Header";
@@ -11,7 +10,6 @@ import { Testimonials } from "@/components/landing/Testimonials";
 const Index = () => {
   return (
     <div className="min-h-screen bg-yeild-black text-white">
-      <AdminBanner />
       <Header />
       <main>
         <Hero />
