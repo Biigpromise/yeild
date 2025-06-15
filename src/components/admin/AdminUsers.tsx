@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { realAdminUserService } from "@/services/admin/realAdminUserService";
 import { LoadingState } from "@/components/ui/loading-state";
+import { UserSearchAutocomplete } from "@/components/ui/user-search-autocomplete";
 
 type User = {
   id: string;
@@ -88,10 +88,11 @@ export const AdminUsers = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-4">
-            <Input 
-              placeholder="Search by name or email" 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)}
+            {/* Use the Autocomplete instead of Input */}
+            <UserSearchAutocomplete
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Search by name or email"
               className="max-w-sm"
             />
             <Button 
