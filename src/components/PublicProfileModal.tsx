@@ -1,0 +1,128 @@
+
+import React, { useState, useEffect } from 'react';
+import { userService, UserProfile } from '@/services/userService';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Target, Trophy } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface PublicProfileModalProps {
+  userId: string | null;
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+}
+
+export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({ userId, isOpen, onOpenChange }) => {
+  const [profile, setProfile] = useState<Partial<UserProfile> | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && userId) {
+      const fetchProfile = async () => {
+        setLoading(true);
+        setProfile(null);
+        try {
+          const userProfile = await userService.getUserProfileById(userId);
+          setProfile(userProfile);
+        } catch (err) {
+          console.error("Failed to fetch user profile.", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchProfile();
+    }
+  }, [isOpen, userId]);
+  
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[625px]">
+        <DialogHeader>
+          <DialogTitle>User Profile</DialogTitle>
+          <DialogDescription>
+            Public profile and statistics.
+          </DialogDescription>
+        </DialogHeader>
+        {loading ? (
+          <div className="space-y-4 py-4">
+            <div className="flex items-center space-x-4">
+              <Skeleton className="h-16 w-16 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[250px]" />
+                <Skeleton className="h-4 w-[200px]" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4 pt-4 mt-4 border-t">
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+            </div>
+          </div>
+        ) : profile ? (
+          <div className="py-4 space-y-6">
+            <div className="flex items-start gap-6">
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={profile.profile_picture_url || undefined} alt={profile.name || ''} />
+                <AvatarFallback className="text-2xl">
+                    {profile.name?.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 space-y-2">
+                <h2 className="text-2xl font-bold">{profile.name}</h2>
+                <p className="text-muted-foreground">
+                    {profile.bio || "This user hasn't set a bio yet."}
+                </p>
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>Joined on {formatDate(profile.created_at)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Key Statistics</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="text-center p-3 bg-muted rounded-lg">
+                        <Trophy className="h-6 w-6 mx-auto mb-2 text-yellow-500" />
+                        <p className="text-2xl font-bold">Level {profile.level}</p>
+                        <p className="text-sm text-muted-foreground">Current Level</p>
+                    </div>
+                    <div className="text-center p-3 bg-muted rounded-lg">
+                        <Target className="h-6 w-6 mx-auto mb-2 text-blue-500" />
+                        <p className="text-2xl font-bold">{(profile.points || 0).toLocaleString()}</p>
+                        <p className="text-sm text-muted-foreground">Total Points</p>
+                    </div>
+                    <div className="text-center p-3 bg-muted rounded-lg">
+                        <Trophy className="h-6 w-6 mx-auto mb-2 text-green-500" />
+                        <p className="text-2xl font-bold">{profile.tasks_completed}</p>
+                        <p className="text-sm text-muted-foreground">Tasks Completed</p>
+                    </div>
+                </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-10">
+            <p className="text-muted-foreground">Could not load user profile.</p>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};

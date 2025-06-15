@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { userService, LeaderboardUser } from "@/services/userService";
 import { useAuth } from "@/contexts/AuthContext";
+import { PublicProfileModal } from "./PublicProfileModal";
 import { 
   Trophy, 
   Medal, 
@@ -22,6 +22,8 @@ export const Leaderboard = () => {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardUser[]>([]);
   const [currentUserRank, setCurrentUserRank] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   useEffect(() => {
     loadLeaderboard();
@@ -43,6 +45,11 @@ export const Leaderboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUserClick = (userId: string) => {
+    setSelectedUserId(userId);
+    setIsProfileModalOpen(true);
   };
 
   const getRankIcon = (rank: number) => {
@@ -83,108 +90,120 @@ export const Leaderboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-yellow-500" />
-            Leaderboard
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <Tabs value={timeframe} onValueChange={(value) => setTimeframe(value as any)}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="weekly">This Week</TabsTrigger>
-              <TabsTrigger value="monthly">This Month</TabsTrigger>
-              <TabsTrigger value="all">All Time</TabsTrigger>
-            </TabsList>
+    <>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-500" />
+              Leaderboard
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <Tabs value={timeframe} onValueChange={(value) => setTimeframe(value as any)}>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="weekly">This Week</TabsTrigger>
+                <TabsTrigger value="monthly">This Month</TabsTrigger>
+                <TabsTrigger value="all">All Time</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value={timeframe} className="space-y-4 mt-6">
-              {/* Your Rank */}
-              {currentUserRank && (
-                <Card className="bg-muted/50 border-2 border-primary/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-muted-foreground">Your Rank:</span>
-                        <Badge variant="outline" className="text-lg px-3 py-1">
-                          #{currentUserRank}
-                        </Badge>
+              <TabsContent value={timeframe} className="space-y-4 mt-6">
+                {/* Your Rank */}
+                {currentUserRank && (
+                  <Card className="bg-muted/50 border-2 border-primary/20">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium text-muted-foreground">Your Rank:</span>
+                          <Badge variant="outline" className="text-lg px-3 py-1">
+                            #{currentUserRank}
+                          </Badge>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          View My Stats
+                        </Button>
                       </div>
-                      <Button variant="outline" size="sm">
-                        View My Stats
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Top Users */}
-              <div className="space-y-2">
-                {leaderboardData.length === 0 ? (
-                  <Card>
-                    <CardContent className="p-8 text-center">
-                      <p className="text-muted-foreground">No leaderboard data available yet.</p>
-                      <p className="text-sm text-muted-foreground mt-1">Complete some tasks to see rankings!</p>
                     </CardContent>
                   </Card>
-                ) : (
-                  leaderboardData.map((user) => (
-                    <Card key={user.id} className={`transition-all hover:shadow-md ${
-                      user.rank <= 3 ? 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20' : ''
-                    }`}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center justify-center w-12 h-12">
-                              {getRankIcon(user.rank)}
-                            </div>
-                            
-                            <Avatar className="h-10 w-10">
-                              <AvatarFallback>
-                                {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                            
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold">{user.name || 'Anonymous User'}</span>
-                                <Badge variant="secondary">Level {user.level}</Badge>
-                              </div>
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                <span>{user.tasks_completed} tasks</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="text-right">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xl font-bold text-primary">
-                                {user.points.toLocaleString()}
-                              </span>
-                              <span className="text-sm text-muted-foreground">pts</span>
-                            </div>
-                          </div>
-                        </div>
+                )}
+
+                {/* Top Users */}
+                <div className="space-y-2">
+                  {leaderboardData.length === 0 ? (
+                    <Card>
+                      <CardContent className="p-8 text-center">
+                        <p className="text-muted-foreground">No leaderboard data available yet.</p>
+                        <p className="text-sm text-muted-foreground mt-1">Complete some tasks to see rankings!</p>
                       </CardContent>
                     </Card>
-                  ))
-                )}
-              </div>
-
-              {/* Load More */}
-              {leaderboardData.length >= 50 && (
-                <div className="text-center pt-4">
-                  <Button variant="outline" className="w-full" onClick={loadLeaderboard}>
-                    <Users className="h-4 w-4 mr-2" />
-                    Load More Users
-                  </Button>
+                  ) : (
+                    leaderboardData.map((user) => (
+                      <Card 
+                        key={user.id} 
+                        className={`transition-all hover:shadow-md ${
+                          user.rank <= 3 ? 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20' : ''
+                        } cursor-pointer hover:bg-muted/60`}
+                        onClick={() => handleUserClick(user.id)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center justify-center w-12 h-12">
+                                {getRankIcon(user.rank)}
+                              </div>
+                              
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={(user as any).profile_picture_url} />
+                                <AvatarFallback>
+                                  {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                              
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold">{user.name || 'Anonymous User'}</span>
+                                  <Badge variant="secondary">Level {user.level}</Badge>
+                                </div>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                  <span>{user.tasks_completed} tasks</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="text-right">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xl font-bold text-primary">
+                                  {user.points.toLocaleString()}
+                                </span>
+                                <span className="text-sm text-muted-foreground">pts</span>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
                 </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+
+                {/* Load More */}
+                {leaderboardData.length >= 50 && (
+                  <div className="text-center pt-4">
+                    <Button variant="outline" className="w-full" onClick={loadLeaderboard}>
+                      <Users className="h-4 w-4 mr-2" />
+                      Load More Users
+                    </Button>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+      <PublicProfileModal
+        userId={selectedUserId}
+        isOpen={isProfileModalOpen}
+        onOpenChange={setIsProfileModalOpen}
+      />
+    </>
   );
 };

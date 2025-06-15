@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -97,6 +96,23 @@ export const userService = {
     } catch (error) {
       console.error('Error updating profile picture:', error);
       return false;
+    }
+  },
+
+  // Get user profile by ID
+  async getUserProfileById(userId: string): Promise<Partial<UserProfile> | null> {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, points, level, tasks_completed, created_at, bio, profile_picture_url')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching user profile by ID:', error);
+      return null;
     }
   },
 
