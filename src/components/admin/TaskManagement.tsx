@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -147,7 +146,7 @@ export const TaskManagement = () => {
         approvalRate={totalSubmissions > 0 ? Math.round((approvedSubmissions / totalSubmissions) * 100) : 0}
       />
 
-      <Tabs defaultValue="tasks" className="flex-1 flex flex-col gap-6">
+      <Tabs defaultValue="tasks" className="flex-1 flex flex-col gap-6 min-h-0">
         <TabsList>
           <TabsTrigger value="tasks">All Tasks</TabsTrigger>
           <TabsTrigger value="submissions">
@@ -198,7 +197,7 @@ export const TaskManagement = () => {
           />
         </TabsContent>
 
-        <TabsContent value="create" className="flex-1 overflow-hidden">
+        <TabsContent value="create" className="flex-1 min-h-0">
           <div className="h-full overflow-y-auto">
             <CreateTaskForm onTaskCreated={loadData} />
           </div>
