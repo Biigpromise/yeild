@@ -268,6 +268,48 @@ export type Database = {
           },
         ]
       }
+      payment_method_configs: {
+        Row: {
+          configuration_details: Json | null
+          created_at: string | null
+          enabled: boolean
+          id: string
+          max_amount: number
+          method_key: string
+          min_amount: number
+          name: string
+          processing_fee_percent: number
+          processing_time_estimate: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          configuration_details?: Json | null
+          created_at?: string | null
+          enabled?: boolean
+          id?: string
+          max_amount?: number
+          method_key: string
+          min_amount?: number
+          name: string
+          processing_fee_percent?: number
+          processing_time_estimate?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          configuration_details?: Json | null
+          created_at?: string | null
+          enabled?: boolean
+          id?: string
+          max_amount?: number
+          method_key?: string
+          min_amount?: number
+          name?: string
+          processing_fee_percent?: number
+          processing_time_estimate?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           key: string

@@ -27,13 +27,14 @@ export interface FinancialMetrics {
 
 export interface PaymentMethodConfig {
   id: string;
-  method: string;
+  methodKey: string;
+  name: string;
   enabled: boolean;
   minAmount: number;
   maxAmount: number;
-  processingFee: number;
-  processingTime: string;
-  configuration: any;
+  processingFeePercent: number;
+  processingTimeEstimate: string | null;
+  configurationDetails: any;
 }
 
 export const adminFinancialService = {
@@ -232,62 +233,62 @@ export const adminFinancialService = {
   // Payment method management with real data
   async getPaymentMethods(): Promise<PaymentMethodConfig[]> {
     try {
-      // For now, return static config as we don't have a payment_methods table
-      // In a real app, this would come from the database
-      return [
-        {
-          id: '1',
-          method: 'Bank Transfer',
-          enabled: true,
-          minAmount: 50,
-          maxAmount: 10000,
-          processingFee: 2.5,
-          processingTime: '3-5 business days',
-          configuration: {}
-        },
-        {
-          id: '2',
-          method: 'PayPal',
-          enabled: true,
-          minAmount: 10,
-          maxAmount: 5000,
-          processingFee: 3.0,
-          processingTime: '1-2 business days',
-          configuration: {}
-        },
-        {
-          id: '3',
-          method: 'Crypto',
-          enabled: true,
-          minAmount: 25,
-          maxAmount: 50000,
-          processingFee: 1.0,
-          processingTime: '24 hours',
-          configuration: {}
-        },
-        {
-          id: '4',
-          method: 'Gift Card',
-          enabled: true,
-          minAmount: 5,
-          maxAmount: 1000,
-          processingFee: 0,
-          processingTime: 'Instant',
-          configuration: {}
-        }
-      ];
+      const { data, error } = await supabase
+        .from('payment_method_configs')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) {
+        toast.error("Failed to fetch payment methods.");
+        throw error;
+      }
+
+      return data.map(d => ({
+        id: d.id,
+        methodKey: d.method_key,
+        name: d.name,
+        enabled: d.enabled,
+        minAmount: d.min_amount,
+        maxAmount: d.max_amount,
+        processingFeePercent: parseFloat(d.processing_fee_percent),
+        processingTimeEstimate: d.processing_time_estimate,
+        configurationDetails: d.configuration_details,
+      }));
     } catch (error) {
       console.error('Error fetching payment methods:', error);
+      toast.error('Failed to fetch payment methods.');
       return [];
     }
   },
 
   async updatePaymentMethod(
     methodId: string,
-    updates: Partial<PaymentMethodConfig>
+    updates: Partial<Omit<PaymentMethodConfig, 'id'>>
   ): Promise<boolean> {
     try {
-      // This would update the payment_methods table in a real implementation
+      const updateData: { [key: string]: any } = {
+        updated_at: new Date().toISOString()
+      };
+      
+      if (updates.methodKey !== undefined) updateData.method_key = updates.methodKey;
+      if (updates.name !== undefined) updateData.name = updates.name;
+      if (updates.enabled !== undefined) updateData.enabled = updates.enabled;
+      if (updates.minAmount !== undefined) updateData.min_amount = updates.minAmount;
+      if (updates.maxAmount !== undefined) updateData.max_amount = updates.maxAmount;
+      if (updates.processingFeePercent !== undefined) updateData.processing_fee_percent = updates.processingFeePercent;
+      if (updates.processingTimeEstimate !== undefined) updateData.processing_time_estimate = updates.processingTimeEstimate;
+      if (updates.configurationDetails !== undefined) updateData.configuration_details = updates.configurationDetails;
+
+
+      const { error } = await supabase
+        .from('payment_method_configs')
+        .update(updateData)
+        .eq('id', methodId);
+
+      if (error) {
+        throw error;
+      }
+      
       toast.success('Payment method updated successfully');
       return true;
     } catch (error) {
