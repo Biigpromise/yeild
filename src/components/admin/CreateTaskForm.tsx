@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,10 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { taskService, TaskCategory } from "@/services/taskService";
 import { toast } from "sonner";
+import { useSimpleFormPersistence } from "@/hooks/useSimpleFormPersistence"; // <-- NEW
 
 interface CreateTaskFormProps {
   onTaskCreated: () => void;
 }
+
+// Set a key unique to admin/task create form.
+const FORM_DRAFT_KEY = "adminCreateTaskDraft";
 
 export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated }) => {
   const [categories, setCategories] = useState<TaskCategory[]>([]);
@@ -28,6 +33,14 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
     expires_at: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Draft persistence for all fields except expires_at (leave in for now)
+  const { clearDraft } = useSimpleFormPersistence({
+    formData,
+    setFormData,
+    storageKey: FORM_DRAFT_KEY,
+    excludeKeys: [],
+  });
 
   useEffect(() => {
     loadCategories();
@@ -80,6 +93,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
         estimated_time: "",
         expires_at: ""
       });
+      clearDraft(); // <-- Clear the draft after successful creation
       onTaskCreated();
     } catch (error) {
       console.error("Error creating task:", error);
@@ -266,7 +280,11 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
             </div>
 
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" className="w-full sm:w-auto">
+              <Button type="button" variant="outline" className="w-full sm:w-auto"
+                onClick={() => {
+                  // Manually show a toast to confirm saved!
+                  toast.success("Draft saved! You can safely leave and come back to continue later.");
+                }}>
                 Save as Draft
               </Button>
               <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
