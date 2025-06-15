@@ -743,6 +743,7 @@ export type Database = {
         Row: {
           brand_logo_url: string | null
           brand_name: string | null
+          brand_user_id: string | null
           category: string | null
           category_id: string | null
           created_at: string | null
@@ -759,6 +760,7 @@ export type Database = {
         Insert: {
           brand_logo_url?: string | null
           brand_name?: string | null
+          brand_user_id?: string | null
           category?: string | null
           category_id?: string | null
           created_at?: string | null
@@ -775,6 +777,7 @@ export type Database = {
         Update: {
           brand_logo_url?: string | null
           brand_name?: string | null
+          brand_user_id?: string | null
           category?: string | null
           category_id?: string | null
           created_at?: string | null

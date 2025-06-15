@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import LoginHeader from "@/components/auth/LoginHeader";
 import LoginForm from "@/components/auth/LoginForm";
 import LoginFooter from "@/components/auth/LoginFooter";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -12,11 +13,34 @@ const Login = () => {
 
   // Handle redirect after auth state is determined
   useEffect(() => {
-    console.log("Auth state changed - loading:", loading, "user:", user?.email);
-    if (!loading && user) {
-      console.log("User authenticated, redirecting to dashboard");
-      navigate("/dashboard");
-    }
+    const checkRoleAndRedirect = async () => {
+      if (!loading && user) {
+        console.log("User authenticated, checking role for redirect");
+        try {
+          const { data: roles, error } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id);
+
+          if (error) throw error;
+
+          const hasBrandRole = roles?.some(r => r.role === 'brand');
+          
+          if (hasBrandRole) {
+            console.log("User is a brand, redirecting to brand page");
+            navigate("/brand-signup");
+          } else {
+            console.log("User is not a brand, redirecting to user dashboard");
+            navigate("/dashboard");
+          }
+        } catch (error) {
+            console.error("Error checking user role, redirecting to default dashboard", error);
+            navigate("/dashboard");
+        }
+      }
+    };
+
+    checkRoleAndRedirect();
   }, [user, loading, navigate]);
 
   // Show loading while auth state is being determined
