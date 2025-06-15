@@ -10,49 +10,80 @@ interface AdminProtectedRouteProps {
   children: React.ReactNode;
 }
 
+const ADMIN_CACHE_KEY = "isAdmin";
+const ADMIN_CACHE_EXPIRY_KEY = "isAdminExpiry";
+const CACHE_MINUTES = 60; // Cache admin status for 60 minutes
+
+function setAdminCache(value: boolean) {
+  sessionStorage.setItem(ADMIN_CACHE_KEY, value ? "true" : "false");
+  const expiry = Date.now() + CACHE_MINUTES * 60_000;
+  sessionStorage.setItem(ADMIN_CACHE_EXPIRY_KEY, expiry.toString());
+}
+
+function getAdminCache(): boolean | null {
+  const expiryStr = sessionStorage.getItem(ADMIN_CACHE_EXPIRY_KEY);
+  const value = sessionStorage.getItem(ADMIN_CACHE_KEY);
+  if (!expiryStr || !value) return null;
+  const expiry = parseInt(expiryStr, 10);
+  if (isNaN(expiry) || Date.now() > expiry) {
+    sessionStorage.removeItem(ADMIN_CACHE_KEY);
+    sessionStorage.removeItem(ADMIN_CACHE_EXPIRY_KEY);
+    return null;
+  }
+  return value === "true";
+}
+
 export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ children }) => {
   const { user, loading: authLoading } = useAuth();
-  const [hasAdminAccess, setHasAdminAccess] = useState<boolean | null>(null);
-  const [isChecking, setIsChecking] = useState(true);
+  // Use null initially to know if check hasn't been performed, otherwise use the cached value 
+  const [hasAdminAccess, setHasAdminAccess] = useState<boolean | null>(() => getAdminCache());
+  const [isChecking, setIsChecking] = useState(hasAdminAccess === null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Only check admin access if cache is missing or expired
+    if (hasAdminAccess !== null || authLoading) {
+      setIsChecking(false);
+      return;
+    }
+
     const checkAccess = async () => {
-      if (authLoading) {
-        setIsChecking(true);
-        return;
-      }
-  
       if (!user) {
-        console.log('AdminProtectedRoute: No user found');
         setHasAdminAccess(false);
         setIsChecking(false);
         return;
       }
-  
-      console.log('AdminProtectedRoute: Checking admin access for user:', user.id);
+
       setIsChecking(true);
       setError(null);
-      
+
       try {
         const hasAccess = await adminSetupService.checkAdminAccess();
-        console.log('AdminProtectedRoute: Admin access result:', hasAccess);
+        setAdminCache(hasAccess);
         setHasAdminAccess(hasAccess);
       } catch (err) {
-        console.error('AdminProtectedRoute: Error checking admin access:', err);
         setError('Failed to verify admin access');
         setHasAdminAccess(false);
       } finally {
         setIsChecking(false);
       }
     };
-    
     checkAccess();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading]);
+
+  // Always update cache if logged out or user changes
+  useEffect(() => {
+    if (!user && !authLoading) {
+      setAdminCache(false);
+      setHasAdminAccess(false);
+    }
   }, [user, authLoading]);
 
   if (isChecking) {
+    // Less intrusive: Only show loader overlay if we have no admin info and not already loaded from cache
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen z-30 bg-background/80">
         <div className="flex items-center gap-3 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
           <span>Verifying admin access...</span>
