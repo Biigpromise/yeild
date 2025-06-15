@@ -9,7 +9,7 @@ import {
   Award, 
   Wallet, 
   Trophy, 
-  Users 
+  MessageCircle 
 } from 'lucide-react';
 
 interface MobileTabNavigationProps {
@@ -24,7 +24,7 @@ const tabs = [
   { value: 'achievements', label: 'Achievements', icon: Award },
   { value: 'wallet', label: 'Wallet', icon: Wallet },
   { value: 'leaderboard', label: 'Leaderboard', icon: Trophy },
-  { value: 'referrals', label: 'Referrals', icon: Users },
+  { value: 'community-chat', label: 'Chat', icon: MessageCircle },
 ];
 
 export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({

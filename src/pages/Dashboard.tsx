@@ -359,7 +359,7 @@ const Dashboard = () => {
               <TabsTrigger value="leaderboard">
                 <Trophy className="h-4 w-4 mr-2" />
                 Leaderboard
-              </Tabs-Trigger>
+              </TabsTrigger>
               <TabsTrigger value="community-chat">
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Community Chat
