@@ -67,8 +67,16 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || !formData.description || !formData.points || !formData.category_id) {
-      toast.error("Please fill in all required fields");
+    // Validate required fields
+    if (
+      !formData.title.trim() ||
+      !formData.description.trim() ||
+      !formData.points ||
+      formData.points === "0" ||
+      isNaN(Number(formData.points)) ||
+      !formData.category_id
+    ) {
+      toast.error("Please fill in all required fields (title, description, points > 0, category)");
       return;
     }
 
@@ -76,10 +84,15 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
     try {
       const taskData = {
         ...formData,
-        points: parseInt(formData.points),
+        points: parseInt(formData.points, 10),
         expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null,
         status: 'active'
       };
+      // Remove any keys that are empty strings
+      Object.keys(taskData).forEach(
+        (k) => (taskData[k] === '' ? delete taskData[k] : undefined)
+      );
+      // Attempt to create the task and catch error message
       await taskService.admin.createTask(taskData);
       toast.success("Task created successfully!");
       setFormData({
@@ -95,9 +108,10 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
       });
       clearDraft(); // <-- Clear the draft after successful creation
       onTaskCreated();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating task:", error);
-      toast.error("Failed to create task");
+      const message = error?.message || (typeof error === "string" ? error : "Failed to create task");
+      toast.error(`Failed to create task: ${message}`);
     } finally {
       setIsSubmitting(false);
     }
