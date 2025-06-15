@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -114,7 +115,7 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({ open, on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] md:max-w-[600px]">
+      <DialogContent className="sm:max-w-[425px] md:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditMode ? "Edit Campaign" : "Create New Campaign"}</DialogTitle>
           <DialogDescription>
