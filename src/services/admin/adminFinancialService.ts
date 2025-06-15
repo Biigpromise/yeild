@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -250,7 +249,7 @@ export const adminFinancialService = {
         enabled: d.enabled,
         minAmount: d.min_amount,
         maxAmount: d.max_amount,
-        processingFeePercent: parseFloat(d.processing_fee_percent),
+        processingFeePercent: d.processing_fee_percent,
         processingTimeEstimate: d.processing_time_estimate,
         configurationDetails: d.configuration_details,
       }));
