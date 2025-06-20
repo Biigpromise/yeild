@@ -1,9 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Story, UserProfile } from '@/services/userService';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { Eye } from 'lucide-react';
 
 interface StoryViewerProps {
   isOpen: boolean;
@@ -34,6 +35,19 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ isOpen, onOpenChange, 
       }
     }
   }, [isOpen, stories, initialStoryIndex, allGroupedStories]);
+
+  // Track story view when story changes
+  useEffect(() => {
+    if (isOpen && currentUserStories.length > 0) {
+      const currentStory = currentUserStories[currentStoryIndex];
+      if (currentStory) {
+        // Import userService and track view
+        import('@/services/userService').then(({ userService }) => {
+          userService.trackStoryView(currentStory.id);
+        });
+      }
+    }
+  }, [currentStoryIndex, currentUserStories, isOpen]);
 
   const handleNextGroup = () => {
     if (currentGroupIndex < allGroupedStories.length - 1) {
@@ -102,12 +116,23 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ isOpen, onOpenChange, 
               </div>
             ))}
           </div>
-          <div className="flex items-center gap-2 text-white">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.profile_picture_url || undefined} />
-              <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <span className="font-semibold text-sm">{user?.name}</span>
+          <div className="flex items-center justify-between text-white">
+            <div className="flex items-center gap-2">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user?.profile_picture_url || undefined} />
+                <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div>
+                <span className="font-semibold text-sm">{user?.name}</span>
+                <p className="text-xs opacity-75">
+                  {formatDistanceToNow(new Date(story.created_at), { addSuffix: true })}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-xs">
+              <Eye className="h-3 w-3" />
+              <span>{story.view_count}</span>
+            </div>
           </div>
         </div>
         

@@ -466,12 +466,91 @@ export type Database = {
           },
         ]
       }
+      post_replies: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          post_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          post_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_replies_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_replies_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_views: {
+        Row: {
+          id: string
+          post_id: string
+          user_id: string
+          viewed_at: string | null
+        }
+        Insert: {
+          id?: string
+          post_id: string
+          user_id: string
+          viewed_at?: string | null
+        }
+        Update: {
+          id?: string
+          post_id?: string
+          user_id?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_views_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           content: string
           created_at: string | null
           id: string
           likes_count: number
+          reply_count: number
           updated_at: string | null
           user_id: string
           view_count: number
@@ -481,6 +560,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           likes_count?: number
+          reply_count?: number
           updated_at?: string | null
           user_id: string
           view_count?: number
@@ -490,6 +570,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           likes_count?: number
+          reply_count?: number
           updated_at?: string | null
           user_id?: string
           view_count?: number
@@ -695,6 +776,7 @@ export type Database = {
           media_type: string
           media_url: string
           user_id: string
+          view_count: number
         }
         Insert: {
           caption?: string | null
@@ -704,6 +786,7 @@ export type Database = {
           media_type?: string
           media_url: string
           user_id: string
+          view_count?: number
         }
         Update: {
           caption?: string | null
@@ -713,10 +796,47 @@ export type Database = {
           media_type?: string
           media_url?: string
           user_id?: string
+          view_count?: number
         }
         Relationships: [
           {
             foreignKeyName: "stories_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_views: {
+        Row: {
+          id: string
+          story_id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          story_id: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          story_id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_views_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_views_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -1307,7 +1427,9 @@ export type Database = {
         Returns: boolean
       }
       increment_post_view: {
-        Args: { post_id_to_inc: string }
+        Args:
+          | { post_id_to_inc: string }
+          | { post_id_to_inc: string; user_id_param: string }
         Returns: undefined
       }
       is_admin: {

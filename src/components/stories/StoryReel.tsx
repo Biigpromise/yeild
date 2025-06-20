@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { userService, Story, UserProfile } from '@/services/userService';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -7,6 +6,8 @@ import { PlusCircle } from 'lucide-react';
 import { StoryViewer } from './StoryViewer';
 import { AddStoryModal } from './AddStoryModal';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatDistanceToNow } from 'date-fns';
+import { supabase } from '@/services/supabase';
 
 interface GroupedStory {
   user: Pick<UserProfile, 'id' | 'name' | 'profile_picture_url'>;
@@ -31,6 +32,21 @@ export const StoryReel: React.FC = () => {
   
   useEffect(() => {
     fetchStories();
+    
+    // Set up realtime subscription for story updates
+    const channel = supabase
+      .channel('stories-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stories' }, () => {
+        fetchStories();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'story_views' }, () => {
+        fetchStories();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -97,15 +113,30 @@ export const StoryReel: React.FC = () => {
           </div>
 
           {/* Stories from others */}
-          {groupedStories.filter(g => g.user.id !== currentUser?.id).map(group => (
-            <div key={group.user.id} className="text-center flex-shrink-0 cursor-pointer" onClick={() => handleOpenViewer(group.stories[0].id)}>
-              <Avatar className="h-16 w-16 border-2 border-pink-500 p-0.5">
-                <AvatarImage src={group.user.profile_picture_url || undefined} />
-                <AvatarFallback>{group.user.name?.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <p className="text-xs mt-1 truncate w-16">{group.user.name}</p>
-            </div>
-          ))}
+          {groupedStories.filter(g => g.user.id !== currentUser?.id).map(group => {
+            const latestStory = group.stories[0];
+            const totalViews = group.stories.reduce((sum, story) => sum + (story.view_count || 0), 0);
+            
+            return (
+              <div key={group.user.id} className="text-center flex-shrink-0 cursor-pointer" onClick={() => handleOpenViewer(group.stories[0].id)}>
+                <div className="relative">
+                  <Avatar className="h-16 w-16 border-2 border-pink-500 p-0.5">
+                    <AvatarImage src={group.user.profile_picture_url || undefined} />
+                    <AvatarFallback>{group.user.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  {totalViews > 0 && (
+                    <div className="absolute -bottom-1 -right-1 bg-pink-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {totalViews}
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs mt-1 truncate w-16">{group.user.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {formatDistanceToNow(new Date(latestStory.created_at), { addSuffix: true })}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
       

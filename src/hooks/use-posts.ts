@@ -32,7 +32,12 @@ export const usePosts = () => {
   const fetchPosts = useCallback(async () => {
     const { data, error } = await supabase
       .from("posts")
-      .select("*, profile:profiles(id, name, profile_picture_url), post_likes(user_id)")
+      .select(`
+        *, 
+        profile:profiles(id, name, profile_picture_url), 
+        post_likes(user_id),
+        post_replies(id, user_id, content, created_at, profile:profiles(id, name, profile_picture_url))
+      `)
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -60,6 +65,11 @@ export const usePosts = () => {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "post_likes" },
+        () => fetchPosts()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "post_replies" },
         () => fetchPosts()
       )
       .subscribe();
@@ -139,16 +149,20 @@ export const usePosts = () => {
   };
 
   const incrementViewCount = useCallback(async (postId: string) => {
-    if (viewedPostsRef.current.has(postId)) return;
+    if (viewedPostsRef.current.has(postId) || !userId) return;
     viewedPostsRef.current.add(postId);
     
-    setPosts(prev => prev.map(p => p.id === postId ? {...p, view_count: (p.view_count || 0) + 1} : p));
-
-    const { error } = await supabase.rpc('increment_post_view', { post_id_to_inc: postId });
+    const { error } = await supabase.rpc('increment_post_view', { 
+      post_id_to_inc: postId, 
+      user_id_param: userId 
+    });
     if (error) {
       console.error('Failed to increment view count:', error.message);
+    } else {
+      // Refresh posts to get updated view count
+      fetchPosts();
     }
-  }, []);
+  }, [userId, fetchPosts]);
 
   return {
     posts,

@@ -25,6 +25,7 @@ export interface Story {
   caption?: string;
   created_at: string;
   expires_at: string;
+  view_count: number;
   user?: Pick<UserProfile, 'id' | 'name' | 'profile_picture_url'>;
 }
 
@@ -252,7 +253,7 @@ export const userService = {
     }
   },
 
-  // Get stories for the feed
+  // Get stories for the feed with view counts
   async getStories(): Promise<Story[]> {
     try {
       const { data, error } = await supabase
@@ -265,6 +266,7 @@ export const userService = {
           caption,
           created_at,
           expires_at,
+          view_count,
           user:profiles(id, name, profile_picture_url)
         `)
         .gt('expires_at', new Date().toISOString())
@@ -279,6 +281,30 @@ export const userService = {
     } catch (error) {
       console.error('Error fetching stories:', error);
       return [];
+    }
+  },
+
+  // Track story view
+  async trackStoryView(storyId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('story_views')
+        .insert({
+          story_id: storyId,
+          user_id: user.id
+        });
+
+      if (error && error.code !== '23505') { // Ignore unique constraint violations
+        console.error('Error tracking story view:', error);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('Error tracking story view:', error);
+      return false;
     }
   },
 
@@ -322,6 +348,75 @@ export const userService = {
     } catch (error) {
       console.error('Error deleting story:', error);
       toast.error('Failed to delete story');
+      return false;
+    }
+  },
+
+  // Get post replies
+  async getPostReplies(postId: string): Promise<PostReply[]> {
+    try {
+      const { data, error } = await supabase
+        .from('post_replies')
+        .select(`
+          id,
+          post_id,
+          user_id,
+          content,
+          created_at,
+          profile:profiles(id, name, profile_picture_url)
+        `)
+        .eq('post_id', postId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return (data || []).map(reply => ({
+        ...reply,
+        profile: Array.isArray(reply.profile) ? reply.profile[0] : reply.profile
+      })) as PostReply[];
+    } catch (error) {
+      console.error('Error fetching post replies:', error);
+      return [];
+    }
+  },
+
+  // Add a reply to a post
+  async addPostReply(postId: string, content: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('post_replies')
+        .insert({
+          post_id: postId,
+          user_id: user.id,
+          content: content.trim()
+        });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error adding post reply:', error);
+      return false;
+    }
+  },
+
+  // Delete a post reply
+  async deletePostReply(replyId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('post_replies')
+        .delete()
+        .eq('id', replyId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error deleting post reply:', error);
       return false;
     }
   },
