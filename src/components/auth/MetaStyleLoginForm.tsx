@@ -44,7 +44,7 @@ const MetaStyleLoginForm = ({ onBack }: MetaStyleLoginFormProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-yeild-black text-white">
       {/* Header */}
       <div className="flex items-center justify-between p-4">
         <button onClick={onBack} className="p-2">
@@ -65,7 +65,7 @@ const MetaStyleLoginForm = ({ onBack }: MetaStyleLoginFormProps) => {
               placeholder="Mobile number or email address" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-gray-800 border-gray-700 text-white placeholder-gray-400 py-6 text-lg rounded-lg"
+              className="w-full bg-yeild-black border-yeild-yellow/30 text-white placeholder-gray-400 py-6 text-lg rounded-lg focus:border-yeild-yellow"
             />
           </div>
           
@@ -75,21 +75,21 @@ const MetaStyleLoginForm = ({ onBack }: MetaStyleLoginFormProps) => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-gray-800 border-gray-700 text-white placeholder-gray-400 py-6 text-lg rounded-lg"
+              className="w-full bg-yeild-black border-yeild-yellow/30 text-white placeholder-gray-400 py-6 text-lg rounded-lg focus:border-yeild-yellow"
             />
           </div>
           
           <Button 
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg font-semibold rounded-full mt-8"
+            className="w-full bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow/90 py-6 text-lg font-semibold rounded-full mt-8"
           >
             {isLoading ? "Logging in..." : "Log in"}
           </Button>
         </form>
         
         <div className="text-center mt-6">
-          <Link to="/forgot-password" className="text-gray-300 text-lg">
+          <Link to="/forgot-password" className="text-yeild-yellow text-lg hover:text-yeild-yellow/80">
             Forgotten password?
           </Link>
         </div>
@@ -100,7 +100,7 @@ const MetaStyleLoginForm = ({ onBack }: MetaStyleLoginFormProps) => {
         <Button
           onClick={() => navigate("/signup")}
           variant="outline"
-          className="w-full border-blue-600 text-blue-400 hover:bg-blue-600/10 py-6 text-lg font-semibold rounded-full"
+          className="w-full border-yeild-yellow text-yeild-yellow hover:bg-yeild-yellow/10 py-6 text-lg font-semibold rounded-full"
         >
           Create new account
         </Button>
