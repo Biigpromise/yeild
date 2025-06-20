@@ -114,7 +114,7 @@ export const usePosts = () => {
 
   const incrementViewCount = async (postId: string) => {
     try {
-      const { error } = await supabase.rpc('increment_post_views', {
+      const { error } = await supabase.rpc('increment_post_view', {
         post_id: postId
       });
 
