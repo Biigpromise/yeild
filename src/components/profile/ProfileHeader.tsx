@@ -1,13 +1,14 @@
 
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Link as LinkIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, MapPin, Link as LinkIcon, Edit, Save, X } from "lucide-react";
 import { ProfileAvatar } from "./ProfileAvatar";
 import { ProfileBirdBadge } from "@/components/referral/ProfileBirdBadge";
 
 interface ProfileHeaderProps {
-  user: {
+  user?: {
     id?: string;
     name: string;
     email: string;
@@ -20,20 +21,63 @@ interface ProfileHeaderProps {
     following_count?: number;
   };
   isOwnProfile?: boolean;
-  isUploadingAvatar: boolean;
-  onAvatarUpload: () => void;
-  onRemoveAvatar: () => void;
-  onFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  isUploadingAvatar?: boolean;
+  onAvatarUpload?: () => void;
+  onRemoveAvatar?: () => void;
+  onFileSelect?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  // New editing props
+  isEditing?: boolean;
+  onEditClick?: () => void;
+  onSave?: () => void;
+  onCancel?: () => void;
 }
 
 export const ProfileHeader = ({
   user,
   isOwnProfile = false,
-  isUploadingAvatar,
-  onAvatarUpload,
-  onRemoveAvatar,
-  onFileSelect,
+  isUploadingAvatar = false,
+  onAvatarUpload = () => {},
+  onRemoveAvatar = () => {},
+  onFileSelect = () => {},
+  isEditing = false,
+  onEditClick = () => {},
+  onSave = () => {},
+  onCancel = () => {},
 }: ProfileHeaderProps) => {
+  // If no user prop is passed, this is likely being used in a different context
+  if (!user) {
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold">Profile</h2>
+          </div>
+          {isOwnProfile && (
+            <div className="flex gap-2">
+              {isEditing ? (
+                <>
+                  <Button size="sm" onClick={onSave}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={onCancel}>
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <Button size="sm" variant="outline" onClick={onEditClick}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Button>
+              )}
+            </div>
+          )}
+        </CardHeader>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardContent className="pt-6">
