@@ -8,7 +8,7 @@ export interface Post {
   view_count: number;
   reply_count?: number;
   media_url?: string;
-  profile?: {
+  profiles?: {
     id: string;
     name: string;
     profile_picture_url?: string;
@@ -25,7 +25,7 @@ export interface PostReply {
   post_id: string;
   created_at: string;
   likes_count: number;
-  profile?: {
+  profiles?: {
     id: string;
     name: string;
     profile_picture_url?: string;
