@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PostReply } from '@/types/post';
@@ -364,7 +365,6 @@ export const userService = {
           user_id,
           content,
           created_at,
-          likes_count,
           profiles:profiles(id, name, profile_picture_url)
         `)
         .eq('post_id', postId)

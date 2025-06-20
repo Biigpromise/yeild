@@ -24,13 +24,9 @@ export interface PostReply {
   user_id: string;
   post_id: string;
   created_at: string;
-  likes_count: number;
   profiles?: {
     id: string;
     name: string;
     profile_picture_url?: string;
   };
-  reply_likes?: {
-    user_id: string;
-  }[];
 }
