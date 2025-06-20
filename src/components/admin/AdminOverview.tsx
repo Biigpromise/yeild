@@ -7,12 +7,54 @@ import { AdminUserActions } from "./AdminUserActions";
 import { AdminRecentActivity } from "./AdminRecentActivity";
 import { AdminTaskOverview } from "./AdminTaskOverview";
 import { AdminPlatformStats } from "./AdminPlatformStats";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Bird, Crown } from "lucide-react";
 
 export const AdminOverview = () => {
   return (
     <div className="space-y-6">
       {/* Real Dashboard Stats */}
       <AdminDashboardStatsComponent />
+
+      {/* Bird Badge System Quick Stats */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bird className="h-5 w-5" />
+            Bird Badge System
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">0</div>
+              <div className="text-sm text-blue-700">Phoenix Birds</div>
+            </div>
+            <div className="text-center p-4 bg-purple-50 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600">0</div>
+              <div className="text-sm text-purple-700">Falcon Birds</div>
+            </div>
+            <div className="text-center p-4 bg-amber-50 rounded-lg">
+              <div className="text-2xl font-bold text-amber-600">0</div>
+              <div className="text-sm text-amber-700">Eagle Birds</div>
+            </div>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">0</div>
+              <div className="text-sm text-green-700">Active Referrals</div>
+            </div>
+          </div>
+          <div className="mt-4 text-center">
+            <p className="text-sm text-muted-foreground mb-2">
+              Bird badge statistics require database setup for real-time tracking
+            </p>
+            <Button variant="outline" size="sm">
+              <Crown className="h-4 w-4 mr-2" />
+              Manage Bird Levels
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* System Metrics */}
       <AdminSystemMetrics />
