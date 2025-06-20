@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -89,15 +90,6 @@ export interface TaskSubmission {
   task?: Task;
 }
 
-export interface ReferralBirdLevel {
-  name: string;
-  icon: string;
-  description: string;
-  minReferrals: number;
-  minPoints: number;
-  color: string;
-}
-
 export interface UserReferral {
   id: string;
   referrer_id: string;
@@ -130,6 +122,53 @@ export interface LeaderboardUser {
   level: number;
   tasks_completed: number;
   rank: number;
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  bio?: string;
+  profile_picture_url?: string;
+  points: number;
+  level: number;
+  tasks_completed: number;
+  followers_count: number;
+  following_count: number;
+  created_at: string;
+}
+
+export interface UserStats {
+  total_points: number;
+  tasks_completed: number;
+  current_level: number;
+  referrals_made: number;
+  achievements_earned: number;
+}
+
+export interface Story {
+  id: string;
+  user_id: string;
+  media_url: string;
+  media_type: string;
+  caption?: string;
+  created_at: string;
+  expires_at: string;
+  view_count: number;
+  user?: UserProfile;
+}
+
+export interface PostReply {
+  id: string;
+  content: string;
+  user_id: string;
+  post_id: string;
+  created_at: string;
+  profiles?: {
+    id: string;
+    name: string;
+    profile_picture_url?: string;
+  };
 }
 
 export const userService = {
@@ -334,6 +373,286 @@ export const userService = {
     } catch (error) {
       console.error('Error getting user submissions:', error);
       return [];
+    }
+  },
+
+  async getCurrentUser(): Promise<UserProfile | null> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return profile;
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
+  },
+
+  async getUserProfileById(userId: string): Promise<UserProfile | null> {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      return profile;
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+      return null;
+    }
+  },
+
+  async searchUsers(query: string): Promise<UserProfile[]> {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .ilike('name', `%${query}%`)
+        .limit(10);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error searching users:', error);
+      return [];
+    }
+  },
+
+  async getUserStats(): Promise<UserStats | null> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('points, level, tasks_completed')
+        .eq('id', user.id)
+        .single();
+
+      const { data: referrals } = await supabase
+        .from('user_referrals')
+        .select('id')
+        .eq('referrer_id', user.id);
+
+      const { data: achievements } = await supabase
+        .from('user_achievements')
+        .select('id')
+        .eq('user_id', user.id);
+
+      return {
+        total_points: profile?.points || 0,
+        tasks_completed: profile?.tasks_completed || 0,
+        current_level: profile?.level || 1,
+        referrals_made: referrals?.length || 0,
+        achievements_earned: achievements?.length || 0
+      };
+    } catch (error) {
+      console.error('Error getting user stats:', error);
+      return null;
+    }
+  },
+
+  async getPointTransactions() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('point_transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error getting point transactions:', error);
+      return [];
+    }
+  },
+
+  async isFollowing(userId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { data, error } = await supabase
+        .from('user_followers')
+        .select('id')
+        .eq('follower_id', user.id)
+        .eq('following_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      return !!data;
+    } catch (error) {
+      console.error('Error checking follow status:', error);
+      return false;
+    }
+  },
+
+  async followUser(userId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('user_followers')
+        .insert({
+          follower_id: user.id,
+          following_id: userId
+        });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error following user:', error);
+      return false;
+    }
+  },
+
+  async unfollowUser(userId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('user_followers')
+        .delete()
+        .eq('follower_id', user.id)
+        .eq('following_id', userId);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error unfollowing user:', error);
+      return false;
+    }
+  },
+
+  async handleReferralSignup(referralCode: string): Promise<void> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Call the database function to handle referral signup
+      const { error } = await supabase.rpc('handle_referral_signup', {
+        new_user_id: user.id,
+        referral_code_param: referralCode
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error handling referral signup:', error);
+    }
+  },
+
+  async getStories(): Promise<Story[]> {
+    try {
+      const { data, error } = await supabase
+        .from('stories')
+        .select(`
+          *,
+          user:profiles(id, name, profile_picture_url)
+        `)
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error getting stories:', error);
+      return [];
+    }
+  },
+
+  async createStory(mediaUrl: string, mediaType: string, caption?: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('stories')
+        .insert({
+          user_id: user.id,
+          media_url: mediaUrl,
+          media_type: mediaType,
+          caption: caption
+        });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error creating story:', error);
+      return false;
+    }
+  },
+
+  async trackStoryView(storyId: string): Promise<void> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from('story_views')
+        .insert({
+          story_id: storyId,
+          user_id: user.id
+        });
+    } catch (error) {
+      // Ignore duplicate view errors
+      if (!error.message?.includes('duplicate')) {
+        console.error('Error tracking story view:', error);
+      }
+    }
+  },
+
+  async getPostReplies(postId: string): Promise<PostReply[]> {
+    try {
+      const { data, error } = await supabase
+        .from('post_replies')
+        .select(`
+          *,
+          profiles(id, name, profile_picture_url)
+        `)
+        .eq('post_id', postId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error getting post replies:', error);
+      return [];
+    }
+  },
+
+  async addPostReply(postId: string, content: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('post_replies')
+        .insert({
+          post_id: postId,
+          user_id: user.id,
+          content: content
+        });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error adding post reply:', error);
+      return false;
     }
   }
 };
