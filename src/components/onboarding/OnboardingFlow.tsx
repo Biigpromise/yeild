@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Play, Star, FileText, Sparkles } from 'lucide-react';
+import { Play, Star, FileText, Sparkles, Quote } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface OnboardingStep {
@@ -10,6 +10,12 @@ interface OnboardingStep {
   icon: React.ReactNode;
   title: string;
   description: string;
+  testimonial?: {
+    quote: string;
+    author: string;
+    role: string;
+    rating: number;
+  };
   isLast?: boolean;
 }
 
@@ -23,7 +29,13 @@ const USER_STEPS: OnboardingStep[] = [
     id: 'welcome',
     icon: <Play className="w-16 h-16" />,
     title: 'Ready to Earn?',
-    description: 'Jump in and start completing tasks to earn points and rewards.'
+    description: 'Jump in and start completing tasks to earn points and rewards.',
+    testimonial: {
+      quote: "I've earned over $500 in my first month just by completing simple tasks during my free time. YEILD has been a game-changer!",
+      author: "Sarah M.",
+      role: "Verified User",
+      rating: 5
+    }
   },
   {
     id: 'features',
@@ -45,7 +57,13 @@ const BRAND_STEPS: OnboardingStep[] = [
     id: 'welcome',
     icon: <Sparkles className="w-16 h-16" />,
     title: 'Ready to Create Campaigns?',
-    description: 'Jump in and start creating engaging campaigns for our community.'
+    description: 'Jump in and start creating engaging campaigns for our community.',
+    testimonial: {
+      quote: "YEILD helped us reach 10,000+ engaged users in just 2 weeks. Our brand awareness increased by 300% and conversions are through the roof!",
+      author: "Mike D.",
+      role: "Marketing Director, TechCorp",
+      rating: 5
+    }
   },
   {
     id: 'features',
@@ -79,6 +97,18 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ userType, onComp
     onComplete();
   };
 
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={cn(
+          "w-4 h-4",
+          i < rating ? "fill-yeild-yellow text-yeild-yellow" : "text-gray-400"
+        )}
+      />
+    ));
+  };
+
   return (
     <div className="fixed inset-0 bg-yeild-black z-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-yeild-black border-yeild-yellow/20">
@@ -99,6 +129,27 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ userType, onComp
               {step.description}
             </p>
           </div>
+
+          {/* Testimonial */}
+          {step.testimonial && (
+            <div className="bg-gray-800/50 rounded-lg p-4 border border-yeild-yellow/10">
+              <Quote className="w-6 h-6 text-yeild-yellow mx-auto mb-3" />
+              <p className="text-gray-300 text-sm italic mb-3">
+                "{step.testimonial.quote}"
+              </p>
+              <div className="flex items-center justify-center space-x-2 mb-2">
+                {renderStars(step.testimonial.rating)}
+              </div>
+              <div className="text-center">
+                <p className="font-semibold text-white text-sm">
+                  {step.testimonial.author}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {step.testimonial.role}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex justify-between items-center pt-4">
