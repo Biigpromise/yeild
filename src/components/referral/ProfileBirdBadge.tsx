@@ -27,6 +27,21 @@ export const ProfileBirdBadge: React.FC<ProfileBirdBadgeProps> = ({
   const loadUserBirdLevel = async () => {
     try {
       setLoading(true);
+      
+      // Get user's profile for points
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('points')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+        return;
+      }
+
+      const userPoints = profile?.points || 0;
+
       // Get user's referral stats to determine bird level
       const { data: referrals, error } = await supabase
         .from('user_referrals')
@@ -39,7 +54,7 @@ export const ProfileBirdBadge: React.FC<ProfileBirdBadgeProps> = ({
       }
 
       const activeReferrals = referrals?.filter(r => r.is_active).length || 0;
-      const level = userService.getBirdLevel(activeReferrals);
+      const level = userService.getBirdLevel(activeReferrals, userPoints);
       setBirdLevel(level);
     } catch (error) {
       console.error('Error loading bird level:', error);
