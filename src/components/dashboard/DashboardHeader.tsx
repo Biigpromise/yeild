@@ -38,35 +38,39 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   setActiveTab
 }) => {
   return (
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-4">
-        <div className="relative">
-          <Avatar className="h-10 w-10">
+    <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start space-x-4">
+        <div className="relative flex-shrink-0">
+          <Avatar className="h-12 w-12">
             <AvatarImage src={userProfile?.profile_picture_url} alt={userProfile?.name} />
-            <AvatarFallback>
+            <AvatarFallback className="text-lg font-semibold">
               {userProfile?.name?.charAt(0)?.toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
           {user?.id && (
-            <div className="absolute -top-1 -right-1">
+            <div className="absolute -top-2 -right-2">
               <ProfileBirdBadge userId={user.id} size="sm" />
             </div>
           )}
         </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold">Welcome back, {userProfile?.name || 'User'}!</h1>
+        <div className="flex-1 min-w-0">
+          <div className="mb-2">
+            <h1 className="text-2xl font-bold text-foreground mb-1">
+              Welcome back, {userProfile?.name || 'User'}!
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Ready to earn some points?
+            </p>
           </div>
-          <div className="flex items-center gap-2 mt-1">
-            <p className="text-sm text-muted-foreground">Ready to earn some points?</p>
-            {user?.id && (
+          {user?.id && (
+            <div className="mt-3">
               <ProfileBirdBadge userId={user.id} size="md" showName />
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-3 flex-shrink-0">
         {/* Notifications */}
         <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
           <PopoverTrigger asChild>
