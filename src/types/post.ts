@@ -1,32 +1,36 @@
 
-export type Profile = {
+export interface Post {
   id: string;
-  name: string | null;
-  profile_picture_url?: string | null;
-};
-
-export type PostLike = {
-  user_id: string;
-};
-
-export type PostReply = {
-  id: string;
-  post_id: string;
-  user_id: string;
   content: string;
-  created_at: string;
-  profile: Profile | null;
-};
-
-export type Post = {
-  id: string;
   user_id: string;
-  content: string;
   created_at: string;
-  profile: Profile | null;
-  view_count: number;
   likes_count: number;
-  reply_count: number;
-  post_likes: PostLike[];
-  post_replies?: PostReply[];
-};
+  view_count: number;
+  reply_count?: number;
+  media_url?: string;
+  profile?: {
+    id: string;
+    name: string;
+    profile_picture_url?: string;
+  };
+  post_likes?: {
+    user_id: string;
+  }[];
+}
+
+export interface PostReply {
+  id: string;
+  content: string;
+  user_id: string;
+  post_id: string;
+  created_at: string;
+  likes_count: number;
+  profile?: {
+    id: string;
+    name: string;
+    profile_picture_url?: string;
+  };
+  reply_likes?: {
+    user_id: string;
+  }[];
+}
