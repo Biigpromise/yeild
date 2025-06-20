@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,7 @@ import {
 import { userService, UserReferral, ReferralStats, BIRD_LEVELS } from "@/services/userService";
 import { BirdBadge } from "./BirdBadge";
 import { BirdLevelNotification } from "./BirdLevelNotification";
+import { ProfileBirdBadge } from "./ProfileBirdBadge";
 
 export const EnhancedReferralSystem = () => {
   const [referralCode, setReferralCode] = useState<string>("");
