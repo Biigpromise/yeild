@@ -56,11 +56,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold">Welcome back, {userProfile?.name || 'User'}!</h1>
+          </div>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-sm text-muted-foreground">Ready to earn some points?</p>
             {user?.id && (
               <ProfileBirdBadge userId={user.id} size="md" showName />
             )}
           </div>
-          <p className="text-sm text-muted-foreground">Ready to earn some points?</p>
         </div>
       </div>
 
