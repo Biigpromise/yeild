@@ -281,11 +281,16 @@ const Profile = () => {
           <TabsContent value="achievements">
             <AchievementSystem 
               userStats={{
+                total_points: userData.points,
+                tasks_completed: userData.tasksCompleted,
                 tasksCompleted: userData.tasksCompleted,
+                current_level: userData.level,
+                level: userData.level,
+                points: userData.points,
                 currentStreak: userData.currentStreak,
                 longestStreak: userData.longestStreak,
-                points: userData.points,
-                level: userData.level
+                referrals_made: 0,
+                achievements_earned: 0
               }}
             />
           </TabsContent>
@@ -293,11 +298,16 @@ const Profile = () => {
           <TabsContent value="stats">
             <StatsDashboard 
               userStats={{
+                total_points: userData.points,
+                tasks_completed: userData.tasksCompleted,
+                tasksCompleted: userData.tasksCompleted,
+                current_level: userData.level,
                 level: userData.level,
                 points: userData.points,
-                tasksCompleted: userData.tasksCompleted,
                 currentStreak: userData.currentStreak,
-                longestStreak: userData.longestStreak
+                longestStreak: userData.longestStreak,
+                referrals_made: 0,
+                achievements_earned: 0
               }}
             />
           </TabsContent>
