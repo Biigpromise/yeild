@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PostReply } from '@/types/post';
@@ -56,18 +55,70 @@ export interface UserReferral {
   created_at: string;
   is_active: boolean;
   activated_at?: string;
-  points_awarded: number;
   referred_user?: Pick<UserProfile, 'id' | 'name' | 'profile_picture_url'>;
+}
+
+export interface ReferralBirdLevel {
+  name: string;
+  icon: string;
+  minReferrals: number;
+  animated: boolean;
+  specialDisplay: boolean;
+  description: string;
 }
 
 export interface ReferralStats {
   total_referrals: number;
   active_referrals: number;
   pending_referrals: number;
-  total_points_earned: number;
-  next_tier_points: number;
-  current_tier: string;
+  bird_level: ReferralBirdLevel;
+  next_bird_level?: ReferralBirdLevel;
+  referrals_to_next: number;
 }
+
+// Bird level definitions
+export const BIRD_LEVELS: ReferralBirdLevel[] = [
+  {
+    name: 'Dove',
+    icon: 'dove',
+    minReferrals: 5,
+    animated: false,
+    specialDisplay: false,
+    description: 'Peaceful referrer - 5 successful referrals'
+  },
+  {
+    name: 'Hawk',
+    icon: 'hawk',
+    minReferrals: 20,
+    animated: false,
+    specialDisplay: false,
+    description: 'Sharp recruiter - 20 successful referrals'
+  },
+  {
+    name: 'Eagle',
+    icon: 'eagle',
+    minReferrals: 100,
+    animated: true,
+    specialDisplay: true,
+    description: 'Soaring leader - 100 successful referrals'
+  },
+  {
+    name: 'Falcon',
+    icon: 'falcon',
+    minReferrals: 500,
+    animated: true,
+    specialDisplay: true,
+    description: 'Swift master - 500 successful referrals'
+  },
+  {
+    name: 'Phoenix',
+    icon: 'phoenix',
+    minReferrals: 1000,
+    animated: true,
+    specialDisplay: true,
+    description: 'Legendary recruiter - 1000+ successful referrals'
+  }
+];
 
 export const userService = {
   // Search for users by name
@@ -496,7 +547,7 @@ export const userService = {
     }
   },
 
-  // Get user's referral statistics
+  // Get user's referral statistics with bird levels
   async getReferralStats(): Promise<ReferralStats | null> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -512,29 +563,18 @@ export const userService = {
       const totalReferrals = referrals?.length || 0;
       const activeReferrals = referrals?.filter(r => r.is_active).length || 0;
       const pendingReferrals = totalReferrals - activeReferrals;
-      const totalPointsEarned = referrals?.reduce((sum, r) => sum + (r.points_awarded || 0), 0) || 0;
 
-      // Calculate next tier points
-      let nextTierPoints = 10;
-      let currentTier = 'Bronze';
-      
-      if (activeReferrals >= 15) {
-        nextTierPoints = 30;
-        currentTier = 'Platinum';
-      } else if (activeReferrals >= 5) {
-        nextTierPoints = 20;
-        currentTier = 'Silver';
-      } else {
-        currentTier = 'Bronze';
-      }
+      const currentBird = this.getBirdLevel(activeReferrals);
+      const nextBird = this.getNextBirdLevel(activeReferrals);
+      const referralsToNext = nextBird ? nextBird.minReferrals - activeReferrals : 0;
 
       return {
         total_referrals: totalReferrals,
         active_referrals: activeReferrals,
         pending_referrals: pendingReferrals,
-        total_points_earned: totalPointsEarned,
-        next_tier_points: nextTierPoints,
-        current_tier: currentTier
+        bird_level: currentBird || { name: 'None', icon: '', minReferrals: 0, animated: false, specialDisplay: false, description: 'No bird level yet' },
+        next_bird_level: nextBird,
+        referrals_to_next: referralsToNext
       };
     } catch (error) {
       console.error('Error fetching referral stats:', error);
@@ -598,5 +638,25 @@ export const userService = {
       console.error('Error checking referral activation:', error);
       return false;
     }
+  },
+
+  // Get user's bird level based on active referrals
+  getBirdLevel(activeReferrals: number): ReferralBirdLevel | null {
+    for (let i = BIRD_LEVELS.length - 1; i >= 0; i--) {
+      if (activeReferrals >= BIRD_LEVELS[i].minReferrals) {
+        return BIRD_LEVELS[i];
+      }
+    }
+    return null;
+  },
+
+  // Get next bird level
+  getNextBirdLevel(activeReferrals: number): ReferralBirdLevel | null {
+    for (const level of BIRD_LEVELS) {
+      if (activeReferrals < level.minReferrals) {
+        return level;
+      }
+    }
+    return null;
   }
 };

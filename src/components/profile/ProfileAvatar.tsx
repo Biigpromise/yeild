@@ -3,9 +3,11 @@ import React, { useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Camera, Trash2 } from "lucide-react";
+import { ProfileBirdBadge } from "@/components/referral/ProfileBirdBadge";
 
 interface ProfileAvatarProps {
   user: {
+    id?: string;
     name: string;
     avatar?: string;
   };
@@ -45,6 +47,14 @@ export const ProfileAvatar = ({
             {user.name.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
+        
+        {/* Bird Badge Overlay */}
+        {user.id && (
+          <div className="absolute -top-2 -right-2">
+            <ProfileBirdBadge userId={user.id} size="sm" />
+          </div>
+        )}
+        
         <div className="absolute -bottom-2 -right-2 flex gap-1">
           <Button
             size="sm"

@@ -12,15 +12,13 @@ import {
   Users, 
   Copy, 
   Share2, 
-  Gift,
+  Target,
   TrendingUp,
-  Award,
-  Star,
   Clock,
-  CheckCircle,
-  Target
+  CheckCircle
 } from "lucide-react";
-import { userService, UserReferral, ReferralStats } from "@/services/userService";
+import { userService, UserReferral, ReferralStats, BIRD_LEVELS } from "@/services/userService";
+import { BirdBadge } from "./BirdBadge";
 
 export const EnhancedReferralSystem = () => {
   const [referralCode, setReferralCode] = useState<string>("");
@@ -61,32 +59,13 @@ export const EnhancedReferralSystem = () => {
   const shareReferralLink = () => {
     if (navigator.share) {
       navigator.share({
-        title: "Join YIELD and earn rewards!",
-        text: "Sign up for YIELD using my referral link and we both get bonus points!",
+        title: "Join YIELD and help me earn my next bird badge!",
+        text: "Sign up for YIELD using my referral link and help me climb the referral leaderboard!",
         url: referralLink,
       });
     } else {
       copyReferralLink();
     }
-  };
-
-  const getTierInfo = (activeReferrals: number) => {
-    if (activeReferrals >= 15) {
-      return { name: 'Platinum', color: 'bg-purple-100 text-purple-800', points: 30 };
-    } else if (activeReferrals >= 5) {
-      return { name: 'Silver', color: 'bg-gray-100 text-gray-800', points: 20 };
-    } else {
-      return { name: 'Bronze', color: 'bg-amber-100 text-amber-800', points: 10 };
-    }
-  };
-
-  const getNextTierInfo = (activeReferrals: number) => {
-    if (activeReferrals < 5) {
-      return { name: 'Silver', needed: 5 - activeReferrals, points: 20 };
-    } else if (activeReferrals < 15) {
-      return { name: 'Platinum', needed: 15 - activeReferrals, points: 30 };
-    }
-    return null;
   };
 
   if (loading) {
@@ -97,48 +76,78 @@ export const EnhancedReferralSystem = () => {
     return <div className="text-center p-8">Unable to load referral data</div>;
   }
 
-  const currentTier = getTierInfo(referralStats.active_referrals);
-  const nextTier = getNextTierInfo(referralStats.active_referrals);
-
   return (
     <div className="space-y-6">
-      {/* Tier Progress Banner */}
-      <Card className="border-2 border-primary/20">
+      {/* Bird Level Progress Banner */}
+      <Card className="border-2 border-primary/20 bg-gradient-to-r from-blue-50 to-purple-50">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <Badge className={currentTier.color}>
-                <Award className="h-4 w-4 mr-1" />
-                {currentTier.name} Tier
-              </Badge>
-              <span className="text-lg font-semibold">{currentTier.points} points per active referral</span>
+            <div className="flex items-center gap-4">
+              <BirdBadge birdLevel={referralStats.bird_level} size="lg" showName />
+              <div>
+                <h3 className="text-xl font-bold">{referralStats.bird_level.name} Status</h3>
+                <p className="text-sm text-muted-foreground">{referralStats.bird_level.description}</p>
+              </div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-primary">{referralStats.active_referrals}</div>
+              <div className="text-3xl font-bold text-primary">{referralStats.active_referrals}</div>
               <div className="text-sm text-muted-foreground">Active Referrals</div>
             </div>
           </div>
           
-          {nextTier && (
+          {referralStats.next_bird_level && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Progress to {nextTier.name} Tier</span>
-                <span>{nextTier.needed} more active referrals needed</span>
+                <span>Progress to {referralStats.next_bird_level.name}</span>
+                <span>{referralStats.referrals_to_next} more referrals needed</span>
               </div>
               <Progress 
-                value={(referralStats.active_referrals / (referralStats.active_referrals + nextTier.needed)) * 100} 
-                className="h-2"
+                value={(referralStats.active_referrals / referralStats.next_bird_level.minReferrals) * 100} 
+                className="h-3"
               />
-              <div className="text-xs text-muted-foreground">
-                Next tier rewards: {nextTier.points} points per referral
+              <div className="flex justify-between items-center">
+                <div className="text-xs text-muted-foreground">
+                  Next level: {referralStats.next_bird_level.name} Bird Badge
+                </div>
+                <BirdBadge birdLevel={referralStats.next_bird_level} size="sm" />
               </div>
             </div>
           )}
         </CardContent>
       </Card>
 
+      {/* Bird Levels Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Bird Badge Levels</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {BIRD_LEVELS.map((level, index) => (
+              <div 
+                key={level.name}
+                className={`p-4 rounded-lg border-2 text-center ${
+                  referralStats.active_referrals >= level.minReferrals 
+                    ? 'border-green-300 bg-green-50' 
+                    : 'border-gray-200 bg-gray-50'
+                }`}
+              >
+                <div className="flex justify-center mb-2">
+                  <BirdBadge birdLevel={level} size="md" />
+                </div>
+                <h4 className="font-semibold text-sm">{level.name}</h4>
+                <p className="text-xs text-muted-foreground">{level.minReferrals}+ referrals</p>
+                {referralStats.active_referrals >= level.minReferrals && (
+                  <Badge variant="default" className="mt-2 text-xs">Unlocked</Badge>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -180,26 +189,12 @@ export const EnhancedReferralSystem = () => {
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Gift className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Points Earned</p>
-                <p className="text-xl font-bold">{referralStats.total_points_earned}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
-      {/* Referral System Info */}
+      {/* How It Works */}
       <Card>
         <CardHeader>
-          <CardTitle>How It Works</CardTitle>
+          <CardTitle>How Bird Badges Work</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -216,9 +211,9 @@ export const EnhancedReferralSystem = () => {
               </p>
             </div>
             <div className="p-4 bg-green-50 rounded-lg">
-              <h4 className="font-semibold text-green-900 mb-2">3. You Earn Points</h4>
+              <h4 className="font-semibold text-green-900 mb-2">3. Earn Bird Badges</h4>
               <p className="text-sm text-green-700">
-                Get tiered rewards: 10pts (1-5), 20pts (6-15), 30pts (15+) per active referral.
+                Collect prestigious bird badges based on your active referral count!
               </p>
             </div>
           </div>
@@ -251,7 +246,7 @@ export const EnhancedReferralSystem = () => {
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                Share this link and earn <strong>{currentTier.points} points</strong> for each friend who becomes active!
+                Share this link and build your way to the <strong>Phoenix badge</strong> with 1000+ active referrals!
               </p>
             </CardContent>
           </Card>
@@ -281,23 +276,21 @@ export const EnhancedReferralSystem = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="flex items-center gap-2">
-                        <Badge variant={referral.is_active ? "default" : "secondary"}>
-                          {referral.is_active ? (
-                            <>
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Active
-                            </>
-                          ) : (
-                            <>
-                              <Clock className="h-3 w-3 mr-1" />
-                              Pending
-                            </>
-                          )}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {referral.points_awarded > 0 ? `${referral.points_awarded} pts earned` : 'No points yet'}
+                      <Badge variant={referral.is_active ? "default" : "secondary"}>
+                        {referral.is_active ? (
+                          <>
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Active
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="h-3 w-3 mr-1" />
+                            Pending
+                          </>
+                        )}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {referral.is_active ? 'Counts toward badge' : 'Needs 1 task or 50 points'}
                       </p>
                     </div>
                   </div>
@@ -305,7 +298,7 @@ export const EnhancedReferralSystem = () => {
                 {userReferrals.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No referrals yet. Start sharing your link!</p>
+                    <p>No referrals yet. Start sharing your link to earn bird badges!</p>
                   </div>
                 )}
               </div>
