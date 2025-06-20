@@ -4,7 +4,7 @@ import { PostFeed } from "@/components/posts/PostFeed";
 
 export const CommunityChatTab = () => {
   return (
-    <div className="w-full">
+    <div className="w-full h-full">
       <PostFeed />
     </div>
   );

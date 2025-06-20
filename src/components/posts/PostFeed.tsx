@@ -70,9 +70,9 @@ export const PostFeed: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[600px] border rounded-lg">
-      <div className="p-3 border-b bg-background flex items-center justify-between">
-        <h3 className="font-semibold">Community Feed</h3>
+    <div className="flex flex-col h-screen bg-background">
+      <div className="sticky top-0 z-10 p-4 bg-background/80 backdrop-blur-md border-b flex items-center justify-between">
+        <h3 className="font-semibold text-lg">Community Feed</h3>
         <Button
           variant="outline"
           size="sm"
@@ -91,28 +91,31 @@ export const PostFeed: React.FC = () => {
         handlePostSubmit={handlePostSubmit}
         userId={userId}
       />
-      <ScrollArea className="flex-1 p-4">
+      
+      <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="flex justify-center p-8 text-muted-foreground">Loading feed...</div>
         ) : (
-          <div className="space-y-6">
+          <div className="max-w-2xl mx-auto">
             {posts.map((post, index) => (
-              <PostItem
-                key={post.id}
-                ref={el => { postRefs.current[index] = el; }}
-                post={post}
-                userId={userId}
-                onLike={handleLikePost}
-                onView={incrementViewCount}
-                onProfileClick={openProfile}
-              />
+              <div key={post.id} className="border-b last:border-b-0">
+                <PostItem
+                  ref={el => { postRefs.current[index] = el; }}
+                  post={post}
+                  userId={userId}
+                  onLike={handleLikePost}
+                  onView={incrementViewCount}
+                  onProfileClick={openProfile}
+                />
+              </div>
             ))}
             {posts.length === 0 && !loading && (
               <div className="text-center text-muted-foreground pt-12">No posts yet.</div>
             )}
           </div>
         )}
-      </ScrollArea>
+      </div>
+      
       <PublicProfileModal
         userId={profileModalUserId}
         isOpen={profileModalOpen}
