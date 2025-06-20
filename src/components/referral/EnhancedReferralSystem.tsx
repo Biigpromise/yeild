@@ -19,10 +19,12 @@ import {
 } from "lucide-react";
 import { userService, UserReferral, ReferralStats, BIRD_LEVELS } from "@/services/userService";
 import { BirdBadge } from "./BirdBadge";
+import { BirdLevelNotification } from "./BirdLevelNotification";
 
 export const EnhancedReferralSystem = () => {
   const [referralCode, setReferralCode] = useState<string>("");
   const [referralStats, setReferralStats] = useState<ReferralStats | null>(null);
+  const [previousStats, setPreviousStats] = useState<ReferralStats | null>(null);
   const [userReferrals, setUserReferrals] = useState<UserReferral[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,6 +40,11 @@ export const EnhancedReferralSystem = () => {
         userService.getReferralStats(),
         userService.getUserReferrals()
       ]);
+
+      // Store previous stats for comparison
+      if (referralStats) {
+        setPreviousStats(referralStats);
+      }
 
       setReferralCode(code || "");
       setReferralStats(stats);
@@ -78,6 +85,13 @@ export const EnhancedReferralSystem = () => {
 
   return (
     <div className="space-y-6">
+      {/* Bird Level Notification Component */}
+      <BirdLevelNotification 
+        previousLevel={previousStats?.bird_level || null}
+        currentLevel={referralStats.bird_level}
+        activeReferrals={referralStats.active_referrals}
+      />
+
       {/* Bird Level Progress Banner */}
       <Card className="border-2 border-primary/20 bg-gradient-to-r from-blue-50 to-purple-50">
         <CardContent className="p-6">
@@ -262,14 +276,26 @@ export const EnhancedReferralSystem = () => {
                 {userReferrals.map((referral) => (
                   <div key={referral.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={referral.referred_user?.profile_picture_url} />
-                        <AvatarFallback>
-                          {referral.referred_user?.name?.charAt(0) || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={referral.referred_user?.profile_picture_url} />
+                          <AvatarFallback>
+                            {referral.referred_user?.name?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        {referral.referred_user?.id && (
+                          <div className="absolute -top-1 -right-1">
+                            <ProfileBirdBadge userId={referral.referred_user.id} size="sm" />
+                          </div>
+                        )}
+                      </div>
                       <div>
-                        <p className="font-medium">{referral.referred_user?.name || 'Anonymous User'}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{referral.referred_user?.name || 'Anonymous User'}</p>
+                          {referral.referred_user?.id && (
+                            <ProfileBirdBadge userId={referral.referred_user.id} size="sm" />
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           Joined {new Date(referral.created_at).toLocaleDateString()}
                         </p>

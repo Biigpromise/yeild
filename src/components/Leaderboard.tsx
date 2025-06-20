@@ -1,45 +1,24 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Trophy } from "lucide-react";
 import { userService, LeaderboardUser } from "@/services/userService";
-import { useAuth } from "@/contexts/AuthContext";
-import { PublicProfileModal } from "./PublicProfileModal";
-import { 
-  Trophy, 
-  Medal, 
-  Award,
-  TrendingUp,
-  Users,
-  Crown
-} from "lucide-react";
+import { ProfileBirdBadge } from "@/components/referral/ProfileBirdBadge";
 
 export const Leaderboard = () => {
-  const { user } = useAuth();
-  const [timeframe, setTimeframe] = useState<"weekly" | "monthly" | "all">("weekly");
-  const [leaderboardData, setLeaderboardData] = useState<LeaderboardUser[]>([]);
-  const [currentUserRank, setCurrentUserRank] = useState<number | null>(null);
+  const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   useEffect(() => {
     loadLeaderboard();
-  }, [timeframe]);
+  }, []);
 
   const loadLeaderboard = async () => {
     try {
-      setLoading(true);
-      const data = await userService.getLeaderboard(50);
-      setLeaderboardData(data);
-      
-      // Find current user's rank
-      if (user) {
-        const userRank = data.findIndex(u => u.id === user.id);
-        setCurrentUserRank(userRank >= 0 ? userRank + 1 : null);
-      }
+      const leaderboardData = await userService.getLeaderboard();
+      setUsers(leaderboardData);
     } catch (error) {
       console.error('Error loading leaderboard:', error);
     } finally {
@@ -47,163 +26,95 @@ export const Leaderboard = () => {
     }
   };
 
-  const handleUserClick = (userId: string) => {
-    setSelectedUserId(userId);
-    setIsProfileModalOpen(true);
-  };
-
   const getRankIcon = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return <Crown className="h-6 w-6 text-yellow-500" />;
-      case 2:
-        return <Trophy className="h-6 w-6 text-gray-400" />;
-      case 3:
-        return <Medal className="h-6 w-6 text-amber-600" />;
-      default:
-        return <span className="text-lg font-bold text-muted-foreground">#{rank}</span>;
-    }
+    if (rank === 1) return "🥇";
+    if (rank === 2) return "🥈";
+    if (rank === 3) return "🥉";
+    return null;
   };
 
-  const getChangeIcon = (change: string) => {
-    switch (change) {
-      case "up":
-        return <TrendingUp className="h-4 w-4 text-green-500" />;
-      case "down":
-        return <TrendingUp className="h-4 w-4 text-red-500 rotate-180" />;
-      default:
-        return <div className="h-4 w-4" />;
-    }
+  const getRankColor = (rank: number) => {
+    if (rank === 1) return "text-yellow-600 bg-yellow-50";
+    if (rank === 2) return "text-gray-600 bg-gray-50";
+    if (rank === 3) return "text-amber-700 bg-amber-50";
+    return "text-gray-500 bg-gray-50";
   };
 
   if (loading) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-64 bg-gray-200 rounded"></div>
-          </div>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-5 w-5" />
+            Leaderboard
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">Loading leaderboard...</div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <>
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-500" />
-              Leaderboard
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <Tabs value={timeframe} onValueChange={(value) => setTimeframe(value as any)}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="weekly">This Week</TabsTrigger>
-                <TabsTrigger value="monthly">This Month</TabsTrigger>
-                <TabsTrigger value="all">All Time</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value={timeframe} className="space-y-4 mt-6">
-                {/* Your Rank */}
-                {currentUserRank && (
-                  <Card className="bg-muted/50 border-2 border-primary/20">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm font-medium text-muted-foreground">Your Rank:</span>
-                          <Badge variant="outline" className="text-lg px-3 py-1">
-                            #{currentUserRank}
-                          </Badge>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          View My Stats
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Top Users */}
-                <div className="space-y-2">
-                  {leaderboardData.length === 0 ? (
-                    <Card>
-                      <CardContent className="p-8 text-center">
-                        <p className="text-muted-foreground">No leaderboard data available yet.</p>
-                        <p className="text-sm text-muted-foreground mt-1">Complete some tasks to see rankings!</p>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    leaderboardData.map((user) => (
-                      <Card 
-                        key={user.id} 
-                        className={`transition-all hover:shadow-md ${
-                          user.rank <= 3 ? 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20' : ''
-                        } cursor-pointer hover:bg-muted/60`}
-                        onClick={() => handleUserClick(user.id)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="flex items-center justify-center w-12 h-12">
-                                {getRankIcon(user.rank)}
-                              </div>
-                              
-                              <Avatar className="h-10 w-10">
-                                <AvatarImage src={(user as any).profile_picture_url} />
-                                <AvatarFallback>
-                                  {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
-                                </AvatarFallback>
-                              </Avatar>
-                              
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-semibold">{user.name || 'Anonymous User'}</span>
-                                  <Badge variant="secondary">Level {user.level}</Badge>
-                                </div>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                  <span>{user.tasks_completed} tasks</span>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div className="text-right">
-                              <div className="flex items-center gap-2">
-                                <span className="text-xl font-bold text-primary">
-                                  {user.points.toLocaleString()}
-                                </span>
-                                <span className="text-sm text-muted-foreground">pts</span>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  )}
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Trophy className="h-5 w-5" />
+          Top Performers
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {users.map((user) => (
+            <div
+              key={user.id}
+              className={`flex items-center gap-4 p-4 rounded-lg border ${
+                user.rank <= 3 ? getRankColor(user.rank) : "hover:bg-gray-50"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center">
+                  {getRankIcon(user.rank) || user.rank}
+                </Badge>
+              </div>
+              
+              <div className="relative">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback>
+                    {user.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute -top-1 -right-1">
+                  <ProfileBirdBadge userId={user.id} size="sm" />
                 </div>
-
-                {/* Load More */}
-                {leaderboardData.length >= 50 && (
-                  <div className="text-center pt-4">
-                    <Button variant="outline" className="w-full" onClick={loadLeaderboard}>
-                      <Users className="h-4 w-4 mr-2" />
-                      Load More Users
-                    </Button>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
-      <PublicProfileModal
-        userId={selectedUserId}
-        isOpen={isProfileModalOpen}
-        onOpenChange={setIsProfileModalOpen}
-      />
-    </>
+              </div>
+              
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="font-medium">{user.name}</p>
+                  <ProfileBirdBadge userId={user.id} size="sm" showName />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Level {user.level} • {user.tasks_completed} tasks completed
+                </p>
+              </div>
+              
+              <div className="text-right">
+                <p className="font-bold text-lg">{user.points.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">points</p>
+              </div>
+            </div>
+          ))}
+          
+          {users.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No leaderboard data available</p>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
