@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -5,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useBrandSignupFormPersistence } from "@/hooks/useBrandSignupFormPersistence";
 import { useFormPersistence } from "@/hooks/useFormPersistence";
 
 import { Button } from "@/components/ui/button";
@@ -45,29 +45,34 @@ type BrandSignupFormValues = z.infer<typeof formSchema>;
 
 // Utility function to check if company name or email exists
 async function checkFieldUniqueness(field: 'companyName' | 'email', value: string) {
-  if (field === "companyName") {
-    const { data, error } = await supabase
-      .from("brand_applications")
-      .select("id")
-      .eq("company_name", value)
-      .limit(1);
-    if (error) {
-      console.warn(`Error checking company name uniqueness`, error);
-      return false;
+  try {
+    if (field === "companyName") {
+      const { data, error } = await supabase
+        .from("brand_applications")
+        .select("id")
+        .eq("company_name", value)
+        .limit(1);
+      if (error) {
+        console.warn(`Error checking company name uniqueness`, error);
+        return false;
+      }
+      return data && data.length > 0;
     }
-    return data && data.length > 0;
-  }
-  if (field === "email") {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("email", value)
-      .limit(1);
-    if (error) {
-      console.warn("Error checking email uniqueness", error);
-      return false;
+    if (field === "email") {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", value)
+        .limit(1);
+      if (error) {
+        console.warn("Error checking email uniqueness", error);
+        return false;
+      }
+      return data && data.length > 0;
     }
-    return data && data.length > 0;
+  } catch (error) {
+    console.warn(`Error checking ${field} uniqueness:`, error);
+    return false;
   }
   return false;
 }
@@ -145,7 +150,7 @@ const BrandSignupForm = () => {
       }
     }, 600);
     return () => clearTimeout(debounce);
-  }, [companyNameValue]);
+  }, [companyNameValue, setError, clearErrors]);
 
   useEffect(() => {
     if (!emailValue || !/^[^@]+@[^@]+\.[^@]+/.test(emailValue)) return;
@@ -171,7 +176,7 @@ const BrandSignupForm = () => {
       }
     }, 600);
     return () => clearTimeout(debounce);
-  }, [emailValue]);
+  }, [emailValue, setError, clearErrors]);
 
   // Use the generic hook to persist brand signup form
   const { clearDraft } = useFormPersistence(form, "brandSignupFormDraft", true);
@@ -181,22 +186,53 @@ const BrandSignupForm = () => {
   const [submittedCompany, setSubmittedCompany] = useState<string | null>(null);
 
   const handleNextStep = async () => {
+    console.log("handleNextStep called");
     const fields: (keyof BrandSignupFormValues)[] = ["companyName", "email", "password", "companySize", "website"];
-    const output = await form.trigger(fields, { shouldFocus: true });
+    
+    // Trigger validation for step 1 fields
+    const isValid = await form.trigger(fields, { shouldFocus: true });
+    console.log("Form validation result:", isValid);
+    console.log("Form errors:", form.formState.errors);
+    
+    if (!isValid) {
+      console.log("Form validation failed, not proceeding");
+      toast.error("Please fix the errors before continuing");
+      return;
+    }
 
-    if (!output) return;
-    if (await checkFieldUniqueness("companyName", form.getValues().companyName)) {
-      setError("companyName", { type: "manual", message: "A company with this name already exists." });
-      return;
+    const formValues = form.getValues();
+    console.log("Form values:", formValues);
+
+    try {
+      // Check uniqueness
+      const companyExists = await checkFieldUniqueness("companyName", formValues.companyName);
+      const emailExists = await checkFieldUniqueness("email", formValues.email);
+      
+      console.log("Company exists:", companyExists, "Email exists:", emailExists);
+
+      if (companyExists) {
+        setError("companyName", { type: "manual", message: "A company with this name already exists." });
+        toast.error("A company with this name already exists");
+        return;
+      }
+      
+      if (emailExists) {
+        setError("email", { type: "manual", message: "This email is already registered." });
+        toast.error("This email is already registered");
+        return;
+      }
+
+      console.log("Proceeding to step 2");
+      setStep(2);
+      toast.success("Step 1 completed successfully");
+    } catch (error) {
+      console.error("Error in handleNextStep:", error);
+      toast.error("An error occurred. Please try again.");
     }
-    if (await checkFieldUniqueness("email", form.getValues().email)) {
-      setError("email", { type: "manual", message: "This email is already registered." });
-      return;
-    }
-    setStep(2);
   };
 
   const onSubmit = async (data: BrandSignupFormValues) => {
+    console.log("Form submission started");
     setIsLoading(true);
     try {
       if (await checkFieldUniqueness("companyName", data.companyName)) {
@@ -243,14 +279,12 @@ const BrandSignupForm = () => {
         if (emailError) throw emailError;
         toast.success("Application submitted! Please check your email to confirm your account.");
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error("Error sending confirmation email:", error);
         toast.warning("Your application was submitted, but we had an issue sending the confirmation email. Please contact support if you don't receive it.");
       }
       setSubmitted(true);
       clearDraft();
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error("An unexpected error occurred during signup:", error);
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
@@ -323,5 +357,3 @@ const BrandSignupForm = () => {
 };
 
 export default BrandSignupForm;
-
-// NOTE: This file is over 210 lines long. Now is refactored for maintainability.
