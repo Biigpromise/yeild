@@ -146,6 +146,7 @@ export interface UserStats {
   current_level: number;
   level: number; // Added for components that expect this
   points: number; // Added for components that expect this
+  currentStreak: number; // Added for Profile.tsx compatibility
   referrals_made: number;
   achievements_earned: number;
 }
@@ -275,45 +276,48 @@ export const userService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      // Fixed the foreign key relationship
+      // Simplified query to avoid foreign key issues
       const { data: referrals, error } = await supabase
         .from('user_referrals')
-        .select(`
-          id,
-          referrer_id,
-          referred_id,
-          referral_code,
-          is_active,
-          created_at,
-          activated_at,
-          points_awarded,
-          profiles!user_referrals_referred_id_fkey (
-            id,
-            name,
-            profile_picture_url
-          )
-        `)
+        .select('*')
         .eq('referrer_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
-      // Transform the data to match our interface
-      const transformedReferrals = (referrals || []).map(referral => ({
-        id: referral.id,
-        referrer_id: referral.referrer_id,
-        referred_id: referral.referred_id,
-        referral_code: referral.referral_code,
-        is_active: referral.is_active,
-        created_at: referral.created_at,
-        activated_at: referral.activated_at,
-        points_awarded: referral.points_awarded,
-        referred_user: referral.profiles ? {
-          id: referral.profiles.id,
-          name: referral.profiles.name,
-          profile_picture_url: referral.profiles.profile_picture_url
-        } : undefined
-      }));
+      // Get referred user details separately
+      const transformedReferrals = await Promise.all(
+        (referrals || []).map(async (referral) => {
+          let referredUser = undefined;
+          
+          // Fetch referred user profile separately
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id, name, profile_picture_url')
+            .eq('id', referral.referred_id)
+            .single();
+            
+          if (profile) {
+            referredUser = {
+              id: profile.id,
+              name: profile.name,
+              profile_picture_url: profile.profile_picture_url
+            };
+          }
+          
+          return {
+            id: referral.id,
+            referrer_id: referral.referrer_id,
+            referred_id: referral.referred_id,
+            referral_code: referral.referral_code,
+            is_active: referral.is_active,
+            created_at: referral.created_at,
+            activated_at: referral.activated_at,
+            points_awarded: referral.points_awarded,
+            referred_user: referredUser
+          };
+        })
+      );
       
       return transformedReferrals;
     } catch (error) {
@@ -482,6 +486,14 @@ export const userService = {
         .select('id')
         .eq('user_id', user.id);
 
+      // Get current streak from user_streaks table
+      const { data: streakData } = await supabase
+        .from('user_streaks')
+        .select('current_streak')
+        .eq('user_id', user.id)
+        .eq('streak_type', 'task_completion')
+        .single();
+
       const stats = {
         total_points: profile?.points || 0,
         tasks_completed: profile?.tasks_completed || 0,
@@ -489,6 +501,7 @@ export const userService = {
         current_level: profile?.level || 1,
         level: profile?.level || 1, // For components that expect this
         points: profile?.points || 0, // For components that expect this
+        currentStreak: streakData?.current_streak || 0, // Added for Profile.tsx compatibility
         referrals_made: referrals?.length || 0,
         achievements_earned: achievements?.length || 0
       };
