@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -43,19 +42,15 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
     bio: user.bio || "",
   });
 
-  // Count words in bio
-  const countWords = (text: string) => {
-    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
-  };
-
-  const bioWordCount = countWords(editData.bio);
-  const maxWords = 90;
+  // Count characters in bio
+  const bioCharCount = editData.bio.length;
+  const maxChars = 90;
 
   const handleSave = () => {
-    if (bioWordCount > maxWords) {
+    if (bioCharCount > maxChars) {
       toast({
         title: "Bio too long",
-        description: `Please keep your bio to ${maxWords} words or less. Current: ${bioWordCount} words.`,
+        description: `Please keep your bio to ${maxChars} characters or less. Current: ${bioCharCount} characters.`,
         variant: "destructive",
       });
       return;
@@ -153,8 +148,8 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
               user={user}
               editData={editData}
               isEditing={isEditing}
-              bioWordCount={bioWordCount}
-              maxWords={maxWords}
+              bioCharCount={bioCharCount}
+              maxChars={maxChars}
               onNameChange={handleNameChange}
               onBioChange={handleBioChange}
             />

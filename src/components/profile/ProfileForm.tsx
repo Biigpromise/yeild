@@ -17,8 +17,8 @@ interface ProfileFormProps {
     bio: string;
   };
   isEditing: boolean;
-  bioWordCount: number;
-  maxWords: number;
+  bioCharCount: number;
+  maxChars: number;
   onNameChange: (value: string) => void;
   onBioChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 }
@@ -27,8 +27,8 @@ export const ProfileForm = ({
   user, 
   editData, 
   isEditing, 
-  bioWordCount, 
-  maxWords, 
+  bioCharCount, 
+  maxChars, 
   onNameChange, 
   onBioChange 
 }: ProfileFormProps) => {
@@ -57,8 +57,8 @@ export const ProfileForm = ({
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium">Bio</label>
           {isEditing && (
-            <span className={`text-xs ${bioWordCount > maxWords ? 'text-red-500' : 'text-muted-foreground'}`}>
-              {bioWordCount}/{maxWords} words
+            <span className={`text-xs ${bioCharCount > maxChars ? 'text-red-500' : 'text-muted-foreground'}`}>
+              {bioCharCount}/{maxChars} characters
             </span>
           )}
         </div>
@@ -68,12 +68,13 @@ export const ProfileForm = ({
               value={editData.bio}
               onChange={onBioChange}
               placeholder="Tell us about yourself..."
-              className={`mt-1 ${bioWordCount > maxWords ? 'border-red-500' : ''}`}
+              className={`mt-1 ${bioCharCount > maxChars ? 'border-red-500' : ''}`}
               rows={3}
+              maxLength={maxChars}
             />
-            {bioWordCount > maxWords && (
+            {bioCharCount > maxChars && (
               <p className="text-xs text-red-500 mt-1">
-                Bio exceeds the {maxWords} word limit. Please shorten it.
+                Bio exceeds the {maxChars} character limit. Please shorten it.
               </p>
             )}
           </div>
