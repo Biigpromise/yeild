@@ -2,8 +2,10 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Play, Star, FileText, Sparkles, Quote } from 'lucide-react';
+import { Play, Star, FileText, Sparkles, Quote, Bird } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { BirdBadge } from '@/components/referral/BirdBadge';
+import { BIRD_LEVELS } from '@/services/userService';
 
 interface OnboardingStep {
   id: string;
@@ -36,6 +38,12 @@ const USER_STEPS: OnboardingStep[] = [
       role: "Verified User",
       rating: 5
     }
+  },
+  {
+    id: 'birds',
+    icon: <Bird className="w-16 h-16" />,
+    title: 'Unlock Your Bird Badges',
+    description: 'As you refer friends and earn points, you\'ll unlock prestigious bird badges that show your status in the community!'
   },
   {
     id: 'features',
@@ -109,6 +117,34 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ userType, onComp
     ));
   };
 
+  const renderBirdProgression = () => {
+    if (step.id !== 'birds') return null;
+
+    return (
+      <div className="bg-gray-800/50 rounded-lg p-4 border border-yeild-yellow/10 mt-4">
+        <h3 className="text-lg font-semibold text-white mb-3 text-center">Bird Badge Progression</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {BIRD_LEVELS.slice(0, 4).map((birdLevel, index) => (
+            <div key={birdLevel.name} className="flex items-center space-x-2 p-2 bg-gray-700/30 rounded">
+              <BirdBadge birdLevel={birdLevel} size="sm" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">{birdLevel.name}</p>
+                <p className="text-xs text-gray-400">
+                  {birdLevel.minReferrals === 0 ? 'Starting badge' : `${birdLevel.minReferrals}+ referrals`}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 text-center">
+          <p className="text-xs text-gray-400">
+            Refer friends to unlock higher bird badges and earn bonus points!
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="fixed inset-0 bg-yeild-black z-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-yeild-black border-yeild-yellow/20">
@@ -129,6 +165,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ userType, onComp
               {step.description}
             </p>
           </div>
+
+          {/* Bird Progression */}
+          {renderBirdProgression()}
 
           {/* Testimonial */}
           {step.testimonial && (
