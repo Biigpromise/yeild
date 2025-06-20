@@ -37,7 +37,7 @@ export const PostFeed: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-full bg-background">
       <div className="sticky top-0 z-10 p-4 bg-background/80 backdrop-blur-md border-b flex items-center justify-between">
         <h3 className="font-semibold text-lg">Community Feed</h3>
         <Button

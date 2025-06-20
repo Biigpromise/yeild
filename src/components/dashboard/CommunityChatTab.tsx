@@ -4,7 +4,7 @@ import { PostFeed } from "@/components/posts/PostFeed";
 
 export const CommunityChatTab = () => {
   return (
-    <div className="min-h-Screen bg-background">
+    <div className="h-screen bg-background">
       <PostFeed />
     </div>
   );

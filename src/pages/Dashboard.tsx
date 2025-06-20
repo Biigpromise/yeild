@@ -160,27 +160,34 @@ const Dashboard = () => {
         isMobile ? "pb-20" : "pb-4"
       )}
     >
-      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4 max-w-7xl">
-        {/* Compact Header */}
-        <div className="mb-3 sm:mb-4">
-          <DashboardHeader
-            userProfile={userProfile}
-            user={user}
-            unreadCount={unreadCount}
-            isNotificationsOpen={isNotificationsOpen}
-            setIsNotificationsOpen={setIsNotificationsOpen}
-            handleLogout={handleLogout}
-            setActiveTab={setActiveTab}
-          />
+      <div className={cn(
+        "container mx-auto max-w-7xl",
+        activeTab === "community-chat" ? "p-0 h-screen" : "px-2 sm:px-4 py-2 sm:py-4"
+      )}>
+        {/* Only show header and stats for non-community-chat tabs */}
+        {activeTab !== "community-chat" && (
+          <div className="mb-3 sm:mb-4">
+            <DashboardHeader
+              userProfile={userProfile}
+              user={user}
+              unreadCount={unreadCount}
+              isNotificationsOpen={isNotificationsOpen}
+              setIsNotificationsOpen={setIsNotificationsOpen}
+              handleLogout={handleLogout}
+              setActiveTab={setActiveTab}
+            />
 
-          {/* Real User Stats */}
-          <DashboardStats userStats={userStats} />
-        </div>
+            {/* Real User Stats */}
+            <DashboardStats userStats={userStats} />
+          </div>
+        )}
 
         {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3">
-          {/* Desktop Tab Navigation */}
-          {!isMobile && <DesktopTabNavigation />}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className={cn(
+          activeTab === "community-chat" ? "h-full" : "space-y-3"
+        )}>
+          {/* Desktop Tab Navigation - hide for community chat */}
+          {!isMobile && activeTab !== "community-chat" && <DesktopTabNavigation />}
 
           <TabsContent value="tasks" className="space-y-4 mt-3">
             <StoryReel />
@@ -242,7 +249,7 @@ const Dashboard = () => {
             <UserSearchTab />
           </TabsContent>
 
-          <TabsContent value="community-chat">
+          <TabsContent value="community-chat" className="h-full mt-0">
             <CommunityChatTab />
           </TabsContent>
 
