@@ -4,8 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import SignUpHeader from "@/components/auth/SignUpHeader";
-import SignUpForm from "@/components/auth/SignUpForm";
+import MultiStepSignupForm from "@/components/auth/MultiStepSignupForm";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -39,26 +38,23 @@ const SignUp = () => {
       <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-yeild-yellow opacity-10 blur-3xl"></div>
       
       <div className="w-full max-w-md p-6">
-        <Button 
-          variant="ghost" 
-          className="mb-6 text-gray-400 hover:text-white" 
-          onClick={() => navigate("/")}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Home
-        </Button>
+        <MultiStepSignupForm />
         
-        <SignUpHeader />
-        
-        <SignUpForm />
-        
-        <div className="mt-6 text-center">
-          <p className="text-gray-400">
+        <div className="mt-8 text-center">
+          <p className="text-gray-400 mb-4">
             Already have an account?{" "}
             <Link to="/login" className="text-yeild-yellow hover:underline">
               Log in
             </Link>
           </p>
+          <Button 
+            variant="ghost" 
+            className="text-gray-400 hover:text-white" 
+            onClick={() => navigate("/")}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Home
+          </Button>
         </div>
       </div>
     </div>

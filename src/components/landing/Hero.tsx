@@ -23,18 +23,24 @@ export const Hero = () => {
   return (
     <div className="relative">
       <div className="relative z-10 max-w-4xl mx-auto px-6 py-20 text-center">
-        <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-yeild-yellow">
-          Earn Rewards
+        <div className="mb-8">
+          <div className="inline-block p-3 bg-yeild-yellow/10 rounded-full mb-6">
+            <span className="text-yeild-yellow text-4xl font-bold">YEILD</span>
+          </div>
+        </div>
+        
+        <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-white">
+          Welcome to <span className="text-yeild-yellow">YEILD</span>
         </h1>
         
         <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
-          Join thousands of users making money by completing simple tasks from your phone or computer.
+          Join thousands of users making money by completing simple tasks from your phone or computer. Start earning today!
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
           <Button 
             size="lg" 
-            className="bg-white text-black hover:bg-gray-200 text-lg px-8 py-6 w-full sm:w-auto"
+            className="bg-yeild-yellow text-black hover:bg-yeild-yellow/90 text-lg px-8 py-6 w-full sm:w-auto font-semibold"
             onClick={handleGetStarted}
           >
             Get Started
@@ -52,8 +58,11 @@ export const Hero = () => {
             </Button>
           )}
         </div>
+        
+        <div className="text-sm text-gray-400">
+          <p>No credit card required • Start earning immediately • Join 10,000+ users</p>
+        </div>
       </div>
     </div>
   );
 };
-
