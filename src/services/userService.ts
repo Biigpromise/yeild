@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PostReply } from '@/types/post';
@@ -551,7 +552,7 @@ export const userService = {
         .from('user_referrals')
         .select(`
           *,
-          referred_user:profiles!user_referrals_referred_id_fkey(id, name, profile_picture_url)
+          referred_user:profiles!referred_id(id, name, profile_picture_url)
         `)
         .eq('referrer_id', user.id)
         .order('created_at', { ascending: false });
