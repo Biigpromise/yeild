@@ -36,7 +36,7 @@ export const usePosts = () => {
         *, 
         profile:profiles(id, name, profile_picture_url), 
         post_likes(user_id),
-        post_replies(id, user_id, content, created_at, profile:profiles(id, name, profile_picture_url))
+        post_replies(id, post_id, user_id, content, created_at, profile:profiles(id, name, profile_picture_url))
       `)
       .order("created_at", { ascending: false });
 

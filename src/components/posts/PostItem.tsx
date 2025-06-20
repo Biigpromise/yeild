@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, forwardRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,7 @@ interface PostItemProps {
   onView: (postId: string) => void;
 }
 
-export const PostItem: React.FC<PostItemProps> = ({ post, userId, onLike, onView }) => {
-  const postRef = useRef<HTMLDivElement>(null);
+export const PostItem = forwardRef<HTMLDivElement, PostItemProps>(({ post, userId, onLike, onView }, ref) => {
   const hasBeenViewed = useRef(false);
 
   useEffect(() => {
@@ -30,17 +29,17 @@ export const PostItem: React.FC<PostItemProps> = ({ post, userId, onLike, onView
       { threshold: 0.5 }
     );
 
-    if (postRef.current) {
-      observer.observe(postRef.current);
+    if (ref && 'current' in ref && ref.current) {
+      observer.observe(ref.current);
     }
 
     return () => observer.disconnect();
-  }, [post.id, onView]);
+  }, [post.id, onView, ref]);
 
   const hasLiked = post.post_likes?.some(like => like.user_id === userId);
 
   return (
-    <Card ref={postRef} className="w-full">
+    <Card ref={ref} className="w-full">
       <CardContent className="p-4">
         <div className="flex items-start gap-3 mb-3">
           <Avatar className="h-10 w-10">
@@ -83,4 +82,6 @@ export const PostItem: React.FC<PostItemProps> = ({ post, userId, onLike, onView
       </CardContent>
     </Card>
   );
-};
+});
+
+PostItem.displayName = 'PostItem';

@@ -78,8 +78,8 @@ export const PostFeed: React.FC = () => {
                 ref={el => { postRefs.current[index] = el; }}
                 post={post}
                 userId={userId}
-                handleLikePost={handleLikePost}
-                openProfile={openProfile}
+                onLike={handleLikePost}
+                onView={incrementViewCount}
               />
             ))}
             {posts.length === 0 && !loading && (

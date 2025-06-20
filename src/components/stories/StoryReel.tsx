@@ -7,7 +7,7 @@ import { StoryViewer } from './StoryViewer';
 import { AddStoryModal } from './AddStoryModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
-import { supabase } from '@/services/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GroupedStory {
   user: Pick<UserProfile, 'id' | 'name' | 'profile_picture_url'>;
