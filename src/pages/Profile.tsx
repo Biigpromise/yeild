@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { UserProfile } from "@/components/UserProfile";
 import { AchievementSystem } from "@/components/AchievementSystem";
@@ -281,16 +280,11 @@ const Profile = () => {
           <TabsContent value="achievements">
             <AchievementSystem 
               userStats={{
-                total_points: userData.points,
-                tasks_completed: userData.tasksCompleted,
                 tasksCompleted: userData.tasksCompleted,
-                current_level: userData.level,
-                level: userData.level,
-                points: userData.points,
                 currentStreak: userData.currentStreak,
                 longestStreak: userData.longestStreak,
-                referrals_made: 0,
-                achievements_earned: 0
+                points: userData.points,
+                level: userData.level
               }}
             />
           </TabsContent>
