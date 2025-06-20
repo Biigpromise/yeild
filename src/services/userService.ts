@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PostReply } from '@/types/post';
@@ -46,6 +45,27 @@ export interface LeaderboardUser {
   level: number;
   tasks_completed: number;
   rank: number;
+}
+
+export interface UserReferral {
+  id: string;
+  referrer_id: string;
+  referred_id: string;
+  referral_code: string;
+  created_at: string;
+  is_active: boolean;
+  activated_at?: string;
+  points_awarded: number;
+  referred_user?: Pick<UserProfile, 'id' | 'name' | 'profile_picture_url'>;
+}
+
+export interface ReferralStats {
+  total_referrals: number;
+  active_referrals: number;
+  pending_referrals: number;
+  total_points_earned: number;
+  next_tier_points: number;
+  current_tier: string;
 }
 
 export const userService = {
@@ -433,6 +453,132 @@ export const userService = {
     } catch (error) {
       console.error('Error fetching point transactions:', error);
       return [];
+    }
+  },
+
+  // Get user's referral code
+  async getUserReferralCode(): Promise<string | null> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('referral_code')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data?.referral_code || null;
+    } catch (error) {
+      console.error('Error fetching referral code:', error);
+      return null;
+    }
+  },
+
+  // Handle referral signup
+  async handleReferralSignup(referralCode: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase.rpc('handle_referral_signup', {
+        new_user_id: user.id,
+        referral_code_param: referralCode
+      });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error handling referral signup:', error);
+      return false;
+    }
+  },
+
+  // Get user's referral statistics
+  async getReferralStats(): Promise<ReferralStats | null> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data: referrals, error } = await supabase
+        .from('user_referrals')
+        .select('*')
+        .eq('referrer_id', user.id);
+
+      if (error) throw error;
+
+      const totalReferrals = referrals?.length || 0;
+      const activeReferrals = referrals?.filter(r => r.is_active).length || 0;
+      const pendingReferrals = totalReferrals - activeReferrals;
+      const totalPointsEarned = referrals?.reduce((sum, r) => sum + (r.points_awarded || 0), 0) || 0;
+
+      // Calculate next tier points
+      let nextTierPoints = 10;
+      let currentTier = 'Bronze';
+      
+      if (activeReferrals >= 15) {
+        nextTierPoints = 30;
+        currentTier = 'Platinum';
+      } else if (activeReferrals >= 5) {
+        nextTierPoints = 20;
+        currentTier = 'Silver';
+      } else {
+        currentTier = 'Bronze';
+      }
+
+      return {
+        total_referrals: totalReferrals,
+        active_referrals: activeReferrals,
+        pending_referrals: pendingReferrals,
+        total_points_earned: totalPointsEarned,
+        next_tier_points: nextTierPoints,
+        current_tier: currentTier
+      };
+    } catch (error) {
+      console.error('Error fetching referral stats:', error);
+      return null;
+    }
+  },
+
+  // Get user's referrals with details
+  async getUserReferrals(): Promise<UserReferral[]> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('user_referrals')
+        .select(`
+          *,
+          referred_user:profiles!user_referrals_referred_id_fkey(id, name, profile_picture_url)
+        `)
+        .eq('referrer_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching user referrals:', error);
+      return [];
+    }
+  },
+
+  // Check if referral can be activated (for testing purposes)
+  async checkReferralActivation(): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase.rpc('check_and_activate_referral', {
+        user_id: user.id
+      });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error checking referral activation:', error);
+      return false;
     }
   }
 };

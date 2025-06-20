@@ -1,12 +1,13 @@
-
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { userService } from "@/services/userService";
 
 export const useSignUp = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,6 +23,18 @@ export const useSignUp = () => {
 
   // For tracking any error encountered during sign up so we can display below the form
   const [signUpError, setSignUpError] = useState<string | null>(null);
+
+  // Extract referral code from URL
+  const [referralCode, setReferralCode] = useState<string>("");
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setReferralCode(refCode);
+      toast.info("You're signing up with a referral code!");
+    }
+  }, [location]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +70,11 @@ export const useSignUp = () => {
           toast.error(error.message || "Sign up failed");
         }
       } else {
+        // Handle referral code if present
+        if (referralCode) {
+          await userService.handleReferralSignup(referralCode);
+        }
+        
         setAwaitingConfirmation(true);
         toast.success("Account created! Please check your email to confirm your account.");
       }
@@ -79,7 +97,6 @@ export const useSignUp = () => {
     }
     setResending(true);
     try {
-      // https://supabase.com/docs/reference/javascript/auth-resend
       const { error } = await supabase.auth.resend({
         type: "signup",
         email,
@@ -116,5 +133,6 @@ export const useSignUp = () => {
     resending,
     resendDone,
     setAwaitingConfirmation,
+    referralCode
   };
 };

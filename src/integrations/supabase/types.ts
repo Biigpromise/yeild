@@ -601,6 +601,7 @@ export type Database = {
           name: string | null
           points: number | null
           profile_picture_url: string | null
+          referral_code: string | null
           social_media_links: string[] | null
           task_completion_rate: number | null
           tasks_completed: number | null
@@ -622,6 +623,7 @@ export type Database = {
           name?: string | null
           points?: number | null
           profile_picture_url?: string | null
+          referral_code?: string | null
           social_media_links?: string[] | null
           task_completion_rate?: number | null
           tasks_completed?: number | null
@@ -643,6 +645,7 @@ export type Database = {
           name?: string | null
           points?: number | null
           profile_picture_url?: string | null
+          referral_code?: string | null
           social_media_links?: string[] | null
           task_completion_rate?: number | null
           tasks_completed?: number | null
@@ -1090,6 +1093,39 @@ export type Database = {
           },
         ]
       }
+      user_referrals: {
+        Row: {
+          activated_at: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          points_awarded: number | null
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+        }
+        Insert: {
+          activated_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          points_awarded?: number | null
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+        }
+        Update: {
+          activated_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          points_awarded?: number | null
+          referral_code?: string
+          referred_id?: string
+          referrer_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           assigned_at: string | null
@@ -1399,13 +1435,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_referral_points: {
+        Args: { referrer_id: string }
+        Returns: number
+      }
       calculate_task_completion_rate: {
         Args: { p_user_id: string }
         Returns: number
       }
+      check_and_activate_referral: {
+        Args: { user_id: string }
+        Returns: undefined
+      }
       check_and_award_achievements: {
         Args: { p_user_id: string }
         Returns: undefined
+      }
+      generate_referral_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_current_user_profile: {
         Args: Record<PropertyKey, never>
@@ -1421,6 +1469,10 @@ export type Database = {
       get_user_role_for_policy: {
         Args: { user_id: string }
         Returns: string
+      }
+      handle_referral_signup: {
+        Args: { new_user_id: string; referral_code_param: string }
+        Returns: undefined
       }
       has_role: {
         Args: { _user_id: string; _role: string }
