@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { userService, ReferralBirdLevel } from '@/services/userService';
+import { supabase } from '@/integrations/supabase/client';
 import { BirdBadge } from './BirdBadge';
 
 interface ProfileBirdBadgeProps {
@@ -27,7 +28,7 @@ export const ProfileBirdBadge: React.FC<ProfileBirdBadgeProps> = ({
     try {
       setLoading(true);
       // Get user's referral stats to determine bird level
-      const { data: referrals, error } = await userService.supabase
+      const { data: referrals, error } = await supabase
         .from('user_referrals')
         .select('is_active')
         .eq('referrer_id', userId);

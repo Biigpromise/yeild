@@ -2,7 +2,7 @@
 import React from 'react';
 import { ReferralBirdLevel } from '@/services/userService';
 import { Badge } from '@/components/ui/badge';
-import { Dove, Hawk, Eagle, Falcon, Phoenix } from 'lucide-react';
+import { Bird, Zap, Crown, Star, Flame } from 'lucide-react';
 
 interface BirdBadgeProps {
   birdLevel: ReferralBirdLevel | null;
@@ -16,15 +16,15 @@ const getBirdIcon = (iconName: string, size: string) => {
   
   switch (iconName) {
     case 'dove':
-      return <Dove className={iconSize} />;
+      return <Bird className={iconSize} />;
     case 'hawk':
-      return <Hawk className={iconSize} />;
+      return <Bird className={iconSize} />;
     case 'eagle':
-      return <Eagle className={iconSize} />;
+      return <Crown className={iconSize} />;
     case 'falcon':
-      return <Falcon className={iconSize} />;
+      return <Zap className={iconSize} />;
     case 'phoenix':
-      return <Phoenix className={iconSize} />;
+      return <Flame className={iconSize} />;
     default:
       return null;
   }
