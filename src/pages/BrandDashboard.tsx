@@ -4,6 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BrandCampaignsTab } from "@/components/brand/BrandCampaignsTab";
 import { BrandAnalyticsTab } from "@/components/brand/BrandAnalyticsTab";
 import { BrandProfileTab } from "@/components/brand/BrandProfileTab";
+import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { LifeBuoy, LogOut } from "lucide-react";
@@ -12,6 +14,17 @@ import { useNavigate } from "react-router-dom";
 const BrandDashboard: React.FC = () => {
     const { user, signOut } = useAuth();
     const navigate = useNavigate();
+    const { showOnboarding, userType, completeOnboarding } = useOnboarding();
+    
+    // Show onboarding if needed
+    if (showOnboarding) {
+        return (
+            <OnboardingFlow 
+                userType={userType} 
+                onComplete={completeOnboarding}
+            />
+        );
+    }
     
     return (
         <div className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">

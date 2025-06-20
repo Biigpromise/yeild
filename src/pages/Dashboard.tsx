@@ -50,6 +50,8 @@ import { UserSearchTab } from "@/components/dashboard/UserSearchTab";
 import { DesktopTabNavigation } from "@/components/dashboard/DesktopTabNavigation";
 import { StoryReel } from "@/components/stories";
 import { useDashboard } from "@/hooks/useDashboard";
+import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
+import { useOnboarding } from "@/hooks/useOnboarding";
 
 const Dashboard = () => {
   const { signOut } = useAuth();
@@ -66,6 +68,8 @@ const Dashboard = () => {
     loading,
     loadUserData,
   } = useDashboard();
+
+  const { showOnboarding, userType, completeOnboarding } = useOnboarding();
 
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tasks");
@@ -136,6 +140,16 @@ const Dashboard = () => {
 
   if (loading) {
     return <DashboardSkeleton />;
+  }
+
+  // Show onboarding if needed
+  if (showOnboarding) {
+    return (
+      <OnboardingFlow 
+        userType={userType} 
+        onComplete={completeOnboarding}
+      />
+    );
   }
 
   return (
