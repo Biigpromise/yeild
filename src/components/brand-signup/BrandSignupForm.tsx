@@ -1,295 +1,42 @@
 
-import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { useFormPersistence } from "@/hooks/useFormPersistence";
-
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import FormStepOne from "@/components/brand-signup/FormStepOne";
 import FormStepTwo from "@/components/brand-signup/FormStepTwo";
 import ProgressSteps from "@/components/brand-signup/ProgressSteps";
 import SubmittedScreen from "@/components/brand-signup/SubmittedScreen";
-
-const formSchema = z
-  .object({
-    companyName: z.string().min(1, { message: "Company name is required." }),
-    email: z.string().email({ message: "Please enter a valid email." }),
-    password: z.string().min(8, { message: "Password must be at least 8 characters." }),
-    website: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
-    companySize: z.string().min(1, { message: "Please select a company size." }),
-    industry: z.string().min(1, { message: "Please select your industry." }),
-    taskTypes: z.object({
-      surveys: z.boolean().default(false),
-      appTesting: z.boolean().default(false),
-      contentCreation: z.boolean().default(false),
-      productReviews: z.boolean().default(false),
-      focusGroups: z.boolean().default(false),
-    }).default({}),
-    budget: z.string().min(1, { message: "Please select a budget." }),
-    goals: z.string().min(1, { message: "Please describe your campaign goals." }),
-    agreeTerms: z.boolean(),
-  })
-  .refine(data => data.agreeTerms, {
-    message: "You must agree to the Terms of Service and Privacy Policy.",
-    path: ["agreeTerms"],
-  });
-
-type BrandSignupFormValues = z.infer<typeof formSchema>;
-
-// Utility function to check if company name or email exists
-async function checkFieldUniqueness(field: 'companyName' | 'email', value: string) {
-  try {
-    if (field === "companyName") {
-      const { data, error } = await supabase
-        .from("brand_applications")
-        .select("id")
-        .eq("company_name", value)
-        .limit(1);
-      if (error) {
-        console.warn(`Error checking company name uniqueness`, error);
-        return false;
-      }
-      return data && data.length > 0;
-    }
-    if (field === "email") {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("email", value)
-        .limit(1);
-      if (error) {
-        console.warn("Error checking email uniqueness", error);
-        return false;
-      }
-      return data && data.length > 0;
-    }
-  } catch (error) {
-    console.warn(`Error checking ${field} uniqueness:`, error);
-    return false;
-  }
-  return false;
-}
+import { useBrandSignupForm } from "@/hooks/useBrandSignupForm";
+import { handleNextStep } from "@/components/brand-signup/StepNavigation";
+import { useFormSubmission } from "@/components/brand-signup/FormSubmissionHandler";
 
 const BrandSignupForm = () => {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState(1);
-  const [submitted, setSubmitted] = useState(false);
+  const {
+    form,
+    step,
+    setStep,
+    submitted,
+    setSubmitted,
+    submittedEmail,
+    setSubmittedEmail,
+    submittedCompany,
+    setSubmittedCompany,
+    clearDraft,
+  } = useBrandSignupForm();
 
-  // --- Ref caches to prevent spamming Supabase when users keep typing ---
-  const companyNameCheckRef = useRef<{ value: string; exists: boolean | undefined }>({ value: "", exists: undefined });
-  const emailCheckRef = useRef<{ value: string; exists: boolean | undefined }>({ value: "", exists: undefined });
-
-  const form = useForm<BrandSignupFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      companyName: "",
-      email: "",
-      password: "",
-      website: "",
-      companySize: "",
-      industry: "",
-      taskTypes: {
-        surveys: false,
-        appTesting: false,
-        contentCreation: false,
-        productReviews: false,
-        focusGroups: false,
-      },
-      budget: "",
-      goals: "",
-      agreeTerms: false,
+  const { onSubmit, isLoading } = useFormSubmission({
+    onSubmissionComplete: (email, company) => {
+      setSubmittedEmail(email);
+      setSubmittedCompany(company);
+      setSubmitted(true);
     },
-    mode: "onChange",
+    clearDraft,
   });
 
-  // Live validation effect for companyName field
-  const {
-    formState: { errors },
-    register,
-    trigger,
-    setError,
-    clearErrors,
-    watch,
-    ...rhfRest
-  } = form;
-
-  const companyNameValue = watch("companyName");
-  const emailValue = watch("email");
-
-  // Effect for live company name validation
-  useEffect(() => {
-    if (!companyNameValue || companyNameValue.length < 2) return;
-    let debounce: NodeJS.Timeout;
-    debounce = setTimeout(async () => {
-      if (
-        companyNameCheckRef.current.value === companyNameValue &&
-        companyNameCheckRef.current.exists !== undefined
-      ) {
-        if (companyNameCheckRef.current.exists) {
-          setError("companyName", { type: "manual", message: "A company with this name already exists." });
-        } else {
-          clearErrors("companyName");
-        }
-        return;
-      }
-      const exists = await checkFieldUniqueness("companyName", companyNameValue);
-      companyNameCheckRef.current = { value: companyNameValue, exists };
-      if (exists) {
-        setError("companyName", { type: "manual", message: "A company with this name already exists." });
-      } else {
-        clearErrors("companyName");
-      }
-    }, 600);
-    return () => clearTimeout(debounce);
-  }, [companyNameValue, setError, clearErrors]);
-
-  useEffect(() => {
-    if (!emailValue || !/^[^@]+@[^@]+\.[^@]+/.test(emailValue)) return;
-    let debounce: NodeJS.Timeout;
-    debounce = setTimeout(async () => {
-      if (
-        emailCheckRef.current.value === emailValue &&
-        emailCheckRef.current.exists !== undefined
-      ) {
-        if (emailCheckRef.current.exists) {
-          setError("email", { type: "manual", message: "This email is already registered." });
-        } else {
-          clearErrors("email");
-        }
-        return;
-      }
-      const exists = await checkFieldUniqueness("email", emailValue);
-      emailCheckRef.current = { value: emailValue, exists };
-      if (exists) {
-        setError("email", { type: "manual", message: "This email is already registered." });
-      } else {
-        clearErrors("email");
-      }
-    }, 600);
-    return () => clearTimeout(debounce);
-  }, [emailValue, setError, clearErrors]);
-
-  // Use the generic hook to persist brand signup form
-  const { clearDraft } = useFormPersistence(form, "brandSignupFormDraft", true);
-
-  // We'll store the last submitted email/company for resend logic
-  const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
-  const [submittedCompany, setSubmittedCompany] = useState<string | null>(null);
-
-  const handleNextStep = async () => {
-    console.log("handleNextStep called");
-    const fields: (keyof BrandSignupFormValues)[] = ["companyName", "email", "password", "companySize", "website"];
-    
-    // Trigger validation for step 1 fields
-    const isValid = await form.trigger(fields, { shouldFocus: true });
-    console.log("Form validation result:", isValid);
-    console.log("Form errors:", form.formState.errors);
-    
-    if (!isValid) {
-      console.log("Form validation failed, not proceeding");
-      toast.error("Please fix the errors before continuing");
-      return;
-    }
-
-    const formValues = form.getValues();
-    console.log("Form values:", formValues);
-
-    try {
-      // Check uniqueness
-      const companyExists = await checkFieldUniqueness("companyName", formValues.companyName);
-      const emailExists = await checkFieldUniqueness("email", formValues.email);
-      
-      console.log("Company exists:", companyExists, "Email exists:", emailExists);
-
-      if (companyExists) {
-        setError("companyName", { type: "manual", message: "A company with this name already exists." });
-        toast.error("A company with this name already exists");
-        return;
-      }
-      
-      if (emailExists) {
-        setError("email", { type: "manual", message: "This email is already registered." });
-        toast.error("This email is already registered");
-        return;
-      }
-
-      console.log("Proceeding to step 2");
-      setStep(2);
-      toast.success("Step 1 completed successfully");
-    } catch (error) {
-      console.error("Error in handleNextStep:", error);
-      toast.error("An error occurred. Please try again.");
-    }
-  };
-
-  const onSubmit = async (data: BrandSignupFormValues) => {
-    console.log("Form submission started");
-    setIsLoading(true);
-    try {
-      if (await checkFieldUniqueness("companyName", data.companyName)) {
-        setError("companyName", { type: "manual", message: "A company with this name already exists." });
-        setIsLoading(false);
-        return;
-      }
-      if (await checkFieldUniqueness("email", data.email)) {
-        setError("email", { type: "manual", message: "This email is already registered." });
-        setIsLoading(false);
-        return;
-      }
-      const applicationData = {
-        companyName: data.companyName,
-        website: data.website,
-        companySize: data.companySize,
-        industry: data.industry,
-        taskTypes: data.taskTypes,
-        budget: data.budget,
-        goals: data.goals,
-      };
-
-      const { error: signUpError } = await signUp(
-        data.email,
-        data.password,
-        data.companyName,
-        { brand_application_data: applicationData }
-      );
-
-      if (signUpError) {
-        toast.error(signUpError.message || "Could not create account. Please try again.");
-        setIsLoading(false);
-        return;
-      }
-
-      // Always save submitted company and email for resend
-      setSubmittedEmail(data.email);
-      setSubmittedCompany(data.companyName);
-
-      try {
-        const { error: emailError } = await supabase.functions.invoke('send-brand-confirmation-email', {
-          body: { email: data.email, companyName: data.companyName },
-        });
-        if (emailError) throw emailError;
-        toast.success("Application submitted! Please check your email to confirm your account.");
-      } catch (error) {
-        console.error("Error sending confirmation email:", error);
-        toast.warning("Your application was submitted, but we had an issue sending the confirmation email. Please contact support if you don't receive it.");
-      }
-      setSubmitted(true);
-      clearDraft();
-    } catch (error) {
-      console.error("An unexpected error occurred during signup:", error);
-      toast.error("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleNext = () => {
+    handleNextStep({ form, onNextStep: () => setStep(2) });
   };
 
   if (submitted) {
@@ -311,12 +58,7 @@ const BrandSignupForm = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {step === 1 && (
-            <FormStepOne
-              form={{
-                ...form,
-                register,
-              }}
-            />
+            <FormStepOne form={form} />
           )}
           {step === 2 && <FormStepTwo form={form} />}
 
@@ -331,7 +73,7 @@ const BrandSignupForm = () => {
               </Button>
             )}
             {step === 1 && (
-              <Button type="button" className="yeild-btn-primary" onClick={handleNextStep}>
+              <Button type="button" className="yeild-btn-primary" onClick={handleNext}>
                 Continue
               </Button>
             )}

@@ -3,14 +3,14 @@ import { Input } from "@/components/ui/input";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PasswordStrengthMeter from "@/components/ui/PasswordStrengthMeter";
+import { UseFormReturn } from "react-hook-form";
+import { BrandSignupFormValues } from "@/hooks/useBrandSignupForm";
 
-const FormStepOne = ({ form }: any) => {
-  const {
-    formState,
-    register,
-    watch,
-  } = form;
+interface FormStepOneProps {
+  form: UseFormReturn<BrandSignupFormValues>;
+}
 
+const FormStepOne = ({ form }: FormStepOneProps) => {
   // We need to "watch" password field for live strength feedback.
   const passwordValue = form.watch('password');
 
