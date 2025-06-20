@@ -548,17 +548,34 @@ export const userService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data, error } = await supabase
+      // First get the referrals
+      const { data: referrals, error: referralsError } = await supabase
         .from('user_referrals')
-        .select(`
-          *,
-          referred_user:profiles!referred_id(id, name, profile_picture_url)
-        `)
+        .select('*')
         .eq('referrer_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (referralsError) throw referralsError;
+      if (!referrals || referrals.length === 0) return [];
+
+      // Get all referred user IDs
+      const referredUserIds = referrals.map(r => r.referred_id);
+
+      // Get profiles for these users
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, profile_picture_url')
+        .in('id', referredUserIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const result = referrals.map(referral => ({
+        ...referral,
+        referred_user: profiles?.find(p => p.id === referral.referred_id) || null
+      }));
+
+      return result as UserReferral[];
     } catch (error) {
       console.error('Error fetching user referrals:', error);
       return [];
