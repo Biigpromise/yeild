@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -138,7 +137,7 @@ export interface UserProfile {
   created_at: string;
 }
 
-// Fixed UserStats interface to match component usage
+// Fixed UserStats interface to include longestStreak
 export interface UserStats {
   total_points: number;
   tasks_completed: number;
@@ -147,6 +146,7 @@ export interface UserStats {
   level: number; // Added for components that expect this
   points: number; // Added for components that expect this
   currentStreak: number; // Added for Profile.tsx compatibility
+  longestStreak: number; // Added for Profile.tsx compatibility
   referrals_made: number;
   achievements_earned: number;
 }
@@ -489,7 +489,7 @@ export const userService = {
       // Get current streak from user_streaks table
       const { data: streakData } = await supabase
         .from('user_streaks')
-        .select('current_streak')
+        .select('current_streak, longest_streak')
         .eq('user_id', user.id)
         .eq('streak_type', 'task_completion')
         .single();
@@ -502,6 +502,7 @@ export const userService = {
         level: profile?.level || 1, // For components that expect this
         points: profile?.points || 0, // For components that expect this
         currentStreak: streakData?.current_streak || 0, // Added for Profile.tsx compatibility
+        longestStreak: streakData?.longest_streak || 0, // Added for Profile.tsx compatibility
         referrals_made: referrals?.length || 0,
         achievements_earned: achievements?.length || 0
       };
