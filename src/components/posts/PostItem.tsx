@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Heart, Eye, MessageCircle } from "lucide-react";
@@ -17,6 +17,7 @@ interface PostItemProps {
 
 export const PostItem: React.FC<PostItemProps> = ({ post, userId, onLike, onView, onProfileClick }) => {
   const hasLiked = post.post_likes?.some(like => like.user_id === userId);
+  const hasViewed = useRef(false);
 
   const handleProfileClick = () => {
     if (onProfileClick && post.user_id) {
@@ -27,10 +28,13 @@ export const PostItem: React.FC<PostItemProps> = ({ post, userId, onLike, onView
   const isImage = post.media_url && (post.media_url.includes('.jpg') || post.media_url.includes('.jpeg') || post.media_url.includes('.png') || post.media_url.includes('.gif') || post.media_url.includes('.webp'));
   const isVideo = post.media_url && (post.media_url.includes('.mp4') || post.media_url.includes('.webm') || post.media_url.includes('.mov'));
 
-  // Handle view count on mount
-  React.useEffect(() => {
-    onView(post.id);
-  }, [post.id, onView]);
+  // Handle view count only once per post
+  useEffect(() => {
+    if (!hasViewed.current && userId) {
+      hasViewed.current = true;
+      onView(post.id);
+    }
+  }, [post.id, onView, userId]);
 
   return (
     <div className="border-b border-border hover:bg-muted/30 transition-colors">
@@ -41,8 +45,8 @@ export const PostItem: React.FC<PostItemProps> = ({ post, userId, onLike, onView
             className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full"
           >
             <Avatar className="h-10 w-10 hover:scale-105 transition-transform cursor-pointer">
-              <AvatarImage src={post.profile?.profile_picture_url || undefined} />
-              <AvatarFallback>{post.profile?.name?.charAt(0) || 'U'}</AvatarFallback>
+              <AvatarImage src={post.profiles?.profile_picture_url || undefined} />
+              <AvatarFallback>{post.profiles?.name?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
           </button>
           
@@ -52,7 +56,7 @@ export const PostItem: React.FC<PostItemProps> = ({ post, userId, onLike, onView
                 onClick={handleProfileClick}
                 className="font-semibold text-sm hover:underline focus:outline-none focus:underline truncate"
               >
-                {post.profile?.name || 'User'}
+                {post.profiles?.name || 'User'}
               </button>
               <span className="text-xs text-muted-foreground">
                 {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}

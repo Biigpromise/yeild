@@ -27,7 +27,7 @@ export const usePosts = () => {
         .from('posts')
         .select(`
           *,
-          profile:profiles!posts_user_id_fkey (
+          profiles!posts_user_id_fkey (
             id,
             name,
             profile_picture_url
@@ -40,13 +40,7 @@ export const usePosts = () => {
 
       if (error) throw error;
       
-      // Transform the data to match our expected structure
-      const transformedPosts = (data || []).map(post => ({
-        ...post,
-        profile: Array.isArray(post.profile) ? post.profile[0] : post.profile
-      }));
-      
-      setPosts(transformedPosts);
+      setPosts(data || []);
     } catch (error) {
       console.error('Error fetching posts:', error);
     } finally {
@@ -120,9 +114,12 @@ export const usePosts = () => {
   };
 
   const incrementViewCount = async (postId: string) => {
+    if (!userId) return;
+    
     try {
       const { error } = await supabase.rpc('increment_post_view', {
-        post_id_to_inc: postId
+        post_id_to_inc: postId,
+        user_id_param: userId
       });
 
       if (error) throw error;
