@@ -44,7 +44,24 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
     bio: user.bio || "",
   });
 
+  // Count words in bio
+  const countWords = (text: string) => {
+    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+  };
+
+  const bioWordCount = countWords(editData.bio);
+  const maxWords = 90;
+
   const handleSave = () => {
+    if (bioWordCount > maxWords) {
+      toast({
+        title: "Bio too long",
+        description: `Please keep your bio to ${maxWords} words or less. Current: ${bioWordCount} words.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     onUpdate(editData);
     setIsEditing(false);
     toast({
@@ -56,6 +73,11 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
   const handleCancel = () => {
     setEditData({ name: user.name, bio: user.bio || "" });
     setIsEditing(false);
+  };
+
+  const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    setEditData({ ...editData, bio: newValue });
   };
 
   const handleAvatarUpload = () => {
@@ -207,15 +229,29 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
               </div>
 
               <div>
-                <label className="text-sm font-medium">Bio</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Bio</label>
+                  {isEditing && (
+                    <span className={`text-xs ${bioWordCount > maxWords ? 'text-red-500' : 'text-muted-foreground'}`}>
+                      {bioWordCount}/{maxWords} words
+                    </span>
+                  )}
+                </div>
                 {isEditing ? (
-                  <Textarea
-                    value={editData.bio}
-                    onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
-                    placeholder="Tell us about yourself..."
-                    className="mt-1"
-                    rows={3}
-                  />
+                  <div>
+                    <Textarea
+                      value={editData.bio}
+                      onChange={handleBioChange}
+                      placeholder="Tell us about yourself..."
+                      className={`mt-1 ${bioWordCount > maxWords ? 'border-red-500' : ''}`}
+                      rows={3}
+                    />
+                    {bioWordCount > maxWords && (
+                      <p className="text-xs text-red-500 mt-1">
+                        Bio exceeds the {maxWords} word limit. Please shorten it.
+                      </p>
+                    )}
+                  </div>
                 ) : (
                   <p className="text-muted-foreground mt-1">
                     {user.bio || "No bio provided yet."}
