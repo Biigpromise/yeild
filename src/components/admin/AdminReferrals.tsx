@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { admin ReferralService, ReferralLevel } from "@/services/admin/adminReferralService";
+import { adminReferralService, ReferralLevel } from "@/services/admin/adminReferralService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminBirdLevelOverrides } from "./AdminBirdLevelOverrides";
 import { AntiFraudTracking } from "./AntiFraudTracking";
