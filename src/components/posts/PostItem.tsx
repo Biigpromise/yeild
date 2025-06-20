@@ -13,9 +13,10 @@ interface PostItemProps {
   userId: string | null;
   onLike: (post: Post) => void;
   onView: (postId: string) => void;
+  onProfileClick?: (userId: string) => void;
 }
 
-export const PostItem = forwardRef<HTMLDivElement, PostItemProps>(({ post, userId, onLike, onView }, ref) => {
+export const PostItem = forwardRef<HTMLDivElement, PostItemProps>(({ post, userId, onLike, onView, onProfileClick }, ref) => {
   const hasBeenViewed = useRef(false);
 
   useEffect(() => {
@@ -38,17 +39,33 @@ export const PostItem = forwardRef<HTMLDivElement, PostItemProps>(({ post, userI
 
   const hasLiked = post.post_likes?.some(like => like.user_id === userId);
 
+  const handleProfileClick = () => {
+    if (onProfileClick && post.user_id) {
+      onProfileClick(post.user_id);
+    }
+  };
+
   return (
     <Card ref={ref} className="w-full">
       <CardContent className="p-4">
         <div className="flex items-start gap-3 mb-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={post.profile?.profile_picture_url || undefined} />
-            <AvatarFallback>{post.profile?.name?.charAt(0) || 'U'}</AvatarFallback>
-          </Avatar>
+          <button
+            onClick={handleProfileClick}
+            className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full"
+          >
+            <Avatar className="h-10 w-10 hover:scale-105 transition-transform cursor-pointer">
+              <AvatarImage src={post.profile?.profile_picture_url || undefined} />
+              <AvatarFallback>{post.profile?.name?.charAt(0) || 'U'}</AvatarFallback>
+            </Avatar>
+          </button>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-sm">{post.profile?.name || 'Anonymous'}</h3>
+              <button
+                onClick={handleProfileClick}
+                className="font-semibold text-sm hover:underline focus:outline-none focus:underline"
+              >
+                {post.profile?.name || 'Anonymous'}
+              </button>
               <span className="text-xs text-muted-foreground">
                 {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
               </span>

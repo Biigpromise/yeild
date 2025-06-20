@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { chatService, Message } from '@/services/chatService';
@@ -5,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Send } from 'lucide-react';
+import { Send, RefreshCw } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { PublicProfileModal } from '@/components/PublicProfileModal';
 import { userService, Story, UserProfile } from '@/services/userService';
@@ -15,6 +16,7 @@ export const CommunityChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -50,13 +52,24 @@ export const CommunityChat = () => {
     fetchUser();
   }, []);
 
+  const fetchMessages = async () => {
+    setLoading(true);
+    const initialMessages = await chatService.getMessages();
+    setMessages(initialMessages);
+    setLoading(false);
+  };
+
+  const handleRefreshChat = async () => {
+    setRefreshing(true);
+    await fetchMessages();
+    setRefreshing(false);
+    toast({
+      title: "Refreshed",
+      description: "Chat messages have been updated.",
+    });
+  };
+
   useEffect(() => {
-    const fetchMessages = async () => {
-      setLoading(true);
-      const initialMessages = await chatService.getMessages();
-      setMessages(initialMessages);
-      setLoading(false);
-    };
     fetchMessages();
   }, []);
   
@@ -200,6 +213,20 @@ export const CommunityChat = () => {
   return (
     <>
       <div className="flex flex-col h-[600px] border rounded-lg">
+        <div className="p-3 border-b bg-background flex items-center justify-between">
+          <h3 className="font-semibold">Community Chat</h3>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefreshChat}
+            disabled={refreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
+        
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
             {messages.map((msg) => (

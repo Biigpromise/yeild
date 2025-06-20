@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -52,6 +51,14 @@ export const usePosts = () => {
     }
     setLoading(false);
   }, [toast]);
+
+  const refreshPosts = useCallback(async () => {
+    await fetchPosts();
+    toast({
+      title: "Refreshed",
+      description: "Posts have been updated.",
+    });
+  }, [fetchPosts, toast]);
 
   useEffect(() => {
     fetchPosts();
@@ -172,6 +179,7 @@ export const usePosts = () => {
     userId,
     handlePostSubmit,
     handleLikePost,
-    incrementViewCount
+    incrementViewCount,
+    refreshPosts
   };
 };
