@@ -18,7 +18,7 @@ export const PostActions: React.FC<PostActionsProps> = ({ post, userId, handleLi
         onClick={() => handleLikePost(post)}
         disabled={!userId}
         className="flex items-center gap-1.5 group disabled:cursor-not-allowed"
-        aria-label={`Like post by ${post.profile?.name ?? 'User'}`}
+        aria-label={`Like post by ${post.profiles?.name ?? 'User'}`}
       >
         <ThumbsUp
           className={`h-4 w-4 group-hover:text-primary transition-colors ${hasLiked ? 'text-primary fill-primary' : ''}`}

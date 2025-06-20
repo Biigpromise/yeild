@@ -64,14 +64,14 @@ export const PostReplies: React.FC<PostRepliesProps> = ({ postId, userId, replyC
             replies.map((reply) => (
               <div key={reply.id} className="flex gap-2">
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src={reply.profile?.profile_picture_url || undefined} />
+                  <AvatarImage src={reply.profiles?.profile_picture_url || undefined} />
                   <AvatarFallback className="text-xs">
-                    {reply.profile?.name?.charAt(0) || 'U'}
+                    {reply.profiles?.name?.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                   <div className="bg-muted rounded-lg p-2">
-                    <p className="text-xs font-medium">{reply.profile?.name || 'Anonymous'}</p>
+                    <p className="text-xs font-medium">{reply.profiles?.name || 'Anonymous'}</p>
                     <p className="text-sm">{reply.content}</p>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">

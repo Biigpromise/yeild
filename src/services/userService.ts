@@ -364,16 +364,14 @@ export const userService = {
           user_id,
           content,
           created_at,
-          profile:profiles(id, name, profile_picture_url)
+          likes_count,
+          profiles:profiles(id, name, profile_picture_url)
         `)
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return (data || []).map(reply => ({
-        ...reply,
-        profile: Array.isArray(reply.profile) ? reply.profile[0] : reply.profile
-      })) as PostReply[];
+      return (data || []) as PostReply[];
     } catch (error) {
       console.error('Error fetching post replies:', error);
       return [];
