@@ -27,7 +27,7 @@ export const usePosts = () => {
         .from('posts')
         .select(`
           *,
-          profiles:user_id (
+          profile:profiles!posts_user_id_fkey (
             id,
             name,
             profile_picture_url
@@ -39,7 +39,14 @@ export const usePosts = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPosts(data || []);
+      
+      // Transform the data to match our expected structure
+      const transformedPosts = (data || []).map(post => ({
+        ...post,
+        profile: Array.isArray(post.profile) ? post.profile[0] : post.profile
+      }));
+      
+      setPosts(transformedPosts);
     } catch (error) {
       console.error('Error fetching posts:', error);
     } finally {

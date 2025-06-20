@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, forwardRef } from 'react';
+import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Heart, Eye, MessageCircle } from "lucide-react";
@@ -15,27 +15,7 @@ interface PostItemProps {
   onProfileClick?: (userId: string) => void;
 }
 
-export const PostItem = forwardRef<HTMLDivElement, PostItemProps>(({ post, userId, onLike, onView, onProfileClick }, ref) => {
-  const hasBeenViewed = useRef(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasBeenViewed.current) {
-          hasBeenViewed.current = true;
-          onView(post.id);
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    if (ref && 'current' in ref && ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => observer.disconnect();
-  }, [post.id, onView, ref]);
-
+export const PostItem: React.FC<PostItemProps> = ({ post, userId, onLike, onView, onProfileClick }) => {
   const hasLiked = post.post_likes?.some(like => like.user_id === userId);
 
   const handleProfileClick = () => {
@@ -47,12 +27,13 @@ export const PostItem = forwardRef<HTMLDivElement, PostItemProps>(({ post, userI
   const isImage = post.media_url && (post.media_url.includes('.jpg') || post.media_url.includes('.jpeg') || post.media_url.includes('.png') || post.media_url.includes('.gif') || post.media_url.includes('.webp'));
   const isVideo = post.media_url && (post.media_url.includes('.mp4') || post.media_url.includes('.webm') || post.media_url.includes('.mov'));
 
+  // Handle view count on mount
+  React.useEffect(() => {
+    onView(post.id);
+  }, [post.id, onView]);
+
   return (
-    <div 
-      ref={ref} 
-      data-post-id={post.id}
-      className="border-b border-border hover:bg-muted/30 transition-colors cursor-pointer"
-    >
+    <div className="border-b border-border hover:bg-muted/30 transition-colors">
       <div className="p-4 max-w-2xl mx-auto">
         <div className="flex items-start gap-3">
           <button
@@ -71,7 +52,7 @@ export const PostItem = forwardRef<HTMLDivElement, PostItemProps>(({ post, userI
                 onClick={handleProfileClick}
                 className="font-semibold text-sm hover:underline focus:outline-none focus:underline truncate"
               >
-                {post.profile?.name || 'Anonymous'}
+                {post.profile?.name || 'User'}
               </button>
               <span className="text-xs text-muted-foreground">
                 {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
@@ -129,6 +110,4 @@ export const PostItem = forwardRef<HTMLDivElement, PostItemProps>(({ post, userI
       </div>
     </div>
   );
-});
-
-PostItem.displayName = 'PostItem';
+};

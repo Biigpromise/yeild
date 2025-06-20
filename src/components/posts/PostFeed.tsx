@@ -1,6 +1,5 @@
 
-import React, { useState, useEffect, useRef } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PublicProfileModal } from "@/components/PublicProfileModal";
 import { usePosts } from '@/hooks/use-posts';
@@ -24,38 +23,6 @@ export const PostFeed: React.FC = () => {
   const [profileModalUserId, setProfileModalUserId] = useState<string | null>(null);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  const postRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  useEffect(() => {
-    // Reset refs when posts change to avoid observing detached elements
-    postRefs.current = postRefs.current.slice(0, posts.length);
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const postId = (entry.target as HTMLDivElement).dataset.postId;
-            if (postId) {
-              incrementViewCount(postId);
-            }
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
-
-    const currentRefs = postRefs.current;
-    currentRefs.forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-
-    return () => {
-      currentRefs.forEach((ref) => {
-        if (ref) observer.unobserve(ref);
-      });
-    };
-  }, [posts, incrementViewCount]);
 
   const openProfile = (uId: string | null) => {
     if (!uId) return;
@@ -97,17 +64,15 @@ export const PostFeed: React.FC = () => {
           <div className="flex justify-center p-8 text-muted-foreground">Loading feed...</div>
         ) : (
           <div className="max-w-2xl mx-auto">
-            {posts.map((post, index) => (
-              <div key={post.id} className="border-b last:border-b-0">
-                <PostItem
-                  ref={el => { postRefs.current[index] = el; }}
-                  post={post}
-                  userId={userId}
-                  onLike={handleLikePost}
-                  onView={incrementViewCount}
-                  onProfileClick={openProfile}
-                />
-              </div>
+            {posts.map((post) => (
+              <PostItem
+                key={post.id}
+                post={post}
+                userId={userId}
+                onLike={handleLikePost}
+                onView={incrementViewCount}
+                onProfileClick={openProfile}
+              />
             ))}
             {posts.length === 0 && !loading && (
               <div className="text-center text-muted-foreground pt-12">No posts yet.</div>
