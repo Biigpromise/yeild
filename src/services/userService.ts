@@ -138,10 +138,14 @@ export interface UserProfile {
   created_at: string;
 }
 
+// Fixed UserStats interface to match component usage
 export interface UserStats {
   total_points: number;
   tasks_completed: number;
+  tasksCompleted: number; // Added for backward compatibility
   current_level: number;
+  level: number; // Added for components that expect this
+  points: number; // Added for components that expect this
   referrals_made: number;
   achievements_earned: number;
 }
@@ -155,7 +159,11 @@ export interface Story {
   created_at: string;
   expires_at: string;
   view_count: number;
-  user?: UserProfile;
+  user?: {
+    id: string;
+    name: string;
+    profile_picture_url?: string;
+  };
 }
 
 export interface PostReply {
@@ -267,11 +275,19 @@ export const userService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // Fixed the foreign key relationship
       const { data: referrals, error } = await supabase
         .from('user_referrals')
         .select(`
-          *,
-          referred_user:profiles!user_referrals_referred_id_fkey (
+          id,
+          referrer_id,
+          referred_id,
+          referral_code,
+          is_active,
+          created_at,
+          activated_at,
+          points_awarded,
+          profiles!user_referrals_referred_id_fkey (
             id,
             name,
             profile_picture_url
@@ -281,7 +297,25 @@ export const userService = {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return referrals || [];
+      
+      // Transform the data to match our interface
+      const transformedReferrals = (referrals || []).map(referral => ({
+        id: referral.id,
+        referrer_id: referral.referrer_id,
+        referred_id: referral.referred_id,
+        referral_code: referral.referral_code,
+        is_active: referral.is_active,
+        created_at: referral.created_at,
+        activated_at: referral.activated_at,
+        points_awarded: referral.points_awarded,
+        referred_user: referral.profiles ? {
+          id: referral.profiles.id,
+          name: referral.profiles.name,
+          profile_picture_url: referral.profiles.profile_picture_url
+        } : undefined
+      }));
+      
+      return transformedReferrals;
     } catch (error) {
       console.error('Error getting user referrals:', error);
       return [];
@@ -411,13 +445,13 @@ export const userService = {
     }
   },
 
-  async searchUsers(query: string): Promise<UserProfile[]> {
+  async searchUsers(query: string, limit: number = 10): Promise<UserProfile[]> {
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .ilike('name', `%${query}%`)
-        .limit(10);
+        .limit(limit);
 
       if (error) throw error;
       return data || [];
@@ -448,13 +482,18 @@ export const userService = {
         .select('id')
         .eq('user_id', user.id);
 
-      return {
+      const stats = {
         total_points: profile?.points || 0,
         tasks_completed: profile?.tasks_completed || 0,
+        tasksCompleted: profile?.tasks_completed || 0, // For backward compatibility
         current_level: profile?.level || 1,
+        level: profile?.level || 1, // For components that expect this
+        points: profile?.points || 0, // For components that expect this
         referrals_made: referrals?.length || 0,
         achievements_earned: achievements?.length || 0
       };
+
+      return stats;
     } catch (error) {
       console.error('Error getting user stats:', error);
       return null;
@@ -561,14 +600,43 @@ export const userService = {
       const { data, error } = await supabase
         .from('stories')
         .select(`
-          *,
-          user:profiles(id, name, profile_picture_url)
+          id,
+          user_id,
+          media_url,
+          media_type,
+          caption,
+          created_at,
+          expires_at,
+          view_count,
+          profiles!stories_user_id_fkey (
+            id,
+            name,
+            profile_picture_url
+          )
         `)
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Transform the data to match our interface
+      const transformedStories = (data || []).map(story => ({
+        id: story.id,
+        user_id: story.user_id,
+        media_url: story.media_url,
+        media_type: story.media_type,
+        caption: story.caption,
+        created_at: story.created_at,
+        expires_at: story.expires_at,
+        view_count: story.view_count,
+        user: story.profiles ? {
+          id: story.profiles.id,
+          name: story.profiles.name,
+          profile_picture_url: story.profiles.profile_picture_url
+        } : undefined
+      }));
+      
+      return transformedStories;
     } catch (error) {
       console.error('Error getting stories:', error);
       return [];
