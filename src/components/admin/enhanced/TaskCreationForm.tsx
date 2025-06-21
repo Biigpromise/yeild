@@ -48,12 +48,11 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   const [formData, setFormData] = useState<TaskFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  console.log('TaskCreationForm rendering with:', { taskToEdit });
+  console.log('TaskCreationForm rendering');
 
   useEffect(() => {
-    console.log('TaskCreationForm useEffect - loading categories and setting form data');
+    console.log('TaskCreationForm useEffect - loading categories');
     
-    // Load categories but don't block rendering if it fails
     const loadCategories = async () => {
       try {
         setCategoriesLoading(true);
@@ -63,7 +62,6 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         setCategories(data || []);
       } catch (error) {
         console.error("Error loading categories:", error);
-        // Set empty array and continue - categories are optional
         setCategories([]);
         toast("Categories could not be loaded, but you can still create tasks", {
           description: "Task categories will be available once database issues are resolved."
@@ -75,7 +73,6 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
 
     loadCategories();
     
-    // Set form data for editing
     if (taskToEdit) {
       console.log('Setting form data for editing:', taskToEdit);
       setFormData({
@@ -153,58 +150,56 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   console.log('Rendering TaskCreationForm with current form data:', formData);
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {taskToEdit ? "Edit Task" : "Create New Task"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <TaskFormFields
-              formData={formData}
-              onInputChange={handleInputChange}
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle>
+          {taskToEdit ? "Edit Task" : "Create New Task"}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <TaskFormFields
+            formData={formData}
+            onInputChange={handleInputChange}
+          />
+          
+          <TaskCategorySelector
+            categoryId={formData.category_id}
+            categories={categories}
+            categoriesLoading={categoriesLoading}
+            onCategoryChange={(value) => handleInputChange('category_id', value)}
+          />
+          
+          {formData.task_type === 'social_media' && (
+            <TaskSocialMediaLinks
+              socialLinks={formData.social_media_links}
+              onSocialLinkChange={handleSocialLinkChange}
             />
-            
-            <TaskCategorySelector
-              categoryId={formData.category_id}
-              categories={categories}
-              categoriesLoading={categoriesLoading}
-              onCategoryChange={(value) => handleInputChange('category_id', value)}
+          )}
+          
+          <div>
+            <Label htmlFor="description">Task Description *</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              placeholder="Describe what users need to do to complete this task..."
+              rows={4}
+              required
             />
-            
-            {formData.task_type === 'social_media' && (
-              <TaskSocialMediaLinks
-                socialLinks={formData.social_media_links}
-                onSocialLinkChange={handleSocialLinkChange}
-              />
-            )}
-            
-            <div>
-              <Label htmlFor="description">Task Description *</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Describe what users need to do to complete this task..."
-                rows={4}
-                required
-              />
-            </div>
-            
-            <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={onCancel}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : (taskToEdit ? "Update Task" : "Create Task")}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          </div>
+          
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : (taskToEdit ? "Update Task" : "Create Task")}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -176,13 +176,14 @@ export const EnhancedTaskManagement = () => {
         </TabsContent>
 
         <TabsContent value="create" className="space-y-6">
-          <TaskCreationForm 
-            onTaskCreated={loadData}
-            onCancel={() => {
-              console.log('Task creation cancelled');
-              // Could switch to overview tab or just stay here
-            }}
-          />
+          <div className="w-full">
+            <TaskCreationForm 
+              onTaskCreated={loadData}
+              onCancel={() => {
+                console.log('Task creation cancelled');
+              }}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="categories" className="space-y-6">
