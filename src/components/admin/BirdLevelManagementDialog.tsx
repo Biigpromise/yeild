@@ -2,11 +2,13 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AdminBirdLevelOverrides } from '@/components/admin/AdminBirdLevelOverrides';
+import { PhoenixBirdDisplay } from '@/components/referral/PhoenixBirdDisplay';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bird, Users, Trophy } from 'lucide-react';
+import { Bird, Users, Trophy, Crown } from 'lucide-react';
 import { BirdBadge } from '@/components/referral/BirdBadge';
 import { BIRD_LEVELS } from '@/services/userService';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface BirdLevelManagementDialogProps {
   open: boolean;
@@ -25,10 +27,8 @@ export const BirdLevelManagementDialog: React.FC<BirdLevelManagementDialogProps>
   });
 
   const handleBirdLevelOverride = (userId: string, newLevel: string) => {
-    // In a real implementation, this would update the backend and refresh stats
     console.log(`Bird level override applied: User ${userId} promoted to ${newLevel}`);
     
-    // Mock update to stats (in real app, this would come from API)
     if (newLevel === 'Phoenix') {
       setStats(prev => ({ ...prev, phoenixBirds: prev.phoenixBirds + 1 }));
     } else if (newLevel === 'Falcon') {
@@ -48,70 +48,83 @@ export const BirdLevelManagementDialog: React.FC<BirdLevelManagementDialogProps>
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
-          {/* Current Statistics */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5" />
-                Current Bird Level Statistics
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-gradient-to-br from-red-50 to-orange-50 rounded-lg border">
-                  <div className="text-3xl font-bold text-red-600 mb-2">{stats.phoenixBirds}</div>
-                  <div className="text-sm font-medium text-red-700 mb-2">Phoenix Birds</div>
-                  <Badge variant="outline" className="text-xs">Legendary</Badge>
-                </div>
-                <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border">
-                  <div className="text-3xl font-bold text-purple-600 mb-2">{stats.falconBirds}</div>
-                  <div className="text-sm font-medium text-purple-700 mb-2">Falcon Birds</div>
-                  <Badge variant="outline" className="text-xs">Elite</Badge>
-                </div>
-                <div className="text-center p-4 bg-gradient-to-br from-amber-50 to-yellow-50 rounded-lg border">
-                  <div className="text-3xl font-bold text-amber-600 mb-2">{stats.eagleBirds}</div>
-                  <div className="text-sm font-medium text-amber-700 mb-2">Eagle Birds</div>
-                  <Badge variant="outline" className="text-xs">Advanced</Badge>
-                </div>
-                <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border">
-                  <div className="text-3xl font-bold text-green-600 mb-2">{stats.activeReferrals}</div>
-                  <div className="text-sm font-medium text-green-700 mb-2">Active Referrals</div>
-                  <Badge variant="outline" className="text-xs">Total</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="phoenix">Phoenix Preview</TabsTrigger>
+            <TabsTrigger value="management">Management</TabsTrigger>
+          </TabsList>
 
-          {/* Bird Level Overview */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Bird Level Requirements</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                {BIRD_LEVELS.map((level) => (
-                  <div key={level.name} className="text-center p-4 border rounded-lg hover:shadow-md transition-shadow">
-                    <BirdBadge birdLevel={level} size="lg" showName />
-                    <div className="mt-3 space-y-1">
-                      <div className="flex items-center justify-center gap-1">
-                        <Users className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">{level.minReferrals}+ referrals</span>
-                      </div>
-                      <div className="flex items-center justify-center gap-1">
-                        <Trophy className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">{level.minPoints}+ points</span>
+          <TabsContent value="overview" className="space-y-6">
+            {/* Current Statistics */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5" />
+                  Current Bird Level Statistics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-gradient-to-br from-red-50 to-orange-50 rounded-lg border">
+                    <div className="text-3xl font-bold text-red-600 mb-2">{stats.phoenixBirds}</div>
+                    <div className="text-sm font-medium text-red-700 mb-2">Phoenix Birds</div>
+                    <Badge variant="outline" className="text-xs">Legendary</Badge>
+                  </div>
+                  <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border">
+                    <div className="text-3xl font-bold text-purple-600 mb-2">{stats.falconBirds}</div>
+                    <div className="text-sm font-medium text-purple-700 mb-2">Falcon Birds</div>
+                    <Badge variant="outline" className="text-xs">Elite</Badge>
+                  </div>
+                  <div className="text-center p-4 bg-gradient-to-br from-amber-50 to-yellow-50 rounded-lg border">
+                    <div className="text-3xl font-bold text-amber-600 mb-2">{stats.eagleBirds}</div>
+                    <div className="text-sm font-medium text-amber-700 mb-2">Eagle Birds</div>
+                    <Badge variant="outline" className="text-xs">Advanced</Badge>
+                  </div>
+                  <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border">
+                    <div className="text-3xl font-bold text-green-600 mb-2">{stats.activeReferrals}</div>
+                    <div className="text-sm font-medium text-green-700 mb-2">Active Referrals</div>
+                    <Badge variant="outline" className="text-xs">Total</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Bird Level Overview */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Bird Level Requirements</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  {BIRD_LEVELS.map((level) => (
+                    <div key={level.name} className="text-center p-4 border rounded-lg hover:shadow-md transition-shadow">
+                      <BirdBadge birdLevel={level} size="lg" showName />
+                      <div className="mt-3 space-y-1">
+                        <div className="flex items-center justify-center gap-1">
+                          <Users className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">{level.minReferrals}+ referrals</span>
+                        </div>
+                        <div className="flex items-center justify-center gap-1">
+                          <Trophy className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">{level.minPoints}+ points</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-          {/* Bird Level Override System */}
-          <AdminBirdLevelOverrides onOverride={handleBirdLevelOverride} />
-        </div>
+          <TabsContent value="phoenix">
+            <PhoenixBirdDisplay />
+          </TabsContent>
+
+          <TabsContent value="management">
+            <AdminBirdLevelOverrides onOverride={handleBirdLevelOverride} />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
