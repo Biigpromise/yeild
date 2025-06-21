@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Users, MessageCircle } from 'lucide-react';
+import { Send, Users, MessageCircle, Trash2, Image, Video } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { chatService } from '@/services/chatService';
 import { toast } from 'sonner';
@@ -15,6 +16,7 @@ interface Message {
   content: string;
   user_id: string;
   created_at: string;
+  media_url?: string;
   profiles: {
     name: string;
     profile_picture_url?: string;
@@ -28,7 +30,10 @@ export const CommunityChat = () => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -56,20 +61,80 @@ export const CommunityChat = () => {
     }
   };
 
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    if (!isImage && !isVideo) {
+      toast.error('Please select an image or video file');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      toast.error('File size must be less than 10MB');
+      return;
+    }
+
+    setSelectedFile(file);
+    setFilePreview(URL.createObjectURL(file));
+  };
+
+  const removeFile = () => {
+    if (filePreview) {
+      URL.revokeObjectURL(filePreview);
+    }
+    setSelectedFile(null);
+    setFilePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || sending || !user) return;
+    if ((!newMessage.trim() && !selectedFile) || sending || !user) return;
 
     try {
       setSending(true);
-      await chatService.sendMessage(newMessage.trim(), user.id);
+      
+      let mediaUrl: string | undefined;
+      if (selectedFile) {
+        mediaUrl = await chatService.uploadMedia(selectedFile);
+        if (!mediaUrl) {
+          toast.error('Failed to upload file');
+          setSending(false);
+          return;
+        }
+      }
+
+      await chatService.sendMessage(newMessage.trim(), user.id, mediaUrl);
       setNewMessage('');
+      removeFile();
       await loadMessages();
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string, messageUserId: string) => {
+    if (!user || user.id !== messageUserId) {
+      toast.error('You can only delete your own messages');
+      return;
+    }
+
+    try {
+      await chatService.deleteMessage(messageId);
+      toast.success('Message deleted');
+      await loadMessages();
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      toast.error('Failed to delete message');
     }
   };
 
@@ -100,6 +165,14 @@ export const CommunityChat = () => {
         hour12: true
       });
     }
+  };
+
+  const isImage = (url: string) => {
+    return url && (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('.gif') || url.includes('.webp'));
+  };
+
+  const isVideo = (url: string) => {
+    return url && (url.includes('.mp4') || url.includes('.webm') || url.includes('.mov'));
   };
 
   if (loading) {
@@ -138,7 +211,7 @@ export const CommunityChat = () => {
               </div>
             ) : (
               messages.map((message) => (
-                <div key={message.id} className="flex items-start space-x-3">
+                <div key={message.id} className="flex items-start space-x-3 group">
                   <ChatUserBadge
                     userId={message.user_id}
                     userName={message.profiles?.name || 'Anonymous'}
@@ -155,9 +228,41 @@ export const CommunityChat = () => {
                       <span className="text-xs text-muted-foreground">
                         {formatMessageTime(message.created_at)}
                       </span>
+                      {user && user.id === message.user_id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteMessage(message.id, message.user_id)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
                     </div>
                     <div className="bg-muted/50 rounded-lg p-3">
-                      <p className="text-sm break-words">{message.content}</p>
+                      {message.content && (
+                        <p className="text-sm break-words mb-2">{message.content}</p>
+                      )}
+                      {message.media_url && (
+                        <div className="mt-2">
+                          {isImage(message.media_url) && (
+                            <img
+                              src={message.media_url}
+                              alt="Shared media"
+                              className="max-w-full max-h-48 rounded-lg border object-cover"
+                              loading="lazy"
+                            />
+                          )}
+                          {isVideo(message.media_url) && (
+                            <video
+                              src={message.media_url}
+                              controls
+                              className="max-w-full max-h-48 rounded-lg border"
+                              preload="metadata"
+                            />
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -168,18 +273,64 @@ export const CommunityChat = () => {
         </ScrollArea>
 
         <div className="border-t p-4">
+          {filePreview && (
+            <div className="mb-3 relative inline-block">
+              {selectedFile?.type.startsWith('image/') ? (
+                <img
+                  src={filePreview}
+                  alt="Preview"
+                  className="max-w-32 max-h-32 rounded-lg border"
+                />
+              ) : (
+                <video
+                  src={filePreview}
+                  className="max-w-32 max-h-32 rounded-lg border"
+                  preload="metadata"
+                />
+              )}
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                onClick={removeFile}
+              >
+                ×
+              </Button>
+            </div>
+          )}
+          
           <form onSubmit={handleSendMessage} className="flex gap-2">
-            <Input
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type your message..."
-              disabled={sending}
-              maxLength={500}
-              className="flex-1"
-            />
+            <div className="flex-1 flex gap-2">
+              <Input
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type your message..."
+                disabled={sending}
+                maxLength={500}
+                className="flex-1"
+              />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={sending}
+                className="px-3"
+              >
+                <Image className="h-4 w-4" />
+              </Button>
+            </div>
             <Button 
               type="submit" 
-              disabled={!newMessage.trim() || sending}
+              disabled={(!newMessage.trim() && !selectedFile) || sending}
               size="sm"
             >
               <Send className="h-4 w-4" />
