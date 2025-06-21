@@ -47,14 +47,31 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formMounted, setFormMounted] = useState(false);
+  const [componentMounted, setComponentMounted] = useState(false);
+
+  console.log('TaskCreationForm component rendering...', { taskToEdit, componentMounted });
 
   useEffect(() => {
-    console.log('TaskCreationForm mounted');
-    setFormMounted(true);
+    console.log('TaskCreationForm useEffect triggered');
+    setComponentMounted(true);
     
-    // Load categories in the background, but don't block the form
-    loadCategoriesAsync();
+    // Load categories but don't block rendering
+    const loadCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        console.log('Loading categories...');
+        const data = await enhancedTaskManagementService.getTaskCategories();
+        console.log('Categories loaded:', data);
+        setCategories(data || []);
+      } catch (error) {
+        console.error("Error loading categories:", error);
+        setCategories([]);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    loadCategories();
     
     if (taskToEdit) {
       console.log('Editing task:', taskToEdit);
@@ -72,31 +89,13 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         task_type: taskToEdit.task_type || "general",
         social_media_links: taskToEdit.social_media_links || initialFormData.social_media_links,
       });
-    } else {
-      setFormData(initialFormData);
     }
   }, [taskToEdit]);
-
-  const loadCategoriesAsync = async () => {
-    try {
-      setCategoriesLoading(true);
-      console.log('Loading categories...');
-      const data = await enhancedTaskManagementService.getTaskCategories();
-      console.log('Categories loaded:', data);
-      setCategories(data || []);
-    } catch (error: any) {
-      console.error("Error loading categories:", error);
-      // Don't show error toast for categories since they're optional
-      setCategories([]);
-    } finally {
-      setCategoriesLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('Form submission started');
+    console.log('Form submission started with data:', formData);
     
     // Basic validation
     if (!formData.title?.trim()) {
@@ -180,10 +179,11 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
     }));
   };
 
-  // Show loading state until form is mounted
-  if (!formMounted) {
+  // Early return with loading state if not mounted yet
+  if (!componentMounted) {
+    console.log('Component not mounted yet, showing loading...');
     return (
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>Loading Task Form...</CardTitle>
         </CardHeader>
@@ -198,6 +198,8 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
       </Card>
     );
   }
+
+  console.log('Rendering main form component');
 
   const validCategories = categories.filter(category =>
     category &&
