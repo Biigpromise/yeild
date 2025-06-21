@@ -272,6 +272,48 @@ export type Database = {
           },
         ]
       }
+      duplicate_image_flags: {
+        Row: {
+          admin_notes: string | null
+          duplicate_hash_id: string
+          flagged_at: string | null
+          id: string
+          original_hash_id: string
+          reviewed: boolean | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          duplicate_hash_id: string
+          flagged_at?: string | null
+          id?: string
+          original_hash_id: string
+          reviewed?: boolean | null
+        }
+        Update: {
+          admin_notes?: string | null
+          duplicate_hash_id?: string
+          flagged_at?: string | null
+          id?: string
+          original_hash_id?: string
+          reviewed?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "duplicate_image_flags_duplicate_hash_id_fkey"
+            columns: ["duplicate_hash_id"]
+            isOneToOne: false
+            referencedRelation: "image_hashes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "duplicate_image_flags_original_hash_id_fkey"
+            columns: ["original_hash_id"]
+            isOneToOne: false
+            referencedRelation: "image_hashes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gift_cards: {
         Row: {
           created_at: string
@@ -310,6 +352,51 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      image_hashes: {
+        Row: {
+          created_at: string | null
+          file_url: string
+          hash_value: string
+          id: string
+          submission_id: string | null
+          task_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_url: string
+          hash_value: string
+          id?: string
+          submission_id?: string | null
+          task_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          file_url?: string
+          hash_value?: string
+          id?: string
+          submission_id?: string | null
+          task_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "image_hashes_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "task_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "image_hashes_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {

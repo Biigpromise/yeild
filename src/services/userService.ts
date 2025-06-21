@@ -13,44 +13,52 @@ export interface ReferralBirdLevel {
 // Updated bird levels to match the design reference
 export const BIRD_LEVELS: ReferralBirdLevel[] = [
   {
-    name: "Dove",
-    icon: "dove",
-    description: "Welcome to the flock! Your first bird badge.",
+    name: 'None',
     minReferrals: 0,
     minPoints: 0,
-    color: "#e5e7eb"
+    icon: 'none',
+    description: 'No referral level yet',
+    color: '#gray'
   },
   {
-    name: "Vulture", 
-    icon: "hawk", // Using hawk as closest match to vulture
-    description: "Building your network with patience and persistence.",
-    minReferrals: 3,
-    minPoints: 200,
-    color: "#92400e"
+    name: 'Dove',
+    minReferrals: 5,
+    minPoints: 0,
+    icon: 'dove',
+    description: 'New Flight - 5+ referrals',
+    color: '#d1d5db'
   },
   {
-    name: "Eagle",
-    icon: "eagle",
-    description: "Soaring high with active referrals.",
-    minReferrals: 10,
-    minPoints: 500,
-    color: "#1d4ed8"
+    name: 'Hawk',
+    minReferrals: 20,
+    minPoints: 0,
+    icon: 'hawk',
+    description: 'Rising Wing - 20+ referrals',
+    color: '#f59e0b'
   },
   {
-    name: "Falcon",
-    icon: "falcon",
-    description: "Swift and powerful, unlocking premium rewards.",
-    minReferrals: 25,
-    minPoints: 1000,
-    color: "#6b21a8"
-  },
-  {
-    name: "Phoenix",
-    icon: "phoenix",
-    description: "The ultimate bird badge - legendary status achieved!",
+    name: 'Eagle',
     minReferrals: 100,
-    minPoints: 2000,
-    color: "#dc2626"
+    minPoints: 0,
+    icon: 'eagle',
+    description: 'Trailblazer - 100+ referrals',
+    color: '#3b82f6'
+  },
+  {
+    name: 'Falcon',
+    minReferrals: 500,
+    minPoints: 0,
+    icon: 'falcon',
+    description: 'Sky Master - 500+ referrals',
+    color: '#8b5cf6'
+  },
+  {
+    name: 'Phoenix',
+    minReferrals: 1000,
+    minPoints: 0,
+    icon: 'phoenix',
+    description: 'Legend of YEILD - 1000+ referrals',
+    color: '#f97316'
   }
 ];
 

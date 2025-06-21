@@ -1,8 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { DuplicateImageManager } from './DuplicateImageManager';
 
 interface TaskStats {
   pendingApproval: number;
@@ -77,36 +78,53 @@ export const AdminTaskOverview = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Task Overview</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-4 bg-muted/20 rounded-lg">
-            <div className="text-2xl font-bold">{stats.pendingApproval}</div>
-            <div className="text-sm text-muted-foreground">Pending Approval</div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Task Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center p-4 bg-muted/20 rounded-lg">
+              <div className="text-2xl font-bold">{stats.pendingApproval}</div>
+              <div className="text-sm text-muted-foreground">Pending Approval</div>
+            </div>
+            <div className="text-center p-4 bg-muted/20 rounded-lg">
+              <div className="text-2xl font-bold">{stats.activeTasks}</div>
+              <div className="text-sm text-muted-foreground">Active Tasks</div>
+            </div>
           </div>
-          <div className="text-center p-4 bg-muted/20 rounded-lg">
-            <div className="text-2xl font-bold">{stats.activeTasks}</div>
-            <div className="text-sm text-muted-foreground">Active Tasks</div>
+          
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              className="flex-1" 
+              disabled={stats.pendingApproval === 0}
+              onClick={handleApprovePending}
+            >
+              Approve Pending
+            </Button>
+            <Button className="flex-1" onClick={handleCreateTask}>
+              Create New Task
+            </Button>
           </div>
-        </div>
-        
-        <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            className="flex-1" 
-            disabled={stats.pendingApproval === 0}
-            onClick={handleApprovePending}
-          >
-            Approve Pending
-          </Button>
-          <Button className="flex-1" onClick={handleCreateTask}>
-            Create New Task
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <Tabs defaultValue="overview">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="pending">Pending Review</TabsTrigger>
+          <TabsTrigger value="approved">Approved</TabsTrigger>
+          <TabsTrigger value="rejected">Rejected</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="duplicates">Duplicate Images</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="duplicates">
+          <DuplicateImageManager />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };

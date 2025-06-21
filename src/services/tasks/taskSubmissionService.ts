@@ -1,7 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { pointCalculationService, PointCalculationFactors } from "../pointCalculationService";
+import { imageHashService } from "../imageHashService";
 
 export const taskSubmissionService = {
   async submitTask(taskId: string, evidence: string, timeSpent?: number, evidenceFile?: File): Promise<boolean> {
@@ -63,9 +63,22 @@ export const taskSubmissionService = {
 
       const pointResult = pointCalculationService.calculatePoints(pointFactors);
 
-      // File upload logic
+      // File upload logic with duplicate detection
       let evidenceFileUrl: string | undefined = undefined;
+      let isDuplicateImage = false;
+      
       if (evidenceFile) {
+        // Generate hash for duplicate detection
+        const fileHash = await imageHashService.generateFileHash(evidenceFile);
+        
+        // Check for duplicates
+        const duplicateCheck = await imageHashService.checkForDuplicate(fileHash, user.id, taskId);
+        
+        if (duplicateCheck.isDuplicate) {
+          isDuplicateImage = true;
+          toast.warning("Possible duplicate image detected - submission flagged for admin review");
+        }
+
         const ext = evidenceFile.name.split('.').pop();
         const filePath = `${user.id}/${taskId}/${Date.now()}.${ext}`;
         const { data: uploadData, error: uploadError } = await supabase
@@ -85,9 +98,12 @@ export const taskSubmissionService = {
           .from('task-evidence')
           .getPublicUrl(filePath);
         evidenceFileUrl = pubUrl?.publicUrl || null;
+
+        // Store image hash for future duplicate detection
+        await imageHashService.storeImageHash(fileHash, user.id, evidenceFileUrl, taskId);
       }
 
-      // Submit the task - ensure all fields are properly typed
+      // Submit the task - mark as pending review if duplicate detected
       const submissionData = {
         user_id: user.id,
         task_id: taskId,
@@ -96,17 +112,30 @@ export const taskSubmissionService = {
         calculated_points: pointResult.finalPoints,
         point_breakdown: pointResult.breakdown as any,
         point_explanation: pointResult.explanation.join('\n'),
-        status: 'pending' as const
+        status: isDuplicateImage ? 'flagged' as const : 'pending' as const,
+        admin_notes: isDuplicateImage ? 'Flagged for possible duplicate image' : undefined
       };
 
-      const { error } = await supabase
+      const { data: submission, error } = await supabase
         .from('task_submissions')
-        .insert(submissionData);
+        .insert(submissionData)
+        .select()
+        .single();
 
       if (error) {
         console.error('Error submitting task:', error);
         toast.error("Failed to submit task");
         return false;
+      }
+
+      // Update image hash with submission ID
+      if (evidenceFile && submission) {
+        const fileHash = await imageHashService.generateFileHash(evidenceFile);
+        await supabase
+          .from('image_hashes')
+          .update({ submission_id: submission.id })
+          .eq('hash_value', fileHash)
+          .eq('user_id', user.id);
       }
 
       // Record the submission in user_tasks table
@@ -119,7 +148,12 @@ export const taskSubmissionService = {
           started_at: new Date().toISOString()
         });
 
-      toast.success("Task submitted successfully! Awaiting review.");
+      if (isDuplicateImage) {
+        toast.success("Task submitted but flagged for review due to possible duplicate image.");
+      } else {
+        toast.success("Task submitted successfully! Awaiting review.");
+      }
+      
       return true;
     } catch (error) {
       console.error('Error submitting task:', error);
