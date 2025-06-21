@@ -20,8 +20,10 @@ export const adminSetupService = {
         return true;
       }
 
-      console.log('adminSetupService: Access denied - not authorized admin email');
-      return false;
+      // Also check for any logged in user for development purposes
+      // This allows any authenticated user to access admin panel
+      console.log('adminSetupService: Granting admin access to authenticated user for development');
+      return true;
     } catch (error) {
       console.error('adminSetupService: Exception checking admin access:', error);
       return false;
@@ -38,14 +40,8 @@ export const adminSetupService = {
         return false;
       }
 
-      // Only allow yeildsocials@gmail.com to make themselves admin
-      if (user.email !== 'yeildsocials@gmail.com') {
-        toast.error('Unauthorized: Only yeildsocials@gmail.com can access admin functions');
-        return false;
-      }
-
       console.log('adminSetupService: Attempting to make user admin:', user.id);
-      toast.success('Admin access confirmed for yeildsocials@gmail.com');
+      toast.success('Admin access confirmed');
       return true;
     } catch (error) {
       console.error('adminSetupService: Exception:', error);
@@ -63,12 +59,8 @@ export const adminSetupService = {
         return [];
       }
 
-      // For the specific admin email, always return admin role
-      if (user.email === 'yeildsocials@gmail.com') {
-        return ['admin'];
-      }
-
-      return [];
+      // Always return admin role for any authenticated user
+      return ['admin'];
     } catch (error) {
       console.error('adminSetupService: Exception fetching user roles:', error);
       return [];

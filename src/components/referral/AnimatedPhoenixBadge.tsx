@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Flame, Crown, Star } from 'lucide-react';
+import { Crown, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AnimatedPhoenixBadgeProps {
@@ -48,23 +48,23 @@ export const AnimatedPhoenixBadge: React.FC<AnimatedPhoenixBadgeProps> = ({
 
   return (
     <div className="relative group">
-      {/* Phoenix Glow Effects */}
-      <div className="absolute -inset-2 opacity-75 animate-pulse">
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-600 via-red-500 to-yellow-500 rounded-full blur-lg opacity-60" />
+      {/* Phoenix Glow Effects - Enhanced */}
+      <div className="absolute -inset-3 opacity-75 animate-pulse">
+        <div className="absolute inset-0 bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 rounded-full blur-xl opacity-80" />
       </div>
       
-      <div className="absolute -inset-1 opacity-50 animate-pulse" style={{ animationDelay: '0.5s' }}>
-        <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-orange-400 to-yellow-400 rounded-full blur-md opacity-40" />
+      <div className="absolute -inset-2 opacity-60 animate-pulse" style={{ animationDelay: '0.5s' }}>
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-600 via-red-500 to-orange-400 rounded-full blur-lg opacity-70" />
       </div>
 
       {/* Main Phoenix Badge */}
       <Badge 
         className={cn(
-          `relative z-10 cursor-pointer transition-all duration-300 transform`,
-          `bg-gradient-to-br from-red-600 via-orange-500 to-yellow-500`,
+          `relative z-10 cursor-pointer transition-all duration-500 transform`,
+          `bg-gradient-to-br from-red-700 via-orange-600 to-yellow-500`,
           `border-2 border-orange-400 shadow-2xl`,
-          `hover:scale-110 hover:shadow-orange-400/50`,
-          isHovered && 'scale-125 shadow-orange-400/70',
+          `hover:scale-110 hover:shadow-orange-400/70`,
+          isHovered && 'scale-125 shadow-orange-400/90',
           badgeSize,
           className
         )}
@@ -75,120 +75,155 @@ export const AnimatedPhoenixBadge: React.FC<AnimatedPhoenixBadgeProps> = ({
           setTimeout(() => setShowParticles(false), 2000);
         }}
       >
-        {/* Phoenix Icon Container */}
+        {/* Phoenix Icon Container - Redesigned to match the image */}
         <div className={cn(
           'relative flex items-center justify-center',
           sizeClasses[size]
         )}>
-          {/* Phoenix Wings - Animated */}
+          {/* Phoenix Body - Central flame */}
           <div className={cn(
-            'absolute inset-0 transition-all duration-500',
-            isHovered ? 'scale-150 rotate-12' : 'scale-100',
-            showParticles && 'animate-pulse'
+            'absolute inset-0 flex items-center justify-center z-20'
           )}>
-            {/* Left Wing */}
             <div className={cn(
-              'absolute left-0 top-1/2 -translate-y-1/2 w-1/3 h-full',
-              'bg-gradient-to-r from-red-500 to-orange-400 rounded-l-full',
-              'opacity-80 transform -rotate-45',
-              isHovered && 'scale-110 -rotate-60',
-              'transition-all duration-500'
+              'w-3/4 h-3/4 bg-gradient-to-t from-red-600 via-orange-500 to-yellow-400',
+              'rounded-full opacity-90',
+              isHovered && 'animate-pulse scale-110',
+              showParticles && 'animate-bounce'
             )} />
-            
-            {/* Right Wing */}
+            {/* Phoenix head/beak */}
             <div className={cn(
-              'absolute right-0 top-1/2 -translate-y-1/2 w-1/3 h-full',
-              'bg-gradient-to-l from-red-500 to-orange-400 rounded-r-full',
-              'opacity-80 transform rotate-45',
-              isHovered && 'scale-110 rotate-60',
-              'transition-all duration-500'
-            )} />
+              'absolute top-1/4 w-1/4 h-1/4 bg-gradient-to-br from-orange-600 to-red-700',
+              'transform rotate-45 opacity-80'
+            )} style={{ clipPath: 'polygon(0% 100%, 100% 0%, 100% 100%)' }} />
           </div>
 
-          {/* Phoenix Body */}
-          <Flame className={cn(
-            'relative z-10 text-white transition-all duration-300',
-            size === 'sm' ? 'h-4 w-4' : 
-            size === 'md' ? 'h-6 w-6' : 
-            size === 'lg' ? 'h-8 w-8' : 'h-12 w-12',
-            isHovered && 'animate-bounce text-yellow-200',
-            showParticles && 'animate-pulse'
-          )} />
+          {/* Phoenix Wings - Majestic spread wings like in the image */}
+          <div className={cn(
+            'absolute inset-0 transition-all duration-700',
+            isHovered ? 'scale-150 rotate-12' : 'scale-125',
+            showParticles && 'animate-pulse scale-140'
+          )}>
+            {/* Left Wing - Multiple feather layers */}
+            <div className={cn(
+              'absolute left-0 top-1/2 -translate-y-1/2 w-full h-full',
+              'transform -rotate-45 origin-right',
+              isHovered && 'scale-110 -rotate-60',
+              'transition-all duration-700'
+            )}>
+              {/* Outer feathers */}
+              <div className="absolute inset-0 bg-gradient-to-r from-red-600 via-orange-500 to-transparent rounded-l-full opacity-70" />
+              <div className="absolute inset-1 bg-gradient-to-r from-orange-600 via-yellow-500 to-transparent rounded-l-full opacity-60" />
+              <div className="absolute inset-2 bg-gradient-to-r from-yellow-500 via-orange-400 to-transparent rounded-l-full opacity-50" />
+            </div>
+            
+            {/* Right Wing - Multiple feather layers */}
+            <div className={cn(
+              'absolute right-0 top-1/2 -translate-y-1/2 w-full h-full',
+              'transform rotate-45 origin-left',
+              isHovered && 'scale-110 rotate-60',
+              'transition-all duration-700'
+            )}>
+              {/* Outer feathers */}
+              <div className="absolute inset-0 bg-gradient-to-l from-red-600 via-orange-500 to-transparent rounded-r-full opacity-70" />
+              <div className="absolute inset-1 bg-gradient-to-l from-orange-600 via-yellow-500 to-transparent rounded-r-full opacity-60" />
+              <div className="absolute inset-2 bg-gradient-to-l from-yellow-500 via-orange-400 to-transparent rounded-r-full opacity-50" />
+            </div>
+          </div>
 
-          {/* Crown on top */}
+          {/* Phoenix Tail - Flowing tail feathers */}
+          <div className={cn(
+            'absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-full',
+            'transform translate-y-1/4',
+            isHovered && 'scale-110 translate-y-1/3',
+            'transition-all duration-500'
+          )}>
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-500 to-red-600 rounded-b-full opacity-60" />
+            <div className="absolute inset-1 bg-gradient-to-b from-transparent via-yellow-500 to-orange-600 rounded-b-full opacity-50" />
+          </div>
+
+          {/* Crown on top - Enhanced */}
           <Crown className={cn(
-            'absolute -top-2 -right-1 text-yellow-400 z-20',
+            'absolute -top-2 -right-1 text-yellow-300 z-30 drop-shadow-lg',
             size === 'sm' ? 'h-3 w-3' : 
             size === 'md' ? 'h-4 w-4' : 
             size === 'lg' ? 'h-5 w-5' : 'h-6 w-6',
-            isHovered && 'animate-spin text-yellow-200'
+            isHovered && 'animate-pulse text-yellow-100 scale-110'
           )} />
         </div>
 
         {showName && (
           <span className={cn(
-            'ml-2 font-bold text-white tracking-wide',
-            isHovered && 'animate-pulse'
+            'ml-2 font-bold text-white tracking-wide drop-shadow-md',
+            isHovered && 'animate-pulse text-yellow-100'
           )}>
             Phoenix
           </span>
         )}
       </Badge>
 
-      {/* Floating Particles */}
+      {/* Enhanced Floating Particles - More realistic ember effect */}
       {showParticles && (
         <>
-          {[...Array(8)].map((_, i) => (
+          {[...Array(12)].map((_, i) => (
             <div
               key={i}
               className={cn(
-                'absolute w-2 h-2 bg-orange-400 rounded-full opacity-80',
-                'animate-ping pointer-events-none'
+                'absolute rounded-full opacity-80 pointer-events-none',
+                i % 3 === 0 ? 'w-2 h-2 bg-orange-400' : 
+                i % 3 === 1 ? 'w-1.5 h-1.5 bg-red-500' : 'w-1 h-1 bg-yellow-400',
+                'animate-ping'
               )}
               style={{
-                left: `${20 + Math.random() * 60}%`,
-                top: `${20 + Math.random() * 60}%`,
+                left: `${10 + Math.random() * 80}%`,
+                top: `${10 + Math.random() * 80}%`,
                 animationDelay: `${i * 0.1}s`,
-                animationDuration: '1s'
+                animationDuration: `${1.5 + Math.random()}s`
               }}
             />
           ))}
         </>
       )}
 
-      {/* Stars around Phoenix */}
+      {/* Enhanced Stars around Phoenix */}
       <Star className={cn(
-        'absolute -top-1 -left-1 text-yellow-400 opacity-60',
+        'absolute -top-1 -left-1 text-yellow-300 opacity-70 drop-shadow-sm',
         size === 'sm' ? 'h-2 w-2' : 'h-3 w-3',
-        isHovered && 'animate-spin text-yellow-200 opacity-100'
+        isHovered && 'animate-spin text-yellow-100 opacity-100 scale-110'
       )} />
       
       <Star className={cn(
-        'absolute -bottom-1 -right-1 text-red-400 opacity-60',
+        'absolute -bottom-1 -right-1 text-red-300 opacity-70 drop-shadow-sm',
         size === 'sm' ? 'h-2 w-2' : 'h-3 w-3',
-        isHovered && 'animate-spin text-red-200 opacity-100'
+        isHovered && 'animate-spin text-red-100 opacity-100 scale-110'
       )} />
 
-      {/* Tooltip */}
+      {/* Enhanced Tooltip */}
       {isHovered && (
-        <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 z-50">
-          <div className="bg-black/90 text-white px-4 py-2 rounded-lg shadow-xl border border-orange-400">
+        <div className="absolute -top-24 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="bg-black/95 text-white px-4 py-3 rounded-lg shadow-2xl border border-orange-400/50 backdrop-blur-sm">
             <div className="flex items-center gap-2 whitespace-nowrap">
-              <Flame className="h-4 w-4 text-orange-400" />
-              <span className="font-bold">Phoenix YEILDER</span>
+              <div className="w-4 h-4 bg-gradient-to-br from-red-500 to-orange-400 rounded-full animate-pulse" />
+              <span className="font-bold text-orange-300">Phoenix YEILDER</span>
             </div>
             <div className="text-xs text-gray-300 mt-1">
-              {referralCount.toLocaleString()}+ verified referrals. Elite badge unlocked.
+              {referralCount.toLocaleString()}+ verified referrals. Legendary status achieved.
             </div>
           </div>
         </div>
       )}
 
-      {/* Energy Ring Pulse */}
+      {/* Enhanced Energy Ring Pulse */}
       <div className={cn(
-        'absolute inset-0 rounded-full border-2 border-orange-400/30',
+        'absolute inset-0 rounded-full border-2 border-orange-400/40',
         'animate-ping pointer-events-none',
-        isHovered ? 'opacity-100' : 'opacity-50'
+        isHovered ? 'opacity-100 border-orange-300/60' : 'opacity-60'
+      )} style={{ animationDuration: '2s' }} />
+      
+      {/* Additional outer ring for more dramatic effect */}
+      <div className={cn(
+        'absolute -inset-1 rounded-full border border-red-400/30',
+        'animate-pulse pointer-events-none',
+        isHovered ? 'opacity-80' : 'opacity-40'
       )} style={{ animationDuration: '3s' }} />
     </div>
   );
