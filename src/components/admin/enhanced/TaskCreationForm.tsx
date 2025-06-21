@@ -47,6 +47,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [formData, setFormData] = useState<TaskFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   console.log('TaskCreationForm rendering');
 
@@ -56,6 +57,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
     const loadCategories = async () => {
       try {
         setCategoriesLoading(true);
+        setHasError(false);
         console.log('Loading categories...');
         const data = await enhancedTaskManagementService.getTaskCategories();
         console.log('Categories loaded:', data);
@@ -63,9 +65,8 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
       } catch (error) {
         console.error("Error loading categories:", error);
         setCategories([]);
-        toast("Categories could not be loaded, but you can still create tasks", {
-          description: "Task categories will be available once database issues are resolved."
-        });
+        // Don't show error toast for categories since they're optional
+        console.log("Categories failed to load, continuing without them");
       } finally {
         setCategoriesLoading(false);
       }
@@ -127,6 +128,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
     } catch (error) {
       console.error("Error saving task:", error);
       toast.error("Failed to save task. Please try again.");
+      setHasError(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -148,6 +150,23 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   };
 
   console.log('Rendering TaskCreationForm with current form data:', formData);
+
+  // Error boundary fallback
+  if (hasError) {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardContent className="p-6 text-center">
+          <div className="text-red-500 mb-4">
+            <h3 className="text-lg font-semibold">Form Error</h3>
+            <p>There was an issue with the form. Please try refreshing the page.</p>
+          </div>
+          <Button onClick={() => setHasError(false)} variant="outline">
+            Try Again
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-4xl mx-auto">

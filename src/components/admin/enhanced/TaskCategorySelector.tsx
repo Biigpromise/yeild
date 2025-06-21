@@ -30,14 +30,14 @@ export const TaskCategorySelector: React.FC<TaskCategorySelectorProps> = ({
     <div>
       <Label htmlFor="category">Category (Optional)</Label>
       <Select
-        value={categoryId}
-        onValueChange={onCategoryChange}
+        value={categoryId || "none"}
+        onValueChange={(value) => onCategoryChange(value === "none" ? "" : value)}
       >
         <SelectTrigger>
           <SelectValue placeholder="Select category (optional)" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">No Category</SelectItem>
+          <SelectItem value="none">No Category</SelectItem>
           {categoriesLoading ? (
             <SelectItem value="loading" disabled>Loading categories...</SelectItem>
           ) : validCategories.length > 0 ? (
