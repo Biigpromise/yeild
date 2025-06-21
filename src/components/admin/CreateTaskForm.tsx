@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,7 @@ const FORM_DRAFT_KEY = "adminCreateTaskDraft";
 
 export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated }) => {
   const [categories, setCategories] = useState<TaskCategory[]>([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -46,10 +45,13 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
   const loadCategories = async () => {
     try {
       setCategoriesLoading(true);
+      console.log('Loading categories for task creation...');
       const data = await taskService.getCategories();
+      console.log('Categories loaded:', data);
       setCategories(data || []);
     } catch (error: any) {
       console.error("Error loading categories:", error);
+      // Don't show error toast for categories since they're optional
       setCategories([]);
     } finally {
       setCategoriesLoading(false);
@@ -58,37 +60,43 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Submitting task with data:', formData);
     
-    // Validate required fields - category is now optional
+    // Validate required fields - only title, description, and points are required
     if (
       !formData.title.trim() ||
       !formData.description.trim() ||
       !formData.points ||
       formData.points === "0" ||
-      isNaN(Number(formData.points))
+      isNaN(Number(formData.points)) ||
+      Number(formData.points) < 1
     ) {
-      toast.error("Please fill in all required fields (title, description, and points > 0)");
+      toast.error("Please fill in all required fields (title, description, and points must be greater than 0)");
       return;
     }
 
     setIsSubmitting(true);
     try {
       const taskData = {
-        ...formData,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
         points: parseInt(formData.points, 10),
         expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null,
         status: 'active',
-        // Only include category_id if it's selected
-        ...(formData.category_id && { category_id: formData.category_id })
+        // Optional fields - only include if they have values
+        ...(formData.category_id && { category_id: formData.category_id }),
+        ...(formData.difficulty && { difficulty: formData.difficulty }),
+        ...(formData.brand_name?.trim() && { brand_name: formData.brand_name.trim() }),
+        ...(formData.brand_logo_url?.trim() && { brand_logo_url: formData.brand_logo_url.trim() }),
+        ...(formData.estimated_time?.trim() && { estimated_time: formData.estimated_time.trim() })
       };
       
-      // Remove empty string values
-      Object.keys(taskData).forEach(
-        (k) => (taskData[k] === '' ? delete taskData[k] : undefined)
-      );
+      console.log('Final task data to submit:', taskData);
 
       await taskService.admin.createTask(taskData);
       toast.success("Task created successfully!");
+      
+      // Reset form
       setFormData({
         title: "",
         description: "",
@@ -112,6 +120,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
   };
 
   const handleInputChange = (field: string, value: string) => {
+    console.log(`Updating field ${field} with value:`, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -148,6 +157,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                     value={formData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
                     placeholder="Enter task title"
+                    required
                   />
                 </div>
 
@@ -160,6 +170,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                     onChange={(e) => handleInputChange('points', e.target.value)}
                     placeholder="50"
                     min="1"
+                    required
                   />
                 </div>
 
@@ -173,13 +184,10 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                       <SelectValue placeholder={
                         categoriesLoading
                           ? "Loading categories..."
-                          : validCategories.length === 0
-                            ? "No categories available - task will have no category"
-                            : "Select category (optional)"
+                          : "Select category (optional)"
                       } />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* Add option to clear category selection */}
                       <SelectItem value="">No Category</SelectItem>
                       {categoriesLoading ? (
                         <SelectItem value="loading-placeholder" disabled>
@@ -193,7 +201,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                         ))
                       ) : (
                         <SelectItem value="no-categories-placeholder" disabled>
-                          No categories available
+                          No categories available (tasks can still be created)
                         </SelectItem>
                       )}
                     </SelectContent>
@@ -270,6 +278,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 placeholder="Describe what users need to do to complete this task..."
                 rows={4}
+                required
               />
             </div>
 
