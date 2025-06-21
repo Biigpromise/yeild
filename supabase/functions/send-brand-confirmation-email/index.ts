@@ -41,9 +41,9 @@ serve(async (req) => {
     
     const magicLink = linkData.properties.action_link;
 
-    // Send the email using Resend with better formatting
+    // Send the email using Resend with the default verified domain
     const { data, error: resendError } = await resend.emails.send({
-      from: 'Yeild Team <no-reply@yeildsocials.com>',
+      from: 'Yeild Team <onboarding@resend.dev>', // Using Resend's default verified domain
       to: [email],
       subject: '✅ Confirm your Yeild account - Action Required',
       html: `
@@ -113,7 +113,6 @@ serve(async (req) => {
         </body>
         </html>
       `,
-      // Also include a plain text version for better deliverability
       text: `
 Welcome to Yeild, ${companyName}!
 
