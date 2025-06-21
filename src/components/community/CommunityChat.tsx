@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -63,7 +62,7 @@ export const CommunityChat = () => {
 
     try {
       setSending(true);
-      await chatService.sendMessage(newMessage.trim());
+      await chatService.sendMessage(newMessage.trim(), user.id);
       setNewMessage('');
       await loadMessages();
     } catch (error) {
