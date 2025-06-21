@@ -29,6 +29,9 @@ export const TaskTable: React.FC<TaskTableProps> = ({
   onEditTask,
   deleteLoading
 }) => {
+  console.log('TaskTable rendered with tasks:', tasks.length);
+  console.log('Edit function available:', !!onEditTask);
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -88,8 +91,12 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => onEditTask(task)}
+                        onClick={() => {
+                          console.log('Edit button clicked for task:', task.id);
+                          onEditTask(task);
+                        }}
                         className="h-8 w-8 p-0"
+                        title="Edit Task"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -100,6 +107,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                       onClick={() => onDeleteTask(task.id)}
                       disabled={deleteLoading === task.id}
                       className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                      title="Delete Task"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

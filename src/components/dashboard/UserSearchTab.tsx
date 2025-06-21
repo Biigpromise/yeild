@@ -1,105 +1,109 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { userService, UserProfile } from '@/services/userService';
-import { PublicProfileModal } from '@/components/PublicProfileModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Users } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
-
-type SearchedUser = Pick<UserProfile, 'id' | 'name' | 'profile_picture_url'>;
+import { Badge } from '@/components/ui/badge';
+import { Search, Users, Trophy, Star } from 'lucide-react';
+import { useCommunityProfiles } from '@/hooks/useCommunityProfiles';
+import { CompactBirdBatch } from '@/components/ui/CompactBirdBatch';
 
 export const UserSearchTab = () => {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchedUser[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { profiles, loading } = useCommunityProfiles();
+  
+  const filteredProfiles = profiles.filter(profile => 
+    profile.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    profile.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-
-    setLoading(true);
-    setSearched(true);
-    const users = await userService.searchUsers(query);
-    setResults(users);
-    setLoading(false);
-  };
-
-  const handleUserClick = (userId: string) => {
-    setSelectedUserId(userId);
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading community profiles...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Find Other Users
+            Community Search
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <form onSubmit={handleSearch} className="flex gap-2">
+        <CardContent>
+          <div className="relative mb-6">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              type="text"
-              placeholder="Search by name..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="max-w-sm"
+              placeholder="Search users by name or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
             />
-            <Button type="submit" disabled={loading}>
-              <Search className="mr-2 h-4 w-4" />
-              {loading ? 'Searching...' : 'Search'}
-            </Button>
-          </form>
+          </div>
 
-          <div className="space-y-4">
-            {loading && (
-              <>
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="flex items-center space-x-4">
-                    <Skeleton className="h-12 w-12 rounded-full" />
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-[250px]" />
+          <div className="grid gap-4">
+            {filteredProfiles.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {searchQuery ? 'No users found matching your search.' : 'No community profiles available.'}
+              </div>
+            ) : (
+              filteredProfiles.map((profile) => (
+                <Card key={profile.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-4">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={profile.profile_picture_url} />
+                        <AvatarFallback>
+                          {profile.name?.charAt(0)?.toUpperCase() || profile.email?.charAt(0)?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <h3 className="font-semibold">
+                            {profile.name || 'Anonymous User'}
+                          </h3>
+                          <CompactBirdBatch count={profile.tasks_completed} className="scale-75" />
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {profile.email}
+                        </p>
+                        {profile.bio && (
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {profile.bio}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="text-right space-y-1">
+                        <Badge variant="outline" className="flex items-center gap-1">
+                          <Trophy className="h-3 w-3" />
+                          {profile.points} pts
+                        </Badge>
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                          <Star className="h-3 w-3" />
+                          Level {profile.level}
+                        </Badge>
+                        <div className="text-xs text-muted-foreground">
+                          {profile.tasks_completed} tasks completed
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </>
-            )}
-            {!loading && searched && results.length === 0 && (
-              <p className="text-muted-foreground text-center py-4">
-                No users found for "{query}".
-              </p>
-            )}
-            {!loading && results.length > 0 && (
-              <ul className="space-y-3">
-                {results.map((user) => (
-                  <li
-                    key={user.id}
-                    onClick={() => handleUserClick(user.id)}
-                    className="flex items-center gap-4 p-2 rounded-md hover:bg-muted cursor-pointer transition-colors"
-                  >
-                    <Avatar>
-                      <AvatarImage src={user.profile_picture_url || undefined} alt={user.name} />
-                      <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium">{user.name}</span>
-                  </li>
-                ))}
-              </ul>
+                  </CardContent>
+                </Card>
+              ))
             )}
           </div>
         </CardContent>
       </Card>
-      <PublicProfileModal
-        userId={selectedUserId}
-        isOpen={!!selectedUserId}
-        onOpenChange={(isOpen) => !isOpen && setSelectedUserId(null)}
-      />
-    </>
+    </div>
   );
 };

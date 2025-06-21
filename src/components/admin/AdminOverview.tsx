@@ -8,14 +8,16 @@ import { AdminRecentActivity } from "./AdminRecentActivity";
 import { AdminTaskOverview } from "./AdminTaskOverview";
 import { AdminPlatformStats } from "./AdminPlatformStats";
 import { BirdLevelManagementDialog } from "./BirdLevelManagementDialog";
+import { EnhancedUserManagementSystem } from "./enhanced/EnhancedUserManagementSystem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bird, Crown, AlertTriangle, Shield } from "lucide-react";
+import { Bird, Crown, AlertTriangle, Shield, Users } from "lucide-react";
 import { integratedFraudDetectionService, FraudDetectionStats } from "@/services/integratedFraudDetectionService";
 
 export const AdminOverview = () => {
   const [fraudStats, setFraudStats] = useState<FraudDetectionStats | null>(null);
   const [birdManagementOpen, setBirdManagementOpen] = useState(false);
+  const [showUserManagement, setShowUserManagement] = useState(false);
 
   useEffect(() => {
     const loadFraudStats = async () => {
@@ -29,10 +31,46 @@ export const AdminOverview = () => {
     integratedFraudDetectionService.checkForNewFraudAlerts();
   }, []);
 
+  if (showUserManagement) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">User Management</h2>
+          <Button variant="outline" onClick={() => setShowUserManagement(false)}>
+            Back to Overview
+          </Button>
+        </div>
+        <EnhancedUserManagementSystem />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Real Dashboard Stats */}
       <AdminDashboardStatsComponent />
+
+      {/* Quick Access to User Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            User Management Quick Access
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4">
+            <Button onClick={() => setShowUserManagement(true)}>
+              <Users className="h-4 w-4 mr-2" />
+              Manage Users
+            </Button>
+            <Button variant="outline" onClick={() => setBirdManagementOpen(true)}>
+              <Bird className="h-4 w-4 mr-2" />
+              Bird Levels
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Fraud Detection Stats */}
       {fraudStats && (
