@@ -20,7 +20,7 @@ export const UserNameWithBird: React.FC<UserNameWithBirdProps> = ({
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <span className="font-medium">{userName}</span>
-      {showBirdBadge && (
+      {showBirdBadge && userId && (
         <ProfileBirdBadge userId={userId} size={size} />
       )}
     </div>

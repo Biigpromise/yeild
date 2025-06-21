@@ -1,8 +1,13 @@
 
-import React from 'react';
-import { UserProfile } from '@/components/UserProfile';
+import React, { useState } from 'react';
+import { ProfileForm } from '@/components/profile/ProfileForm';
+import { ProfileStats } from '@/components/profile/ProfileStats';
+import { ProfileBirdDisplay } from '@/components/profile/ProfileBirdDisplay';
+import { BirdProgression } from '@/components/referral/BirdProgression';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { userService } from '@/services/userService';
-import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileTabProps {
   userProfile: any;
@@ -11,49 +16,69 @@ interface ProfileTabProps {
   onProfileUpdate: () => void;
 }
 
-export const ProfileTab: React.FC<ProfileTabProps> = ({ 
-  userProfile, 
-  userStats, 
+export const ProfileTab: React.FC<ProfileTabProps> = ({
+  userProfile,
+  userStats,
   totalPointsEarned,
-  onProfileUpdate 
+  onProfileUpdate
 }) => {
-  if (!userProfile || !userStats) {
-    return <div>Loading profile...</div>;
-  }
-
-  const userForProfileComponent = {
-    id: userProfile.id,
-    name: userProfile.name,
-    email: userProfile.email,
-    bio: userProfile.bio,
-    avatar: userProfile.profile_picture_url,
-    level: userStats.level,
-    points: userStats.points,
-    tasksCompleted: userStats.tasksCompleted,
-    currentStreak: userStats.currentStreak,
-    longestStreak: userProfile.longest_streak || 0,
-    joinDate: userProfile.created_at,
-    totalPointsEarned: totalPointsEarned,
-    completionRate: userProfile.task_completion_rate,
-    followers_count: userStats.followers,
-    following_count: userStats.following,
-    active_referrals_count: userProfile.active_referrals_count || 0,
-    total_referrals_count: userProfile.total_referrals_count || 0,
-  };
-
-  const handleUpdate = async (data: Partial<typeof userForProfileComponent>) => {
-    const updateData: {name?: string, bio?: string, profile_picture_url?: string} = {};
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.bio !== undefined) updateData.bio = data.bio;
-    if (data.avatar !== undefined) updateData.profile_picture_url = data.avatar;
-    
-    if (Object.keys(updateData).length > 0) {
-      const success = await userService.updateProfile(updateData);
-      if (success) {
-        onProfileUpdate();
-      }
+  const { user } = useAuth();
+  const [currentBirdLevel, setCurrentBirdLevel] = useState(() => {
+    if (userProfile) {
+      return userService.getBirdLevel(
+        userProfile.active_referrals_count || 0,
+        userStats.points || 0
+      );
     }
-  };
+    return userService.getBirdLevel(0, 0);
+  });
 
-  return <UserProfile user={userForProfileComponent} onUpdate={handleUpdate} />;
+  const nextBirdLevel = userService.getNextBirdLevel(currentBirdLevel);
+
+  if (!user) return null;
+
+  return (
+    <div className="space-y-6">
+      {/* Bird Badge Display */}
+      <ProfileBirdDisplay 
+        userId={user.id}
+        activeReferrals={userProfile?.active_referrals_count || 0}
+        totalReferrals={userProfile?.total_referrals_count || 0}
+      />
+
+      {/* Bird Progression */}
+      <BirdProgression
+        userPoints={userStats.points || 0}
+        activeReferrals={userProfile?.active_referrals_count || 0}
+        currentBirdLevel={currentBirdLevel}
+        nextBirdLevel={nextBirdLevel}
+      />
+
+      <Tabs defaultValue="stats" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="stats">Profile Stats</TabsTrigger>
+          <TabsTrigger value="edit">Edit Profile</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="stats">
+          <ProfileStats 
+            userProfile={userProfile}
+            userStats={userStats}
+            totalPointsEarned={totalPointsEarned}
+          />
+        </TabsContent>
+        
+        <TabsContent value="edit">
+          <Card>
+            <CardHeader>
+              <CardTitle>Edit Profile</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProfileForm onUpdate={onProfileUpdate} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
 };

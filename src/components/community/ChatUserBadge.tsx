@@ -27,9 +27,11 @@ export const ChatUserBadge: React.FC<ChatUserBadgeProps> = ({
             {userName?.charAt(0)?.toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
-        <div className="absolute -top-1 -right-1">
-          <ProfileBirdBadge userId={userId} size="sm" />
-        </div>
+        {userId && (
+          <div className="absolute -top-1 -right-1">
+            <ProfileBirdBadge userId={userId} size="sm" />
+          </div>
+        )}
       </div>
       <span className="font-medium text-sm">{userName}</span>
     </div>

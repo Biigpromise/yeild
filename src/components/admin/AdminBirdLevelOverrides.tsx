@@ -53,7 +53,7 @@ export const AdminBirdLevelOverrides: React.FC<AdminBirdLevelOverridesProps> = (
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5" />
-            Bird Level Overrides
+            Bird Level Management
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -112,13 +112,19 @@ export const AdminBirdLevelOverrides: React.FC<AdminBirdLevelOverridesProps> = (
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Overrides</CardTitle>
+          <CardTitle>Bird Level System Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <Crown className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No recent overrides found</p>
-            <p className="text-sm">Manual bird level changes will appear here</p>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {BIRD_LEVELS.map((level) => (
+              <div key={level.name} className="text-center p-4 border rounded-lg">
+                <BirdBadge birdLevel={level} size="lg" showName />
+                <div className="mt-2 text-sm text-muted-foreground">
+                  <p>{level.minReferrals}+ referrals</p>
+                  <p>{level.minPoints}+ points</p>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
