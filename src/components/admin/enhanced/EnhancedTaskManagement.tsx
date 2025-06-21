@@ -14,7 +14,7 @@ import { enhancedTaskManagementService } from "@/services/admin/enhancedTaskMana
 import { TaskPerformanceAnalytics } from "./TaskPerformanceAnalytics";
 import { TaskFilterBar } from "../TaskFilterBar";
 import { TaskOverviewStats } from "../TaskOverviewStats";
-import { Plus, RefreshCw, Edit, Trash2 } from "lucide-react";
+import { Plus, RefreshCw, Edit, Trash2, Copy } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 export const EnhancedTaskManagement = () => {
@@ -76,7 +76,7 @@ export const EnhancedTaskManagement = () => {
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    if (!window.confirm("Are you sure you want to delete this task?")) return;
+    if (!window.confirm("Are you sure you want to delete this task? This action cannot be undone.")) return;
     
     try {
       setDeleteLoading(taskId);
@@ -243,7 +243,7 @@ export const EnhancedTaskManagement = () => {
                 </div>
               </div>
               <div className="text-sm text-muted-foreground">
-                Showing all tasks including active, draft, and inactive tasks
+                Click the Edit or Delete buttons in the Actions column to manage individual tasks
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -254,69 +254,103 @@ export const EnhancedTaskManagement = () => {
                 onStatusFilterChange={setStatusFilter}
               />
               
-              {/* Enhanced Task Table with Edit Actions */}
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-2">Title</th>
-                      <th className="text-left p-2">Status</th>
-                      <th className="text-left p-2">Difficulty</th>
-                      <th className="text-left p-2">Points</th>
-                      <th className="text-left p-2">Category</th>
-                      <th className="text-left p-2">Created</th>
-                      <th className="text-left p-2">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredTasks.map((task) => (
-                      <tr key={task.id} className="border-b hover:bg-gray-50">
-                        <td className="p-2">
-                          <div>
-                            <div className="font-medium">{task.title}</div>
-                            <div className="text-sm text-gray-500 truncate max-w-xs">
-                              {task.description}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-2">
-                          <Badge className={getStatusColor(task.status)}>
-                            {task.status}
-                          </Badge>
-                        </td>
-                        <td className="p-2">
-                          <Badge className={getDifficultyColor(task.difficulty)}>
-                            {task.difficulty}
-                          </Badge>
-                        </td>
-                        <td className="p-2 font-semibold">{task.points}</td>
-                        <td className="p-2">{task.category || 'General'}</td>
-                        <td className="p-2">
-                          {new Date(task.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="p-2">
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditTask(task)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleDeleteTask(task.id)}
-                              disabled={deleteLoading === task.id}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
+              {/* Enhanced Task Management Table */}
+              <div className="border rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Task Details</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Status & Info</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Points</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Created</th>
+                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {filteredTasks.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                            No tasks found matching your filters
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredTasks.map((task) => (
+                          <tr key={task.id} className="hover:bg-gray-50">
+                            <td className="px-4 py-4">
+                              <div>
+                                <div className="font-medium text-gray-900 mb-1">{task.title}</div>
+                                <div className="text-sm text-gray-500 line-clamp-2 max-w-xs">
+                                  {task.description}
+                                </div>
+                                {task.category && (
+                                  <div className="mt-1">
+                                    <Badge variant="outline" className="text-xs">
+                                      {task.category}
+                                    </Badge>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4">
+                              <div className="space-y-2">
+                                <Badge className={`${getStatusColor(task.status)} text-xs`}>
+                                  {task.status}
+                                </Badge>
+                                <Badge className={`${getDifficultyColor(task.difficulty)} text-xs`}>
+                                  {task.difficulty}
+                                </Badge>
+                              </div>
+                            </td>
+                            <td className="px-4 py-4">
+                              <span className="text-lg font-bold text-blue-600">{task.points}</span>
+                            </td>
+                            <td className="px-4 py-4 text-sm text-gray-500">
+                              {new Date(task.created_at).toLocaleDateString()}
+                            </td>
+                            <td className="px-4 py-4">
+                              <div className="flex items-center justify-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleEditTask(task)}
+                                  className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                  title="Edit Task"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                  <span className="hidden sm:inline">Edit</span>
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDuplicateTask(task)}
+                                  className="flex items-center gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  title="Duplicate Task"
+                                >
+                                  <Copy className="h-4 w-4" />
+                                  <span className="hidden sm:inline">Copy</span>
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDeleteTask(task.id)}
+                                  disabled={deleteLoading === task.id}
+                                  className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  title="Delete Task"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  <span className="hidden sm:inline">
+                                    {deleteLoading === task.id ? "..." : "Delete"}
+                                  </span>
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </CardContent>
           </Card>
