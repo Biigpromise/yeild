@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,7 @@ import { ArrowLeft, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const ForgotPassword = () => {
+  const navigate = useNavigate();
   const { resetPassword } = useAuth();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -42,6 +43,10 @@ const ForgotPassword = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBackToLogin = () => {
+    navigate("/login");
   };
 
   if (emailSent) {
@@ -78,9 +83,13 @@ const ForgotPassword = () => {
             </Button>
             
             <div className="text-center">
-              <Link to="/login" className="text-yeild-yellow hover:underline text-sm">
+              <Button
+                variant="ghost"
+                className="text-yeild-yellow hover:underline text-sm"
+                onClick={handleBackToLogin}
+              >
                 Back to Login
-              </Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -98,12 +107,10 @@ const ForgotPassword = () => {
         <Button 
           variant="ghost" 
           className="mb-6 text-gray-400 hover:text-white" 
-          asChild
+          onClick={handleBackToLogin}
         >
-          <Link to="/login">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Login
-          </Link>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Login
         </Button>
         
         <div className="text-center mb-8">
@@ -142,9 +149,13 @@ const ForgotPassword = () => {
         <div className="mt-6 text-center">
           <p className="text-gray-400">
             Remember your password?{" "}
-            <Link to="/login" className="text-yeild-yellow hover:underline">
+            <Button
+              variant="ghost"
+              className="text-yeild-yellow hover:underline p-0 h-auto"
+              onClick={handleBackToLogin}
+            >
               Sign in
-            </Link>
+            </Button>
           </p>
         </div>
       </div>
