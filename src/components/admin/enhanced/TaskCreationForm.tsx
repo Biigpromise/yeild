@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,15 +50,14 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [formData, setFormData] = useState<TaskFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasError, setHasError] = useState(false);
 
-  // Add form persistence - only when not editing existing task
+  // Add form persistence
   const { clearDraft } = useSimpleFormPersistence({
     formData,
     setFormData,
     storageKey: taskToEdit ? `edit-task-${taskToEdit.id}` : 'create-task-draft',
-    enabled: true, // Always enabled for better UX
-    excludeKeys: ['social_media_links'] // Exclude complex objects for now
+    enabled: true,
+    excludeKeys: ['social_media_links']
   });
 
   console.log('TaskCreationForm rendering');
@@ -68,7 +68,6 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
     const loadCategories = async () => {
       try {
         setCategoriesLoading(true);
-        setHasError(false);
         console.log('Loading categories...');
         const data = await enhancedTaskManagementService.getTaskCategories();
         console.log('Categories loaded:', data);
@@ -88,18 +87,13 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
     if (initialData) {
       console.log('Applying initial data from template:', initialData);
       setFormData({
+        ...initialFormData,
         title: initialData.title || "",
         description: initialData.description || "",
         points: initialData.points?.toString() || "",
-        category_id: "",
         difficulty: initialData.difficulty || "medium",
-        brand_name: "",
-        brand_logo_url: "",
         estimated_time: initialData.estimated_time || "",
-        expires_at: "",
-        status: "active",
-        task_type: initialData.task_type || "general",
-        social_media_links: initialFormData.social_media_links,
+        task_type: initialData.task_type || "general"
       });
     } else if (taskToEdit) {
       console.log('Setting form data for editing:', taskToEdit);
@@ -146,17 +140,16 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
       if (success) {
         console.log('Task operation successful');
         setFormData(initialFormData);
-        clearDraft(); // Clear the persisted draft
+        clearDraft();
         onTaskCreated();
-        toast.success(taskToEdit ? "Task updated successfully!" : "Task created successfully!");
+        // Toast is handled in the service now
       } else {
         console.error('Task operation failed');
-        toast.error("Failed to save task. Please try again.");
+        // Error toast is handled in the service
       }
     } catch (error) {
       console.error("Error saving task:", error);
       toast.error("Failed to save task. Please try again.");
-      setHasError(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -178,28 +171,11 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   };
 
   const handleCancel = () => {
-    clearDraft(); // Clear draft when canceling
+    clearDraft();
     onCancel();
   };
 
   console.log('Rendering TaskCreationForm with current form data:', formData);
-
-  // Error boundary fallback
-  if (hasError) {
-    return (
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardContent className="p-6 text-center">
-          <div className="text-red-500 mb-4">
-            <h3 className="text-lg font-semibold">Form Error</h3>
-            <p>There was an issue with the form. Please try refreshing the page.</p>
-          </div>
-          <Button onClick={() => setHasError(false)} variant="outline">
-            Try Again
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
