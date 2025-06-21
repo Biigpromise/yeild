@@ -18,15 +18,15 @@ export interface FraudFlag {
   id: string;
   flag_type: string;
   user_id: string;
-  related_user_id?: string;
+  related_user_id?: string | null;
   flag_reason: string;
   evidence?: any;
-  severity: 'low' | 'medium' | 'high';
-  status: 'pending' | 'reviewed' | 'resolved' | 'dismissed';
-  admin_notes?: string;
-  reviewed_by?: string;
-  reviewed_at?: string;
-  created_at: string;
+  severity: string | null;
+  status: string | null;
+  admin_notes?: string | null;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  created_at: string | null;
 }
 
 export interface FraudFlagWithUserData extends FraudFlag {
