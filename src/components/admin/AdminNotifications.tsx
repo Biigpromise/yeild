@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { notificationService } from "@/services/notificationService";
+import { toast } from "sonner";
 
 type Notification = {
   id: string;
@@ -51,32 +53,56 @@ export const AdminNotifications = () => {
     content: "",
     target: "all",
   });
+  const [sending, setSending] = useState(false);
   
-  const handleSendNotification = () => {
+  const handleSendNotification = async () => {
     if (!newNotification.title || !newNotification.content) {
-      alert("Please fill in all fields");
+      toast.error("Please fill in all fields");
       return;
     }
     
-    const notification: Notification = {
-      id: Date.now().toString(),
-      title: newNotification.title,
-      content: newNotification.content,
-      sentTo: newNotification.target === "all" ? "All Users" : 
-              newNotification.target === "active" ? "Active Users" : 
-              "Targeted Users",
-      sentAt: new Date().toLocaleString(),
-      status: "sent",
-    };
+    setSending(true);
     
-    setNotifications([notification, ...notifications]);
-    setNewNotification({
-      title: "",
-      content: "",
-      target: "all",
-    });
-    
-    alert("Notification sent successfully!");
+    try {
+      const success = await notificationService.sendBroadcastNotification(
+        newNotification.target,
+        {
+          title: newNotification.title,
+          content: newNotification.content,
+          type: 'announcement'
+        }
+      );
+
+      if (success) {
+        const notification: Notification = {
+          id: Date.now().toString(),
+          title: newNotification.title,
+          content: newNotification.content,
+          sentTo: newNotification.target === "all" ? "All Users" : 
+                  newNotification.target === "active" ? "Active Users" : 
+                  newNotification.target === "inactive" ? "Inactive Users" :
+                  "New Users",
+          sentAt: new Date().toLocaleString(),
+          status: "sent",
+        };
+        
+        setNotifications([notification, ...notifications]);
+        setNewNotification({
+          title: "",
+          content: "",
+          target: "all",
+        });
+        
+        toast.success("Notification sent successfully!");
+      } else {
+        toast.error("Failed to send notification");
+      }
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      toast.error("Failed to send notification");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -143,7 +169,12 @@ export const AdminNotifications = () => {
                 </div>
               </div>
               <div className="flex justify-end">
-                <Button onClick={handleSendNotification}>Send Notification</Button>
+                <Button 
+                  onClick={handleSendNotification}
+                  disabled={sending}
+                >
+                  {sending ? "Sending..." : "Send Notification"}
+                </Button>
               </div>
             </CardContent>
           </Card>

@@ -472,6 +472,47 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          announcement_id: string | null
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          announcement_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          title: string
+          type?: string
+          user_id?: string | null
+        }
+        Update: {
+          announcement_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_method_configs: {
         Row: {
           configuration_details: Json | null
@@ -1660,6 +1701,10 @@ export type Database = {
       }
       is_admin: {
         Args: { user_id: string }
+        Returns: boolean
+      }
+      is_admin_user: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       redeem_reward: {

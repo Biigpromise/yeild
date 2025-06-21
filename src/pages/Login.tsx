@@ -159,10 +159,6 @@ const Login = () => {
               Create new account
             </Button>
           </div>
-          
-          <div className="text-center">
-            <span className="text-yeild-yellow text-lg font-bold">Meta</span>
-          </div>
         </div>
       </div>
     </div>

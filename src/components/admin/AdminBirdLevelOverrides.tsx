@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Search, Crown, Zap } from 'lucide-react';
 import { BirdBadge } from '@/components/referral/BirdBadge';
 import { BIRD_LEVELS } from '@/services/userService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AdminBirdLevelOverridesProps {
   onOverride?: (userId: string, newLevel: string) => void;
@@ -21,30 +22,114 @@ export const AdminBirdLevelOverrides: React.FC<AdminBirdLevelOverridesProps> = (
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [selectedLevel, setSelectedLevel] = useState<string>('');
   const [reason, setReason] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [applying, setApplying] = useState(false);
 
-  const handleOverride = () => {
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) {
+      toast.error('Please enter a search term');
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, email, active_referrals_count, points')
+        .or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
+        .limit(10);
+
+      if (error) throw error;
+      
+      setSearchResults(data || []);
+      if (!data || data.length === 0) {
+        toast.info('No users found matching your search');
+      }
+    } catch (error) {
+      console.error('Error searching users:', error);
+      toast.error('Failed to search users');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleOverride = async () => {
     if (!selectedUser || !selectedLevel || !reason.trim()) {
       toast.error('Please fill in all fields');
       return;
     }
 
-    // In a real implementation, this would call an API
-    toast.success(
-      <div className="flex items-center gap-2">
-        <Crown className="h-5 w-5 text-yellow-600" />
-        <div>
-          <p className="font-semibold">Bird Level Override Applied</p>
-          <p className="text-sm">User promoted to {selectedLevel}</p>
-        </div>
-      </div>
-    );
+    setApplying(true);
+    try {
+      // Find the selected user's info
+      const selectedUserInfo = searchResults.find(user => user.id === selectedUser);
+      if (!selectedUserInfo) {
+        toast.error('Selected user not found');
+        return;
+      }
 
-    onOverride?.(selectedUser, selectedLevel);
-    
-    // Reset form
-    setSelectedUser('');
-    setSelectedLevel('');
-    setReason('');
+      // Update user's referral count to match the bird level requirements
+      const birdLevel = BIRD_LEVELS.find(level => level.name === selectedLevel);
+      if (!birdLevel) {
+        toast.error('Invalid bird level selected');
+        return;
+      }
+
+      // Update the user's active referrals count to meet the requirement
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          active_referrals_count: Math.max(selectedUserInfo.active_referrals_count, birdLevel.minReferrals),
+          points: Math.max(selectedUserInfo.points, birdLevel.minPoints)
+        })
+        .eq('id', selectedUser);
+
+      if (updateError) throw updateError;
+
+      // Log the override action
+      const { error: logError } = await supabase
+        .from('user_activity_log')
+        .insert({
+          user_id: selectedUser,
+          activity_type: 'bird_level_override',
+          activity_data: {
+            new_level: selectedLevel,
+            reason: reason,
+            admin_override: true,
+            previous_referrals: selectedUserInfo.active_referrals_count,
+            previous_points: selectedUserInfo.points,
+            new_referrals: Math.max(selectedUserInfo.active_referrals_count, birdLevel.minReferrals),
+            new_points: Math.max(selectedUserInfo.points, birdLevel.minPoints)
+          }
+        });
+
+      if (logError) console.error('Error logging override:', logError);
+
+      toast.success(
+        <div className="flex items-center gap-2">
+          <Crown className="h-5 w-5 text-yellow-600" />
+          <div>
+            <p className="font-semibold">Bird Level Override Applied</p>
+            <p className="text-sm">{selectedUserInfo.name || selectedUserInfo.email} promoted to {selectedLevel}</p>
+          </div>
+        </div>
+      );
+
+      onOverride?.(selectedUser, selectedLevel);
+      
+      // Reset form
+      setSelectedUser('');
+      setSelectedLevel('');
+      setReason('');
+      setSearchTerm('');
+      setSearchResults([]);
+    } catch (error) {
+      console.error('Error applying bird level override:', error);
+      toast.error('Failed to apply bird level override');
+    } finally {
+      setApplying(false);
+    }
   };
 
   return (
@@ -60,14 +145,20 @@ export const AdminBirdLevelOverrides: React.FC<AdminBirdLevelOverridesProps> = (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Search User</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Enter username or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Enter username or email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  />
+                </div>
+                <Button onClick={handleSearch} disabled={searching}>
+                  {searching ? 'Searching...' : 'Search'}
+                </Button>
               </div>
             </div>
             
@@ -91,6 +182,35 @@ export const AdminBirdLevelOverrides: React.FC<AdminBirdLevelOverridesProps> = (
             </div>
           </div>
 
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium mb-2">Select User</label>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {searchResults.map((user) => (
+                  <div 
+                    key={user.id}
+                    className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                      selectedUser === user.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => setSelectedUser(user.id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{user.name || 'No name'}</p>
+                        <p className="text-sm text-gray-600">{user.email}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium">{user.active_referrals_count} referrals</p>
+                        <p className="text-sm text-gray-600">{user.points} points</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium mb-2">Override Reason</label>
             <Input
@@ -103,9 +223,9 @@ export const AdminBirdLevelOverrides: React.FC<AdminBirdLevelOverridesProps> = (
           <Button 
             onClick={handleOverride}
             className="w-full"
-            disabled={!selectedUser || !selectedLevel || !reason.trim()}
+            disabled={!selectedUser || !selectedLevel || !reason.trim() || applying}
           >
-            Apply Bird Level Override
+            {applying ? 'Applying Override...' : 'Apply Bird Level Override'}
           </Button>
         </CardContent>
       </Card>
