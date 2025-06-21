@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,8 +20,10 @@ const CommunityChat = () => {
 
     const fetchInitialMessages = async () => {
       try {
+        // Since community_messages table doesn't exist in our schema, 
+        // let's use the messages table as a fallback for now
         const { data, error } = await supabase
-          .from('community_messages')
+          .from('messages')
           .select(`
             *,
             profiles (
@@ -46,10 +49,10 @@ const CommunityChat = () => {
     fetchInitialMessages();
 
     const messageSubscription = supabase
-      .channel('public:community_messages')
+      .channel('public:messages')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'community_messages' },
+        { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
           const newMessage = payload.new;
           setMessages((prevMessages) => [...prevMessages, newMessage]);
@@ -74,7 +77,7 @@ const CommunityChat = () => {
 
     try {
       const { error } = await supabase
-        .from('community_messages')
+        .from('messages')
         .insert([
           {
             user_id: user.id,

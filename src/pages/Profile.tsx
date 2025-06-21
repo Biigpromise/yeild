@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { UserProfile } from "@/components/UserProfile";
 import { AchievementSystem } from "@/components/AchievementSystem";
@@ -56,6 +57,8 @@ const Profile = () => {
     completionRate: 92,
     followers_count: 0,
     following_count: 0,
+    active_referrals_count: 0,
+    total_referrals_count: 0,
   });
 
   useEffect(() => {
@@ -96,6 +99,8 @@ const Profile = () => {
         joinDate: profile.created_at ? new Date(profile.created_at).toISOString().split('T')[0] : prev.joinDate,
         followers_count: profile.followers_count || 0,
         following_count: profile.following_count || 0,
+        active_referrals_count: profile.active_referrals_count || 0,
+        total_referrals_count: profile.total_referrals_count || 0,
       }));
 
       // Fetch user tasks

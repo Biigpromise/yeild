@@ -58,4 +58,10 @@ export const adminVerification = {
 
 // For one-time admin setup, you can call this in the browser console:
 // adminVerification.grantAdminAccess('your-email@example.com')
+declare global {
+  interface Window {
+    adminVerification: typeof adminVerification;
+  }
+}
+
 window.adminVerification = adminVerification;

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -9,7 +10,7 @@ import { ProfileAvatar } from "./profile/ProfileAvatar";
 import { ProfileForm } from "./profile/ProfileForm";
 import { ProfileStats } from "./profile/ProfileStats";
 import { ProfileAdditionalInfo } from "./profile/ProfileAdditionalInfo";
-import { ProfileBirdDisplay } from '@/components/profile/ProfileBirdDisplay';
+import { ProfileBirdDisplay } from './components/profile/ProfileBirdDisplay';
 
 interface UserProfileProps {
   user: {
@@ -178,5 +179,3 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
     </div>
   );
 };
-
-export { UserProfile };

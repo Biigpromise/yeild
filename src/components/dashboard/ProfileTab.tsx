@@ -37,6 +37,8 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
     completionRate: userProfile.task_completion_rate,
     followers_count: userStats.followers,
     following_count: userStats.following,
+    active_referrals_count: userProfile.active_referrals_count || 0,
+    total_referrals_count: userProfile.total_referrals_count || 0,
   };
 
   const handleUpdate = async (data: Partial<typeof userForProfileComponent>) => {
