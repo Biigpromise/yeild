@@ -200,6 +200,11 @@ export const userService = {
     return BIRD_LEVELS[0]; // Return first level as default
   },
 
+  getNextBirdLevel(currentBirdLevel: ReferralBirdLevel): ReferralBirdLevel | undefined {
+    const currentIndex = BIRD_LEVELS.findIndex(level => level.name === currentBirdLevel.name);
+    return currentIndex < BIRD_LEVELS.length - 1 ? BIRD_LEVELS[currentIndex + 1] : undefined;
+  },
+
   async getReferralStats(): Promise<ReferralStats> {
     try {
       const { data: { user } } = await supabase.auth.getUser();

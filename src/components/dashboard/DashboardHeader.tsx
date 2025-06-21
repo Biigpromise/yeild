@@ -1,6 +1,4 @@
-
 import React from 'react';
-import { UserProfile } from '@/contexts/AuthContext';
 import { ProfileBirdBadge } from '@/components/referral/ProfileBirdBadge';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
