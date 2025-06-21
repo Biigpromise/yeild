@@ -40,8 +40,8 @@ export const ChatUserBadge: React.FC<ChatUserBadgeProps> = ({
       </div>
       <div className="flex items-center gap-2">
         <span className="font-medium text-sm">{userName}</span>
-        {showBirdBadge && (
-          <CompactBirdBatch count={userTasksCompleted} className="scale-75" />
+        {showBirdBadge && userId && (
+          <ProfileBirdBadge userId={userId} size="sm" showName={false} />
         )}
       </div>
     </div>

@@ -1,8 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
-export interface NotificationData {
+export interface NotificationRequest {
   title: string;
   content: string;
   type: string;
@@ -11,50 +10,50 @@ export interface NotificationData {
 }
 
 export const notificationService = {
-  async sendNotification(notificationData: NotificationData): Promise<boolean> {
+  async sendNotification(request: NotificationRequest): Promise<boolean> {
     try {
-      console.log('Sending notification:', notificationData);
+      console.log('Sending notification with data:', request);
 
-      // Call the edge function to send notifications
       const { data, error } = await supabase.functions.invoke('send-user-notification', {
-        body: notificationData
+        body: request
       });
 
       if (error) {
-        console.error('Error sending notification:', error);
-        toast.error('Failed to send notification');
-        return false;
+        console.error('Error calling edge function:', error);
+        throw error;
       }
 
       console.log('Notification sent successfully:', data);
-      toast.success('Notification sent successfully!');
       return true;
     } catch (error) {
-      console.error('Error in sendNotification:', error);
-      toast.error('Failed to send notification');
-      return false;
+      console.error('Error in notificationService.sendNotification:', error);
+      throw error;
     }
   },
 
-  async getAllNotifications(): Promise<any[]> {
+  async getAllNotifications() {
     try {
       const { data, error } = await supabase
         .from('notifications')
         .select(`
           *,
-          profiles(name, email)
+          profiles!notifications_user_id_fkey (
+            id,
+            name,
+            email
+          )
         `)
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching notifications:', error);
-        return [];
+        throw error;
       }
 
       return data || [];
     } catch (error) {
       console.error('Error in getAllNotifications:', error);
-      return [];
+      throw error;
     }
   }
 };
