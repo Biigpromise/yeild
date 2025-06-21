@@ -72,6 +72,33 @@ const sendWelcomeEmail = async (email: string, name?: string) => {
   }
 };
 
+// Function to send confirmation email
+const sendConfirmationEmail = async (email: string, name?: string) => {
+  try {
+    console.log("Sending confirmation email to:", email);
+    
+    // Create confirmation URL
+    const redirectUrl = window.location.origin;
+    const confirmationUrl = `${redirectUrl}/dashboard`; // This will be updated with actual confirmation token by Supabase
+    
+    const { error } = await supabase.functions.invoke('send-signup-confirmation', {
+      body: { 
+        email, 
+        name,
+        confirmationUrl 
+      }
+    });
+    
+    if (error) {
+      console.error("Error sending confirmation email:", error);
+    } else {
+      console.log("Confirmation email sent successfully");
+    }
+  } catch (error) {
+    console.error("Unexpected error sending confirmation email:", error);
+  }
+};
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -177,9 +204,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { user: null, error: { ...error, message: friendlyMessage } };
       }
 
-      // Send welcome email after successful signup
+      // Send both welcome and confirmation emails after successful signup
       if (data.user && !error) {
+        // Send welcome email
         await sendWelcomeEmail(email, name);
+        
+        // Send confirmation email with branded template
+        await sendConfirmationEmail(email, name);
       }
 
       console.log("Signup successful");
