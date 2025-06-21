@@ -35,7 +35,9 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
   const loadCategories = async () => {
     try {
       setLoading(true);
+      console.log('Loading categories...');
       const data = await enhancedTaskManagementService.getTaskCategories();
+      console.log('Categories loaded:', data);
       setCategories(data);
     } catch (error) {
       console.error("Error loading categories:", error);
@@ -47,6 +49,7 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted with data:', formData);
     
     if (!formData.name.trim()) {
       toast.error("Category name is required");
@@ -55,40 +58,48 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
 
     try {
       setSubmitting(true);
-      let success;
       
+      const categoryData = {
+        name: formData.name.trim(),
+        description: formData.description.trim() || null,
+        icon: formData.icon.trim() || null,
+        color: formData.color
+      };
+
+      console.log('Submitting category data:', categoryData);
+      
+      let success;
       if (editingCategory) {
-        success = await enhancedTaskManagementService.updateTaskCategory(editingCategory.id, {
-          name: formData.name.trim(),
-          description: formData.description.trim() || null,
-          icon: formData.icon.trim() || null,
-          color: formData.color
-        });
+        console.log('Updating category:', editingCategory.id);
+        success = await enhancedTaskManagementService.updateTaskCategory(editingCategory.id, categoryData);
       } else {
-        success = await enhancedTaskManagementService.createTaskCategory({
-          name: formData.name.trim(),
-          description: formData.description.trim() || null,
-          icon: formData.icon.trim() || null,
-          color: formData.color
-        });
+        console.log('Creating new category');
+        success = await enhancedTaskManagementService.createTaskCategory(categoryData);
       }
 
+      console.log('Operation result:', success);
+
       if (success) {
+        console.log('Category operation successful, reloading...');
         await loadCategories();
         resetForm();
         setIsDialogOpen(false);
         if (onCategoryUpdated) onCategoryUpdated();
         toast.success(editingCategory ? "Category updated successfully" : "Category created successfully");
+      } else {
+        console.error('Category operation failed');
+        toast.error("Failed to save category");
       }
     } catch (error) {
       console.error("Error saving category:", error);
-      toast.error("Failed to save category");
+      toast.error("Failed to save category: " + (error?.message || 'Unknown error'));
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleEdit = (category: any) => {
+    console.log('Editing category:', category);
     setEditingCategory(category);
     setFormData({
       name: category.name || "",
@@ -103,10 +114,12 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
     if (!window.confirm("Are you sure you want to delete this category?")) return;
     
     try {
+      console.log('Deleting category:', categoryId);
       const success = await enhancedTaskManagementService.deleteTaskCategory(categoryId);
       if (success) {
         await loadCategories();
         if (onCategoryUpdated) onCategoryUpdated();
+        toast.success("Category deleted successfully");
       }
     } catch (error) {
       console.error("Error deleting category:", error);
@@ -125,6 +138,7 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
   };
 
   const handleCreateNew = () => {
+    console.log('Creating new category');
     resetForm();
     setIsDialogOpen(true);
   };
@@ -152,7 +166,7 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Task Categories</CardTitle>
-            <Button onClick={handleCreateNew}>
+            <Button onClick={handleCreateNew} disabled={submitting}>
               <Plus className="h-4 w-4 mr-2" />
               Add Category
             </Button>
@@ -203,6 +217,7 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
                           size="sm" 
                           variant="outline"
                           onClick={() => handleEdit(category)}
+                          disabled={submitting}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -210,6 +225,7 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
                           size="sm" 
                           variant="outline"
                           onClick={() => handleDelete(category.id)}
+                          disabled={submitting}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

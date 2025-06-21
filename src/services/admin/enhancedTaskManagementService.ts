@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -417,68 +418,103 @@ export const enhancedTaskManagementService = {
   // Task category management
   async getTaskCategories(): Promise<any[]> {
     try {
+      console.log('Fetching task categories from database...');
       const { data, error } = await supabase
         .from('task_categories')
         .select('*')
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error fetching categories:', error);
+        throw error;
+      }
+      
+      console.log('Categories fetched successfully:', data);
       return data || [];
     } catch (error) {
       console.error('Error fetching categories:', error);
+      toast.error('Failed to fetch categories');
       return [];
     }
   },
 
   async createTaskCategory(categoryData: any): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('task_categories')
-        .insert(categoryData);
-
-      if (error) throw error;
+      console.log('Creating task category with data:', categoryData);
       
+      const { data, error } = await supabase
+        .from('task_categories')
+        .insert([categoryData])
+        .select();
+
+      if (error) {
+        console.error('Database error creating category:', error);
+        throw error;
+      }
+      
+      console.log('Category created successfully:', data);
       toast.success('Category created successfully');
       return true;
     } catch (error: any) {
       console.error('Error creating category:', error);
-      toast.error(`Failed to create category: ${error.message}`);
+      
+      // Check for specific error types
+      if (error.code === '42501') {
+        toast.error('Permission denied. Only admins can create categories.');
+      } else if (error.code === '23505') {
+        toast.error('A category with this name already exists.');
+      } else {
+        toast.error(`Failed to create category: ${error.message || 'Unknown error'}`);
+      }
       return false;
     }
   },
 
   async updateTaskCategory(categoryId: string, updates: any): Promise<boolean> {
     try {
-      const { error } = await supabase
+      console.log('Updating task category:', categoryId, 'with data:', updates);
+      
+      const { data, error } = await supabase
         .from('task_categories')
         .update(updates)
-        .eq('id', categoryId);
+        .eq('id', categoryId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error updating category:', error);
+        throw error;
+      }
       
+      console.log('Category updated successfully:', data);
       toast.success('Category updated successfully');
       return true;
     } catch (error: any) {
       console.error('Error updating category:', error);
-      toast.error(`Failed to update category: ${error.message}`);
+      toast.error(`Failed to update category: ${error.message || 'Unknown error'}`);
       return false;
     }
   },
 
   async deleteTaskCategory(categoryId: string): Promise<boolean> {
     try {
+      console.log('Deleting task category:', categoryId);
+      
       const { error } = await supabase
         .from('task_categories')
         .delete()
         .eq('id', categoryId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error deleting category:', error);
+        throw error;
+      }
       
+      console.log('Category deleted successfully');
       toast.success('Category deleted successfully');
       return true;
     } catch (error: any) {
       console.error('Error deleting category:', error);
-      toast.error(`Failed to delete category: ${error.message}`);
+      toast.error(`Failed to delete category: ${error.message || 'Unknown error'}`);
       return false;
     }
   }
