@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,13 +44,20 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   onCancel
 }) => {
   const [categories, setCategories] = useState<any[]>([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formMounted, setFormMounted] = useState(false);
 
   useEffect(() => {
-    loadCategories();
+    console.log('TaskCreationForm mounted');
+    setFormMounted(true);
+    
+    // Load categories in the background, but don't block the form
+    loadCategoriesAsync();
+    
     if (taskToEdit) {
+      console.log('Editing task:', taskToEdit);
       setFormData({
         title: taskToEdit.title || "",
         description: taskToEdit.description || "",
@@ -69,13 +77,16 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
     }
   }, [taskToEdit]);
 
-  const loadCategories = async () => {
+  const loadCategoriesAsync = async () => {
     try {
       setCategoriesLoading(true);
+      console.log('Loading categories...');
       const data = await enhancedTaskManagementService.getTaskCategories();
+      console.log('Categories loaded:', data);
       setCategories(data || []);
     } catch (error: any) {
       console.error("Error loading categories:", error);
+      // Don't show error toast for categories since they're optional
       setCategories([]);
     } finally {
       setCategoriesLoading(false);
@@ -85,7 +96,9 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Enhanced validation
+    console.log('Form submission started');
+    
+    // Basic validation
     if (!formData.title?.trim()) {
       toast.error("Task title is required");
       return;
@@ -103,12 +116,14 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
 
     setIsSubmitting(true);
     try {
-      console.log('Submitting task creation form...');
+      console.log('Creating task with form data:', formData);
       
+      // Prepare social media links
       const socialLinks = Object.entries(formData.social_media_links)
         .filter(([_, value]) => value && value.trim() !== '')
         .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
 
+      // Prepare task data
       const taskData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -121,11 +136,10 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         status: formData.status,
         task_type: formData.task_type,
         social_media_links: formData.task_type === 'social_media' && Object.keys(socialLinks).length > 0 ? socialLinks : null,
-        // Only include category_id if it's selected and not empty
         category_id: formData.category_id && formData.category_id.trim() !== '' ? formData.category_id : null
       };
 
-      console.log('Final task data for creation:', taskData);
+      console.log('Final task data:', taskData);
 
       let success;
       if (taskToEdit) {
@@ -135,12 +149,13 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
       }
 
       if (success) {
-        console.log('Task creation/update successful');
-        // Reset form
+        console.log('Task operation successful');
         setFormData(initialFormData);
         onTaskCreated();
+        toast.success(taskToEdit ? "Task updated successfully!" : "Task created successfully!");
       } else {
-        console.error('Task creation/update failed');
+        console.error('Task operation failed');
+        toast.error("Failed to save task. Please try again.");
       }
     } catch (error) {
       console.error("Error saving task:", error);
@@ -165,6 +180,25 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
     }));
   };
 
+  // Show loading state until form is mounted
+  if (!formMounted) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Loading Task Form...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-10 bg-gray-200 rounded"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-10 bg-gray-200 rounded"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const validCategories = categories.filter(category =>
     category &&
     category.id &&
@@ -176,14 +210,14 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   );
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>
           {taskToEdit ? "Edit Task" : "Create New Task"}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6 flex flex-col">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
@@ -221,13 +255,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                   onValueChange={(value) => handleInputChange('category_id', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={
-                      categoriesLoading
-                        ? "Loading categories..."
-                        : validCategories.length === 0
-                          ? "No categories available (optional)"
-                          : "Select category (optional)"
-                    } />
+                    <SelectValue placeholder="Select category (optional)" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">No Category</SelectItem>
@@ -244,13 +272,10 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                     )}
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Tasks can be created without a category
-                </p>
               </div>
               
               <div>
-                <Label htmlFor="difficulty">Difficulty (Optional)</Label>
+                <Label htmlFor="difficulty">Difficulty</Label>
                 <Select value={formData.difficulty} onValueChange={(value) => handleInputChange('difficulty', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select difficulty" />
@@ -341,11 +366,11 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
           </div>
           
           {formData.task_type === 'social_media' && (
-            <div className="md:col-span-2 space-y-2">
+            <div className="space-y-4">
               <Label>Social Media Links (Optional)</Label>
-              <div className="space-y-2">
-                <div className="relative flex items-center">
-                  <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative">
+                  <Facebook className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     value={formData.social_media_links.facebook}
                     onChange={(e) => handleSocialLinkChange('facebook', e.target.value)}
@@ -353,8 +378,8 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                     className="pl-10"
                   />
                 </div>
-                <div className="relative flex items-center">
-                  <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div className="relative">
+                  <Twitter className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     value={formData.social_media_links.twitter}
                     onChange={(e) => handleSocialLinkChange('twitter', e.target.value)}
@@ -362,8 +387,8 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                     className="pl-10"
                   />
                 </div>
-                <div className="relative flex items-center">
-                  <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div className="relative">
+                  <Instagram className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     value={formData.social_media_links.instagram}
                     onChange={(e) => handleSocialLinkChange('instagram', e.target.value)}
@@ -371,8 +396,8 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                     className="pl-10"
                   />
                 </div>
-                <div className="relative flex items-center">
-                  <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div className="relative">
+                  <Linkedin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     value={formData.social_media_links.linkedin}
                     onChange={(e) => handleSocialLinkChange('linkedin', e.target.value)}
@@ -380,8 +405,8 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                     className="pl-10"
                   />
                 </div>
-                <div className="relative flex items-center">
-                  <Youtube className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div className="relative">
+                  <Youtube className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     value={formData.social_media_links.youtube}
                     onChange={(e) => handleSocialLinkChange('youtube', e.target.value)}
@@ -405,7 +430,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
             />
           </div>
           
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>

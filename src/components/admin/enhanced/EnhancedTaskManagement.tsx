@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,7 +20,6 @@ export const EnhancedTaskManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -176,10 +176,15 @@ export const EnhancedTaskManagement = () => {
         </TabsContent>
 
         <TabsContent value="create" className="space-y-6">
-          <TaskCreationForm 
-            onTaskCreated={loadData}
-            onCancel={() => setShowCreateForm(false)}
-          />
+          <div className="w-full">
+            <TaskCreationForm 
+              onTaskCreated={loadData}
+              onCancel={() => {
+                console.log('Task creation cancelled');
+                // Could switch to overview tab or just stay here
+              }}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="categories" className="space-y-6">
