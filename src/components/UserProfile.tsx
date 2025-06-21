@@ -9,6 +9,7 @@ import { ProfileAvatar } from "./profile/ProfileAvatar";
 import { ProfileForm } from "./profile/ProfileForm";
 import { ProfileStats } from "./profile/ProfileStats";
 import { ProfileAdditionalInfo } from "./profile/ProfileAdditionalInfo";
+import { ProfileBirdDisplay } from '@/components/profile/ProfileBirdDisplay';
 
 interface UserProfileProps {
   user: {
@@ -29,6 +30,8 @@ interface UserProfileProps {
     completionRate?: number;
     followers_count: number;
     following_count: number;
+    active_referrals_count: number;
+    total_referrals_count: number;
   };
   onUpdate: (data: Partial<UserProfileProps['user']>) => void;
 }
@@ -126,6 +129,14 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Bird Badge Display */}
+      <ProfileBirdDisplay 
+        userId={user.id}
+        activeReferrals={user.active_referrals_count}
+        totalReferrals={user.total_referrals_count}
+      />
+
+      {/* Profile Header */}
       <Card>
         <ProfileHeader
           isEditing={isEditing}
@@ -167,3 +178,5 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
     </div>
   );
 };
+
+export { UserProfile };

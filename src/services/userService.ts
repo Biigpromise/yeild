@@ -182,18 +182,14 @@ export interface PostReply {
 
 export const userService = {
   getBirdLevel(activeReferrals: number, userPoints: number = 0): ReferralBirdLevel {
-    // Find the highest bird level the user qualifies for
-    let qualifyingLevel = BIRD_LEVELS[0]; // Default to Dove
-    
-    for (const level of BIRD_LEVELS) {
+    // Find the highest level the user qualifies for
+    for (let i = BIRD_LEVELS.length - 1; i >= 0; i--) {
+      const level = BIRD_LEVELS[i];
       if (activeReferrals >= level.minReferrals && userPoints >= level.minPoints) {
-        qualifyingLevel = level;
-      } else {
-        break;
+        return level;
       }
     }
-    
-    return qualifyingLevel;
+    return BIRD_LEVELS[0]; // Return first level as default
   },
 
   async getReferralStats(): Promise<ReferralStats> {
@@ -429,6 +425,26 @@ export const userService = {
       return profile;
     } catch (error) {
       console.error('Error getting current user:', error);
+      return null;
+    }
+  },
+
+  async getUserProfile(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          active_referrals_count,
+          total_referrals_count
+        `)
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
       return null;
     }
   },

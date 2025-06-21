@@ -587,6 +587,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_referrals_count: number | null
           average_session_duration: number | null
           bio: string | null
           created_at: string | null
@@ -605,10 +606,12 @@ export type Database = {
           social_media_links: string[] | null
           task_completion_rate: number | null
           tasks_completed: number | null
+          total_referrals_count: number | null
           total_session_time: number | null
           updated_at: string | null
         }
         Insert: {
+          active_referrals_count?: number | null
           average_session_duration?: number | null
           bio?: string | null
           created_at?: string | null
@@ -627,10 +630,12 @@ export type Database = {
           social_media_links?: string[] | null
           task_completion_rate?: number | null
           tasks_completed?: number | null
+          total_referrals_count?: number | null
           total_session_time?: number | null
           updated_at?: string | null
         }
         Update: {
+          active_referrals_count?: number | null
           average_session_duration?: number | null
           bio?: string | null
           created_at?: string | null
@@ -649,6 +654,7 @@ export type Database = {
           social_media_links?: string[] | null
           task_completion_rate?: number | null
           tasks_completed?: number | null
+          total_referrals_count?: number | null
           total_session_time?: number | null
           updated_at?: string | null
         }
@@ -1499,6 +1505,10 @@ export type Database = {
           p_activity_date?: string
         }
         Returns: undefined
+      }
+      verify_single_admin_access: {
+        Args: { user_email: string }
+        Returns: boolean
       }
     }
     Enums: {
