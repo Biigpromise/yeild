@@ -164,7 +164,7 @@ const Dashboard = () => {
         "container mx-auto max-w-7xl",
         activeTab === "community-chat" ? "p-0 h-screen" : "px-1 sm:px-4 py-1 sm:py-4"
       )}>
-        {/* Only show header and stats for non-community-chat tabs */}
+        {/* Only show header for non-community-chat tabs - NO STATS */}
         {activeTab !== "community-chat" && (
           <div className="mb-2 sm:mb-4">
             <DashboardHeader
@@ -176,9 +176,6 @@ const Dashboard = () => {
               handleLogout={handleLogout}
               setActiveTab={setActiveTab}
             />
-
-            {/* Hide stats on mobile for more space */}
-            {!isMobile && <DashboardStats userStats={userStats} />}
           </div>
         )}
 

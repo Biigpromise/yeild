@@ -26,10 +26,12 @@ export function useSimpleFormPersistence<T = any>({
       const data = localStorage.getItem(storageKey);
       if (data) {
         const parsed = JSON.parse(data);
-        // FIX: setFormData expects T, not a function!
+        console.log('Loading simple form data from localStorage:', parsed);
+        // Merge with existing form data
         setFormData({ ...formData, ...parsed });
       }
     } catch (e) {
+      console.error('Error loading simple form data:', e);
       localStorage.removeItem(storageKey);
     }
     loaded.current = true;
@@ -40,32 +42,41 @@ export function useSimpleFormPersistence<T = any>({
   useEffect(() => {
     if (!enabled) return;
     if (!loaded.current) return; // Don't save on first mount before loading
-    // Only save if at least one useful field is filled in
-    const values = Object.entries(formData || {}).filter(
-      ([k]) => !excludeKeys.includes(k)
-    );
-    if (!values.length) return;
-    const hasData = values.some(([_, val]) =>
-      val !== "" && val !== false && val !== undefined
-    );
-    if (hasData) {
-      localStorage.setItem(
-        storageKey,
-        JSON.stringify(
-          Object.fromEntries(
-            values.filter(([k]) => !excludeKeys.includes(k))
-          )
-        )
+    
+    try {
+      // Only save if at least one useful field is filled in
+      const values = Object.entries(formData || {}).filter(
+        ([k]) => !excludeKeys.includes(k)
       );
-    } else {
-      localStorage.removeItem(storageKey);
+      
+      if (!values.length) return;
+      
+      const hasData = values.some(([_, val]) =>
+        val !== "" && val !== false && val !== undefined && val !== null
+      );
+      
+      if (hasData) {
+        const dataToSave = Object.fromEntries(
+          values.filter(([k]) => !excludeKeys.includes(k))
+        );
+        console.log('Saving simple form data to localStorage:', dataToSave);
+        localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+      } else {
+        localStorage.removeItem(storageKey);
+      }
+    } catch (err) {
+      console.error('Error saving simple form data:', err);
     }
   }, [formData, enabled, storageKey, excludeKeys]);
 
   const clearDraft = () => {
-    localStorage.removeItem(storageKey);
+    try {
+      localStorage.removeItem(storageKey);
+      console.log('Cleared simple form draft:', storageKey);
+    } catch (err) {
+      console.error('Error clearing simple form draft:', err);
+    }
   };
 
   return { clearDraft };
 }
-

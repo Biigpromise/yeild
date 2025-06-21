@@ -9,6 +9,7 @@ import { TaskFormFields } from "./TaskFormFields";
 import { TaskCategorySelector } from "./TaskCategorySelector";
 import { TaskSocialMediaLinks } from "./TaskSocialMediaLinks";
 import { validateTaskForm, prepareTaskData, TaskFormData } from "./TaskFormValidation";
+import { useSimpleFormPersistence } from "@/hooks/useSimpleFormPersistence";
 
 interface TaskCreationFormProps {
   taskToEdit?: any;
@@ -50,6 +51,15 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasError, setHasError] = useState(false);
 
+  // Add form persistence - only when not editing existing task
+  const { clearDraft } = useSimpleFormPersistence({
+    formData,
+    setFormData,
+    storageKey: taskToEdit ? `edit-task-${taskToEdit.id}` : 'create-task-draft',
+    enabled: true, // Always enabled for better UX
+    excludeKeys: ['social_media_links'] // Exclude complex objects for now
+  });
+
   console.log('TaskCreationForm rendering');
 
   useEffect(() => {
@@ -66,7 +76,6 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
       } catch (error) {
         console.error("Error loading categories:", error);
         setCategories([]);
-        // Don't show error toast for categories since they're optional
         console.log("Categories failed to load, continuing without them");
       } finally {
         setCategoriesLoading(false);
@@ -137,6 +146,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
       if (success) {
         console.log('Task operation successful');
         setFormData(initialFormData);
+        clearDraft(); // Clear the persisted draft
         onTaskCreated();
         toast.success(taskToEdit ? "Task updated successfully!" : "Task created successfully!");
       } else {
@@ -165,6 +175,11 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         [platform]: value
       }
     }));
+  };
+
+  const handleCancel = () => {
+    clearDraft(); // Clear draft when canceling
+    onCancel();
   };
 
   console.log('Rendering TaskCreationForm with current form data:', formData);
@@ -227,7 +242,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
           </div>
           
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
