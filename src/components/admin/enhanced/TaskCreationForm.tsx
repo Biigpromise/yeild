@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,7 +45,6 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
 }) => {
   const [categories, setCategories] = useState<any[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [categoriesError, setCategoriesError] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -73,16 +73,10 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   const loadCategories = async () => {
     try {
       setCategoriesLoading(true);
-      setCategoriesError(null);
       const data = await enhancedTaskManagementService.getTaskCategories();
-      if (!data || data.length === 0) {
-        setCategoriesError("No categories found. Please add at least one category via the admin dashboard.");
-        setCategories([]);
-      } else {
-        setCategories(data);
-      }
+      setCategories(data || []);
     } catch (error: any) {
-      setCategoriesError("There was an error loading categories. Please check your permissions and database.");
+      console.error("Error loading categories:", error);
       setCategories([]);
     } finally {
       setCategoriesLoading(false);
@@ -92,8 +86,9 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Only require title, description, and points - category is optional
     if (!formData.title || !formData.description || !formData.points) {
-      toast.error("Please fill in all required fields");
+      toast.error("Please fill in all required fields (title, description, and points)");
       return;
     }
 
@@ -108,6 +103,8 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         points: parseInt(formData.points),
         expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null,
         social_media_links: formData.task_type === 'social_media' && Object.keys(socialLinks).length > 0 ? socialLinks : null,
+        // Only include category_id if it's selected
+        ...(formData.category_id && { category_id: formData.category_id })
       };
 
       let success;
@@ -151,8 +148,6 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
     typeof category.name === 'string' &&
     category.name.trim() !== ''
   );
-  // Stronger warning if categories are empty post-load
-  const showCategoryEmptyWarning = !categoriesLoading && !categoriesError && validCategories.length === 0;
 
   return (
     <Card>
@@ -162,16 +157,6 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {categoriesError && (
-          <div className="mb-4 p-2 bg-red-50 text-red-600 border border-red-200 rounded text-center text-sm">
-            {categoriesError}
-          </div>
-        )}
-        {showCategoryEmptyWarning && (
-          <div className="mb-4 p-2 bg-yellow-50 text-yellow-700 border border-yellow-300 rounded text-center text-sm">
-            No categories found. Use the "Add Category" button above to create at least one before creating a task.
-          </div>
-        )}
         <form onSubmit={handleSubmit} className="space-y-6 flex flex-col">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
@@ -202,28 +187,24 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
               </div>
               
               <div>
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category">Category (Optional)</Label>
                 <Select
                   value={formData.category_id}
                   onValueChange={(value) => handleInputChange('category_id', value)}
-                  disabled={categoriesLoading || !!categoriesError || validCategories.length === 0}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={
                       categoriesLoading
                         ? "Loading categories..."
-                        : (categoriesError
-                            ? "Failed to load"
-                            : (validCategories.length === 0
-                                ? "No categories available"
-                                : "Select category"))
+                        : validCategories.length === 0
+                          ? "No categories available"
+                          : "Select category (optional)"
                     } />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">No Category</SelectItem>
                     {categoriesLoading ? (
                       <SelectItem value="loading" disabled>Loading categories...</SelectItem>
-                    ) : categoriesError ? (
-                      <SelectItem value="error" disabled>{categoriesError}</SelectItem>
                     ) : validCategories.length > 0 ? (
                       validCategories.map((category) => (
                         <SelectItem key={`category-${category.id}`} value={category.id}>
@@ -235,15 +216,19 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                     )}
                   </SelectContent>
                 </Select>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Tasks can be created without a category
+                </p>
               </div>
               
               <div>
-                <Label htmlFor="difficulty">Difficulty</Label>
+                <Label htmlFor="difficulty">Difficulty (Optional)</Label>
                 <Select value={formData.difficulty} onValueChange={(value) => handleInputChange('difficulty', value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select difficulty" />
+                    <SelectValue placeholder="Select difficulty (optional)" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">No Difficulty</SelectItem>
                     <SelectItem value="easy">Easy</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
                     <SelectItem value="hard">Hard</SelectItem>
@@ -252,7 +237,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
               </div>
 
               <div>
-                <Label htmlFor="task_type">Task Type</Label>
+                <Label htmlFor="task_type">Task Type (Optional)</Label>
                 <Select value={formData.task_type} onValueChange={(value) => handleInputChange('task_type', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select task type" />
@@ -270,7 +255,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
             
             <div className="space-y-4">
               <div>
-                <Label htmlFor="brand_name">Brand Name</Label>
+                <Label htmlFor="brand_name">Brand Name (Optional)</Label>
                 <Input
                   id="brand_name"
                   value={formData.brand_name}
@@ -280,7 +265,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
               </div>
               
               <div>
-                <Label htmlFor="brand_logo_url">Brand Logo URL</Label>
+                <Label htmlFor="brand_logo_url">Brand Logo URL (Optional)</Label>
                 <div className="relative">
                   <ImageIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -294,7 +279,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
               </div>
               
               <div>
-                <Label htmlFor="estimated_time">Estimated Time</Label>
+                <Label htmlFor="estimated_time">Estimated Time (Optional)</Label>
                 <Input
                   id="estimated_time"
                   value={formData.estimated_time}
@@ -304,7 +289,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
               </div>
               
               <div>
-                <Label htmlFor="expires_at">Expiration Date</Label>
+                <Label htmlFor="expires_at">Expiration Date (Optional)</Label>
                 <div className="relative">
                   <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -330,7 +315,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
           
           {formData.task_type === 'social_media' && (
             <div className="md:col-span-2 space-y-2">
-              <Label>Social Media Links</Label>
+              <Label>Social Media Links (Optional)</Label>
               <div className="space-y-2">
                 <div className="relative flex items-center">
                   <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

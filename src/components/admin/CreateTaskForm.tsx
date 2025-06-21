@@ -8,19 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { taskService, TaskCategory } from "@/services/taskService";
 import { toast } from "sonner";
-import { useSimpleFormPersistence } from "@/hooks/useSimpleFormPersistence"; // <-- NEW
+import { useSimpleFormPersistence } from "@/hooks/useSimpleFormPersistence";
 
 interface CreateTaskFormProps {
   onTaskCreated: () => void;
 }
 
-// Set a key unique to admin/task create form.
 const FORM_DRAFT_KEY = "adminCreateTaskDraft";
 
 export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated }) => {
   const [categories, setCategories] = useState<TaskCategory[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -34,7 +32,6 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Draft persistence for all fields except expires_at (leave in for now)
   const { clearDraft } = useSimpleFormPersistence({
     formData,
     setFormData,
@@ -49,16 +46,10 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
   const loadCategories = async () => {
     try {
       setCategoriesLoading(true);
-      setLoadError(null);
       const data = await taskService.getCategories();
-      if (!data || data.length === 0) {
-        setLoadError("No categories found. Please add at least one category via the admin dashboard.");
-        setCategories([]);
-      } else {
-        setCategories(data);
-      }
+      setCategories(data || []);
     } catch (error: any) {
-      setLoadError("There was an error loading categories. Please check your permissions and database.");
+      console.error("Error loading categories:", error);
       setCategories([]);
     } finally {
       setCategoriesLoading(false);
@@ -67,16 +58,16 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validate required fields
+    
+    // Validate required fields - category is now optional
     if (
       !formData.title.trim() ||
       !formData.description.trim() ||
       !formData.points ||
       formData.points === "0" ||
-      isNaN(Number(formData.points)) ||
-      !formData.category_id
+      isNaN(Number(formData.points))
     ) {
-      toast.error("Please fill in all required fields (title, description, points > 0, category)");
+      toast.error("Please fill in all required fields (title, description, and points > 0)");
       return;
     }
 
@@ -86,13 +77,16 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
         ...formData,
         points: parseInt(formData.points, 10),
         expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null,
-        status: 'active'
+        status: 'active',
+        // Only include category_id if it's selected
+        ...(formData.category_id && { category_id: formData.category_id })
       };
-      // Remove any keys that are empty strings
+      
+      // Remove empty string values
       Object.keys(taskData).forEach(
         (k) => (taskData[k] === '' ? delete taskData[k] : undefined)
       );
-      // Attempt to create the task and catch error message
+
       await taskService.admin.createTask(taskData);
       toast.success("Task created successfully!");
       setFormData({
@@ -106,7 +100,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
         estimated_time: "",
         expires_at: ""
       });
-      clearDraft(); // <-- Clear the draft after successful creation
+      clearDraft();
       onTaskCreated();
     } catch (error: any) {
       console.error("Error creating task:", error);
@@ -121,7 +115,6 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Filter and validate categories - ensure they have valid IDs and names
   const validCategories = categories.filter(category =>
     category &&
     category.id &&
@@ -131,9 +124,6 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
     typeof category.name === 'string' &&
     category.name.trim() !== ''
   );
-
-  // Show warning if categories are still empty after load (and not due to error)
-  const showCategoryEmptyWarning = !categoriesLoading && !loadError && validCategories.length === 0;
 
   return (
     <div className="w-full flex justify-center items-center sm:p-4 p-0">
@@ -145,16 +135,6 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
           className="p-4 pt-0 overflow-y-auto"
           style={{ maxHeight: "80vh" }}
         >
-          {loadError && (
-            <div className="mb-4 p-2 bg-red-50 text-red-600 border border-red-200 rounded text-center text-sm">
-              {loadError}
-            </div>
-          )}
-          {showCategoryEmptyWarning && (
-            <div className="mb-4 p-2 bg-yellow-50 text-yellow-700 border border-yellow-300 rounded text-center text-sm">
-              No categories found. Please add one in "Task Categories" before creating a task.
-            </div>
-          )}
           <form
             onSubmit={handleSubmit}
             className="space-y-6"
@@ -184,31 +164,26 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                 </div>
 
                 <div>
-                  <Label htmlFor="category">Category *</Label>
+                  <Label htmlFor="category">Category (Optional)</Label>
                   <Select
                     value={formData.category_id}
                     onValueChange={(value) => handleInputChange('category_id', value)}
-                    disabled={categoriesLoading || !!loadError || validCategories.length === 0}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={
                         categoriesLoading
                           ? "Loading categories..."
-                          : (loadError
-                              ? "Failed to load"
-                              : (validCategories.length === 0
-                                  ? "No categories available"
-                                  : "Select category"))
+                          : validCategories.length === 0
+                            ? "No categories available - task will have no category"
+                            : "Select category (optional)"
                       } />
                     </SelectTrigger>
                     <SelectContent>
+                      {/* Add option to clear category selection */}
+                      <SelectItem value="">No Category</SelectItem>
                       {categoriesLoading ? (
                         <SelectItem value="loading-placeholder" disabled>
                           Loading categories...
-                        </SelectItem>
-                      ) : loadError ? (
-                        <SelectItem value="error" disabled>
-                          {loadError}
                         </SelectItem>
                       ) : validCategories.length > 0 ? (
                         validCategories.map((category) => (
@@ -223,15 +198,19 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                       )}
                     </SelectContent>
                   </Select>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Tasks can be created without a category
+                  </p>
                 </div>
 
                 <div>
-                  <Label htmlFor="difficulty">Difficulty</Label>
+                  <Label htmlFor="difficulty">Difficulty (Optional)</Label>
                   <Select value={formData.difficulty} onValueChange={(value) => handleInputChange('difficulty', value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select difficulty" />
+                      <SelectValue placeholder="Select difficulty (optional)" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="">No Difficulty</SelectItem>
                       <SelectItem value="easy">Easy</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="hard">Hard</SelectItem>
@@ -239,9 +218,10 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                   </Select>
                 </div>
               </div>
+              
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="brand_name">Brand Name</Label>
+                  <Label htmlFor="brand_name">Brand Name (Optional)</Label>
                   <Input
                     id="brand_name"
                     value={formData.brand_name}
@@ -251,7 +231,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                 </div>
 
                 <div>
-                  <Label htmlFor="brand_logo_url">Brand Logo URL</Label>
+                  <Label htmlFor="brand_logo_url">Brand Logo URL (Optional)</Label>
                   <Input
                     id="brand_logo_url"
                     value={formData.brand_logo_url}
@@ -261,7 +241,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                 </div>
 
                 <div>
-                  <Label htmlFor="estimated_time">Estimated Time</Label>
+                  <Label htmlFor="estimated_time">Estimated Time (Optional)</Label>
                   <Input
                     id="estimated_time"
                     value={formData.estimated_time}
@@ -271,7 +251,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                 </div>
 
                 <div>
-                  <Label htmlFor="expires_at">Expiration Date</Label>
+                  <Label htmlFor="expires_at">Expiration Date (Optional)</Label>
                   <Input
                     id="expires_at"
                     type="datetime-local"
@@ -296,7 +276,6 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
               <Button type="button" variant="outline" className="w-full sm:w-auto"
                 onClick={() => {
-                  // Manually show a toast to confirm saved!
                   toast.success("Draft saved! You can safely leave and come back to continue later.");
                 }}>
                 Save as Draft
