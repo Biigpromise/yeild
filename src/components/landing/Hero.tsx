@@ -51,7 +51,7 @@ export const Hero = () => {
             <Button 
               variant="outline" 
               size="lg" 
-              className="border-gray-600 text-white hover:bg-gray-800 text-lg px-8 py-6 w-full sm:w-auto"
+              className="border-white/50 text-white hover:bg-white/10 hover:border-white text-lg px-8 py-6 w-full sm:w-auto font-semibold"
               onClick={handleLoginClick}
             >
               Login
