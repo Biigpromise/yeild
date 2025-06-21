@@ -42,34 +42,34 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     <div className="flex items-center justify-between p-2 sm:p-4 bg-background border-b">
       <div className="flex items-center space-x-3">        
         <div className="flex items-center space-x-3">
-          {/* Main User Avatar with Bird Badge - Larger size */}
-          <div className="relative">
-            <Avatar className="h-12 w-12 border-2 border-primary/20">
-              <AvatarImage 
-                src={userProfile?.profile_picture_url} 
-                alt={userProfile?.name || user?.email?.split('@')[0] || 'User'} 
-              />
-              <AvatarFallback className="text-lg font-semibold">
-                {(userProfile?.name || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            {user?.id && (
-              <div className="absolute -top-1 -right-1">
-                <ProfileBirdBadge userId={user.id} size="md" />
-              </div>
-            )}
-          </div>
+          {/* User Avatar - No overlay */}
+          <Avatar className="h-12 w-12 border-2 border-primary/20">
+            <AvatarImage 
+              src={userProfile?.profile_picture_url} 
+              alt={userProfile?.name || user?.email?.split('@')[0] || 'User'} 
+            />
+            <AvatarFallback className="text-lg font-semibold">
+              {(userProfile?.name || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
           
           <div className="flex items-center space-x-2">
-            <h1 className="text-lg sm:text-xl font-bold text-foreground">
-              Welcome back, {userProfile?.name || user?.email?.split('@')[0] || 'User'}!
-            </h1>
-            {userProfile && (
-              <CompactBirdBatch 
-                count={userProfile.tasks_completed || 0} 
-                className="scale-90 sm:scale-100"
-              />
-            )}
+            <div className="flex flex-col">
+              <h1 className="text-lg sm:text-xl font-bold text-foreground">
+                Welcome back, {userProfile?.name || user?.email?.split('@')[0] || 'User'}!
+              </h1>
+              <div className="flex items-center gap-2">
+                {user?.id && (
+                  <ProfileBirdBadge userId={user.id} size="sm" showName />
+                )}
+                {userProfile && (
+                  <CompactBirdBatch 
+                    count={userProfile.tasks_completed || 0} 
+                    className="scale-90 sm:scale-100"
+                  />
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
