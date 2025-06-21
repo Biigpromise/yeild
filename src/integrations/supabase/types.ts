@@ -314,6 +314,51 @@ export type Database = {
           },
         ]
       }
+      fraud_flags: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          evidence: Json | null
+          flag_reason: string
+          flag_type: string
+          id: string
+          related_user_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          severity: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          evidence?: Json | null
+          flag_reason: string
+          flag_type: string
+          id?: string
+          related_user_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          evidence?: Json | null
+          flag_reason?: string
+          flag_type?: string
+          id?: string
+          related_user_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       gift_cards: {
         Row: {
           created_at: string
@@ -1289,6 +1334,42 @@ export type Database = {
           session_end?: string | null
           session_start?: string
           updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_signup_data: {
+        Row: {
+          created_at: string | null
+          device_fingerprint: string | null
+          id: string
+          ip_address: unknown | null
+          location_city: string | null
+          location_country: string | null
+          signup_timestamp: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: unknown | null
+          location_city?: string | null
+          location_country?: string | null
+          signup_timestamp?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: unknown | null
+          location_city?: string | null
+          location_country?: string | null
+          signup_timestamp?: string | null
           user_agent?: string | null
           user_id?: string
         }

@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, AlertTriangle, Search, Ban } from 'lucide-react';
+import { Shield, AlertTriangle, Search, Ban, Users } from 'lucide-react';
+import { DuplicateReferralManager } from './DuplicateReferralManager';
 import { toast } from 'sonner';
 
 interface SuspiciousActivity {
@@ -143,87 +144,110 @@ export const AntiFraudTracking: React.FC = () => {
         </AlertDescription>
       </Alert>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Suspicious Activities
-            </span>
-            <div className="flex gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search activities..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64"
-                />
-              </div>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Activity</TableHead>
-                  <TableHead>Risk Level</TableHead>
-                  <TableHead>IP Address</TableHead>
-                  <TableHead>Device</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+      <Tabs defaultValue="duplicate-referrals" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="duplicate-referrals" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Duplicate Referrals
+          </TabsTrigger>
+          <TabsTrigger value="location-abuse">Location Abuse</TabsTrigger>
+          <TabsTrigger value="behavior-analysis">Behavior Analysis</TabsTrigger>
+          <TabsTrigger value="general-suspicious">General Suspicious</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="duplicate-referrals">
+          <DuplicateReferralManager />
+        </TabsContent>
+
+        <TabsContent value="location-abuse">
+          <Card>
+            <CardHeader>
+              <CardTitle>Location-Based Abuse Detection</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                This feature will detect abnormal signup patterns from the same location and will be implemented next.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="behavior-analysis">
+          <Card>
+            <CardHeader>
+              <CardTitle>Points vs. Behavior Ratio Analysis</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                This feature will analyze user behavior patterns and will be implemented next.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="general-suspicious">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  General Suspicious Activities
+                </span>
+                <div className="flex gap-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search activities..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 w-64"
+                    />
+                  </div>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
                 {suspiciousActivities.map((activity) => (
-                  <TableRow key={activity.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{activity.userName}</p>
-                        <p className="text-xs text-muted-foreground">{activity.userId}</p>
+                  <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{activity.userName}</span>
+                        <Badge className={getRiskBadgeColor(activity.riskLevel)}>
+                          {activity.riskLevel.toUpperCase()}
+                        </Badge>
+                        <Badge className={getStatusBadgeColor(activity.status)}>
+                          {activity.status}
+                        </Badge>
                       </div>
-                    </TableCell>
-                    <TableCell>{activity.activity}</TableCell>
-                    <TableCell>
-                      <Badge className={getRiskBadgeColor(activity.riskLevel)}>
-                        {activity.riskLevel.toUpperCase()}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">{activity.ipAddress}</TableCell>
-                    <TableCell className="text-sm">{activity.deviceInfo}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusBadgeColor(activity.status)}>
-                        {activity.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleReviewComplete(activity.id)}
-                        >
-                          Review
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleFlagUser(activity.userId, activity.userName)}
-                        >
-                          Flag
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                      <p className="text-sm text-muted-foreground">{activity.activity}</p>
+                      <p className="text-xs text-muted-foreground">
+                        IP: {activity.ipAddress} | Device: {activity.deviceInfo}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleReviewComplete(activity.id)}
+                      >
+                        Review
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleFlagUser(activity.userId, activity.userName)}
+                      >
+                        Flag
+                      </Button>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

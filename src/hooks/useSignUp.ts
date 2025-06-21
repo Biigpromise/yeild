@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { userService } from "@/services/userService";
+import { fraudDetectionService } from "@/services/fraudDetectionService";
 
 export const useSignUp = () => {
   const navigate = useNavigate();
@@ -73,6 +75,12 @@ export const useSignUp = () => {
         // Handle referral code if present
         if (referralCode) {
           await userService.handleReferralSignup(referralCode);
+        }
+        
+        // Store fraud detection data
+        const currentUser = await supabase.auth.getUser();
+        if (currentUser.data.user) {
+          await fraudDetectionService.storeSignupData(currentUser.data.user.id);
         }
         
         setAwaitingConfirmation(true);
