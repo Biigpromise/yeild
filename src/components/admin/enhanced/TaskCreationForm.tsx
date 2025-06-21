@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,7 @@ interface TaskCreationFormProps {
   taskToEdit?: any;
   onTaskCreated: () => void;
   onCancel: () => void;
+  initialData?: any;
 }
 
 const initialFormData: TaskFormData = {
@@ -41,7 +41,8 @@ const initialFormData: TaskFormData = {
 export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   taskToEdit,
   onTaskCreated,
-  onCancel
+  onCancel,
+  initialData
 }) => {
   const [categories, setCategories] = useState<any[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
@@ -74,7 +75,24 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
 
     loadCategories();
     
-    if (taskToEdit) {
+    // Apply initial data from template if provided
+    if (initialData) {
+      console.log('Applying initial data from template:', initialData);
+      setFormData({
+        title: initialData.title || "",
+        description: initialData.description || "",
+        points: initialData.points?.toString() || "",
+        category_id: "",
+        difficulty: initialData.difficulty || "medium",
+        brand_name: "",
+        brand_logo_url: "",
+        estimated_time: initialData.estimated_time || "",
+        expires_at: "",
+        status: "active",
+        task_type: initialData.task_type || "general",
+        social_media_links: initialFormData.social_media_links,
+      });
+    } else if (taskToEdit) {
       console.log('Setting form data for editing:', taskToEdit);
       setFormData({
         title: taskToEdit.title || "",
@@ -91,7 +109,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         social_media_links: taskToEdit.social_media_links || initialFormData.social_media_links,
       });
     }
-  }, [taskToEdit]);
+  }, [taskToEdit, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
