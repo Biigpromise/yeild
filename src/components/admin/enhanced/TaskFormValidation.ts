@@ -19,48 +19,78 @@ export interface TaskFormData {
     instagram: string;
     linkedin: string;
     youtube: string;
+    tiktok: string;
   };
 }
 
 export const validateTaskForm = (formData: TaskFormData): boolean => {
-  // Basic validation
-  if (!formData.title?.trim()) {
+  if (!formData.title.trim()) {
     toast.error("Task title is required");
     return false;
   }
 
-  if (!formData.description?.trim()) {
+  if (!formData.description.trim()) {
     toast.error("Task description is required");
     return false;
   }
 
-  if (!formData.points || parseInt(formData.points) <= 0) {
-    toast.error("Points must be greater than 0");
+  if (!formData.points || isNaN(Number(formData.points)) || Number(formData.points) <= 0) {
+    toast.error("Please enter a valid points value");
     return false;
+  }
+
+  if (formData.task_type === 'social_media') {
+    const hasAnySocialLink = Object.values(formData.social_media_links).some(link => link.trim() !== '');
+    if (!hasAnySocialLink) {
+      toast.error("At least one social media link is required for social media tasks");
+      return false;
+    }
   }
 
   return true;
 };
 
 export const prepareTaskData = (formData: TaskFormData) => {
-  // Prepare social media links
-  const socialLinks = Object.entries(formData.social_media_links)
-    .filter(([_, value]) => value && value.trim() !== '')
-    .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
-
-  // Prepare task data
-  return {
+  const taskData: any = {
     title: formData.title.trim(),
     description: formData.description.trim(),
     points: parseInt(formData.points),
-    difficulty: formData.difficulty || 'medium',
-    brand_name: formData.brand_name?.trim() || null,
-    brand_logo_url: formData.brand_logo_url?.trim() || null,
-    estimated_time: formData.estimated_time?.trim() || null,
-    expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null,
+    difficulty: formData.difficulty,
+    brand_name: formData.brand_name.trim(),
+    estimated_time: formData.estimated_time,
     status: formData.status,
     task_type: formData.task_type,
-    social_media_links: formData.task_type === 'social_media' && Object.keys(socialLinks).length > 0 ? socialLinks : null,
-    category_id: formData.category_id && formData.category_id.trim() !== '' ? formData.category_id : null
   };
+
+  // Add category_id if provided
+  if (formData.category_id) {
+    taskData.category_id = formData.category_id;
+  }
+
+  // Add brand_logo_url if provided
+  if (formData.brand_logo_url?.trim()) {
+    taskData.brand_logo_url = formData.brand_logo_url.trim();
+  }
+
+  // Add expires_at if provided
+  if (formData.expires_at) {
+    taskData.expires_at = new Date(formData.expires_at).toISOString();
+  }
+
+  // Add social media links if task type is social_media
+  if (formData.task_type === 'social_media') {
+    // Filter out empty links
+    const filteredLinks = Object.entries(formData.social_media_links)
+      .filter(([_, url]) => url.trim() !== '')
+      .reduce((acc, [platform, url]) => {
+        acc[platform] = url.trim();
+        return acc;
+      }, {} as Record<string, string>);
+    
+    if (Object.keys(filteredLinks).length > 0) {
+      taskData.social_media_links = filteredLinks;
+    }
+  }
+
+  return taskData;
 };
