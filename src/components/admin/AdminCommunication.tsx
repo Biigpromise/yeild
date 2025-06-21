@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { adminCommunicationService, SupportTicket, MessageTemplate } from "@/services/admin/adminCommunicationService";
 import { MessageSquare, Send, FileText, Users, MessageCircle } from "lucide-react";
-import CommunityChat from "@/components/community/CommunityChat";
+import { CommunityChat } from "@/components/community/CommunityChat";
 
 export const AdminCommunication = () => {
   const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([]);
