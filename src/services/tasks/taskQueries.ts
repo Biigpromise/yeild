@@ -1,6 +1,15 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Task, TaskCategory, TaskSubmission } from "../types/taskTypes";
+
+// Helper function to transform database data to Task type
+const transformDatabaseTask = (dbTask: any): Task => ({
+  ...dbTask,
+  social_media_links: dbTask.social_media_links && typeof dbTask.social_media_links === 'object' 
+    ? dbTask.social_media_links as Record<string, string>
+    : null
+});
 
 export const taskQueries = {
   // Get all active tasks
@@ -13,7 +22,7 @@ export const taskQueries = {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return (data || []).map(transformDatabaseTask);
     } catch (error) {
       console.error('Error fetching tasks:', error);
       toast.error('Failed to load tasks');

@@ -1,7 +1,16 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Task } from "../types/taskTypes";
 import { pointCalculationService, PointCalculationFactors } from "../pointCalculationService";
+
+// Helper function to transform database data to Task type
+const transformDatabaseTask = (dbTask: any): Task => ({
+  ...dbTask,
+  social_media_links: dbTask.social_media_links && typeof dbTask.social_media_links === 'object' 
+    ? dbTask.social_media_links as Record<string, string>
+    : null
+});
 
 export const adminTaskService = {
   async getAllTasks(): Promise<Task[]> {
@@ -12,7 +21,7 @@ export const adminTaskService = {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return (data || []).map(transformDatabaseTask);
     } catch (error) {
       console.error('Error fetching all tasks:', error);
       return [];

@@ -13,7 +13,9 @@ export interface Task {
   status: string;
   created_at: string;
   expires_at?: string;
-  social_media_links?: Record<string, string>;
+  social_media_links?: Record<string, string> | null;
+  brand_user_id?: string;
+  category_id?: string;
 }
 
 export interface TaskCategory {
