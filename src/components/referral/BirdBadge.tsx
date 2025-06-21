@@ -1,113 +1,31 @@
 
 import React from 'react';
 import { ReferralBirdLevel } from '@/services/userService';
-import { Badge } from '@/components/ui/badge';
-import { Bird, Zap, Crown, Star, Flame } from 'lucide-react';
+import { EnhancedBirdBadge } from './EnhancedBirdBadge';
 
 interface BirdBadgeProps {
   birdLevel: ReferralBirdLevel | null;
-  size?: 'sm' | 'md' | 'lg';
+  activeReferrals?: number;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   showName?: boolean;
   className?: string;
 }
 
-const getBirdIcon = (iconName: string, size: string) => {
-  const iconSize = size === 'sm' ? 'h-3 w-3' : size === 'md' ? 'h-4 w-4' : 'h-5 w-5';
-  
-  switch (iconName) {
-    case 'dove':
-      return <Bird className={iconSize} />;
-    case 'hawk':
-      return <Bird className={iconSize} />;
-    case 'eagle':
-      return <Crown className={`${iconSize} hover:animate-bounce`} />;
-    case 'falcon':
-      return <Zap className={`${iconSize} hover:animate-pulse`} />;
-    case 'phoenix':
-      return <Flame className={`${iconSize} text-orange-500 animate-pulse hover:animate-spin`} />;
-    default:
-      return <Bird className={iconSize} />;
-  }
-};
-
-const getBirdColor = (iconName: string) => {
-  switch (iconName) {
-    case 'dove':
-      return 'bg-gray-100 text-gray-700 border-gray-300';
-    case 'hawk':
-      return 'bg-amber-100 text-amber-700 border-amber-300';
-    case 'eagle':
-      return 'bg-blue-100 text-blue-700 border-blue-300 shadow-md hover:shadow-blue-300';
-    case 'falcon':
-      return 'bg-purple-100 text-purple-700 border-purple-300 shadow-md hover:shadow-purple-300';
-    case 'phoenix':
-      return 'bg-gradient-to-r from-red-100 via-orange-100 to-yellow-100 text-red-700 border-red-300 shadow-lg shadow-orange-200 hover:shadow-orange-400';
-    default:
-      return 'bg-gray-100 text-gray-500';
-  }
-};
-
-const getAnimationClasses = (iconName: string) => {
-  switch (iconName) {
-    case 'dove':
-      return 'hover:scale-105 transition-all duration-200';
-    case 'hawk':
-      return 'hover:scale-105 transition-all duration-200';
-    case 'eagle':
-      return 'hover:scale-110 hover:-rotate-3 transition-all duration-300';
-    case 'falcon':
-      return 'hover:scale-125 hover:rotate-6 transition-all duration-200';
-    case 'phoenix':
-      return 'hover:scale-110 transition-all duration-300 relative animate-pulse hover:animate-none';
-    default:
-      return 'hover:scale-105 transition-all duration-300';
-  }
-};
-
 export const BirdBadge: React.FC<BirdBadgeProps> = ({ 
   birdLevel, 
+  activeReferrals = 0,
   size = 'md', 
   showName = false,
   className = ''
 }) => {
-  if (!birdLevel || birdLevel.name === 'None') {
-    return null;
-  }
-
-  const icon = getBirdIcon(birdLevel.icon, size);
-  const colorClass = getBirdColor(birdLevel.icon);
-  const animationClass = getAnimationClasses(birdLevel.icon);
-  
-  const badgeSize = size === 'sm' ? 'text-xs px-1.5 py-0.5' : size === 'lg' ? 'text-sm px-3 py-1' : 'text-xs px-2 py-1';
-  
   return (
-    <div className="relative">
-      {/* Phoenix Special Glow Effect */}
-      {birdLevel.icon === 'phoenix' && (
-        <>
-          <div className="absolute -inset-1 bg-gradient-to-r from-orange-600 to-red-600 rounded-full blur opacity-50 animate-pulse" />
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-400 to-red-400 rounded-full blur-sm opacity-30 animate-pulse" />
-        </>
-      )}
-      
-      <Badge 
-        variant="outline" 
-        className={`
-          ${colorClass} 
-          ${animationClass}
-          ${badgeSize}
-          ${className}
-          flex items-center gap-1 font-medium relative z-10 cursor-pointer
-        `}
-        title={birdLevel.description}
-      >
-        {icon}
-        {showName && (
-          <span className="ml-1 font-semibold">
-            {birdLevel.name}
-          </span>
-        )}
-      </Badge>
-    </div>
+    <EnhancedBirdBadge 
+      birdLevel={birdLevel}
+      activeReferrals={activeReferrals}
+      size={size}
+      showName={showName}
+      className={className}
+      showAnimation={true}
+    />
   );
 };
