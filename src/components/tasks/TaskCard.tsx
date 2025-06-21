@@ -102,7 +102,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           )}
         </div>
 
-        {/* Social Media Links - Make sure they're always visible */}
+        {/* Social Media Links - Always visible and clickable */}
         <TaskSocialMediaDisplay 
           socialLinks={task.social_media_links}
           taskTitle={task.title}

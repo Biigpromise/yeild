@@ -12,11 +12,9 @@ import { BulkTaskOperations } from "./BulkTaskOperations";
 import { TaskScheduler } from "./TaskScheduler";
 import { enhancedTaskManagementService } from "@/services/admin/enhancedTaskManagementService";
 import { TaskPerformanceAnalytics } from "./TaskPerformanceAnalytics";
-import { TaskTable } from "../TaskTable";
 import { TaskFilterBar } from "../TaskFilterBar";
 import { TaskOverviewStats } from "../TaskOverviewStats";
-import { getDifficultyColor, getStatusColor } from "../utils/taskColorUtils";
-import { Plus, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw, Edit, Trash2 } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 export const EnhancedTaskManagement = () => {
@@ -160,6 +158,24 @@ export const EnhancedTaskManagement = () => {
   const totalSubmissions = submissions.length;
   const approvedSubmissions = submissions.filter(sub => sub.status === 'approved').length;
 
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty?.toLowerCase()) {
+      case 'easy': return 'bg-green-100 text-green-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'hard': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'draft': return 'bg-gray-100 text-gray-800';
+      case 'inactive': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -237,14 +253,71 @@ export const EnhancedTaskManagement = () => {
                 onSearchChange={setSearchTerm}
                 onStatusFilterChange={setStatusFilter}
               />
-              <TaskTable 
-                tasks={filteredTasks}
-                getDifficultyColor={getDifficultyColor}
-                getStatusColor={getStatusColor}
-                onDeleteTask={handleDeleteTask}
-                onEditTask={handleEditTask}
-                deleteLoading={deleteLoading}
-              />
+              
+              {/* Enhanced Task Table with Edit Actions */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-2">Title</th>
+                      <th className="text-left p-2">Status</th>
+                      <th className="text-left p-2">Difficulty</th>
+                      <th className="text-left p-2">Points</th>
+                      <th className="text-left p-2">Category</th>
+                      <th className="text-left p-2">Created</th>
+                      <th className="text-left p-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredTasks.map((task) => (
+                      <tr key={task.id} className="border-b hover:bg-gray-50">
+                        <td className="p-2">
+                          <div>
+                            <div className="font-medium">{task.title}</div>
+                            <div className="text-sm text-gray-500 truncate max-w-xs">
+                              {task.description}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-2">
+                          <Badge className={getStatusColor(task.status)}>
+                            {task.status}
+                          </Badge>
+                        </td>
+                        <td className="p-2">
+                          <Badge className={getDifficultyColor(task.difficulty)}>
+                            {task.difficulty}
+                          </Badge>
+                        </td>
+                        <td className="p-2 font-semibold">{task.points}</td>
+                        <td className="p-2">{task.category || 'General'}</td>
+                        <td className="p-2">
+                          {new Date(task.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="p-2">
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditTask(task)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDeleteTask(task.id)}
+                              disabled={deleteLoading === task.id}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

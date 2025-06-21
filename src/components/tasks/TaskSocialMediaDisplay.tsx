@@ -28,11 +28,22 @@ export const TaskSocialMediaDisplay: React.FC<TaskSocialMediaDisplayProps> = ({
 
   if (activePlatforms.length === 0) return null;
 
+  const handleLinkClick = (url: string, platform: string) => {
+    // Ensure URL has proper protocol
+    let finalUrl = url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      finalUrl = `https://${url}`;
+    }
+    
+    console.log(`Opening ${platform} link:`, finalUrl);
+    window.open(finalUrl, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
       <h4 className="text-sm font-semibold mb-3 text-gray-700 flex items-center gap-2">
         <ExternalLink className="h-4 w-4" />
-        Social Media Links for {taskTitle}
+        Required Social Media Actions
       </h4>
       <div className="flex flex-wrap gap-2">
         {activePlatforms.map((platform) => {
@@ -40,25 +51,18 @@ export const TaskSocialMediaDisplay: React.FC<TaskSocialMediaDisplayProps> = ({
           return (
             <Button
               key={platform.key}
-              asChild
               size="sm"
-              className={`${platform.color} text-white transition-all duration-200 hover:scale-105`}
+              className={`${platform.color} text-white transition-all duration-200 hover:scale-105 cursor-pointer`}
+              onClick={() => handleLinkClick(socialLinks[platform.key], platform.name)}
             >
-              <a
-                href={socialLinks[platform.key]}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2"
-              >
-                <Icon className="h-4 w-4" />
-                <span className="text-xs">{platform.name}</span>
-              </a>
+              <Icon className="h-4 w-4 mr-2" />
+              <span className="text-xs">Visit {platform.name}</span>
             </Button>
           );
         })}
       </div>
-      <p className="text-xs text-gray-500 mt-2">
-        Click on the links above to complete the social media tasks
+      <p className="text-xs text-gray-600 mt-2 bg-yellow-50 p-2 rounded border-l-2 border-yellow-400">
+        <strong>Instructions:</strong> Click the buttons above to visit the required social media pages. Complete the actions described in the task description, then submit your evidence below.
       </p>
     </div>
   );
