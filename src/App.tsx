@@ -1,70 +1,48 @@
-
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { OnboardingProvider } from "@/contexts/OnboardingContext";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import SignUp from "./pages/SignUp";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
-import Tasks from "./pages/Tasks";
-import Profile from "./pages/Profile";
-import Admin from "./pages/Admin";
-// Removed: import AdminSetup from "./pages/AdminSetup";
-import BrandSignup from "./pages/BrandSignup";
-import TermsOfService from "./pages/TermsOfService";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import NotFound from "./pages/NotFound";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
-// Remove CrispChatWidget import
-// import CrispChatWidget from "@/components/CrispChatWidget";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: (failureCount, error: any) => {
-        // Don't retry on auth errors
-        if (error?.status === 401 || error?.status === 403) {
-          return false;
-        }
-        // Retry up to 3 times for other errors
-        return failureCount < 3;
-      },
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-    mutations: {
-      retry: false, // Don't retry mutations by default
-    },
-  },
-});
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { OnboardingProvider } from '@/contexts/OnboardingContext';
+import { ErrorBoundary } from 'react-error-boundary';
+import ErrorScreen from './ErrorScreen';
+import LandingPage from './LandingPage';
+import Dashboard from './Dashboard';
+import TasksPage from './TasksPage';
+import RewardsPage from './RewardsPage';
+import CommunityPage from './CommunityPage';
+import ProfilePage from './ProfilePage';
+import AdminDashboard from './admin/AdminDashboard';
+import { ProtectedRoute } from './ProtectedRoute';
+import { AdminRoute } from './AdminRoute';
+import TaskDetailsPage from './TaskDetailsPage';
+import UserProfilePage from './UserProfilePage';
+import ReferralSignupPage from './ReferralSignupPage';
+import { PhoenixUserProvider } from '@/components/referral/PhoenixUserProvider';
 
 function App() {
+  const queryClient = new QueryClient();
+
+  const handleError = (error: Error, info: React.ErrorInfo) => {
+    console.error('Caught an error: ', error, info);
+  };
+
+  const errorFallback = (props: { error: Error; resetErrorBoundary: () => void }) => {
+    return <ErrorScreen error={props.error} resetErrorBoundary={props.resetErrorBoundary} />;
+  };
+
   return (
-    <>
-      {/* <CrispChatWidget /> */}
-      <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
+    <ErrorBoundary FallbackComponent={errorFallback} onError={handleError}>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
           <AuthProvider>
             <OnboardingProvider>
-              <TooltipProvider>
-                <Toaster />
-                <BrowserRouter>
+              <PhoenixUserProvider>
+                <div className="min-h-screen bg-background">
+                  <Toaster />
                   <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<SignUp />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    <Route path="/brand-signup" element={<BrandSignup />} />
-                    <Route path="/terms" element={<TermsOfService />} />
-                    <Route path="/privacy" element={<PrivacyPolicy />} />
-                    {/* Removed: <Route path="/admin-setup" element={<AdminSetup />} /> */}
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/referral-signup" element={<ReferralSignupPage />} />
                     <Route
                       path="/dashboard"
                       element={
@@ -77,7 +55,31 @@ function App() {
                       path="/tasks"
                       element={
                         <ProtectedRoute>
-                          <Tasks />
+                          <TasksPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/tasks/:taskId"
+                      element={
+                        <ProtectedRoute>
+                          <TaskDetailsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/rewards"
+                      element={
+                        <ProtectedRoute>
+                          <RewardsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/community"
+                      element={
+                        <ProtectedRoute>
+                          <CommunityPage />
                         </ProtectedRoute>
                       }
                     />
@@ -85,31 +87,35 @@ function App() {
                       path="/profile"
                       element={
                         <ProtectedRoute>
-                          <Profile />
+                          <ProfilePage />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="/admin"
+                      path="/user/:userId"
                       element={
                         <ProtectedRoute>
-                          <AdminProtectedRoute>
-                            <Admin />
-                          </AdminProtectedRoute>
+                          <UserProfilePage />
                         </ProtectedRoute>
                       }
                     />
-                    <Route path="*" element={<NotFound />} />
+                    <Route
+                      path="/admin/*"
+                      element={
+                        <AdminRoute>
+                          <AdminDashboard />
+                        </AdminRoute>
+                      }
+                    />
                   </Routes>
-                </BrowserRouter>
-              </TooltipProvider>
+                </div>
+              </PhoenixUserProvider>
             </OnboardingProvider>
           </AuthProvider>
-        </QueryClientProvider>
-      </ErrorBoundary>
-    </>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
 export default App;
-

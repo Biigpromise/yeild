@@ -31,33 +31,33 @@ export const BIRD_LEVELS: ReferralBirdLevel[] = [
   {
     name: 'Hawk',
     minReferrals: 20,
-    minPoints: 0,
+    minPoints: 100, // Updated to require some points
     icon: 'hawk',
-    description: 'Rising Wing - 20+ referrals',
+    description: 'Rising Wing - 20+ referrals, 100+ points',
     color: '#f59e0b'
   },
   {
     name: 'Eagle',
     minReferrals: 100,
-    minPoints: 0,
+    minPoints: 1000, // Updated to require more points
     icon: 'eagle',
-    description: 'Trailblazer - 100+ referrals',
+    description: 'Trailblazer - 100+ referrals, 1000+ points',
     color: '#3b82f6'
   },
   {
     name: 'Falcon',
     minReferrals: 500,
-    minPoints: 0,
+    minPoints: 5000, // Updated to require significant points
     icon: 'falcon',
-    description: 'Sky Master - 500+ referrals',
+    description: 'Sky Master - 500+ referrals, 5000+ points',
     color: '#8b5cf6'
   },
   {
     name: 'Phoenix',
     minReferrals: 1000,
-    minPoints: 0,
+    minPoints: 10000, // Updated to require substantial points
     icon: 'phoenix',
-    description: 'Legend of YEILD - 1000+ referrals',
+    description: 'Legend of YEILD - 1000+ referrals, 10000+ points',
     color: '#f97316'
   }
 ];
@@ -190,7 +190,7 @@ export interface PostReply {
 
 export const userService = {
   getBirdLevel(activeReferrals: number, userPoints: number = 0): ReferralBirdLevel {
-    // Find the highest level the user qualifies for
+    // Find the highest level the user qualifies for based on BOTH referrals AND points
     for (let i = BIRD_LEVELS.length - 1; i >= 0; i--) {
       const level = BIRD_LEVELS[i];
       if (activeReferrals >= level.minReferrals && userPoints >= level.minPoints) {
@@ -203,6 +203,29 @@ export const userService = {
   getNextBirdLevel(currentBirdLevel: ReferralBirdLevel): ReferralBirdLevel | undefined {
     const currentIndex = BIRD_LEVELS.findIndex(level => level.name === currentBirdLevel.name);
     return currentIndex < BIRD_LEVELS.length - 1 ? BIRD_LEVELS[currentIndex + 1] : undefined;
+  },
+
+  // New method to calculate total points from referrals and tasks
+  calculateTotalPoints(referralPoints: number, taskPoints: number, bonusPoints: number = 0): number {
+    return referralPoints + taskPoints + bonusPoints;
+  },
+
+  // New method to get referral points based on bird level
+  getReferralPointsMultiplier(birdLevel: ReferralBirdLevel): number {
+    switch (birdLevel.icon) {
+      case 'dove':
+        return 1.0;
+      case 'hawk':
+        return 1.2;
+      case 'eagle':
+        return 1.5;
+      case 'falcon':
+        return 2.0;
+      case 'phoenix':
+        return 3.0;
+      default:
+        return 1.0;
+    }
   },
 
   async getReferralStats(): Promise<ReferralStats> {

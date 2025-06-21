@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Lock, CheckCircle, Clock } from 'lucide-react';
+import { Lock, CheckCircle, Clock, Crown, Star, Zap } from 'lucide-react';
 import { BIRD_LEVELS, ReferralBirdLevel } from '@/services/userService';
 import { BirdBadge } from './BirdBadge';
+import { BirdProgressIndicator } from './BirdProgressIndicator';
 
 interface BirdProgressionProps {
   userPoints: number;
@@ -52,7 +53,7 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
       case 'owned':
         return 'Owned';
       case 'active':
-        return 'Active';
+        return 'Current';
       case 'locked':
         return 'Locked';
       default:
@@ -60,53 +61,90 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
     }
   };
 
-  const progressToNext = nextBirdLevel 
-    ? Math.min(100, (userPoints / nextBirdLevel.minPoints) * 100)
-    : 100;
+  const getBirdBenefits = (birdIcon: string) => {
+    switch (birdIcon) {
+      case 'dove':
+        return 'Basic profile features';
+      case 'hawk':
+        return 'Premium task access';
+      case 'eagle':
+        return 'Leaderboard visibility & badges';
+      case 'falcon':
+        return 'Special rank & early task access';
+      case 'phoenix':
+        return 'Elite status & exclusive rewards';
+      default:
+        return 'Standard features';
+    }
+  };
+
+  const getProgressToNext = (level: ReferralBirdLevel) => {
+    if (activeReferrals >= level.minReferrals) return 100;
+    return Math.min(100, (activeReferrals / level.minReferrals) * 100);
+  };
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-xl font-bold">Bird Progression</CardTitle>
+        <CardTitle className="text-xl font-bold flex items-center gap-2">
+          <Crown className="h-5 w-5 text-yellow-600" />
+          Bird Progression System
+        </CardTitle>
         {nextBirdLevel && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>{userPoints} / {nextBirdLevel.minPoints} pts to unlock {nextBirdLevel.name}</span>
-              <span>{activeReferrals} / {nextBirdLevel.minReferrals} referrals</span>
-            </div>
-            <Progress value={progressToNext} className="h-2" />
-          </div>
+          <BirdProgressIndicator
+            currentBirdLevel={currentBirdLevel}
+            nextBirdLevel={nextBirdLevel}
+            activeReferrals={activeReferrals}
+          />
         )}
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {BIRD_LEVELS.map((level) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {BIRD_LEVELS.slice(1).map((level) => {
             const status = getBirdStatus(level);
             const isActive = level.name === currentBirdLevel.name;
+            const progress = getProgressToNext(level);
+            const referralsNeeded = Math.max(0, level.minReferrals - activeReferrals);
             
             return (
               <div 
                 key={level.name}
                 className={`
-                  p-4 rounded-lg border-2 text-center transition-all
+                  p-4 rounded-lg border-2 text-center transition-all hover:scale-105
                   ${status === 'owned' ? 'border-green-300 bg-green-50' : 
-                    isActive ? 'border-blue-300 bg-blue-50' : 
-                    'border-gray-200 bg-gray-50'}
-                  ${isActive ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}
+                    isActive ? 'border-blue-300 bg-blue-50 ring-2 ring-blue-400 ring-opacity-50' : 
+                    'border-gray-200 bg-gray-50 hover:border-gray-300'}
+                  ${level.icon === 'phoenix' ? 'bg-gradient-to-br from-red-50 to-orange-50 border-orange-300' : ''}
                 `}
               >
-                <div className="flex justify-center mb-2">
-                  <BirdBadge birdLevel={level} size="lg" />
+                <div className="flex justify-center mb-3">
+                  <BirdBadge 
+                    birdLevel={level} 
+                    activeReferrals={activeReferrals}
+                    size="lg" 
+                  />
                 </div>
                 
-                <h4 className="font-semibold text-sm mb-1">{level.name}</h4>
+                <h4 className="font-semibold text-sm mb-2">{level.name}</h4>
                 
-                <div className="space-y-1 text-xs text-muted-foreground">
-                  <p>{level.minPoints}+ pts</p>
-                  <p>{level.minReferrals}+ referrals</p>
+                <div className="space-y-2 text-xs text-muted-foreground mb-3">
+                  <p className="font-mono">{level.minReferrals}+ referrals</p>
+                  <Badge variant="outline" className="text-xs px-2 py-1">
+                    {getBirdBenefits(level.icon)}
+                  </Badge>
                 </div>
+
+                {/* Progress Bar for locked levels */}
+                {status === 'locked' && (
+                  <div className="space-y-1 mb-3">
+                    <Progress value={progress} className="h-1.5" />
+                    <p className="text-xs text-gray-500">
+                      {referralsNeeded} more needed
+                    </p>
+                  </div>
+                )}
                 
-                <div className="mt-2 flex items-center justify-center gap-1">
+                <div className="flex items-center justify-center gap-1">
                   {getStatusIcon(status)}
                   <span className={`text-xs font-medium ${
                     status === 'owned' ? 'text-green-600' :
@@ -116,17 +154,30 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
                     {getStatusText(status)}
                   </span>
                 </div>
+
+                {/* Special indicators for animated birds */}
+                {(level.icon === 'eagle' || level.icon === 'falcon' || level.icon === 'phoenix') && status !== 'locked' && (
+                  <div className="mt-2 flex justify-center">
+                    <Badge variant="secondary" className="text-xs">
+                      {level.icon === 'phoenix' ? '🔥 Animated' : 
+                       level.icon === 'falcon' ? '⚡ Enhanced' : 
+                       '✨ Special'}
+                    </Badge>
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
         
         <div className="mt-6 flex gap-2 justify-center">
-          <Button variant="outline" size="sm">
-            Unlock Next Bird
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <Star className="h-4 w-4" />
+            View Leaderboard
           </Button>
-          <Button variant="ghost" size="sm">
-            View All Birds
+          <Button variant="ghost" size="sm" className="flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            Referral Guide
           </Button>
         </div>
       </CardContent>
