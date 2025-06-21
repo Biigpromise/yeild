@@ -12,36 +12,16 @@ export const adminSetupService = {
         return false;
       }
 
-      console.log('adminSetupService: Checking admin access for user:', user.id);
+      console.log('adminSetupService: Checking admin access for user:', user.id, user.email);
 
-      // Check if this is the specific admin email
+      // ALWAYS grant access to yeildsocials@gmail.com regardless of database state
       if (user.email === 'yeildsocials@gmail.com') {
-        console.log('adminSetupService: Admin email detected, granting access');
+        console.log('adminSetupService: Admin email detected, granting immediate access');
         return true;
       }
 
-      // Fallback to role check with better error handling
-      try {
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'admin')
-          .maybeSingle();
-
-        if (error) {
-          console.error('adminSetupService: Error checking admin access:', error);
-          // If there's a policy error, fall back to email check
-          return user.email === 'yeildsocials@gmail.com';
-        }
-
-        const hasAdmin = !!data;
-        console.log('adminSetupService: Admin role found:', hasAdmin);
-        return hasAdmin;
-      } catch (roleError) {
-        console.error('adminSetupService: Role check failed, falling back to email check:', roleError);
-        return user.email === 'yeildsocials@gmail.com';
-      }
+      console.log('adminSetupService: Access denied - not authorized admin email');
+      return false;
     } catch (error) {
       console.error('adminSetupService: Exception checking admin access:', error);
       return false;
@@ -65,42 +45,8 @@ export const adminSetupService = {
       }
 
       console.log('adminSetupService: Attempting to make user admin:', user.id);
-
-      try {
-        const { error: insertError } = await supabase
-          .from('user_roles')
-          .insert({
-            user_id: user.id,
-            role: 'admin'
-          });
-
-        if (insertError) {
-          console.error('adminSetupService: Insert error:', insertError);
-          
-          // Check if it's a duplicate key error (user already has admin role)
-          if (insertError.code === '23505') {
-            console.log('adminSetupService: User already has admin role');
-            toast.success('You already have admin access');
-            return true;
-          }
-          
-          toast.error('Failed to assign admin role: ' + insertError.message);
-          return false;
-        }
-
-        console.log('adminSetupService: Admin role assigned successfully');
-        toast.success('Admin role assigned successfully!');
-        return true;
-      } catch (roleError) {
-        console.error('adminSetupService: Role assignment failed:', roleError);
-        // For yeildsocials@gmail.com, we still return true as they have access
-        if (user.email === 'yeildsocials@gmail.com') {
-          toast.success('Admin access confirmed');
-          return true;
-        }
-        toast.error('Failed to assign admin role');
-        return false;
-      }
+      toast.success('Admin access confirmed for yeildsocials@gmail.com');
+      return true;
     } catch (error) {
       console.error('adminSetupService: Exception:', error);
       toast.error('Failed to assign admin role');
@@ -122,24 +68,7 @@ export const adminSetupService = {
         return ['admin'];
       }
 
-      try {
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id);
-
-        if (error) {
-          console.error('adminSetupService: Error fetching user roles:', error);
-          return [];
-        }
-        
-        const roles = data?.map(r => r.role) || [];
-        console.log('adminSetupService: User roles:', roles);
-        return roles;
-      } catch (roleError) {
-        console.error('adminSetupService: Role fetch failed:', roleError);
-        return [];
-      }
+      return [];
     } catch (error) {
       console.error('adminSetupService: Exception fetching user roles:', error);
       return [];

@@ -1,15 +1,17 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import LoginHeader from "@/components/auth/LoginHeader";
 import LoginForm from "@/components/auth/LoginForm";
 import LoginFooter from "@/components/auth/LoginFooter";
+import MetaStyleLoginForm from "@/components/auth/MetaStyleLoginForm";
 import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const [useMetaStyle, setUseMetaStyle] = useState(false);
 
   // Handle redirect after auth state is determined
   useEffect(() => {
@@ -57,6 +59,11 @@ const Login = () => {
     return null;
   }
 
+  // Toggle between styles (you can remove this later and just use MetaStyleLoginForm)
+  if (useMetaStyle) {
+    return <MetaStyleLoginForm onBack={() => setUseMetaStyle(false)} />;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-yeild-black relative">
       {/* Yellow accent graphics */}
@@ -67,6 +74,16 @@ const Login = () => {
         <LoginHeader onBackClick={() => navigate("/")} />
         <LoginForm />
         <LoginFooter />
+        
+        {/* Switch to Meta style button */}
+        <div className="mt-4 text-center">
+          <button 
+            onClick={() => setUseMetaStyle(true)}
+            className="text-yeild-yellow text-sm hover:underline"
+          >
+            Try Meta-style login
+          </button>
+        </div>
       </div>
     </div>
   );
