@@ -13,6 +13,7 @@ import Profile from '@/pages/Profile';
 import Admin from '@/pages/Admin';
 import Login from '@/pages/Login';
 import SignUp from '@/pages/SignUp';
+import ForgotPassword from '@/pages/ForgotPassword';
 import BrandDashboard from '@/pages/BrandDashboard';
 import BrandSignup from '@/pages/BrandSignup';
 import NotFound from '@/pages/NotFound';
@@ -36,6 +37,7 @@ function App() {
                     <Route path="/" element={<Index />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignUp />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/brand-signup" element={<BrandSignup />} />
                     <Route
                       path="/dashboard"
