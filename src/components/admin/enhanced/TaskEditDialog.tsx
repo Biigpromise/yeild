@@ -9,7 +9,7 @@ import { TaskFormFields } from "./TaskFormFields";
 import { TaskCategorySelector } from "./TaskCategorySelector";
 import { TaskSocialMediaLinks } from "./TaskSocialMediaLinks";
 import { validateTaskForm, prepareTaskData, TaskFormData } from "./TaskFormValidation";
-import { enhancedTaskManagementService } from "@/services/admin/enhancedTaskManagementService";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TaskEditDialogProps {
   task: any;
@@ -33,7 +33,12 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
     const loadCategories = async () => {
       try {
         setCategoriesLoading(true);
-        const data = await enhancedTaskManagementService.getTaskCategories();
+        const { data, error } = await supabase
+          .from('task_categories')
+          .select('*')
+          .order('name');
+
+        if (error) throw error;
         setCategories(data || []);
       } catch (error) {
         console.error("Error loading categories:", error);
@@ -96,22 +101,27 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
       const taskData = prepareTaskData(formData);
       console.log('Prepared task data:', taskData);
       
-      console.log('Calling update task service...');
-      const success = await enhancedTaskManagementService.updateTask(task.id, taskData);
-      console.log('Update task result:', success);
+      // Update task directly using Supabase
+      const { data, error } = await supabase
+        .from('tasks')
+        .update(taskData)
+        .eq('id', task.id)
+        .select()
+        .single();
 
-      if (success) {
-        console.log('Task updated successfully');
-        onTaskUpdated();
-        onClose();
-        toast.success("Task updated successfully!");
-      } else {
-        console.error('Task update failed');
-        toast.error("Failed to update task. Please try again.");
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
       }
+
+      console.log('Task updated successfully:', data);
+      onTaskUpdated();
+      onClose();
+      toast.success("Task updated successfully!");
     } catch (error) {
       console.error("Error updating task:", error);
-      toast.error("Failed to update task. Please try again.");
+      const errorMessage = error?.message || "Failed to update task. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

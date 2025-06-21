@@ -1,249 +1,192 @@
 
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { notificationService } from "@/services/notificationService";
-import { toast } from "sonner";
-
-type Notification = {
-  id: string;
-  title: string;
-  content: string;
-  sentTo: string;
-  sentAt: string;
-  status: "scheduled" | "sent" | "draft";
-};
-
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    title: "New Task Available",
-    content: "Check out our latest task with a 50-point reward!",
-    sentTo: "All Users",
-    sentAt: "2025-05-05 09:30",
-    status: "sent",
-  },
-  {
-    id: "2",
-    title: "App Update Required",
-    content: "Please update your app to the latest version for new features.",
-    sentTo: "iOS Users",
-    sentAt: "2025-05-06 14:15",
-    status: "sent",
-  },
-  {
-    id: "3",
-    title: "Weekend Challenge",
-    content: "Participate in our weekend challenge to earn bonus points!",
-    sentTo: "Active Users",
-    sentAt: "2025-05-08 18:00",
-    status: "scheduled",
-  },
-];
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Bell, Send, Users, MessageCircle } from "lucide-react";
+import { notificationService } from "@/services/admin/notificationService";
 
 export const AdminNotifications = () => {
-  const [activeTab, setActiveTab] = useState("broadcast");
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
-  const [newNotification, setNewNotification] = useState({
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [formData, setFormData] = useState({
     title: "",
     content: "",
-    target: "all",
+    type: "info",
+    targetAudience: "all"
   });
-  const [sending, setSending] = useState(false);
-  
+
+  useEffect(() => {
+    loadNotifications();
+  }, []);
+
+  const loadNotifications = async () => {
+    try {
+      setLoading(true);
+      const data = await notificationService.getAllNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error("Error loading notifications:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSendNotification = async () => {
-    if (!newNotification.title || !newNotification.content) {
-      toast.error("Please fill in all fields");
+    if (!formData.title.trim() || !formData.content.trim()) {
       return;
     }
-    
-    setSending(true);
-    
-    try {
-      const success = await notificationService.sendBroadcastNotification(
-        newNotification.target,
-        {
-          title: newNotification.title,
-          content: newNotification.content,
-          type: 'announcement'
-        }
-      );
 
+    try {
+      setSending(true);
+      const success = await notificationService.sendNotification(formData);
       if (success) {
-        const notification: Notification = {
-          id: Date.now().toString(),
-          title: newNotification.title,
-          content: newNotification.content,
-          sentTo: newNotification.target === "all" ? "All Users" : 
-                  newNotification.target === "active" ? "Active Users" : 
-                  newNotification.target === "inactive" ? "Inactive Users" :
-                  "New Users",
-          sentAt: new Date().toLocaleString(),
-          status: "sent",
-        };
-        
-        setNotifications([notification, ...notifications]);
-        setNewNotification({
+        setFormData({
           title: "",
           content: "",
-          target: "all",
+          type: "info",
+          targetAudience: "all"
         });
-        
-        toast.success("Notification sent successfully!");
-      } else {
-        toast.error("Failed to send notification");
+        await loadNotifications();
       }
     } catch (error) {
-      console.error('Error sending notification:', error);
-      toast.error("Failed to send notification");
+      console.error("Error sending notification:", error);
     } finally {
       setSending(false);
     }
   };
 
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'success': return 'bg-green-100 text-green-800';
+      case 'warning': return 'bg-yellow-100 text-yellow-800';
+      case 'error': return 'bg-red-100 text-red-800';
+      default: return 'bg-blue-100 text-blue-800';
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="broadcast">Broadcast</TabsTrigger>
-          <TabsTrigger value="history">Notification History</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="broadcast">
-          <Card>
-            <CardHeader>
-              <CardTitle>Send New Notification</CardTitle>
-              <CardDescription>Broadcast a message to your users</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Notification Title</label>
-                <Input 
-                  placeholder="Enter notification title" 
-                  value={newNotification.title}
-                  onChange={(e) => setNewNotification({...newNotification, title: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Message Content</label>
-                <Textarea 
-                  placeholder="Enter your message" 
-                  rows={5}
-                  value={newNotification.content}
-                  onChange={(e) => setNewNotification({...newNotification, content: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Target Audience</label>
-                <select 
-                  className="w-full h-10 border border-input rounded-md px-3"
-                  value={newNotification.target}
-                  onChange={(e) => setNewNotification({...newNotification, target: e.target.value})}
-                >
-                  <option value="all">All Users</option>
-                  <option value="active">Active Users (logged in last 7 days)</option>
-                  <option value="inactive">Inactive Users (no login for 14+ days)</option>
-                  <option value="newUsers">New Users (joined in last 30 days)</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Delivery Option</label>
-                  <select className="w-full h-10 border border-input rounded-md px-3">
-                    <option value="now">Send Immediately</option>
-                    <option value="schedule">Schedule for Later</option>
-                  </select>
+      {/* Send Notification Form */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Send className="h-5 w-5" />
+            Send Notification
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter notification title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="type">Type</Label>
+              <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="info">Info</SelectItem>
+                  <SelectItem value="success">Success</SelectItem>
+                  <SelectItem value="warning">Warning</SelectItem>
+                  <SelectItem value="error">Error</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <div>
+            <Label htmlFor="content">Message</Label>
+            <Textarea
+              id="content"
+              value={formData.content}
+              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+              placeholder="Enter notification message"
+              rows={3}
+            />
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div>
+              <Label htmlFor="audience">Target Audience</Label>
+              <Select value={formData.targetAudience} onValueChange={(value) => setFormData(prev => ({ ...prev, targetAudience: value }))}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Users</SelectItem>
+                  <SelectItem value="admins">Admins Only</SelectItem>
+                  <SelectItem value="moderators">Moderators</SelectItem>
+                  <SelectItem value="brands">Brands</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <Button 
+              onClick={handleSendNotification}
+              disabled={sending || !formData.title.trim() || !formData.content.trim()}
+              className="mt-6"
+            >
+              {sending ? "Sending..." : "Send Notification"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Notification History */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Notification History
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8">Loading notifications...</div>
+          ) : notifications.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No notifications sent yet</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {notifications.map((notification) => (
+                <div key={notification.id} className="border rounded-lg p-4 space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-medium">{notification.title}</h4>
+                      <p className="text-sm text-gray-600 mt-1">{notification.content}</p>
+                    </div>
+                    <Badge className={getTypeColor(notification.type)}>
+                      {notification.type}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <span>Sent: {new Date(notification.created_at).toLocaleString()}</span>
+                    <span className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      To: {notification.profiles?.name || 'All Users'}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Notification Type</label>
-                  <select className="w-full h-10 border border-input rounded-md px-3">
-                    <option value="app">In-App</option>
-                    <option value="push">Push Notification</option>
-                    <option value="both">Both</option>
-                  </select>
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <Button 
-                  onClick={handleSendNotification}
-                  disabled={sending}
-                >
-                  {sending ? "Sending..." : "Send Notification"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="history">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification History</CardTitle>
-              <CardDescription>View all previous notifications</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Content</TableHead>
-                      <TableHead>Audience</TableHead>
-                      <TableHead>Date & Time</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {notifications.map((notification) => (
-                      <TableRow key={notification.id}>
-                        <TableCell className="font-medium">{notification.title}</TableCell>
-                        <TableCell className="max-w-xs truncate">{notification.content}</TableCell>
-                        <TableCell>{notification.sentTo}</TableCell>
-                        <TableCell>{notification.sentAt}</TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            notification.status === "sent" ? "bg-green-100 text-green-800" :
-                            notification.status === "scheduled" ? "bg-yellow-100 text-yellow-800" :
-                            "bg-gray-100 text-gray-800"
-                          }`}>
-                            {notification.status}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Button size="sm" variant="outline">
-                            {notification.status === "scheduled" ? "Cancel" : "Resend"}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="templates">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Templates</CardTitle>
-              <CardDescription>Manage reusable notification templates</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <h3 className="text-lg font-medium mb-2">Templates Coming Soon</h3>
-                <p className="text-muted-foreground">Notification templates feature is under development</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
