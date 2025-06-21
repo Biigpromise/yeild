@@ -5,15 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { imageHashService } from '@/services/imageHashService';
+import { imageHashService, DuplicateImageFlag } from '@/services/imageHashService';
 import { AlertTriangle, Eye, CheckCircle, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface DuplicateFlag {
-  id: string;
-  flagged_at: string;
-  reviewed: boolean;
-  admin_notes?: string;
+interface DuplicateFlag extends DuplicateImageFlag {
   original_hash: {
     user_id: string;
     task_id?: string;
