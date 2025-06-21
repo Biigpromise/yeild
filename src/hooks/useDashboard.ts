@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,17 +35,17 @@ export const useDashboard = () => {
     try {
       setLoading(true);
       
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (profileError) {
-        console.error('Error fetching profile:', profileError);
-      }
-      
-      if (profile) {
+      // Load profile data with better error handling
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error('Error fetching profile:', profileError);
+        } else if (profile) {
           setUserProfile(profile);
           setUserStats(prev => ({
             ...prev,
@@ -54,45 +55,79 @@ export const useDashboard = () => {
             followers: profile.followers_count || 0,
             following: profile.following_count || 0,
           }));
+        }
+      } catch (profileError) {
+        console.error('Profile fetch exception:', profileError);
       }
 
-      const [tasksData, submissionsData] = await Promise.all([
-        taskService.getUserTasks(),
-        taskService.getUserSubmissions()
-      ]);
-      
-      setUserTasks(tasksData);
-      setUserSubmissions(submissionsData);
-
-      const { data: withdrawals } = await supabase
-        .from('withdrawal_requests')
-        .select('amount, status')
-        .eq('user_id', user.id);
-
-      if (withdrawals) {
-        const pending = withdrawals
-          .filter(w => w.status === 'pending' || w.status === 'approved')
-          .reduce((sum, w) => sum + w.amount, 0);
-        const completed = withdrawals
-          .filter(w => w.status === 'completed')
-          .reduce((sum, w) => sum + w.amount, 0);
+      // Load tasks and submissions with better error handling
+      try {
+        const [tasksData, submissionsData] = await Promise.allSettled([
+          taskService.getUserTasks(),
+          taskService.getUserSubmissions()
+        ]);
         
+        if (tasksData.status === 'fulfilled') {
+          setUserTasks(tasksData.value || []);
+        } else {
+          console.error('Failed to load user tasks:', tasksData.reason);
+          setUserTasks([]);
+        }
+
+        if (submissionsData.status === 'fulfilled') {
+          setUserSubmissions(submissionsData.value || []);
+        } else {
+          console.error('Failed to load user submissions:', submissionsData.reason);
+          setUserSubmissions([]);
+        }
+      } catch (taskError) {
+        console.error('Tasks fetch exception:', taskError);
+        setUserTasks([]);
+        setUserSubmissions([]);
+      }
+
+      // Load withdrawal data with better error handling
+      try {
+        const { data: withdrawals } = await supabase
+          .from('withdrawal_requests')
+          .select('amount, status')
+          .eq('user_id', user.id);
+
+        if (withdrawals) {
+          const pending = withdrawals
+            .filter(w => w.status === 'pending' || w.status === 'approved')
+            .reduce((sum, w) => sum + w.amount, 0);
+          const completed = withdrawals
+            .filter(w => w.status === 'completed')
+            .reduce((sum, w) => sum + w.amount, 0);
+          
+          setWithdrawalStats({
+            pendingWithdrawals: pending,
+            completedWithdrawals: completed
+          });
+        }
+      } catch (withdrawalError) {
+        console.error('Withdrawal fetch exception:', withdrawalError);
         setWithdrawalStats({
-          pendingWithdrawals: pending,
-          completedWithdrawals: completed
+          pendingWithdrawals: 0,
+          completedWithdrawals: 0
         });
       }
       
     } catch (error) {
       console.error('Error loading user data:', error);
-      toast.error("Failed to load user data");
+      // Don't show toast error as it might be a temporary issue
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadUserData();
+    if (user) {
+      loadUserData();
+    } else {
+      setLoading(false);
+    }
   }, [user]);
   
   return {

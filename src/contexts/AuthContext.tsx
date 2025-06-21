@@ -66,13 +66,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         if (!mounted) return;
         
         console.log("Auth state changed:", event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
+        
+        // Only set loading to false after we've processed the auth state
+        if (loading) {
+          setLoading(false);
+        }
 
         // Handle auth events
         if (event === 'SIGNED_OUT') {
@@ -91,7 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           console.error("Error getting initial session:", error);
-          toast.error("Failed to restore session");
+          // Don't show toast error as it might be expected
         }
         
         if (mounted) {
