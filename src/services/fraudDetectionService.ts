@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 export interface UserSignupData {
   id: string;
   user_id: string;
-  ip_address?: string;
+  ip_address?: string | null;
   device_fingerprint?: string;
   user_agent?: string;
   signup_timestamp: string;
@@ -116,16 +116,12 @@ export const fraudDetectionService = {
 
   // Admin functions
   admin: {
-    // Get all fraud flags
+    // Get all fraud flags with user data
     async getFraudFlags(): Promise<FraudFlagWithUserData[]> {
       try {
-        const { data, error } = await supabase
+        const { data: flagsData, error } = await supabase
           .from('fraud_flags')
-          .select(`
-            *,
-            user_profile:profiles!fraud_flags_user_id_fkey(name, email),
-            related_user_profile:profiles!fraud_flags_related_user_id_fkey(name, email)
-          `)
+          .select('*')
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -133,7 +129,40 @@ export const fraudDetectionService = {
           return [];
         }
 
-        return data || [];
+        if (!flagsData) return [];
+
+        // Manually fetch user profiles for each flag
+        const flagsWithUserData: FraudFlagWithUserData[] = [];
+        
+        for (const flag of flagsData) {
+          const flagWithUserData: FraudFlagWithUserData = { ...flag };
+          
+          // Get user profile for the main user
+          if (flag.user_id) {
+            const { data: userProfile } = await supabase
+              .from('profiles')
+              .select('name, email')
+              .eq('id', flag.user_id)
+              .single();
+            
+            flagWithUserData.user_profile = userProfile || undefined;
+          }
+
+          // Get user profile for the related user if exists
+          if (flag.related_user_id) {
+            const { data: relatedUserProfile } = await supabase
+              .from('profiles')
+              .select('name, email')
+              .eq('id', flag.related_user_id)
+              .single();
+            
+            flagWithUserData.related_user_profile = relatedUserProfile || undefined;
+          }
+
+          flagsWithUserData.push(flagWithUserData);
+        }
+
+        return flagsWithUserData;
       } catch (error) {
         console.error('Error fetching fraud flags:', error);
         return [];
@@ -143,13 +172,9 @@ export const fraudDetectionService = {
     // Get fraud flags by type
     async getFraudFlagsByType(flagType: string): Promise<FraudFlagWithUserData[]> {
       try {
-        const { data, error } = await supabase
+        const { data: flagsData, error } = await supabase
           .from('fraud_flags')
-          .select(`
-            *,
-            user_profile:profiles!fraud_flags_user_id_fkey(name, email),
-            related_user_profile:profiles!fraud_flags_related_user_id_fkey(name, email)
-          `)
+          .select('*')
           .eq('flag_type', flagType)
           .order('created_at', { ascending: false });
 
@@ -158,7 +183,40 @@ export const fraudDetectionService = {
           return [];
         }
 
-        return data || [];
+        if (!flagsData) return [];
+
+        // Manually fetch user profiles for each flag
+        const flagsWithUserData: FraudFlagWithUserData[] = [];
+        
+        for (const flag of flagsData) {
+          const flagWithUserData: FraudFlagWithUserData = { ...flag };
+          
+          // Get user profile for the main user
+          if (flag.user_id) {
+            const { data: userProfile } = await supabase
+              .from('profiles')
+              .select('name, email')
+              .eq('id', flag.user_id)
+              .single();
+            
+            flagWithUserData.user_profile = userProfile || undefined;
+          }
+
+          // Get user profile for the related user if exists
+          if (flag.related_user_id) {
+            const { data: relatedUserProfile } = await supabase
+              .from('profiles')
+              .select('name, email')
+              .eq('id', flag.related_user_id)
+              .single();
+            
+            flagWithUserData.related_user_profile = relatedUserProfile || undefined;
+          }
+
+          flagsWithUserData.push(flagWithUserData);
+        }
+
+        return flagsWithUserData;
       } catch (error) {
         console.error('Error fetching fraud flags by type:', error);
         return [];
@@ -210,7 +268,13 @@ export const fraudDetectionService = {
           return [];
         }
 
-        return data || [];
+        // Transform the data to match our interface
+        const transformedData: UserSignupData[] = (data || []).map(item => ({
+          ...item,
+          ip_address: item.ip_address?.toString() || null
+        }));
+
+        return transformedData;
       } catch (error) {
         console.error('Error fetching signup data:', error);
         return [];
