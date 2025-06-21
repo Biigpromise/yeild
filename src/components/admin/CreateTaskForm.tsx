@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -93,27 +94,26 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
       
       console.log('Final task data to submit:', taskData);
 
-      await taskService.admin.createTask(taskData);
-      toast.success("Task created successfully!");
-      
-      // Reset form
-      setFormData({
-        title: "",
-        description: "",
-        points: "",
-        category_id: "",
-        difficulty: "",
-        brand_name: "",
-        brand_logo_url: "",
-        estimated_time: "",
-        expires_at: ""
-      });
-      clearDraft();
-      onTaskCreated();
+      const success = await taskService.admin.createTask(taskData);
+      if (success) {
+        // Reset form
+        setFormData({
+          title: "",
+          description: "",
+          points: "",
+          category_id: "",
+          difficulty: "",
+          brand_name: "",
+          brand_logo_url: "",
+          estimated_time: "",
+          expires_at: ""
+        });
+        clearDraft();
+        onTaskCreated();
+      }
     } catch (error: any) {
       console.error("Error creating task:", error);
-      const message = error?.message || (typeof error === "string" ? error : "Failed to create task");
-      toast.error(`Failed to create task: ${message}`);
+      // Error handling is done in the service
     } finally {
       setIsSubmitting(false);
     }

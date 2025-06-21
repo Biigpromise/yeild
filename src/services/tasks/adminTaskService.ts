@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Task } from "../types/taskTypes";
@@ -59,25 +58,46 @@ export const adminTaskService = {
 
   async createTask(taskData: any): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .insert({
-          title: taskData.title,
-          description: taskData.description,
-          points: taskData.points,
-          difficulty: taskData.difficulty,
-          category: taskData.category,
-          estimated_time: taskData.estimated_time,
-          expires_at: taskData.expires_at,
-          brand_name: taskData.brand_name,
-          brand_logo_url: taskData.brand_logo_url,
-          status: taskData.status || 'active'
-        });
+      console.log('Creating task with data:', taskData);
+      
+      // Prepare the task data for insertion
+      const insertData = {
+        title: taskData.title,
+        description: taskData.description,
+        points: taskData.points,
+        status: taskData.status || 'active',
+        // Only include optional fields if they have values
+        ...(taskData.difficulty && { difficulty: taskData.difficulty }),
+        ...(taskData.category && { category: taskData.category }),
+        ...(taskData.category_id && { category_id: taskData.category_id }),
+        ...(taskData.estimated_time && { estimated_time: taskData.estimated_time }),
+        ...(taskData.expires_at && { expires_at: taskData.expires_at }),
+        ...(taskData.brand_name && { brand_name: taskData.brand_name }),
+        ...(taskData.brand_logo_url && { brand_logo_url: taskData.brand_logo_url }),
+        ...(taskData.task_type && { task_type: taskData.task_type }),
+        ...(taskData.social_media_links && { social_media_links: taskData.social_media_links })
+      };
 
-      if (error) throw error;
+      console.log('Inserting task data:', insertData);
+
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert(insertData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      console.log('Task created successfully:', data);
+      toast.success("Task created successfully!");
       return true;
     } catch (error) {
       console.error('Error creating task:', error);
+      const message = error?.message || (typeof error === "string" ? error : "Failed to create task");
+      toast.error(`Failed to create task: ${message}`);
       throw error;
     }
   },

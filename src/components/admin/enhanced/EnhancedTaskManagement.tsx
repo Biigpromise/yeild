@@ -1,209 +1,185 @@
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { MoreHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { TaskCategoryManager } from "./TaskCategoryManager";
 import { TaskCreationForm } from "./TaskCreationForm";
+import { TaskCategoryManager } from "./TaskCategoryManager";
 import { enhancedTaskManagementService } from "@/services/admin/enhancedTaskManagementService";
-import { TaskViewModal } from "./TaskViewModal";
 import { TaskPerformanceAnalytics } from "./TaskPerformanceAnalytics";
+import { TaskTable } from "../TaskTable";
+import { TaskFilterBar } from "../TaskFilterBar";
+import { TaskOverviewStats } from "../TaskOverviewStats";
+import { getDifficultyColor, getStatusColor } from "../utils/taskColorUtils";
 
 export const EnhancedTaskManagement = () => {
   const [tasks, setTasks] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isTasksLoading, setIsTasksLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState(null);
-  const [taskToDelete, setTaskToDelete] = useState(null);
-  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
-
-  const loadTasks = useCallback(async () => {
-    setIsTasksLoading(true);
-    try {
-      const data = await enhancedTaskManagementService.getTasks();
-      setTasks(data || []);
-    } catch (error) {
-      console.error("Error loading tasks:", error);
-      toast.error("Failed to load tasks");
-      setTasks([]);
-    } finally {
-      setIsTasksLoading(false);
-    }
-  }, []);
-
-  const refetchTasks = useCallback(() => {
-    loadTasks();
-  }, [loadTasks]);
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        await loadTasks();
-      } catch (error) {
-        console.error("Error in initial data fetch:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    loadData();
+  }, []);
 
-    fetchData();
-  }, [loadTasks]);
-
-  const handleTaskCreated = () => {
-    setIsModalOpen(false);
-    loadTasks();
-  };
-
-  const handleOpenEditModal = (task) => {
-    setTaskToEdit(task);
-    setIsModalOpen(true);
-  };
-
-  const handleDeleteTask = (task) => {
-    setTaskToDelete(task);
-    setIsDeleteConfirmationOpen(true);
-  };
-
-  const confirmDeleteTask = async () => {
-    if (!taskToDelete) return;
-
+  const loadData = async () => {
     try {
-      await enhancedTaskManagementService.deleteTask(taskToDelete.id);
-      toast.success("Task deleted successfully");
-      setTasks(tasks.filter(task => task.id !== taskToDelete.id));
+      setLoading(true);
+      console.log('Loading enhanced task management data...');
+      
+      const [tasksData, submissionsData] = await Promise.all([
+        enhancedTaskManagementService.getAllTasks(),
+        enhancedTaskManagementService.getAllSubmissions()
+      ]);
+
+      console.log('Loaded tasks:', tasksData);
+      console.log('Loaded submissions:', submissionsData);
+      
+      setTasks(tasksData);
+      setSubmissions(submissionsData);
+    } catch (error) {
+      console.error("Error loading data:", error);
+      toast.error("Failed to load task management data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
+    
+    try {
+      setDeleteLoading(taskId);
+      const success = await enhancedTaskManagementService.deleteTask(taskId);
+      if (success) {
+        await loadData();
+        toast.success("Task deleted successfully");
+      }
     } catch (error) {
       console.error("Error deleting task:", error);
       toast.error("Failed to delete task");
     } finally {
-      setIsDeleteConfirmationOpen(false);
-      setTaskToDelete(null);
+      setDeleteLoading(null);
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  const handleSubmissionUpdate = async () => {
+    await loadData();
+  };
+
+  const filteredTasks = tasks.filter(task => {
+    const matchesSearch = !searchTerm || 
+      task.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || task.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const pendingSubmissions = submissions.filter(sub => sub.status === 'pending');
+  const activeTasksCount = tasks.filter(task => task.status === 'active').length;
+  const totalSubmissions = submissions.length;
+  const approvedSubmissions = submissions.filter(sub => sub.status === 'approved').length;
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-8 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <TaskPerformanceAnalytics />
-
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Task Management</CardTitle>
-            <Button onClick={() => { setTaskToEdit(null); setIsModalOpen(true); }}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Task
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <TaskCategoryManager onCategoryUpdated={refetchTasks} />
-          <div className="mt-4">
-            {isTasksLoading ? (
-              <p>Loading tasks...</p>
-            ) : (
-              <table className="min-w-full divide-y divide-gray-200">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Points</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tasks.map((task) => (
-                    <TableRow key={task.id}>
-                      <TableCell>{task.title}</TableCell>
-                      <TableCell>{task.category_id}</TableCell>
-                      <TableCell>{task.points}</TableCell>
-                      <TableCell>
-                        <Badge variant={task.status === 'active' ? 'outline' : 'secondary'}>
-                          {task.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleOpenEditModal(task)}>
-                              <Pencil className="h-4 w-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDeleteTask(task)}>
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </table>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[800px] overflow-y-auto max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>{taskToEdit ? "Edit Task" : "Create New Task"}</DialogTitle>
-          </DialogHeader>
-          <TaskCreationForm
-            taskToEdit={taskToEdit}
-            onTaskCreated={handleTaskCreated}
-            onCancel={() => setIsModalOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
-
-      <TaskViewModal
-        isOpen={isDeleteConfirmationOpen}
-        onClose={() => setIsDeleteConfirmationOpen(false)}
-        onConfirm={confirmDeleteTask}
-        title="Delete Task"
-        description="Are you sure you want to delete this task? This action cannot be undone."
+      {/* Overview Stats */}
+      <TaskOverviewStats 
+        activeTasksCount={activeTasksCount}
+        pendingSubmissionsCount={pendingSubmissions.length}
+        totalSubmissions={totalSubmissions}
+        approvalRate={totalSubmissions > 0 ? Math.round((approvedSubmissions / totalSubmissions) * 100) : 0}
       />
+
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="tasks">All Tasks</TabsTrigger>
+          <TabsTrigger value="submissions">
+            Submissions
+            {pendingSubmissions.length > 0 && (
+              <Badge variant="destructive" className="ml-2">
+                {pendingSubmissions.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="create">Create Task</TabsTrigger>
+          <TabsTrigger value="categories">Categories</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <TaskPerformanceAnalytics />
+        </TabsContent>
+
+        <TabsContent value="tasks" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Task Management</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <TaskFilterBar
+                searchTerm={searchTerm}
+                statusFilter={statusFilter}
+                onSearchChange={setSearchTerm}
+                onStatusFilterChange={setStatusFilter}
+              />
+              <TaskTable 
+                tasks={filteredTasks}
+                getDifficultyColor={getDifficultyColor}
+                getStatusColor={getStatusColor}
+                onDeleteTask={handleDeleteTask}
+                deleteLoading={deleteLoading}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="submissions" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Task Submissions Review</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                Submission review interface will be implemented here.
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="create" className="space-y-6">
+          <TaskCreationForm 
+            onTaskCreated={loadData}
+            onCancel={() => setShowCreateForm(false)}
+          />
+        </TabsContent>
+
+        <TabsContent value="categories" className="space-y-6">
+          <TaskCategoryManager onCategoryUpdated={loadData} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
