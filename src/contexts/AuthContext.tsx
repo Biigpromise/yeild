@@ -1,18 +1,10 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-
-interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  loading: boolean;
-  signUp: (email: string, password:string, name?: string, additionalData?: Record<string, any>) => Promise<{ user: User | null; error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-  signInWithProvider: (provider: 'google' | 'github' | 'twitter') => Promise<{ error: any }>;
-  resetPassword: (email: string) => Promise<{ error: any }>;
-}
+import { AuthContextType } from "./auth/types";
+import { useAuthState } from "./auth/useAuthState";
+import { useAuthOperations } from "./auth/useAuthOperations";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -28,81 +20,9 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-// Enhanced error handler for auth operations
-const handleAuthError = (error: any, operation: string) => {
-  console.error(`Auth ${operation} error:`, error);
-  
-  // Common error messages mapping
-  const errorMessages: { [key: string]: string } = {
-    'Invalid login credentials': 'Invalid email or password. Please check your credentials.',
-    'Email not confirmed': 'Please check your email and confirm your account before signing in.',
-    'User already registered': 'An account with this email already exists. Please sign in instead.',
-    'Signup requires a valid password': 'Password must be at least 6 characters long.',
-    'Invalid email': 'Please enter a valid email address.',
-    'Network error': 'Network connection failed. Please check your internet connection.',
-    'Too many requests': 'Too many attempts. Please wait a moment before trying again.',
-  };
-
-  // Check for specific error patterns
-  for (const [pattern, message] of Object.entries(errorMessages)) {
-    if (error?.message?.includes(pattern)) {
-      return message;
-    }
-  }
-
-  // Fallback error message
-  return error?.message || `${operation} failed. Please try again.`;
-};
-
-// Function to send welcome email
-const sendWelcomeEmail = async (email: string, name?: string) => {
-  try {
-    console.log("Sending welcome email to:", email);
-    const { error } = await supabase.functions.invoke('send-welcome-email', {
-      body: { email, name }
-    });
-    
-    if (error) {
-      console.error("Error sending welcome email:", error);
-    } else {
-      console.log("Welcome email sent successfully");
-    }
-  } catch (error) {
-    console.error("Unexpected error sending welcome email:", error);
-  }
-};
-
-// Function to send confirmation email
-const sendConfirmationEmail = async (email: string, name?: string) => {
-  try {
-    console.log("Sending confirmation email to:", email);
-    
-    // Create confirmation URL
-    const redirectUrl = window.location.origin;
-    const confirmationUrl = `${redirectUrl}/dashboard`; // This will be updated with actual confirmation token by Supabase
-    
-    const { error } = await supabase.functions.invoke('send-signup-confirmation', {
-      body: { 
-        email, 
-        name,
-        confirmationUrl 
-      }
-    });
-    
-    if (error) {
-      console.error("Error sending confirmation email:", error);
-    } else {
-      console.log("Confirmation email sent successfully");
-    }
-  } catch (error) {
-    console.error("Unexpected error sending confirmation email:", error);
-  }
-};
-
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, session, loading, setUser, setSession, setLoading } = useAuthState();
+  const authOperations = useAuthOperations();
 
   useEffect(() => {
     console.log("AuthProvider: Setting up auth listeners");
@@ -164,170 +84,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log("AuthProvider: Cleaning up auth listeners");
       subscription.unsubscribe();
     };
-  }, []);
-
-  const signUp = async (email: string, password: string, name?: string, additionalData?: Record<string, any>) => {
-    try {
-      console.log("Attempting signup for:", email);
-      
-      // Input validation
-      if (!email || !password) {
-        const error = new Error("Email and password are required");
-        return { user: null, error };
-      }
-
-      if (password.length < 6) {
-        const error = new Error("Password must be at least 6 characters long");
-        return { user: null, error };
-      }
-
-      // Use the current origin as the redirect URL - this will work for both preview and deployed versions
-      const redirectUrl = window.location.origin;
-      console.log("Using redirect URL:", redirectUrl);
-
-      const signUpData = {
-        ...(name ? { name } : {}),
-        ...additionalData
-      };
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: Object.keys(signUpData).length > 0 ? signUpData : undefined
-        }
-      });
-      
-      if (error) {
-        const friendlyMessage = handleAuthError(error, 'signup');
-        return { user: null, error: { ...error, message: friendlyMessage } };
-      }
-
-      // Send both welcome and confirmation emails after successful signup
-      if (data.user && !error) {
-        // Send welcome email
-        await sendWelcomeEmail(email, name);
-        
-        // Send confirmation email with branded template
-        await sendConfirmationEmail(email, name);
-      }
-
-      console.log("Signup successful");
-      return { user: data.user, error: null };
-    } catch (error) {
-      console.error("Signup unexpected error:", error);
-      const friendlyMessage = handleAuthError(error, 'signup');
-      return { user: null, error: { message: friendlyMessage } };
-    }
-  };
-
-  const signIn = async (email: string, password: string) => {
-    try {
-      console.log("AuthContext: Attempting sign in for:", email);
-      
-      // Input validation
-      if (!email || !password) {
-        const error = new Error("Email and password are required");
-        return { error };
-      }
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (error) {
-        const friendlyMessage = handleAuthError(error, 'sign in');
-        return { error: { ...error, message: friendlyMessage } };
-      }
-
-      console.log("AuthContext: Sign in successful");
-      return { error: null };
-    } catch (error) {
-      console.error("AuthContext: Sign in unexpected error:", error);
-      const friendlyMessage = handleAuthError(error, 'sign in');
-      return { error: { message: friendlyMessage } };
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      console.log("AuthContext: Signing out");
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error("Sign out error:", error);
-        toast.error("Failed to sign out properly");
-      }
-    } catch (error) {
-      console.error("Sign out unexpected error:", error);
-      toast.error("An error occurred while signing out");
-    }
-  };
-
-  const signInWithProvider = async (provider: 'google' | 'github' | 'twitter') => {
-    try {
-      console.log("AuthContext: Attempting provider sign in with:", provider);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: window.location.origin
-        }
-      });
-      
-      if (error) {
-        const friendlyMessage = handleAuthError(error, `${provider} sign in`);
-        return { error: { ...error, message: friendlyMessage } };
-      }
-      
-      return { error: null };
-    } catch (error) {
-      console.error("AuthContext: Provider sign in unexpected error:", error);
-      const friendlyMessage = handleAuthError(error, `${provider} sign in`);
-      return { error: { message: friendlyMessage } };
-    }
-  };
-
-  const resetPassword = async (email: string) => {
-    try {
-      console.log("AuthContext: Attempting password reset for:", email);
-      
-      // Input validation
-      if (!email) {
-        const error = new Error("Email is required");
-        return { error };
-      }
-
-      const redirectUrl = `${window.location.origin}/reset-password`;
-      
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl
-      });
-      
-      if (error) {
-        const friendlyMessage = handleAuthError(error, 'password reset');
-        return { error: { ...error, message: friendlyMessage } };
-      }
-
-      console.log("AuthContext: Password reset email sent successfully");
-      return { error: null };
-    } catch (error) {
-      console.error("AuthContext: Password reset unexpected error:", error);
-      const friendlyMessage = handleAuthError(error, 'password reset');
-      return { error: { message: friendlyMessage } };
-    }
-  };
+  }, [loading, setUser, setSession, setLoading]);
 
   const value = {
     user,
     session,
     loading,
-    signUp,
-    signIn,
-    signOut,
-    signInWithProvider,
-    resetPassword,
+    ...authOperations,
   };
 
   return (
