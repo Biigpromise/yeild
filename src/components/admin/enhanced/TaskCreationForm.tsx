@@ -36,7 +36,8 @@ const initialFormData: TaskFormData = {
     twitter: "",
     instagram: "",
     linkedin: "",
-    youtube: ""
+    youtube: "",
+    tiktok: ""
   }
 };
 
