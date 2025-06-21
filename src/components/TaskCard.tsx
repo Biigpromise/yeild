@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Star, Users, CheckCircle, AlertCircle } from "lucide-react";
 import { Task } from "@/services/taskService";
+import { TaskSocialMediaDisplay } from "./tasks/TaskSocialMediaDisplay";
 
 interface TaskCardProps {
   task: Task;
@@ -106,6 +107,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onSubmit, isSubmitted 
             </div>
           )}
         </div>
+
+        {/* Social Media Links Display */}
+        <TaskSocialMediaDisplay 
+          socialLinks={task.social_media_links}
+          taskTitle={task.title}
+        />
         
         <div className="pt-2">
           <Button 
