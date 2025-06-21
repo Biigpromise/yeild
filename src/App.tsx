@@ -1,38 +1,30 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { OnboardingProvider } from '@/contexts/OnboardingContext';
-import { ErrorBoundary } from 'react-error-boundary';
-import ErrorScreen from './ErrorScreen';
-import LandingPage from './LandingPage';
-import Dashboard from './Dashboard';
-import TasksPage from './TasksPage';
-import RewardsPage from './RewardsPage';
-import CommunityPage from './CommunityPage';
-import ProfilePage from './ProfilePage';
-import AdminDashboard from './admin/AdminDashboard';
-import { ProtectedRoute } from './ProtectedRoute';
-import { AdminRoute } from './AdminRoute';
-import TaskDetailsPage from './TaskDetailsPage';
-import UserProfilePage from './UserProfilePage';
-import ReferralSignupPage from './ReferralSignupPage';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import Index from '@/pages/Index';
+import Dashboard from '@/pages/Dashboard';
+import Tasks from '@/pages/Tasks';
+import Profile from '@/pages/Profile';
+import Admin from '@/pages/Admin';
+import Login from '@/pages/Login';
+import SignUp from '@/pages/SignUp';
+import BrandDashboard from '@/pages/BrandDashboard';
+import BrandSignup from '@/pages/BrandSignup';
+import NotFound from '@/pages/NotFound';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { RoleProtectedRoute } from '@/components/RoleProtectedRoute';
 import { PhoenixUserProvider } from '@/components/referral/PhoenixUserProvider';
 
 function App() {
   const queryClient = new QueryClient();
 
-  const handleError = (error: Error, info: React.ErrorInfo) => {
-    console.error('Caught an error: ', error, info);
-  };
-
-  const errorFallback = (props: { error: Error; resetErrorBoundary: () => void }) => {
-    return <ErrorScreen error={props.error} resetErrorBoundary={props.resetErrorBoundary} />;
-  };
-
   return (
-    <ErrorBoundary FallbackComponent={errorFallback} onError={handleError}>
+    <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
@@ -41,8 +33,10 @@ function App() {
                 <div className="min-h-screen bg-background">
                   <Toaster />
                   <Routes>
-                    <Route path="/" element={<LandingPage />} />
-                    <Route path="/referral-signup" element={<ReferralSignupPage />} />
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<SignUp />} />
+                    <Route path="/brand-signup" element={<BrandSignup />} />
                     <Route
                       path="/dashboard"
                       element={
@@ -55,31 +49,7 @@ function App() {
                       path="/tasks"
                       element={
                         <ProtectedRoute>
-                          <TasksPage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/tasks/:taskId"
-                      element={
-                        <ProtectedRoute>
-                          <TaskDetailsPage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/rewards"
-                      element={
-                        <ProtectedRoute>
-                          <RewardsPage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/community"
-                      element={
-                        <ProtectedRoute>
-                          <CommunityPage />
+                          <Tasks />
                         </ProtectedRoute>
                       }
                     />
@@ -87,26 +57,27 @@ function App() {
                       path="/profile"
                       element={
                         <ProtectedRoute>
-                          <ProfilePage />
+                          <Profile />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="/user/:userId"
+                      path="/brand-dashboard"
                       element={
-                        <ProtectedRoute>
-                          <UserProfilePage />
-                        </ProtectedRoute>
+                        <RoleProtectedRoute allowedRoles={['brand']}>
+                          <BrandDashboard />
+                        </RoleProtectedRoute>
                       }
                     />
                     <Route
-                      path="/admin/*"
+                      path="/admin"
                       element={
-                        <AdminRoute>
-                          <AdminDashboard />
-                        </AdminRoute>
+                        <RoleProtectedRoute allowedRoles={['admin']}>
+                          <Admin />
+                        </RoleProtectedRoute>
                       }
                     />
+                    <Route path="*" element={<NotFound />} />
                   </Routes>
                 </div>
               </PhoenixUserProvider>
