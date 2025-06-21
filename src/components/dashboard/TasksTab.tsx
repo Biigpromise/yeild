@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import TaskFilter from '@/components/TaskFilter';
@@ -7,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Target, Gift, Wallet } from 'lucide-react';
 import { CompactBirdBatch } from '@/components/ui/CompactBirdBatch';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TasksTabProps {
   searchQuery: string;
@@ -47,7 +47,86 @@ export const TasksTab: React.FC<TasksTabProps> = ({
   userTasks,
 }) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
+  if (isMobile) {
+    return (
+      <div className="space-y-3">
+        {/* Mobile-optimized layout */}
+        <TaskFilter
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          selectedCategory={selectedCategory}
+          onCategoryChange={onCategoryChange}
+          selectedDifficulty={selectedDifficulty}
+          onDifficultyChange={onDifficultyChange}
+          selectedStatus={selectedStatus}
+          onStatusChange={onStatusChange}
+          taskCounts={taskCounts}
+          onClearFilters={onClearFilters}
+        />
+        
+        {/* Compact task categories for mobile */}
+        <TaskCategories onCategorySelect={handleCategorySelect} />
+        
+        {/* Mobile progress card */}
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm">Your Progress</CardTitle>
+              <CompactBirdBatch count={userStats.tasksCompleted} />
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {userStats.tasksCompleted === 0 ? (
+              <div className="text-center py-3">
+                <Target className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+                <h4 className="font-medium mb-1 text-sm">Ready to earn?</h4>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Complete your first task to start earning!
+                </p>
+                <Button size="sm" onClick={() => navigate('/tasks')} className="w-full">
+                  Get Started
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {userTasks.slice(0, 2).map((task) => (
+                  <div key={task.id} className="text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="truncate text-xs">{task.tasks?.title || 'Task completed'}</span>
+                      <span className="text-muted-foreground text-xs">+{task.points_earned || 0} pts</span>
+                    </div>
+                  </div>
+                ))}
+                {userTasks.length === 0 && (
+                  <p className="text-xs text-muted-foreground">No recent activity</p>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Mobile quick actions - horizontal layout */}
+        <div className="grid grid-cols-3 gap-2">
+          <Button size="sm" variant="outline" onClick={() => navigate('/tasks')} className="text-xs">
+            <Target className="h-3 w-3 mr-1" />
+            Tasks
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setActiveTab('rewards')} className="text-xs">
+            <Gift className="h-3 w-3 mr-1" />
+            Rewards
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setActiveTab('wallet')} className="text-xs">
+            <Wallet className="h-3 w-3 mr-1" />
+            Wallet
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop layout remains the same
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
       <div className="lg:col-span-3 space-y-4">

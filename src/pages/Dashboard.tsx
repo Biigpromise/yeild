@@ -162,11 +162,11 @@ const Dashboard = () => {
     >
       <div className={cn(
         "container mx-auto max-w-7xl",
-        activeTab === "community-chat" ? "p-0 h-screen" : "px-2 sm:px-4 py-2 sm:py-4"
+        activeTab === "community-chat" ? "p-0 h-screen" : "px-1 sm:px-4 py-1 sm:py-4"
       )}>
         {/* Only show header and stats for non-community-chat tabs */}
         {activeTab !== "community-chat" && (
-          <div className="mb-3 sm:mb-4">
+          <div className="mb-2 sm:mb-4">
             <DashboardHeader
               userProfile={userProfile}
               user={user}
@@ -177,20 +177,21 @@ const Dashboard = () => {
               setActiveTab={setActiveTab}
             />
 
-            {/* Real User Stats */}
-            <DashboardStats userStats={userStats} />
+            {/* Hide stats on mobile for more space */}
+            {!isMobile && <DashboardStats userStats={userStats} />}
           </div>
         )}
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className={cn(
-          activeTab === "community-chat" ? "h-full" : "space-y-3"
+          activeTab === "community-chat" ? "h-full" : "space-y-2"
         )}>
           {/* Desktop Tab Navigation - hide for community chat */}
           {!isMobile && activeTab !== "community-chat" && <DesktopTabNavigation />}
 
-          <TabsContent value="tasks" className="space-y-4 mt-3">
-            <StoryReel />
+          <TabsContent value="tasks" className="space-y-2 sm:space-y-4 mt-2">
+            {/* Hide story reel on mobile for more space */}
+            {!isMobile && <StoryReel />}
             <TasksTab
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
