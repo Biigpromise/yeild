@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { TaskFormFields } from "./TaskFormFields";
 import { TaskCategorySelector } from "./TaskCategorySelector";
@@ -45,6 +47,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
       loadCategories();
       
       if (task) {
+        console.log('Setting form data for task edit:', task);
         setFormData({
           title: task.title || "",
           description: task.description || "",
@@ -72,20 +75,38 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Task edit form submission started');
+    console.log('Form data:', formData);
+    console.log('Task to update:', task);
+    
     if (!formData || !validateTaskForm(formData)) {
+      console.error('Form validation failed');
+      return;
+    }
+
+    if (!task?.id) {
+      console.error('No task ID found');
+      toast.error("No task ID found");
       return;
     }
 
     setIsSubmitting(true);
     try {
+      console.log('Preparing task data for update...');
       const taskData = prepareTaskData(formData);
+      console.log('Prepared task data:', taskData);
+      
+      console.log('Calling update task service...');
       const success = await enhancedTaskManagementService.updateTask(task.id, taskData);
+      console.log('Update task result:', success);
 
       if (success) {
+        console.log('Task updated successfully');
         onTaskUpdated();
         onClose();
         toast.success("Task updated successfully!");
       } else {
+        console.error('Task update failed');
         toast.error("Failed to update task. Please try again.");
       }
     } catch (error) {
@@ -97,12 +118,14 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
+    console.log(`Updating field ${field} with value:`, value);
     if (formData) {
       setFormData(prev => prev ? ({ ...prev, [field]: value }) : null);
     }
   };
 
   const handleSocialLinkChange = (platform: string, value: string) => {
+    console.log(`Updating social link ${platform} with value:`, value);
     if (formData) {
       setFormData(prev => prev ? ({
         ...prev,
@@ -120,7 +143,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Task</DialogTitle>
+          <DialogTitle>Edit Task: {task?.title}</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -143,8 +166,20 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
             />
           )}
           
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div>
+            <Label htmlFor="edit-description">Task Description *</Label>
+            <Textarea
+              id="edit-description"
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              placeholder="Describe what users need to do to complete this task..."
+              rows={4}
+              required
+            />
+          </div>
+          
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
