@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TaskCategories from "@/components/TaskCategories";
@@ -164,7 +165,7 @@ const Dashboard = () => {
         "container mx-auto max-w-7xl",
         activeTab === "community-chat" ? "p-0 h-screen" : "px-1 sm:px-4 py-1 sm:py-4"
       )}>
-        {/* Only show header for non-community-chat tabs - NO STATS */}
+        {/* Only show header for non-community-chat tabs */}
         {activeTab !== "community-chat" && (
           <div className="mb-2 sm:mb-4">
             <DashboardHeader
@@ -176,6 +177,13 @@ const Dashboard = () => {
               handleLogout={handleLogout}
               setActiveTab={setActiveTab}
             />
+          </div>
+        )}
+
+        {/* Show Dashboard Stats for tasks tab only */}
+        {activeTab === "tasks" && (
+          <div className="mb-4">
+            <DashboardStats userStats={userStats} />
           </div>
         )}
 

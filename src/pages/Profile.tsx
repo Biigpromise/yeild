@@ -160,13 +160,13 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-black">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           <div className="animate-pulse space-y-8">
-            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-8 bg-gray-700 rounded w-1/4"></div>
             <div className="grid grid-cols-3 gap-4">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-200 rounded"></div>
+                <div key={i} className="h-32 bg-gray-700 rounded"></div>
               ))}
             </div>
           </div>
@@ -176,7 +176,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
@@ -185,14 +185,14 @@ const Profile = () => {
               variant="outline" 
               size="sm" 
               onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 border-gray-600 text-white hover:bg-gray-800"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Dashboard
             </Button>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold">My Profile</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-3xl font-bold text-white">My Profile</h1>
+              <p className="text-gray-400">
                 Manage your profile, view achievements, and track your progress
               </p>
             </div>
@@ -200,47 +200,47 @@ const Profile = () => {
 
           {/* Quick Stats Overview */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <Card className="border-0 shadow-sm">
+            <Card className="border-gray-700 bg-gray-900 shadow-sm">
               <CardContent className="p-4 text-center">
                 <Target className="h-6 w-6 mx-auto mb-2 text-blue-500" />
-                <div className="text-2xl font-bold text-blue-600">{userData.points.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">Total Points</div>
+                <div className="text-2xl font-bold text-blue-400">{userData.points.toLocaleString()}</div>
+                <div className="text-sm text-gray-400">Total Points</div>
               </CardContent>
             </Card>
-            <Card className="border-0 shadow-sm">
+            <Card className="border-gray-700 bg-gray-900 shadow-sm">
               <CardContent className="p-4 text-center">
                 <Trophy className="h-6 w-6 mx-auto mb-2 text-yellow-500" />
-                <div className="text-2xl font-bold text-yellow-600">Level {userData.level}</div>
-                <div className="text-sm text-muted-foreground">Current Level</div>
+                <div className="text-2xl font-bold text-yellow-400">Level {userData.level}</div>
+                <div className="text-sm text-gray-400">Current Level</div>
               </CardContent>
             </Card>
-            <Card className="border-0 shadow-sm">
+            <Card className="border-gray-700 bg-gray-900 shadow-sm">
               <CardContent className="p-4 text-center">
                 <Award className="h-6 w-6 mx-auto mb-2 text-green-500" />
-                <div className="text-2xl font-bold text-green-600">{userData.tasksCompleted}</div>
-                <div className="text-sm text-muted-foreground">Tasks Done</div>
+                <div className="text-2xl font-bold text-green-400">{userData.tasksCompleted}</div>
+                <div className="text-sm text-gray-400">Tasks Done</div>
               </CardContent>
             </Card>
-            <Card className="border-0 shadow-sm">
+            <Card className="border-gray-700 bg-gray-900 shadow-sm">
               <CardContent className="p-4 text-center">
                 <TrendingUp className="h-6 w-6 mx-auto mb-2 text-purple-500" />
-                <div className="text-2xl font-bold text-purple-600">{userData.completionRate}%</div>
-                <div className="text-sm text-muted-foreground">Success Rate</div>
+                <div className="text-2xl font-bold text-purple-400">{userData.completionRate}%</div>
+                <div className="text-sm text-gray-400">Success Rate</div>
               </CardContent>
             </Card>
           </div>
 
           {/* Level Progress */}
-          <Card className="border-0 shadow-sm">
+          <Card className="border-gray-700 bg-gray-900 shadow-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-medium">Level {userData.level} Progress</span>
-                <span className="text-sm text-muted-foreground">
+                <span className="font-medium text-white">Level {userData.level} Progress</span>
+                <span className="text-sm text-gray-400">
                   {userData.points - currentLevelPoints} / {nextLevelPoints - currentLevelPoints} points
                 </span>
               </div>
               <Progress value={Math.max(0, Math.min(100, progressToNextLevel))} className="h-2" />
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-gray-400 mt-1">
                 {Math.max(0, nextLevelPoints - userData.points)} points to Level {userData.level + 1}
               </p>
             </CardContent>
@@ -248,28 +248,28 @@ const Profile = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-6">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
+          <TabsList className="grid w-full max-w-2xl grid-cols-6 bg-gray-800">
+            <TabsTrigger value="profile" className="flex items-center gap-2 text-white data-[state=active]:bg-gray-700">
               <User className="h-4 w-4" />
               Profile
             </TabsTrigger>
-            <TabsTrigger value="achievements" className="flex items-center gap-2">
+            <TabsTrigger value="achievements" className="flex items-center gap-2 text-white data-[state=active]:bg-gray-700">
               <Trophy className="h-4 w-4" />
               Badges
             </TabsTrigger>
-            <TabsTrigger value="stats" className="flex items-center gap-2">
+            <TabsTrigger value="stats" className="flex items-center gap-2 text-white data-[state=active]:bg-gray-700">
               <BarChart3 className="h-4 w-4" />
               Stats
             </TabsTrigger>
-            <TabsTrigger value="streaks" className="flex items-center gap-2">
+            <TabsTrigger value="streaks" className="flex items-center gap-2 text-white data-[state=active]:bg-gray-700">
               <Flame className="h-4 w-4" />
               Streaks
             </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-2">
+            <TabsTrigger value="history" className="flex items-center gap-2 text-white data-[state=active]:bg-gray-700">
               <History className="h-4 w-4" />
               History
             </TabsTrigger>
-            <TabsTrigger value="rewards" className="flex items-center gap-2">
+            <TabsTrigger value="rewards" className="flex items-center gap-2 text-white data-[state=active]:bg-gray-700">
               <Gift className="h-4 w-4" />
               Rewards
             </TabsTrigger>
