@@ -14,7 +14,7 @@ import { enhancedTaskManagementService } from "@/services/admin/enhancedTaskMana
 import { TaskPerformanceAnalytics } from "./TaskPerformanceAnalytics";
 import { TaskFilterBar } from "../TaskFilterBar";
 import { TaskOverviewStats } from "../TaskOverviewStats";
-import { Plus, RefreshCw, Edit, Trash2, Copy } from "lucide-react";
+import { Plus, RefreshCw, Edit, Trash2, Copy, ExternalLink } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 export const EnhancedTaskManagement = () => {
@@ -39,6 +39,8 @@ export const EnhancedTaskManagement = () => {
       
       // Load tasks directly from Supabase - including ALL tasks regardless of status
       const { supabase } = await import("@/integrations/supabase/client");
+      
+      // First get tasks
       const { data: tasksData, error: tasksError } = await supabase
         .from('tasks')
         .select('*')
@@ -50,6 +52,7 @@ export const EnhancedTaskManagement = () => {
         return;
       }
 
+      // Then get submissions
       const { data: submissionsData, error: submissionsError } = await supabase
         .from('task_submissions')
         .select('*')
@@ -62,7 +65,7 @@ export const EnhancedTaskManagement = () => {
       }
 
       console.log('Loaded tasks:', tasksData?.length || 0);
-      console.log('Task statuses:', tasksData?.map(t => ({ id: t.id, title: t.title, status: t.status })));
+      console.log('Tasks loaded:', tasksData?.map(t => ({ id: t.id, title: t.title, status: t.status })));
       console.log('Loaded submissions:', submissionsData?.length || 0);
       
       setTasks(tasksData || []);
@@ -254,7 +257,7 @@ export const EnhancedTaskManagement = () => {
                 onStatusFilterChange={setStatusFilter}
               />
               
-              {/* Enhanced Task Management Table */}
+              {/* Task Management Table */}
               <div className="border rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -271,7 +274,7 @@ export const EnhancedTaskManagement = () => {
                       {filteredTasks.length === 0 ? (
                         <tr>
                           <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                            No tasks found matching your filters
+                            {tasks.length === 0 ? "No tasks created yet. Click 'Create Task' to add your first task." : "No tasks found matching your filters"}
                           </td>
                         </tr>
                       ) : (
@@ -297,9 +300,11 @@ export const EnhancedTaskManagement = () => {
                                 <Badge className={`${getStatusColor(task.status)} text-xs`}>
                                   {task.status}
                                 </Badge>
-                                <Badge className={`${getDifficultyColor(task.difficulty)} text-xs`}>
-                                  {task.difficulty}
-                                </Badge>
+                                {task.difficulty && (
+                                  <Badge className={`${getDifficultyColor(task.difficulty)} text-xs`}>
+                                    {task.difficulty}
+                                  </Badge>
+                                )}
                               </div>
                             </td>
                             <td className="px-4 py-4">
@@ -343,6 +348,16 @@ export const EnhancedTaskManagement = () => {
                                     {deleteLoading === task.id ? "..." : "Delete"}
                                   </span>
                                 </Button>
+                                {task.social_media_links && Object.values(task.social_media_links).some(link => link) && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex items-center gap-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                                    title="Has social media links"
+                                  >
+                                    <ExternalLink className="h-4 w-4" />
+                                  </Button>
+                                )}
                               </div>
                             </td>
                           </tr>

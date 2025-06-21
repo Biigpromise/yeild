@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { taskSubmissionService } from "./tasks/taskSubmissionService";
@@ -40,10 +41,33 @@ export interface CreateCampaignPayload {
   expires_at?: string;
 }
 
+// Helper function to safely transform social_media_links
+const transformSocialMediaLinks = (links: any): Record<string, string> | null => {
+  if (!links) return null;
+  if (typeof links === 'string') {
+    try {
+      return JSON.parse(links);
+    } catch {
+      return null;
+    }
+  }
+  if (typeof links === 'object') {
+    return links as Record<string, string>;
+  }
+  return null;
+};
+
+// Helper function to transform database task to Task interface
+const transformTask = (dbTask: any): Task => ({
+  ...dbTask,
+  social_media_links: transformSocialMediaLinks(dbTask.social_media_links)
+});
+
 export const taskService = {
   // Get all active tasks for users
   async getTasks(): Promise<Task[]> {
-    return await taskQueries.getTasks();
+    const tasks = await taskQueries.getTasks();
+    return tasks.map(transformTask);
   },
 
   // Get task categories
@@ -121,7 +145,7 @@ export const taskService = {
     }
 
     toast.success("Campaign created successfully!");
-    return data;
+    return transformTask(data);
   },
 
   async updateCampaign(campaignId: string, campaignData: Partial<Task>): Promise<Task | null> {
@@ -139,6 +163,6 @@ export const taskService = {
     }
 
     toast.success("Campaign updated successfully!");
-    return data;
+    return transformTask(data);
   }
 };
