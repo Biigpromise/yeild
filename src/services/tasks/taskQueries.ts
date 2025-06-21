@@ -3,12 +3,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Task, TaskCategory, TaskSubmission } from "../types/taskTypes";
 
+// Helper function to safely transform social_media_links
+const transformSocialMediaLinks = (links: any): Record<string, string> | null => {
+  if (!links) return null;
+  if (typeof links === 'string') {
+    try {
+      return JSON.parse(links);
+    } catch {
+      return null;
+    }
+  }
+  if (typeof links === 'object') {
+    return links as Record<string, string>;
+  }
+  return null;
+};
+
 // Helper function to transform database data to Task type
 const transformDatabaseTask = (dbTask: any): Task => ({
   ...dbTask,
-  social_media_links: dbTask.social_media_links && typeof dbTask.social_media_links === 'object' 
-    ? dbTask.social_media_links as Record<string, string>
-    : null
+  social_media_links: transformSocialMediaLinks(dbTask.social_media_links)
 });
 
 export const taskQueries = {
