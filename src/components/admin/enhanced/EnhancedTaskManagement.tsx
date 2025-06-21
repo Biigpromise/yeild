@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -40,7 +39,7 @@ export const EnhancedTaskManagement = () => {
       setLoading(true);
       console.log('Loading enhanced task management data...');
       
-      // Load tasks directly from Supabase
+      // Load tasks directly from Supabase - including ALL tasks regardless of status
       const { supabase } = await import("@/integrations/supabase/client");
       const { data: tasksData, error: tasksError } = await supabase
         .from('tasks')
@@ -65,6 +64,7 @@ export const EnhancedTaskManagement = () => {
       }
 
       console.log('Loaded tasks:', tasksData?.length || 0);
+      console.log('Task statuses:', tasksData?.map(t => ({ id: t.id, title: t.title, status: t.status })));
       console.log('Loaded submissions:', submissionsData?.length || 0);
       
       setTasks(tasksData || []);
@@ -214,7 +214,7 @@ export const EnhancedTaskManagement = () => {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Task Management ({tasks.length} tasks)</CardTitle>
+                <CardTitle>Task Management ({tasks.length} tasks total)</CardTitle>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={loadData}>
                     <RefreshCw className="h-4 w-4 mr-2" />
@@ -225,6 +225,9 @@ export const EnhancedTaskManagement = () => {
                     Create Task
                   </Button>
                 </div>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Showing all tasks including active, draft, and inactive tasks
               </div>
             </CardHeader>
             <CardContent className="space-y-4">

@@ -40,28 +40,22 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 }) => {
   return (
     <div className="flex items-center justify-between p-2 sm:p-4 bg-background border-b">
-      <div className="flex items-center space-x-3">
-        {/* YEILD Brand Logo */}
-        <div className="flex items-center space-x-2">
-          <div className="text-2xl font-bold text-yellow-500">YEILD</div>
-          <div className="text-xs text-muted-foreground hidden sm:block">Social Task Platform</div>
-        </div>
-        
+      <div className="flex items-center space-x-3">        
         <div className="flex items-center space-x-3">
-          {/* User Avatar with Bird Badge */}
+          {/* Main User Avatar with Bird Badge - Larger size */}
           <div className="relative">
-            <Avatar className="h-10 w-10">
+            <Avatar className="h-12 w-12 border-2 border-primary/20">
               <AvatarImage 
                 src={userProfile?.profile_picture_url} 
                 alt={userProfile?.name || user?.email?.split('@')[0] || 'User'} 
               />
-              <AvatarFallback>
+              <AvatarFallback className="text-lg font-semibold">
                 {(userProfile?.name || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             {user?.id && (
               <div className="absolute -top-1 -right-1">
-                <ProfileBirdBadge userId={user.id} size="sm" />
+                <ProfileBirdBadge userId={user.id} size="md" />
               </div>
             )}
           </div>
