@@ -6,6 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { TaskCreationForm } from "./TaskCreationForm";
 import { TaskCategoryManager } from "./TaskCategoryManager";
+import { TaskEditDialog } from "./TaskEditDialog";
+import { TaskTemplateManager } from "./TaskTemplateManager";
+import { BulkTaskOperations } from "./BulkTaskOperations";
+import { TaskScheduler } from "./TaskScheduler";
 import { enhancedTaskManagementService } from "@/services/admin/enhancedTaskManagementService";
 import { TaskPerformanceAnalytics } from "./TaskPerformanceAnalytics";
 import { TaskTable } from "../TaskTable";
@@ -21,6 +25,9 @@ export const EnhancedTaskManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [editingTask, setEditingTask] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [templateData, setTemplateData] = useState<any>(null);
 
   useEffect(() => {
     loadData();
@@ -72,9 +79,34 @@ export const EnhancedTaskManagement = () => {
   };
 
   const handleEditTask = (task: any) => {
-    // For now, just show a toast - this can be expanded later
-    toast.info(`Edit task: ${task.title}`);
-    console.log('Edit task:', task);
+    console.log('Edit task clicked:', task);
+    setEditingTask(task);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDuplicateTask = async (task: any) => {
+    try {
+      const duplicatedTask = {
+        ...task,
+        title: `${task.title} (Copy)`,
+        status: 'draft'
+      };
+      delete duplicatedTask.id;
+      delete duplicatedTask.created_at;
+      
+      const success = await enhancedTaskManagementService.createTask(duplicatedTask);
+      if (success) {
+        await loadData();
+        toast.success("Task duplicated successfully");
+      }
+    } catch (error) {
+      console.error("Error duplicating task:", error);
+      toast.error("Failed to duplicate task");
+    }
+  };
+
+  const handleTemplateSelected = (template: any) => {
+    setTemplateData(template);
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -120,7 +152,7 @@ export const EnhancedTaskManagement = () => {
       />
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="tasks">All Tasks</TabsTrigger>
           <TabsTrigger value="submissions">
@@ -132,6 +164,9 @@ export const EnhancedTaskManagement = () => {
             )}
           </TabsTrigger>
           <TabsTrigger value="create">Create Task</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
+          <TabsTrigger value="bulk">Bulk Ops</TabsTrigger>
+          <TabsTrigger value="schedule">Schedule</TabsTrigger>
           <TabsTrigger value="categories">Categories</TabsTrigger>
         </TabsList>
 
@@ -195,15 +230,39 @@ export const EnhancedTaskManagement = () => {
                 onCancel={() => {
                   console.log('Task creation cancelled');
                 }}
+                initialData={templateData}
               />
             </div>
           </ErrorBoundary>
+        </TabsContent>
+
+        <TabsContent value="templates" className="space-y-6">
+          <TaskTemplateManager onTemplateSelected={handleTemplateSelected} />
+        </TabsContent>
+
+        <TabsContent value="bulk" className="space-y-6">
+          <BulkTaskOperations tasks={tasks} onTasksUpdated={loadData} />
+        </TabsContent>
+
+        <TabsContent value="schedule" className="space-y-6">
+          <TaskScheduler tasks={tasks} onTasksUpdated={loadData} />
         </TabsContent>
 
         <TabsContent value="categories" className="space-y-6">
           <TaskCategoryManager onCategoryUpdated={loadData} />
         </TabsContent>
       </Tabs>
+
+      {/* Edit Task Dialog */}
+      <TaskEditDialog
+        task={editingTask}
+        isOpen={isEditDialogOpen}
+        onClose={() => {
+          setIsEditDialogOpen(false);
+          setEditingTask(null);
+        }}
+        onTaskUpdated={loadData}
+      />
     </div>
   );
 };
