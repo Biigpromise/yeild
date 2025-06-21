@@ -7,6 +7,7 @@ import { AdminUserActions } from "./AdminUserActions";
 import { AdminRecentActivity } from "./AdminRecentActivity";
 import { AdminTaskOverview } from "./AdminTaskOverview";
 import { AdminPlatformStats } from "./AdminPlatformStats";
+import { BirdLevelManagementDialog } from "./BirdLevelManagementDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bird, Crown, AlertTriangle, Shield } from "lucide-react";
@@ -14,6 +15,7 @@ import { integratedFraudDetectionService, FraudDetectionStats } from "@/services
 
 export const AdminOverview = () => {
   const [fraudStats, setFraudStats] = useState<FraudDetectionStats | null>(null);
+  const [birdManagementOpen, setBirdManagementOpen] = useState(false);
 
   useEffect(() => {
     const loadFraudStats = async () => {
@@ -108,7 +110,11 @@ export const AdminOverview = () => {
             <p className="text-sm text-muted-foreground mb-2">
               Bird badge statistics require database setup for real-time tracking
             </p>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setBirdManagementOpen(true)}
+            >
               <Crown className="h-4 w-4 mr-2" />
               Manage Bird Levels
             </Button>
@@ -139,6 +145,12 @@ export const AdminOverview = () => {
 
       {/* Platform Statistics */}
       <AdminPlatformStats />
+
+      {/* Bird Level Management Dialog */}
+      <BirdLevelManagementDialog 
+        open={birdManagementOpen}
+        onOpenChange={setBirdManagementOpen}
+      />
     </div>
   );
 };
