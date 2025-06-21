@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { TaskCreationForm } from "./TaskCreationForm";
 import { TaskCategoryManager } from "./TaskCategoryManager";
@@ -16,6 +17,7 @@ import { TaskTable } from "../TaskTable";
 import { TaskFilterBar } from "../TaskFilterBar";
 import { TaskOverviewStats } from "../TaskOverviewStats";
 import { getDifficultyColor, getStatusColor } from "../utils/taskColorUtils";
+import { Plus, RefreshCw } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 export const EnhancedTaskManagement = () => {
@@ -38,16 +40,35 @@ export const EnhancedTaskManagement = () => {
       setLoading(true);
       console.log('Loading enhanced task management data...');
       
-      const [tasksData, submissionsData] = await Promise.all([
-        enhancedTaskManagementService.getTasks(),
-        enhancedTaskManagementService.getAllSubmissions()
-      ]);
-
-      console.log('Loaded tasks:', tasksData);
-      console.log('Loaded submissions:', submissionsData);
+      // Load tasks directly from Supabase
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: tasksData, error: tasksError } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('created_at', { ascending: false });
       
-      setTasks(tasksData);
-      setSubmissions(submissionsData);
+      if (tasksError) {
+        console.error('Error loading tasks:', tasksError);
+        toast.error('Failed to load tasks');
+        return;
+      }
+
+      const { data: submissionsData, error: submissionsError } = await supabase
+        .from('task_submissions')
+        .select('*')
+        .order('submitted_at', { ascending: false });
+
+      if (submissionsError) {
+        console.error('Error loading submissions:', submissionsError);
+        toast.error('Failed to load submissions');
+        return;
+      }
+
+      console.log('Loaded tasks:', tasksData?.length || 0);
+      console.log('Loaded submissions:', submissionsData?.length || 0);
+      
+      setTasks(tasksData || []);
+      setSubmissions(submissionsData || []);
     } catch (error) {
       console.error("Error loading data:", error);
       toast.error("Failed to load task management data");
@@ -61,8 +82,16 @@ export const EnhancedTaskManagement = () => {
     
     try {
       setDeleteLoading(taskId);
-      const success = await enhancedTaskManagementService.deleteTask(taskId);
-      if (success) {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', taskId);
+
+      if (error) {
+        console.error("Error deleting task:", error);
+        toast.error("Failed to delete task");
+      } else {
         await loadData();
         toast.success("Task deleted successfully");
       }
@@ -94,8 +123,15 @@ export const EnhancedTaskManagement = () => {
       delete duplicatedTask.id;
       delete duplicatedTask.created_at;
       
-      const success = await enhancedTaskManagementService.createTask(duplicatedTask);
-      if (success) {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { error } = await supabase
+        .from('tasks')
+        .insert(duplicatedTask);
+
+      if (error) {
+        console.error("Error duplicating task:", error);
+        toast.error("Failed to duplicate task");
+      } else {
         await loadData();
         toast.success("Task duplicated successfully");
       }
@@ -151,10 +187,10 @@ export const EnhancedTaskManagement = () => {
         approvalRate={totalSubmissions > 0 ? Math.round((approvedSubmissions / totalSubmissions) * 100) : 0}
       />
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs defaultValue="tasks" className="space-y-6">
         <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="tasks">All Tasks</TabsTrigger>
+          <TabsTrigger value="tasks">All Tasks ({tasks.length})</TabsTrigger>
           <TabsTrigger value="submissions">
             Submissions
             {pendingSubmissions.length > 0 && (
@@ -177,7 +213,19 @@ export const EnhancedTaskManagement = () => {
         <TabsContent value="tasks" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Task Management</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Task Management ({tasks.length} tasks)</CardTitle>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={loadData}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                  <Button onClick={() => setTemplateData(null)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Task
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <TaskFilterBar

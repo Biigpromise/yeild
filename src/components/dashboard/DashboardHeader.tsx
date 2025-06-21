@@ -39,6 +39,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   return (
     <div className="flex items-center justify-between p-2 sm:p-4 bg-background border-b">
       <div className="flex items-center space-x-3">
+        {/* YEILD Brand Logo */}
+        <div className="flex items-center space-x-2">
+          <div className="text-2xl font-bold text-yellow-500">YEILD</div>
+          <div className="text-xs text-muted-foreground hidden sm:block">Social Task Platform</div>
+        </div>
+        
         <div className="flex items-center space-x-2">
           <h1 className="text-lg sm:text-xl font-bold text-foreground">
             Welcome back, {userProfile?.name || user?.email?.split('@')[0] || 'User'}!

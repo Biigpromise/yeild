@@ -2,19 +2,24 @@
 import React from 'react';
 import { ProfileBirdBadge } from '@/components/referral/ProfileBirdBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { CompactBirdBatch } from '@/components/ui/CompactBirdBatch';
 
 interface ChatUserBadgeProps {
   userId: string;
   userName: string;
   userAvatar?: string;
+  userTasksCompleted?: number;
   size?: 'sm' | 'md' | 'lg';
+  showBirdBadge?: boolean;
 }
 
 export const ChatUserBadge: React.FC<ChatUserBadgeProps> = ({
   userId,
   userName,
   userAvatar,
-  size = 'sm'
+  userTasksCompleted = 0,
+  size = 'sm',
+  showBirdBadge = true
 }) => {
   const avatarSize = size === 'sm' ? 'h-6 w-6' : size === 'md' ? 'h-8 w-8' : 'h-10 w-10';
   
@@ -27,13 +32,18 @@ export const ChatUserBadge: React.FC<ChatUserBadgeProps> = ({
             {userName?.charAt(0)?.toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
-        {userId && (
+        {showBirdBadge && userId && (
           <div className="absolute -top-1 -right-1">
             <ProfileBirdBadge userId={userId} size="sm" />
           </div>
         )}
       </div>
-      <span className="font-medium text-sm">{userName}</span>
+      <div className="flex items-center gap-2">
+        <span className="font-medium text-sm">{userName}</span>
+        {showBirdBadge && (
+          <CompactBirdBatch count={userTasksCompleted} className="scale-75" />
+        )}
+      </div>
     </div>
   );
 };
