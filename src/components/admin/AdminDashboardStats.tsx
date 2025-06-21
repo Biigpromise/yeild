@@ -1,9 +1,16 @@
 
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { adminService, AdminDashboardStats } from "@/services/adminService";
+import { supabase } from "@/integrations/supabase/client";
 import { Clock, Users, CheckCircle, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
+
+export interface AdminDashboardStats {
+  totalUsers: number;
+  activeTasks: number;
+  pendingSubmissions: number;
+  approvalRate: number;
+}
 
 export const AdminDashboardStatsComponent = () => {
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
@@ -16,8 +23,69 @@ export const AdminDashboardStatsComponent = () => {
   const loadStats = async () => {
     try {
       setLoading(true);
-      const data = await adminService.getDashboardStats();
-      setStats(data);
+      console.log('Loading admin dashboard stats...');
+      
+      // Get total users count
+      const { count: totalUsers, error: usersError } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      if (usersError) {
+        console.error('Error fetching users count:', usersError);
+      }
+
+      // Get active tasks count
+      const { count: activeTasks, error: tasksError } = await supabase
+        .from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active');
+
+      if (tasksError) {
+        console.error('Error fetching active tasks count:', tasksError);
+      }
+
+      // Get pending submissions count
+      const { count: pendingSubmissions, error: pendingError } = await supabase
+        .from('task_submissions')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      if (pendingError) {
+        console.error('Error fetching pending submissions count:', pendingError);
+      }
+
+      // Get total submissions for approval rate calculation
+      const { count: totalSubmissions, error: totalError } = await supabase
+        .from('task_submissions')
+        .select('*', { count: 'exact', head: true });
+
+      if (totalError) {
+        console.error('Error fetching total submissions count:', totalError);
+      }
+
+      // Get approved submissions for approval rate calculation
+      const { count: approvedSubmissions, error: approvedError } = await supabase
+        .from('task_submissions')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'approved');
+
+      if (approvedError) {
+        console.error('Error fetching approved submissions count:', approvedError);
+      }
+
+      const approvalRate = totalSubmissions && totalSubmissions > 0 
+        ? Math.round((approvedSubmissions || 0) / totalSubmissions * 100)
+        : 0;
+
+      const statsData = {
+        totalUsers: totalUsers || 0,
+        activeTasks: activeTasks || 0,
+        pendingSubmissions: pendingSubmissions || 0,
+        approvalRate
+      };
+
+      console.log('Admin dashboard stats loaded:', statsData);
+      setStats(statsData);
     } catch (error) {
       console.error("Error loading dashboard stats:", error);
       toast.error("Failed to load dashboard statistics");

@@ -17,48 +17,60 @@ export const AdminQuickActions = () => {
   const navigate = useNavigate();
 
   const handleNavigateToNotifications = () => {
-    // Navigate to admin page with notifications focus
+    console.log('Navigating to notifications...');
     navigate('/admin');
     // Use setTimeout to ensure the page loads before trying to focus elements
     setTimeout(() => {
-      const notificationsTab = document.querySelector('[data-tab="notifications"]');
-      if (notificationsTab) {
-        (notificationsTab as HTMLElement).click();
+      // Try to click the notifications tab
+      const notificationsButton = document.querySelector('[value="notifications"]') as HTMLButtonElement;
+      if (notificationsButton) {
+        notificationsButton.click();
+      } else {
+        console.log('Notifications tab not found');
       }
-    }, 100);
+    }, 500);
   };
 
   const handleNavigateToUsers = () => {
-    // Navigate to admin page with users focus
+    console.log('Navigating to users...');
     navigate('/admin');
     setTimeout(() => {
-      const usersTab = document.querySelector('[data-tab="users"]');
-      if (usersTab) {
-        (usersTab as HTMLElement).click();
+      // Try to click the users tab
+      const usersButton = document.querySelector('[value="users"]') as HTMLButtonElement;
+      if (usersButton) {
+        usersButton.click();
+      } else {
+        console.log('Users tab not found');
       }
-    }, 100);
+    }, 500);
   };
 
   const handleNavigateToTasks = () => {
-    // Navigate to admin page with tasks focus
+    console.log('Navigating to tasks...');
     navigate('/admin');
     setTimeout(() => {
-      const tasksTab = document.querySelector('[data-tab="enhanced-tasks"]');
-      if (tasksTab) {
-        (tasksTab as HTMLElement).click();
+      // Try to click the enhanced-tasks tab
+      const tasksButton = document.querySelector('[value="enhanced-tasks"]') as HTMLButtonElement;
+      if (tasksButton) {
+        tasksButton.click();
+      } else {
+        console.log('Enhanced tasks tab not found');
       }
-    }, 100);
+    }, 500);
   };
 
   const handleNavigateToSecurity = () => {
-    // Navigate to admin page with security focus
+    console.log('Navigating to security...');
     navigate('/admin');
     setTimeout(() => {
-      const securityTab = document.querySelector('[data-tab="security"]');
-      if (securityTab) {
-        (securityTab as HTMLElement).click();
+      // Try to click the security tab
+      const securityButton = document.querySelector('[value="security"]') as HTMLButtonElement;
+      if (securityButton) {
+        securityButton.click();
+      } else {
+        console.log('Security tab not found');
       }
-    }, 100);
+    }, 500);
   };
 
   return (
