@@ -26,6 +26,7 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
     color: "#3B82F6"
   });
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     loadCategories();
@@ -47,34 +48,50 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name) {
+    if (!formData.name.trim()) {
       toast.error("Category name is required");
       return;
     }
 
     try {
+      setSubmitting(true);
       let success;
+      
       if (editingCategory) {
-        success = await enhancedTaskManagementService.updateTaskCategory(editingCategory.id, formData);
+        success = await enhancedTaskManagementService.updateTaskCategory(editingCategory.id, {
+          name: formData.name.trim(),
+          description: formData.description.trim() || null,
+          icon: formData.icon.trim() || null,
+          color: formData.color
+        });
       } else {
-        success = await enhancedTaskManagementService.createTaskCategory(formData);
+        success = await enhancedTaskManagementService.createTaskCategory({
+          name: formData.name.trim(),
+          description: formData.description.trim() || null,
+          icon: formData.icon.trim() || null,
+          color: formData.color
+        });
       }
 
       if (success) {
-        loadCategories();
+        await loadCategories();
         resetForm();
         setIsDialogOpen(false);
         if (onCategoryUpdated) onCategoryUpdated();
+        toast.success(editingCategory ? "Category updated successfully" : "Category created successfully");
       }
     } catch (error) {
       console.error("Error saving category:", error);
+      toast.error("Failed to save category");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleEdit = (category: any) => {
     setEditingCategory(category);
     setFormData({
-      name: category.name,
+      name: category.name || "",
       description: category.description || "",
       icon: category.icon || "",
       color: category.color || "#3B82F6"
@@ -88,11 +105,12 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
     try {
       const success = await enhancedTaskManagementService.deleteTaskCategory(categoryId);
       if (success) {
-        loadCategories();
+        await loadCategories();
         if (onCategoryUpdated) onCategoryUpdated();
       }
     } catch (error) {
       console.error("Error deleting category:", error);
+      toast.error("Failed to delete category");
     }
   };
 
@@ -109,6 +127,13 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
   const handleCreateNew = () => {
     resetForm();
     setIsDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    if (!submitting) {
+      setIsDialogOpen(false);
+      resetForm();
+    }
   };
 
   if (loading) {
@@ -170,7 +195,7 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
                       )}
                     </TableCell>
                     <TableCell>
-                      {new Date(category.created_at).toLocaleDateString()}
+                      {category.created_at ? new Date(category.created_at).toLocaleDateString() : "N/A"}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -206,7 +231,7 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
       </Card>
 
       {/* Category Form Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -221,6 +246,8 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
                 placeholder="Enter category name"
+                disabled={submitting}
+                required
               />
             </div>
             
@@ -231,6 +258,7 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 placeholder="Enter category description"
                 rows={3}
+                disabled={submitting}
               />
             </div>
             
@@ -241,6 +269,7 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
                   value={formData.icon}
                   onChange={(e) => setFormData({...formData, icon: e.target.value})}
                   placeholder="e.g., 📱, 🎮, 💰"
+                  disabled={submitting}
                 />
               </div>
               
@@ -252,22 +281,34 @@ export const TaskCategoryManager: React.FC<TaskCategoryManagerProps> = ({ onCate
                     value={formData.color}
                     onChange={(e) => setFormData({...formData, color: e.target.value})}
                     className="w-10 h-10 rounded border"
+                    disabled={submitting}
                   />
                   <Input
                     value={formData.color}
                     onChange={(e) => setFormData({...formData, color: e.target.value})}
                     placeholder="#3B82F6"
+                    disabled={submitting}
                   />
                 </div>
               </div>
             </div>
             
             <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleDialogClose}
+                disabled={submitting}
+              >
                 Cancel
               </Button>
-              <Button type="submit">
-                {editingCategory ? "Update Category" : "Create Category"}
+              <Button type="submit" disabled={submitting}>
+                {submitting 
+                  ? "Saving..." 
+                  : editingCategory 
+                    ? "Update Category" 
+                    : "Create Category"
+                }
               </Button>
             </div>
           </form>
