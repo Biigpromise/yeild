@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -232,6 +231,26 @@ export const enhancedTaskManagementService = {
     } catch (error) {
       console.error('Error fetching tasks:', error);
       toast.error('Failed to fetch tasks');
+      return [];
+    }
+  },
+
+  // Get all submissions - adding this missing method
+  async getAllSubmissions(): Promise<any[]> {
+    try {
+      const { data: submissionsData, error } = await supabase
+        .from('task_submissions')
+        .select(`
+          *,
+          tasks(title, points, category, difficulty),
+          profiles(id, name, email)
+        `)
+        .order('submitted_at', { ascending: false });
+
+      if (error) throw error;
+      return submissionsData || [];
+    } catch (error) {
+      console.error('Error fetching all submissions:', error);
       return [];
     }
   },

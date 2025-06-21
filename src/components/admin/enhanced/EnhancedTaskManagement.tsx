@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,7 +31,7 @@ export const EnhancedTaskManagement = () => {
       console.log('Loading enhanced task management data...');
       
       const [tasksData, submissionsData] = await Promise.all([
-        enhancedTaskManagementService.getAllTasks(),
+        enhancedTaskManagementService.getTasks(),
         enhancedTaskManagementService.getAllSubmissions()
       ]);
 
@@ -69,6 +68,12 @@ export const EnhancedTaskManagement = () => {
 
   const handleSubmissionUpdate = async () => {
     await loadData();
+  };
+
+  const handleEditTask = (task: any) => {
+    // For now, just show a toast - this can be expanded later
+    toast.info(`Edit task: ${task.title}`);
+    console.log('Edit task:', task);
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -150,6 +155,7 @@ export const EnhancedTaskManagement = () => {
                 getDifficultyColor={getDifficultyColor}
                 getStatusColor={getStatusColor}
                 onDeleteTask={handleDeleteTask}
+                onEditTask={handleEditTask}
                 deleteLoading={deleteLoading}
               />
             </CardContent>
