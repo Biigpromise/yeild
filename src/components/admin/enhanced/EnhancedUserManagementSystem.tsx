@@ -1,70 +1,48 @@
+
 import React, { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { AdvancedUserSearch } from "./AdvancedUserSearch";
-import { UserSearchResults } from "./UserSearchResults";
-import { 
-  enhancedUserManagementService, 
-  UserActivityData, 
-  UserSearchFilters,
-  SuspensionAction 
-} from "@/services/admin/enhancedUserManagementService";
 import { toast } from "sonner";
-import { useRole } from "@/hooks/useRole";
+import { Search, Plus, Download, Upload, Users, UserCheck, UserX, Crown } from "lucide-react";
+import { realAdminUserService, AdminUser } from "@/services/admin/realAdminUserService";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CompactBirdBatch } from "@/components/ui/CompactBirdBatch";
 
 export const EnhancedUserManagementSystem = () => {
-  const [users, setUsers] = useState<UserActivityData[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState<UserSearchFilters>({
-    searchTerm: "",
-    status: "all",
-    sortBy: "joinDate",
-    sortOrder: "desc"
-  });
 
-  // Add admin role check
-  const { userRoles, isAdmin, loading: roleLoading } = useRole();
-
-  // Dialog states
-  const [suspensionDialog, setSuspensionDialog] = useState<{ open: boolean; userId?: string }>({ open: false });
-  const [banDialog, setBanDialog] = useState<{ open: boolean; userId?: string }>({ open: false });
-  const [bulkDialog, setBulkDialog] = useState<{ open: boolean; operation?: string }>({ open: false });
-
-  // Form states
-  const [suspensionForm, setSuspensionForm] = useState<SuspensionAction>({
-    userId: "",
-    reason: "",
-    duration: undefined
-  });
-  const [banReason, setBanReason] = useState("");
-  const [bulkReason, setBulkReason] = useState("");
-
-  // New: feedback for admin only view
   useEffect(() => {
-    if (!loading && !roleLoading && !isAdmin()) {
-      toast.error("You do not have permission to view all users.");
-    }
-  }, [loading, roleLoading, isAdmin]);
-
-  // Load users when filters change with enhanced activity data
-  useEffect(() => {
-    if (!roleLoading && isAdmin() && (filters.searchTerm || filters.status !== 'all' || Object.keys(filters.dateRange || {}).length > 0)) {
-      loadUsers();
-    }
-  }, [roleLoading, filters, isAdmin]);
+    loadUsers();
+  }, []);
 
   const loadUsers = async () => {
     try {
       setLoading(true);
-      // Use the enhanced search with activity data
-      const data = await enhancedUserManagementService.searchUsersWithActivity(filters);
-      setUsers(data);
-      console.log("Loaded users for admin:", data);
+      console.log('Loading users from real admin service...');
+      const userData = await realAdminUserService.getAllUsers();
+      console.log('Users loaded:', userData);
+      setUsers(userData);
     } catch (error) {
       console.error("Error loading users:", error);
       toast.error("Failed to load users");
@@ -73,263 +51,300 @@ export const EnhancedUserManagementSystem = () => {
     }
   };
 
-  const handleSearch = () => {
-    loadUsers();
-  };
-
-  const handleClearFilters = () => {
-    setFilters({
-      searchTerm: "",
-      status: "all",
-      sortBy: "joinDate",
-      sortOrder: "desc"
-    });
-    setUsers([]);
-    setSelectedUsers([]);
-  };
-
-  const handleSelectUser = (userId: string, selected: boolean) => {
-    if (selected) {
-      setSelectedUsers([...selectedUsers, userId]);
-    } else {
-      setSelectedUsers(selectedUsers.filter(id => id !== userId));
+  const handleStatusUpdate = async (userId: string, status: 'active' | 'suspended') => {
+    try {
+      const success = await realAdminUserService.updateUserStatus(userId, status);
+      if (success) {
+        await loadUsers();
+      }
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      toast.error("Failed to update user status");
     }
   };
 
-  const handleSelectAll = (selected: boolean) => {
-    if (selected) {
-      setSelectedUsers(users.map(u => u.userId));
-    } else {
-      setSelectedUsers([]);
+  const handleRoleUpdate = async (userId: string, role: string) => {
+    try {
+      const success = await realAdminUserService.updateUserRole(userId, role);
+      if (success) {
+        await loadUsers();
+      }
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      toast.error("Failed to update user role");
     }
   };
 
-  const handleUserAction = async (userId: string, action: 'suspend' | 'ban' | 'unsuspend') => {
-    switch (action) {
-      case 'suspend':
-        setSuspensionForm({ userId, reason: "", duration: undefined });
-        setSuspensionDialog({ open: true, userId });
-        break;
-      case 'ban':
-        setBanDialog({ open: true, userId });
-        break;
-      case 'unsuspend':
-        await handleUnsuspendUser(userId);
-        break;
+  const handleExportUsers = async () => {
+    try {
+      await realAdminUserService.exportUserData('csv');
+    } catch (error) {
+      console.error("Error exporting users:", error);
+      toast.error("Failed to export users");
     }
   };
 
-  const handleSuspendUser = async () => {
-    if (!suspensionForm.reason.trim()) {
-      toast.error("Suspension reason is required");
-      return;
+  const getUserRole = (user: AdminUser) => {
+    if (user.user_roles && user.user_roles.length > 0) {
+      return user.user_roles[0].role;
     }
-
-    const success = await enhancedUserManagementService.suspendUser(suspensionForm);
-    if (success) {
-      setSuspensionDialog({ open: false });
-      setSuspensionForm({ userId: "", reason: "", duration: undefined });
-      loadUsers();
-    }
+    return 'user';
   };
 
-  const handleBanUser = async () => {
-    if (!banReason.trim() || !banDialog.userId) {
-      toast.error("Ban reason is required");
-      return;
+  const getUserStatus = (user: AdminUser) => {
+    if (user.user_roles && user.user_roles.some(role => role.role === 'suspended')) {
+      return 'suspended';
     }
-
-    const success = await enhancedUserManagementService.banUser(banDialog.userId, banReason);
-    if (success) {
-      setBanDialog({ open: false });
-      setBanReason("");
-      loadUsers();
-    }
+    return 'active';
   };
 
-  const handleUnsuspendUser = async (userId: string) => {
-    const success = await enhancedUserManagementService.unsuspendUser(userId, "Manual unsuspension by admin");
-    if (success) {
-      loadUsers();
-    }
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = !searchTerm || 
+      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || getUserStatus(user) === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const stats = {
+    totalUsers: users.length,
+    activeUsers: users.filter(user => getUserStatus(user) === 'active').length,
+    suspendedUsers: users.filter(user => getUserStatus(user) === 'suspended').length,
+    adminUsers: users.filter(user => getUserRole(user) === 'admin').length
   };
 
-  const handleBulkOperation = async (operation: string) => {
-    if (selectedUsers.length === 0) {
-      toast.error("Please select users first");
-      return;
-    }
-
-    const success = await enhancedUserManagementService.performBulkOperation({
-      userIds: selectedUsers,
-      operation: operation as any,
-      reason: bulkReason || `Bulk ${operation} by admin`
-    });
-
-    if (success) {
-      setBulkDialog({ open: false });
-      setBulkReason("");
-      setSelectedUsers([]);
-      loadUsers();
-    }
-  };
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-8 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Advanced Search Component */}
-      <AdvancedUserSearch
-        filters={filters}
-        onFiltersChange={setFilters}
-        onSearch={handleSearch}
-        onClearFilters={handleClearFilters}
-      />
-
-      {/* Bulk Actions */}
-      {selectedUsers.length > 0 && (
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
-          <div className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-medium">
-                Bulk Operations ({selectedUsers.length} users selected)
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setBulkDialog({ open: true, operation: 'suspend' })}
-                >
-                  Suspend Selected
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setBulkDialog({ open: true, operation: 'activate' })}
-                >
-                  Activate Selected
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  onClick={() => setBulkDialog({ open: true, operation: 'ban' })}
-                >
-                  Ban Selected
-                </Button>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-500" />
+              <div>
+                <p className="text-2xl font-bold">{stats.totalUsers}</p>
+                <p className="text-sm text-muted-foreground">Total Users</p>
               </div>
             </div>
-          </div>
+          </CardContent>
         </Card>
-      )}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2">
+              <UserCheck className="h-5 w-5 text-green-500" />
+              <div>
+                <p className="text-2xl font-bold">{stats.activeUsers}</p>
+                <p className="text-sm text-muted-foreground">Active Users</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2">
+              <UserX className="h-5 w-5 text-red-500" />
+              <div>
+                <p className="text-2xl font-bold">{stats.suspendedUsers}</p>
+                <p className="text-sm text-muted-foreground">Suspended</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-yellow-500" />
+              <div>
+                <p className="text-2xl font-bold">{stats.adminUsers}</p>
+                <p className="text-sm text-muted-foreground">Admins</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Enhanced Search Results with Activity Monitoring */}
-      <UserSearchResults
-        users={users}
-        selectedUsers={selectedUsers}
-        onSelectUser={handleSelectUser}
-        onSelectAll={handleSelectAll}
-        onUserAction={handleUserAction}
-        loading={loading}
-      />
+      <Tabs defaultValue="users" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="users">All Users</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
 
-      {/* Suspension Dialog */}
-      <Dialog open={suspensionDialog.open} onOpenChange={(open) => setSuspensionDialog({ open })}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Suspend User</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="reason">Suspension Reason</Label>
-              <Textarea
-                id="reason"
-                placeholder="Enter reason for suspension..."
-                value={suspensionForm.reason}
-                onChange={(e) => setSuspensionForm(prev => ({ ...prev, reason: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="duration">Duration (days)</Label>
-              <Input
-                id="duration"
-                type="number"
-                placeholder="Leave empty for permanent suspension"
-                value={suspensionForm.duration || ""}
-                onChange={(e) => setSuspensionForm(prev => ({ 
-                  ...prev, 
-                  duration: e.target.value ? parseInt(e.target.value) : undefined 
-                }))}
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setSuspensionDialog({ open: false })}>
-                Cancel
-              </Button>
-              <Button onClick={handleSuspendUser}>
-                Suspend User
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+        <TabsContent value="users">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>User Management</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" onClick={handleExportUsers}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Filters */}
+              <div className="flex items-center gap-4">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search users..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="suspended">Suspended</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-      {/* Ban Dialog */}
-      <Dialog open={banDialog.open} onOpenChange={(open) => setBanDialog({ open })}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Ban User</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="banReason">Ban Reason</Label>
-              <Textarea
-                id="banReason"
-                placeholder="Enter reason for permanent ban..."
-                value={banReason}
-                onChange={(e) => setBanReason(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setBanDialog({ open: false })}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleBanUser}>
-                Ban User
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+              {/* Users Table */}
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Points & Level</TableHead>
+                      <TableHead>Tasks</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Joined</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          No users found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredUsers.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{user.name || 'Unnamed User'}</div>
+                              <div className="text-sm text-muted-foreground">{user.email}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <CompactBirdBatch count={user.tasks_completed} className="scale-75" />
+                              <div>
+                                <div className="font-medium">{user.points} pts</div>
+                                <div className="text-xs text-muted-foreground">Level {user.level}</div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{user.tasks_completed}</div>
+                              <div className="text-xs text-muted-foreground">
+                                Streak: {user.user_streaks?.[0]?.current_streak || 0}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Select 
+                              value={getUserRole(user)} 
+                              onValueChange={(value) => handleRoleUpdate(user.id, value)}
+                            >
+                              <SelectTrigger className="w-24">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="user">User</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="moderator">Moderator</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={getUserStatus(user) === 'active' ? 'default' : 'destructive'}
+                            >
+                              {getUserStatus(user)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm text-muted-foreground">
+                              {new Date(user.created_at).toLocaleDateString()}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {getUserStatus(user) === 'active' ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleStatusUpdate(user.id, 'suspended')}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  Suspend
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleStatusUpdate(user.id, 'active')}
+                                  className="text-green-600 hover:text-green-700"
+                                >
+                                  Activate
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Bulk Operation Dialog */}
-      <Dialog open={bulkDialog.open} onOpenChange={(open) => setBulkDialog({ open })}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Bulk {bulkDialog.operation}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p>You are about to {bulkDialog.operation} {selectedUsers.length} users.</p>
-            <div>
-              <Label htmlFor="bulkReason">Reason</Label>
-              <Textarea
-                id="bulkReason"
-                placeholder="Enter reason for this action..."
-                value={bulkReason}
-                onChange={(e) => setBulkReason(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setBulkDialog({ open: false })}>
-                Cancel
-              </Button>
-              <Button 
-                variant={bulkDialog.operation === 'ban' ? 'destructive' : 'default'}
-                onClick={() => bulkDialog.operation && handleBulkOperation(bulkDialog.operation)}
-              >
-                Confirm {bulkDialog.operation}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+        <TabsContent value="analytics">
+          <Card>
+            <CardHeader>
+              <CardTitle>User Analytics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                Advanced user analytics will be implemented here.
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

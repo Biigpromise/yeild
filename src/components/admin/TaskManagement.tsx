@@ -13,7 +13,7 @@ import { TaskFilterBar } from "./TaskFilterBar";
 import { TaskTable } from "./TaskTable";
 import { useAdminTaskManagement } from "./hooks/useAdminTaskManagement";
 import { getStatusColor, getDifficultyColor } from "./utils/taskColorUtils";
-import { EditTaskModal } from "./EditTaskModal";
+import { TaskEditDialog } from "./enhanced/TaskEditDialog";
 import { TaskCategoryManager } from "./enhanced/TaskCategoryManager";
 
 export const TaskManagement = () => {
@@ -42,6 +42,19 @@ export const TaskManagement = () => {
   // Edit task modal state
   const [editTaskModalOpen, setEditTaskModalOpen] = React.useState(false);
   const [taskToEdit, setTaskToEdit] = React.useState(null);
+
+  const handleEditTask = (task: any) => {
+    console.log('Opening edit modal for task:', task);
+    setTaskToEdit(task);
+    setEditTaskModalOpen(true);
+  };
+
+  const handleTaskUpdated = () => {
+    console.log('Task updated, reloading data...');
+    loadData();
+    setEditTaskModalOpen(false);
+    setTaskToEdit(null);
+  };
 
   if (loading) {
     return (
@@ -111,12 +124,8 @@ export const TaskManagement = () => {
                   getDifficultyColor={getDifficultyColor}
                   getStatusColor={getStatusColor}
                   onDeleteTask={handleDeleteTask}
+                  onEditTask={handleEditTask}
                   deleteLoading={deleteLoading}
-                  // Add onEditTask prop for triggering the edit modal
-                  onEditTask={(task) => {
-                    setTaskToEdit(task);
-                    setEditTaskModalOpen(true);
-                  }}
                 />
               </div>
             </CardContent>
@@ -148,12 +157,15 @@ export const TaskManagement = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Edit Modal (appears over everything) */}
-      <EditTaskModal
-        open={editTaskModalOpen}
-        onClose={() => setEditTaskModalOpen(false)}
+      {/* Edit Task Dialog */}
+      <TaskEditDialog
         task={taskToEdit}
-        onTaskUpdated={loadData}
+        isOpen={editTaskModalOpen}
+        onClose={() => {
+          setEditTaskModalOpen(false);
+          setTaskToEdit(null);
+        }}
+        onTaskUpdated={handleTaskUpdated}
       />
     </div>
   );

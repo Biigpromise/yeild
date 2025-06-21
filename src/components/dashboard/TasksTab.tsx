@@ -6,6 +6,7 @@ import TaskCategories from '@/components/TaskCategories';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Target, Gift, Wallet } from 'lucide-react';
+import { CompactBirdBatch } from '@/components/ui/CompactBirdBatch';
 
 interface TasksTabProps {
   searchQuery: string;
@@ -89,7 +90,10 @@ export const TasksTab: React.FC<TasksTabProps> = ({
         {/* Getting Started */}
         <Card className="border-0 shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Getting Started</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Your Progress</CardTitle>
+              <CompactBirdBatch count={userStats.tasksCompleted} />
+            </div>
           </CardHeader>
           <CardContent className="space-y-3 pt-0">
             {userStats.tasksCompleted === 0 ? (
