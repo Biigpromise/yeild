@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/popover";
 import { Bell, LogOut, Settings, User, Menu } from "lucide-react";
 import { CompactBirdBatch } from "@/components/ui/CompactBirdBatch";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfileBirdBadge } from "@/components/referral/ProfileBirdBadge";
 
 interface DashboardHeaderProps {
   userProfile: any;
@@ -45,16 +47,36 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <div className="text-xs text-muted-foreground hidden sm:block">Social Task Platform</div>
         </div>
         
-        <div className="flex items-center space-x-2">
-          <h1 className="text-lg sm:text-xl font-bold text-foreground">
-            Welcome back, {userProfile?.name || user?.email?.split('@')[0] || 'User'}!
-          </h1>
-          {userProfile && (
-            <CompactBirdBatch 
-              count={userProfile.tasks_completed || 0} 
-              className="scale-90 sm:scale-100"
-            />
-          )}
+        <div className="flex items-center space-x-3">
+          {/* User Avatar with Bird Badge */}
+          <div className="relative">
+            <Avatar className="h-10 w-10">
+              <AvatarImage 
+                src={userProfile?.profile_picture_url} 
+                alt={userProfile?.name || user?.email?.split('@')[0] || 'User'} 
+              />
+              <AvatarFallback>
+                {(userProfile?.name || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            {user?.id && (
+              <div className="absolute -top-1 -right-1">
+                <ProfileBirdBadge userId={user.id} size="sm" />
+              </div>
+            )}
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <h1 className="text-lg sm:text-xl font-bold text-foreground">
+              Welcome back, {userProfile?.name || user?.email?.split('@')[0] || 'User'}!
+            </h1>
+            {userProfile && (
+              <CompactBirdBatch 
+                count={userProfile.tasks_completed || 0} 
+                className="scale-90 sm:scale-100"
+              />
+            )}
+          </div>
         </div>
       </div>
 
