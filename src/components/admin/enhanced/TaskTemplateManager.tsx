@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, FileTemplate, Copy, Edit, Trash2 } from "lucide-react";
+import { Plus, File, Copy, Edit, Trash2 } from "lucide-react";
 
 interface TaskTemplate {
   id: string;
@@ -121,7 +121,7 @@ export const TaskTemplateManager: React.FC<TaskTemplateManagerProps> = ({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <FileTemplate className="h-5 w-5" />
+            <File className="h-5 w-5" />
             Task Templates
           </CardTitle>
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
