@@ -949,6 +949,41 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_tasks: {
+        Row: {
+          created_at: string
+          id: string
+          scheduled_for: string
+          status: string
+          task_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          scheduled_for: string
+          status?: string
+          task_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          scheduled_for?: string
+          status?: string
+          task_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_tasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stories: {
         Row: {
           caption: string | null
@@ -1025,6 +1060,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      task_analytics: {
+        Row: {
+          active_tasks: number | null
+          approval_rate: number | null
+          avg_completion_time: number | null
+          completed_tasks: number | null
+          created_at: string
+          date: string
+          id: string
+          pending_submissions: number | null
+          total_tasks: number | null
+        }
+        Insert: {
+          active_tasks?: number | null
+          approval_rate?: number | null
+          avg_completion_time?: number | null
+          completed_tasks?: number | null
+          created_at?: string
+          date: string
+          id?: string
+          pending_submissions?: number | null
+          total_tasks?: number | null
+        }
+        Update: {
+          active_tasks?: number | null
+          approval_rate?: number | null
+          avg_completion_time?: number | null
+          completed_tasks?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          pending_submissions?: number | null
+          total_tasks?: number | null
+        }
+        Relationships: []
       }
       task_categories: {
         Row: {
@@ -1115,6 +1186,39 @@ export type Database = {
           },
         ]
       }
+      task_templates: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          template_data: Json
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          template_data?: Json
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          template_data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           brand_logo_url: string | null
@@ -1129,6 +1233,7 @@ export type Database = {
           expires_at: string | null
           id: string
           points: number
+          social_media_links: Json | null
           status: string | null
           task_type: string | null
           title: string
@@ -1146,6 +1251,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           points?: number
+          social_media_links?: Json | null
           status?: string | null
           task_type?: string | null
           title: string
@@ -1163,6 +1269,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           points?: number
+          social_media_links?: Json | null
           status?: string | null
           task_type?: string | null
           title?: string
@@ -1710,6 +1817,10 @@ export type Database = {
       redeem_reward: {
         Args: { p_user_id: string; p_reward_id: string }
         Returns: string
+      }
+      update_daily_task_analytics: {
+        Args: { target_date?: string }
+        Returns: undefined
       }
       update_user_streak: {
         Args: {

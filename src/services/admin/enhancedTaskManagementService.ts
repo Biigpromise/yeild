@@ -266,6 +266,99 @@ export const enhancedTaskManagementService = {
     }
   },
 
+  // Task template management methods
+  async getTaskTemplates() {
+    try {
+      console.log('Fetching task templates...');
+      const { data, error } = await supabase
+        .from('task_templates')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching task templates:', error);
+        throw error;
+      }
+
+      console.log('Task templates fetched:', data?.length || 0);
+      return data || [];
+    } catch (error) {
+      console.error('Error in getTaskTemplates:', error);
+      return [];
+    }
+  },
+
+  async createTaskTemplate(templateData: any) {
+    try {
+      console.log('Creating task template with data:', templateData);
+      
+      const { data, error } = await supabase
+        .from('task_templates')
+        .insert([templateData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating task template:', error);
+        throw error;
+      }
+
+      console.log('Task template created successfully:', data);
+      return true;
+    } catch (error) {
+      console.error('Error in createTaskTemplate:', error);
+      return false;
+    }
+  },
+
+  // Scheduled tasks management
+  async getScheduledTasks() {
+    try {
+      console.log('Fetching scheduled tasks...');
+      const { data, error } = await supabase
+        .from('scheduled_tasks')
+        .select(`
+          *,
+          tasks(id, title, points, status)
+        `)
+        .order('scheduled_for', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching scheduled tasks:', error);
+        throw error;
+      }
+
+      console.log('Scheduled tasks fetched:', data?.length || 0);
+      return data || [];
+    } catch (error) {
+      console.error('Error in getScheduledTasks:', error);
+      return [];
+    }
+  },
+
+  async createScheduledTask(scheduleData: any) {
+    try {
+      console.log('Creating scheduled task with data:', scheduleData);
+      
+      const { data, error } = await supabase
+        .from('scheduled_tasks')
+        .insert([scheduleData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating scheduled task:', error);
+        throw error;
+      }
+
+      console.log('Scheduled task created successfully:', data);
+      return true;
+    } catch (error) {
+      console.error('Error in createScheduledTask:', error);
+      return false;
+    }
+  },
+
   // Bulk operations method
   async performBulkTaskOperation(operation: {
     taskIds: string[];
@@ -325,7 +418,7 @@ export const enhancedTaskManagementService = {
     }
   },
 
-  // Analytics method
+  // Analytics method - now using real database queries
   async getTaskAnalytics(params: { start: Date; end: Date }): Promise<TaskAnalytics> {
     try {
       console.log('Fetching task analytics for period:', params);
@@ -333,14 +426,14 @@ export const enhancedTaskManagementService = {
       // Get basic task counts
       const { data: tasksData, error: tasksError } = await supabase
         .from('tasks')
-        .select('id, status, created_at, category');
+        .select('id, status, created_at, category_id, task_categories(name)');
 
       if (tasksError) {
         console.error('Error fetching tasks for analytics:', tasksError);
         throw tasksError;
       }
 
-      // Get submissions data
+      // Get submissions data for the date range
       const { data: submissionsData, error: submissionsError } = await supabase
         .from('task_submissions')
         .select('id, status, submitted_at, reviewed_at')
@@ -360,19 +453,34 @@ export const enhancedTaskManagementService = {
         ? Math.round((completedTasks / submissionsData.length) * 100) 
         : 0;
 
-      // Mock recent activity data
-      const recentActivity = [
-        { date: '2024-01-01', submissions: 10, approvals: 8 },
-        { date: '2024-01-02', submissions: 15, approvals: 12 },
-        { date: '2024-01-03', submissions: 8, approvals: 6 },
-      ];
+      // Get recent activity data from the last 7 days
+      const recentActivityPromises = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        recentActivityPromises.push(
+          supabase
+            .from('task_submissions')
+            .select('status')
+            .gte('submitted_at', `${dateStr} 00:00:00`)
+            .lt('submitted_at', `${dateStr} 23:59:59`)
+            .then(({ data }) => ({
+              date: dateStr,
+              submissions: data?.length || 0,
+              approvals: data?.filter(s => s.status === 'approved').length || 0
+            }))
+        );
+      }
 
-      // Calculate top categories
+      const recentActivity = await Promise.all(recentActivityPromises);
+
+      // Calculate top categories from tasks
       const categoryCount: { [key: string]: number } = {};
       tasksData?.forEach(task => {
-        if (task.category) {
-          categoryCount[task.category] = (categoryCount[task.category] || 0) + 1;
-        }
+        const categoryName = task.task_categories?.name || 'Uncategorized';
+        categoryCount[categoryName] = (categoryCount[categoryName] || 0) + 1;
       });
 
       const topCategories = Object.entries(categoryCount)
@@ -380,13 +488,27 @@ export const enhancedTaskManagementService = {
         .sort((a, b) => b.count - a.count)
         .slice(0, 5);
 
+      // Calculate average completion time
+      const completedSubmissions = submissionsData?.filter(s => s.status === 'approved' && s.reviewed_at) || [];
+      let avgCompletionTime = 24; // default 24 hours
+      
+      if (completedSubmissions.length > 0) {
+        const totalCompletionTime = completedSubmissions.reduce((acc, submission) => {
+          const submitted = new Date(submission.submitted_at);
+          const reviewed = new Date(submission.reviewed_at);
+          const diffHours = Math.abs(reviewed.getTime() - submitted.getTime()) / (1000 * 60 * 60);
+          return acc + diffHours;
+        }, 0);
+        avgCompletionTime = Math.round(totalCompletionTime / completedSubmissions.length);
+      }
+
       const analytics: TaskAnalytics = {
         totalTasks,
         activeTasks,
         pendingSubmissions,
         completedTasks,
         approvalRate,
-        avgCompletionTime: 24, // Mock average completion time in hours
+        avgCompletionTime,
         recentActivity,
         topCategories
       };

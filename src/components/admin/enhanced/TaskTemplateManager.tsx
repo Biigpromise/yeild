@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, File, Copy, Edit, Trash2 } from "lucide-react";
+import { enhancedTaskManagementService } from "@/services/admin/enhancedTaskManagementService";
 
 interface TaskTemplate {
   id: string;
@@ -18,51 +20,6 @@ interface TaskTemplate {
   created_at: string;
 }
 
-const defaultTemplates = [
-  {
-    id: "social-follow",
-    name: "Social Media Follow",
-    description: "Follow a social media account",
-    category: "social_media",
-    template_data: {
-      title: "Follow our [Platform] account",
-      description: "Follow our official account on [Platform] and screenshot for verification",
-      points: "25",
-      difficulty: "easy",
-      task_type: "social_media",
-      estimated_time: "2 minutes"
-    }
-  },
-  {
-    id: "app-download",
-    name: "App Download & Review",
-    description: "Download app and leave a review",
-    category: "download",
-    template_data: {
-      title: "Download [App Name] and Leave Review",
-      description: "Download the app from the store, use it for at least 5 minutes, then leave an honest review",
-      points: "100",
-      difficulty: "medium",
-      task_type: "download",
-      estimated_time: "10 minutes"
-    }
-  },
-  {
-    id: "survey-feedback",
-    name: "Survey Completion",
-    description: "Complete a feedback survey",
-    category: "survey",
-    template_data: {
-      title: "Complete Customer Feedback Survey",
-      description: "Fill out our detailed customer feedback survey to help us improve our services",
-      points: "50",
-      difficulty: "easy",
-      task_type: "survey",
-      estimated_time: "5 minutes"
-    }
-  }
-];
-
 interface TaskTemplateManagerProps {
   onTemplateSelected: (template: any) => void;
 }
@@ -71,6 +28,7 @@ export const TaskTemplateManager: React.FC<TaskTemplateManagerProps> = ({
   onTemplateSelected
 }) => {
   const [templates, setTemplates] = useState<TaskTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTemplate, setNewTemplate] = useState({
     name: "",
@@ -79,42 +37,73 @@ export const TaskTemplateManager: React.FC<TaskTemplateManagerProps> = ({
   });
 
   useEffect(() => {
-    // For now, use default templates. In a real app, these would come from the database
-    setTemplates(defaultTemplates as any);
+    loadTemplates();
   }, []);
 
-  const handleCreateTemplate = () => {
+  const loadTemplates = async () => {
+    try {
+      setLoading(true);
+      const data = await enhancedTaskManagementService.getTaskTemplates();
+      setTemplates(data);
+    } catch (error) {
+      console.error('Error loading templates:', error);
+      toast.error('Failed to load templates');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateTemplate = async () => {
     if (!newTemplate.name.trim()) {
       toast.error("Template name is required");
       return;
     }
 
-    const template = {
-      id: `custom-${Date.now()}`,
+    const templateData = {
       name: newTemplate.name,
       description: newTemplate.description,
       category: newTemplate.category,
-      created_at: new Date().toISOString(),
       template_data: {
         title: `[${newTemplate.name}]`,
         description: newTemplate.description,
-        points: "50",
+        points: 50,
         difficulty: "medium",
         task_type: newTemplate.category,
         estimated_time: "5 minutes"
       }
     };
 
-    setTemplates(prev => [...prev, template]);
-    setNewTemplate({ name: "", description: "", category: "general" });
-    setIsCreateModalOpen(false);
-    toast.success("Template created successfully!");
+    const success = await enhancedTaskManagementService.createTaskTemplate(templateData);
+    if (success) {
+      await loadTemplates();
+      setNewTemplate({ name: "", description: "", category: "general" });
+      setIsCreateModalOpen(false);
+      toast.success("Template created successfully!");
+    } else {
+      toast.error("Failed to create template");
+    }
   };
 
   const handleUseTemplate = (template: TaskTemplate) => {
     onTemplateSelected(template.template_data);
     toast.success(`Template "${template.name}" applied!`);
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <File className="h-5 w-5" />
+            Task Templates
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">Loading templates...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -183,34 +172,41 @@ export const TaskTemplateManager: React.FC<TaskTemplateManagerProps> = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {templates.map((template) => (
-            <div key={template.id} className="border rounded-lg p-4 space-y-3">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="font-medium">{template.name}</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {template.description}
-                  </p>
+        {templates.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <File className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>No templates found. Create your first template to get started.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {templates.map((template) => (
+              <div key={template.id} className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="font-medium">{template.name}</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {template.description}
+                    </p>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {template.category}
+                  </Badge>
                 </div>
-                <Badge variant="secondary" className="text-xs">
-                  {template.category}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleUseTemplate(template)}
+                    className="flex-1"
+                  >
+                    <Copy className="h-3 w-3 mr-1" />
+                    Use Template
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleUseTemplate(template)}
-                  className="flex-1"
-                >
-                  <Copy className="h-3 w-3 mr-1" />
-                  Use Template
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
