@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -86,26 +85,47 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Only require title, description, and points - category is optional
-    if (!formData.title || !formData.description || !formData.points) {
-      toast.error("Please fill in all required fields (title, description, and points)");
+    // Enhanced validation
+    if (!formData.title?.trim()) {
+      toast.error("Task title is required");
+      return;
+    }
+
+    if (!formData.description?.trim()) {
+      toast.error("Task description is required");
+      return;
+    }
+
+    if (!formData.points || parseInt(formData.points) <= 0) {
+      toast.error("Points must be greater than 0");
       return;
     }
 
     setIsSubmitting(true);
     try {
+      console.log('Submitting task creation form...');
+      
       const socialLinks = Object.entries(formData.social_media_links)
         .filter(([_, value]) => value && value.trim() !== '')
         .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
 
       const taskData = {
-        ...formData,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
         points: parseInt(formData.points),
+        difficulty: formData.difficulty || 'medium',
+        brand_name: formData.brand_name?.trim() || null,
+        brand_logo_url: formData.brand_logo_url?.trim() || null,
+        estimated_time: formData.estimated_time?.trim() || null,
         expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null,
+        status: formData.status,
+        task_type: formData.task_type,
         social_media_links: formData.task_type === 'social_media' && Object.keys(socialLinks).length > 0 ? socialLinks : null,
-        // Only include category_id if it's selected
-        ...(formData.category_id && { category_id: formData.category_id })
+        // Only include category_id if it's selected and not empty
+        category_id: formData.category_id && formData.category_id.trim() !== '' ? formData.category_id : null
       };
+
+      console.log('Final task data for creation:', taskData);
 
       let success;
       if (taskToEdit) {
@@ -115,17 +135,23 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
       }
 
       if (success) {
+        console.log('Task creation/update successful');
+        // Reset form
+        setFormData(initialFormData);
         onTaskCreated();
+      } else {
+        console.error('Task creation/update failed');
       }
     } catch (error) {
       console.error("Error saving task:", error);
-      toast.error("Failed to save task");
+      toast.error("Failed to save task. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
+    console.log(`Updating field ${field} with value:`, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -167,6 +193,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                   value={formData.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
                   placeholder="Enter task title"
+                  required
                 />
               </div>
               
@@ -182,6 +209,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                     placeholder="50"
                     min="1"
                     className="pl-10"
+                    required
                   />
                 </div>
               </div>
@@ -197,7 +225,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                       categoriesLoading
                         ? "Loading categories..."
                         : validCategories.length === 0
-                          ? "No categories available"
+                          ? "No categories available (optional)"
                           : "Select category (optional)"
                     } />
                   </SelectTrigger>
@@ -225,10 +253,9 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                 <Label htmlFor="difficulty">Difficulty (Optional)</Label>
                 <Select value={formData.difficulty} onValueChange={(value) => handleInputChange('difficulty', value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select difficulty (optional)" />
+                    <SelectValue placeholder="Select difficulty" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Difficulty</SelectItem>
                     <SelectItem value="easy">Easy</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
                     <SelectItem value="hard">Hard</SelectItem>
@@ -237,7 +264,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
               </div>
 
               <div>
-                <Label htmlFor="task_type">Task Type (Optional)</Label>
+                <Label htmlFor="task_type">Task Type</Label>
                 <Select value={formData.task_type} onValueChange={(value) => handleInputChange('task_type', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select task type" />
@@ -374,6 +401,7 @@ export const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
               onChange={(e) => handleInputChange('description', e.target.value)}
               placeholder="Describe what users need to do to complete this task..."
               rows={4}
+              required
             />
           </div>
           

@@ -171,30 +171,52 @@ export const enhancedTaskManagementService = {
   // Create task with enhanced validation
   async createTask(taskData: any): Promise<boolean> {
     try {
+      console.log('Creating task with enhanced service:', taskData);
+      
+      // Prepare the data for insertion with proper null handling
+      const insertData = {
+        title: taskData.title,
+        description: taskData.description,
+        points: taskData.points,
+        status: taskData.status || 'active',
+        task_type: taskData.task_type || 'general',
+        // Handle optional fields properly
+        ...(taskData.category_id && { category_id: taskData.category_id }),
+        ...(taskData.difficulty && { difficulty: taskData.difficulty }),
+        ...(taskData.brand_name && { brand_name: taskData.brand_name }),
+        ...(taskData.brand_logo_url && { brand_logo_url: taskData.brand_logo_url }),
+        ...(taskData.estimated_time && { estimated_time: taskData.estimated_time }),
+        ...(taskData.expires_at && { expires_at: taskData.expires_at }),
+        ...(taskData.social_media_links && { social_media_links: taskData.social_media_links }),
+      };
+
+      console.log('Inserting task data:', insertData);
+
       const { data, error } = await supabase
         .from('tasks')
-        .insert({
-          title: taskData.title,
-          description: taskData.description,
-          points: taskData.points,
-          category_id: taskData.category_id ? taskData.category_id : null,
-          difficulty: taskData.difficulty,
-          brand_name: taskData.brand_name,
-          brand_logo_url: taskData.brand_logo_url,
-          estimated_time: taskData.estimated_time,
-          expires_at: taskData.expires_at,
-          status: taskData.status || 'active',
-          task_type: taskData.task_type || 'general',
-          social_media_links: taskData.social_media_links,
-        });
+        .insert([insertData])
+        .select()
+        .single();
 
-      if (error) throw error;
-      
+      if (error) {
+        console.error('Database error creating task:', error);
+        throw error;
+      }
+
+      console.log('Task created successfully:', data);
       toast.success('Task created successfully');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating task:', error);
-      toast.error('Failed to create task');
+      
+      // Provide specific error messages
+      if (error.code === '42501') {
+        toast.error('Permission denied. Admin access required.');
+      } else if (error.code === '23505') {
+        toast.error('A task with this information already exists.');
+      } else {
+        toast.error(`Failed to create task: ${error.message || 'Unknown error'}`);
+      }
       return false;
     }
   },
@@ -222,34 +244,79 @@ export const enhancedTaskManagementService = {
     }
   },
 
-  // Get all tasks
+  // Get all tasks with better error handling
   async getTasks(): Promise<any[]> {
     try {
-      const { data, error } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
+      console.log('Fetching tasks from enhanced service...');
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Database error fetching tasks:', error);
+        throw error;
+      }
+      
+      console.log('Tasks fetched successfully:', data?.length || 0, 'tasks');
       return data || [];
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching tasks:', error);
-      toast.error('Failed to fetch tasks');
+      
+      // Don't show error toast for tasks since it's handled at component level
       return [];
     }
   },
 
-  // Get all submissions - adding this missing method
+  // Get all submissions with better error handling
   async getAllSubmissions(): Promise<any[]> {
     try {
-      const { data: submissionsData, error } = await supabase
+      console.log('Fetching submissions from enhanced service...');
+      
+      // First get submissions without joins to avoid relation errors
+      const { data: submissions, error: submissionsError } = await supabase
         .from('task_submissions')
-        .select(`
-          *,
-          tasks(title, points, category, difficulty),
-          profiles(id, name, email)
-        `)
+        .select('*')
         .order('submitted_at', { ascending: false });
 
-      if (error) throw error;
-      return submissionsData || [];
-    } catch (error) {
+      if (submissionsError) {
+        console.error('Error fetching submissions:', submissionsError);
+        return [];
+      }
+
+      if (!submissions || submissions.length === 0) {
+        console.log('No submissions found');
+        return [];
+      }
+
+      // Get related task data separately
+      const taskIds = [...new Set(submissions.map(sub => sub.task_id).filter(Boolean))];
+      const userIds = [...new Set(submissions.map(sub => sub.user_id).filter(Boolean))];
+
+      const [tasksResult, profilesResult] = await Promise.all([
+        taskIds.length > 0 ? supabase
+          .from('tasks')
+          .select('id, title, points, category, difficulty')
+          .in('id', taskIds) : Promise.resolve({ data: [], error: null }),
+        userIds.length > 0 ? supabase
+          .from('profiles')
+          .select('id, name, email')
+          .in('id', userIds) : Promise.resolve({ data: [], error: null })
+      ]);
+
+      const tasks = tasksResult.data || [];
+      const profiles = profilesResult.data || [];
+
+      // Combine the data
+      const submissionsWithDetails = submissions.map(submission => ({
+        ...submission,
+        tasks: tasks.find(task => task.id === submission.task_id) || null,
+        profiles: profiles.find(profile => profile.id === submission.user_id) || null
+      }));
+
+      console.log('Submissions fetched successfully:', submissionsWithDetails.length, 'submissions');
+      return submissionsWithDetails;
+    } catch (error: any) {
       console.error('Error fetching all submissions:', error);
       return [];
     }
@@ -437,7 +504,7 @@ export const enhancedTaskManagementService = {
   // Task category management
   async getTaskCategories(): Promise<any[]> {
     try {
-      console.log('Fetching task categories from database...');
+      console.log('Fetching task categories from enhanced service...');
       const { data, error } = await supabase
         .from('task_categories')
         .select('*')
@@ -445,14 +512,14 @@ export const enhancedTaskManagementService = {
 
       if (error) {
         console.error('Database error fetching categories:', error);
-        throw error;
+        // Don't throw error for categories since they're optional
+        return [];
       }
       
-      console.log('Categories fetched successfully:', data);
+      console.log('Categories fetched successfully:', data?.length || 0, 'categories');
       return data || [];
     } catch (error) {
       console.error('Error fetching categories:', error);
-      toast.error('Failed to fetch categories');
       return [];
     }
   },
