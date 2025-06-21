@@ -6,90 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, AlertTriangle, Search, Ban, Users } from 'lucide-react';
+import { Shield, AlertTriangle, Search, Ban, Users, Image } from 'lucide-react';
 import { DuplicateReferralManager } from './DuplicateReferralManager';
+import { DuplicateImageManager } from './DuplicateImageManager';
 import { toast } from 'sonner';
-
-interface SuspiciousActivity {
-  id: string;
-  userId: string;
-  userName: string;
-  activity: string;
-  riskLevel: 'low' | 'medium' | 'high';
-  ipAddress: string;
-  deviceInfo: string;
-  timestamp: string;
-  status: 'pending' | 'reviewed' | 'flagged';
-}
 
 export const AntiFraudTracking: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [suspiciousActivities] = useState<SuspiciousActivity[]>([
-    {
-      id: '1',
-      userId: 'user-123',
-      userName: 'john_doe',
-      activity: 'Multiple referrals from same IP',
-      riskLevel: 'high',
-      ipAddress: '192.168.1.1',
-      deviceInfo: 'Chrome 120 on Windows',
-      timestamp: '2024-01-20 14:30:00',
-      status: 'pending'
-    },
-    {
-      id: '2',
-      userId: 'user-456',
-      userName: 'jane_smith',
-      activity: 'Rapid referral creation',
-      riskLevel: 'medium',
-      ipAddress: '10.0.0.1',
-      deviceInfo: 'Safari 17 on iPhone',
-      timestamp: '2024-01-20 13:15:00',
-      status: 'reviewed'
-    }
-  ]);
-
-  const getRiskBadgeColor = (level: string) => {
-    switch (level) {
-      case 'high':
-        return 'bg-red-100 text-red-800 border-red-300';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'low':
-        return 'bg-green-100 text-green-800 border-green-300';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-300';
-    }
-  };
-
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-blue-100 text-blue-800';
-      case 'reviewed':
-        return 'bg-green-100 text-green-800';
-      case 'flagged':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const handleFlagUser = (userId: string, userName: string) => {
-    toast.warning(
-      <div className="flex items-center gap-2">
-        <Ban className="h-5 w-5" />
-        <div>
-          <p className="font-semibold">User Flagged</p>
-          <p className="text-sm">{userName} has been flagged for review</p>
-        </div>
-      </div>
-    );
-  };
-
-  const handleReviewComplete = (activityId: string) => {
-    toast.success('Review completed and marked as resolved');
-  };
 
   return (
     <div className="space-y-6">
@@ -140,7 +63,7 @@ export const AntiFraudTracking: React.FC = () => {
       <Alert>
         <Shield className="h-4 w-4" />
         <AlertDescription>
-          Anti-fraud system monitors IP addresses, device fingerprints, and referral patterns to detect suspicious activity.
+          Anti-fraud system monitors IP addresses, device fingerprints, referral patterns, and image submissions to detect suspicious activity.
         </AlertDescription>
       </Alert>
 
@@ -150,13 +73,20 @@ export const AntiFraudTracking: React.FC = () => {
             <Users className="h-4 w-4" />
             Duplicate Referrals
           </TabsTrigger>
+          <TabsTrigger value="duplicate-images" className="flex items-center gap-2">
+            <Image className="h-4 w-4" />
+            Duplicate Images
+          </TabsTrigger>
           <TabsTrigger value="location-abuse">Location Abuse</TabsTrigger>
           <TabsTrigger value="behavior-analysis">Behavior Analysis</TabsTrigger>
-          <TabsTrigger value="general-suspicious">General Suspicious</TabsTrigger>
         </TabsList>
 
         <TabsContent value="duplicate-referrals">
           <DuplicateReferralManager />
+        </TabsContent>
+
+        <TabsContent value="duplicate-images">
+          <DuplicateImageManager />
         </TabsContent>
 
         <TabsContent value="location-abuse">
@@ -181,69 +111,6 @@ export const AntiFraudTracking: React.FC = () => {
               <p className="text-muted-foreground">
                 This feature will analyze user behavior patterns and will be implemented next.
               </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="general-suspicious">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  General Suspicious Activities
-                </span>
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search activities..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 w-64"
-                    />
-                  </div>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {suspiciousActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{activity.userName}</span>
-                        <Badge className={getRiskBadgeColor(activity.riskLevel)}>
-                          {activity.riskLevel.toUpperCase()}
-                        </Badge>
-                        <Badge className={getStatusBadgeColor(activity.status)}>
-                          {activity.status}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{activity.activity}</p>
-                      <p className="text-xs text-muted-foreground">
-                        IP: {activity.ipAddress} | Device: {activity.deviceInfo}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleReviewComplete(activity.id)}
-                      >
-                        Review
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleFlagUser(activity.userId, activity.userName)}
-                      >
-                        Flag
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

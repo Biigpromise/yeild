@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { userService } from "@/services/userService";
 import { fraudDetectionService } from "@/services/fraudDetectionService";
+import { useSignupFraudDetection } from "@/hooks/useSignupFraudDetection";
 
 export const useSignUp = () => {
   const navigate = useNavigate();
@@ -28,6 +29,9 @@ export const useSignUp = () => {
 
   // Extract referral code from URL
   const [referralCode, setReferralCode] = useState<string>("");
+
+  // Use fraud detection hook
+  useSignupFraudDetection();
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -77,7 +81,8 @@ export const useSignUp = () => {
           await userService.handleReferralSignup(referralCode);
         }
         
-        // Store fraud detection data
+        // Store fraud detection data - this will now be handled by useSignupFraudDetection hook
+        // but we'll also store it immediately for better coverage
         const currentUser = await supabase.auth.getUser();
         if (currentUser.data.user) {
           await fraudDetectionService.storeSignupData(currentUser.data.user.id);

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { AdminOverview } from "@/components/admin/AdminOverview";
 import { EnhancedUserManagementSystem } from "@/components/admin/enhanced/EnhancedUserManagementSystem";
@@ -15,6 +16,7 @@ import { AdminSecurity } from "@/components/admin/AdminSecurity";
 import { AdminCommunication } from "@/components/admin/AdminCommunication";
 import { AdminContentManagement } from "@/components/admin/AdminContentManagement";
 import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell";
+import { AntiFraudTracking } from "@/components/admin/AntiFraudTracking";
 import {
   LayoutDashboard,
   Users,
@@ -33,7 +35,8 @@ import {
   Megaphone,
   Shield,
   MessageSquare,
-  Database
+  Database,
+  AlertTriangle
 } from "lucide-react";
 
 const Admin = () => {
@@ -60,7 +63,7 @@ const Admin = () => {
     }
   }, [activeSection]);
 
-  // Map of sections to their component - Updated to use enhanced task management
+  // Map of sections to their component - Updated to include fraud detection
   const sectionComponents = {
     dashboard: <AdminOverview />,
     users: <EnhancedUserManagementSystem />,
@@ -75,10 +78,11 @@ const Admin = () => {
     settings: <AdminSettings />,
     security: <AdminSecurity />,
     communication: <AdminCommunication />,
-    content: <AdminContentManagement />
+    content: <AdminContentManagement />,
+    fraud: <AntiFraudTracking />
   };
 
-  // Enhanced navigation items with all new sections
+  // Enhanced navigation items with fraud detection
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "users", label: "Users", icon: Users },
@@ -87,6 +91,7 @@ const Admin = () => {
     { id: "referrals", label: "Referral Levels", icon: Award },
     { id: "streaks", label: "Streaks", icon: Medal },
     { id: "brands", label: "Brands", icon: Flag },
+    { id: "fraud", label: "Fraud Detection", icon: AlertTriangle },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "communication", label: "Communication", icon: MessageSquare },
     { id: "content", label: "Content", icon: Database },
