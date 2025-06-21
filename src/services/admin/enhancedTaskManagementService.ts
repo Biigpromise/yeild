@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -274,6 +275,21 @@ export const enhancedTaskManagementService = {
     try {
       console.log('Performing bulk operation:', operation);
       
+      // Handle delete operation separately
+      if (operation.operation === 'delete') {
+        const { error: deleteError } = await supabase
+          .from('tasks')
+          .delete()
+          .in('id', operation.taskIds);
+        
+        if (deleteError) {
+          console.error('Error in bulk delete:', deleteError);
+          return false;
+        }
+        return true;
+      }
+
+      // Handle other operations
       let updateData: any = {};
       
       switch (operation.operation) {
@@ -289,29 +305,16 @@ export const enhancedTaskManagementService = {
         case 'update_category':
           updateData = { category_id: operation.data.category_id };
           break;
-        case 'delete':
-          const { error: deleteError } = await supabase
-            .from('tasks')
-            .delete()
-            .in('id', operation.taskIds);
-          
-          if (deleteError) {
-            console.error('Error in bulk delete:', deleteError);
-            return false;
-          }
-          return true;
       }
 
-      if (operation.operation !== 'delete') {
-        const { error } = await supabase
-          .from('tasks')
-          .update(updateData)
-          .in('id', operation.taskIds);
+      const { error } = await supabase
+        .from('tasks')
+        .update(updateData)
+        .in('id', operation.taskIds);
 
-        if (error) {
-          console.error('Error in bulk update:', error);
-          return false;
-        }
+      if (error) {
+        console.error('Error in bulk update:', error);
+        return false;
       }
 
       console.log('Bulk operation completed successfully');
