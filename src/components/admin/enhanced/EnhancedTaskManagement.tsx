@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,10 +38,9 @@ export const EnhancedTaskManagement = () => {
       setLoading(true);
       console.log('Loading enhanced task management data...');
       
-      // Load tasks directly from Supabase - including ALL tasks regardless of status
       const { supabase } = await import("@/integrations/supabase/client");
       
-      // First get tasks
+      // Get ALL tasks regardless of status to properly show them in admin
       const { data: tasksData, error: tasksError } = await supabase
         .from('tasks')
         .select('*')
@@ -49,10 +49,20 @@ export const EnhancedTaskManagement = () => {
       if (tasksError) {
         console.error('Error loading tasks:', tasksError);
         toast.error('Failed to load tasks');
-        return;
+        setTasks([]);
+      } else {
+        console.log('Raw tasks data from database:', tasksData);
+        console.log('Tasks loaded:', tasksData?.length || 0);
+        console.log('Task details:', tasksData?.map(t => ({ 
+          id: t.id, 
+          title: t.title, 
+          status: t.status,
+          created_at: t.created_at 
+        })));
+        setTasks(tasksData || []);
       }
 
-      // Then get submissions
+      // Get submissions
       const { data: submissionsData, error: submissionsError } = await supabase
         .from('task_submissions')
         .select('*')
@@ -61,18 +71,17 @@ export const EnhancedTaskManagement = () => {
       if (submissionsError) {
         console.error('Error loading submissions:', submissionsError);
         toast.error('Failed to load submissions');
-        return;
+        setSubmissions([]);
+      } else {
+        console.log('Loaded submissions:', submissionsData?.length || 0);
+        setSubmissions(submissionsData || []);
       }
-
-      console.log('Loaded tasks:', tasksData?.length || 0);
-      console.log('Tasks loaded:', tasksData?.map(t => ({ id: t.id, title: t.title, status: t.status })));
-      console.log('Loaded submissions:', submissionsData?.length || 0);
       
-      setTasks(tasksData || []);
-      setSubmissions(submissionsData || []);
     } catch (error) {
       console.error("Error loading data:", error);
       toast.error("Failed to load task management data");
+      setTasks([]);
+      setSubmissions([]);
     } finally {
       setLoading(false);
     }
@@ -160,6 +169,14 @@ export const EnhancedTaskManagement = () => {
   const activeTasksCount = tasks.filter(task => task.status === 'active').length;
   const totalSubmissions = submissions.length;
   const approvedSubmissions = submissions.filter(sub => sub.status === 'approved').length;
+
+  console.log('Current task counts:', {
+    totalTasks: tasks.length,
+    activeTasksCount,
+    pendingSubmissions: pendingSubmissions.length,
+    totalSubmissions,
+    approvedSubmissions
+  });
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty?.toLowerCase()) {

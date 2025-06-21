@@ -70,7 +70,8 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
             twitter: "",
             instagram: "",
             linkedin: "",
-            youtube: ""
+            youtube: "",
+            tiktok: ""
           }
         });
       }

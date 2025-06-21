@@ -2,7 +2,7 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin, Youtube, Music } from "lucide-react";
 
 interface TaskSocialMediaLinksProps {
   socialLinks: {
@@ -11,6 +11,7 @@ interface TaskSocialMediaLinksProps {
     instagram: string;
     linkedin: string;
     youtube: string;
+    tiktok: string;
   };
   onSocialLinkChange: (platform: string, value: string) => void;
 }
@@ -65,6 +66,15 @@ export const TaskSocialMediaLinks: React.FC<TaskSocialMediaLinksProps> = ({
             value={socialLinks.youtube}
             onChange={(e) => onSocialLinkChange('youtube', e.target.value)}
             placeholder="YouTube URL"
+            className="pl-10"
+          />
+        </div>
+        <div className="relative">
+          <Music className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={socialLinks.tiktok}
+            onChange={(e) => onSocialLinkChange('tiktok', e.target.value)}
+            placeholder="TikTok URL"
             className="pl-10"
           />
         </div>

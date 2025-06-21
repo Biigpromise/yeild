@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Facebook, Twitter, Instagram, Linkedin, Youtube, ExternalLink } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin, Youtube, ExternalLink, Music } from "lucide-react";
 
 interface TaskSocialMediaDisplayProps {
   socialLinks: Record<string, string> | null;
@@ -19,7 +19,8 @@ export const TaskSocialMediaDisplay: React.FC<TaskSocialMediaDisplayProps> = ({
     { key: 'twitter', icon: Twitter, color: 'bg-blue-400 hover:bg-blue-500', name: 'Twitter' },
     { key: 'instagram', icon: Instagram, color: 'bg-pink-500 hover:bg-pink-600', name: 'Instagram' },
     { key: 'linkedin', icon: Linkedin, color: 'bg-blue-700 hover:bg-blue-800', name: 'LinkedIn' },
-    { key: 'youtube', icon: Youtube, color: 'bg-red-600 hover:bg-red-700', name: 'YouTube' }
+    { key: 'youtube', icon: Youtube, color: 'bg-red-600 hover:bg-red-700', name: 'YouTube' },
+    { key: 'tiktok', icon: Music, color: 'bg-black hover:bg-gray-800', name: 'TikTok' }
   ];
 
   const activePlatforms = platforms.filter(platform => 
