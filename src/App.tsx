@@ -64,7 +64,7 @@ function App() {
                     <Route
                       path="/brand-dashboard"
                       element={
-                        <RoleProtectedRoute allowedRoles={['brand']}>
+                        <RoleProtectedRoute requiredRole="brand">
                           <BrandDashboard />
                         </RoleProtectedRoute>
                       }
@@ -72,7 +72,7 @@ function App() {
                     <Route
                       path="/admin"
                       element={
-                        <RoleProtectedRoute allowedRoles={['admin']}>
+                        <RoleProtectedRoute requiredRole="admin">
                           <Admin />
                         </RoleProtectedRoute>
                       }
