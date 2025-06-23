@@ -12,6 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ProfileBirdBadge } from '@/components/referral/ProfileBirdBadge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PublicProfileModal } from '@/components/PublicProfileModal';
+import { fileUploadService } from '@/services/fileUploadService';
 
 interface Message {
   id: string;
@@ -110,29 +111,6 @@ export const CommunityChatTab = () => {
     setMediaPreview(null);
   };
 
-  const uploadMedia = async (file: File): Promise<string | null> => {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user!.id}-${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('chat-media')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('chat-media')
-        .getPublicUrl(fileName);
-
-      return publicUrl;
-    } catch (error) {
-      console.error('Error uploading media:', error);
-      toast.error('Failed to upload media');
-      return null;
-    }
-  };
-
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -152,8 +130,11 @@ export const CommunityChatTab = () => {
       let mediaUrl: string | null = null;
 
       if (mediaFile) {
-        mediaUrl = await uploadMedia(mediaFile);
-        if (!mediaUrl) return;
+        mediaUrl = await fileUploadService.uploadChatMedia(mediaFile);
+        if (!mediaUrl) {
+          toast.error('Failed to upload media');
+          return;
+        }
       }
 
       const { error } = await supabase
@@ -192,9 +173,9 @@ export const CommunityChatTab = () => {
   }
 
   return (
-    <div className="h-screen bg-black text-white flex flex-col overflow-hidden">
-      {/* Header - more compact */}
-      <div className="flex-none bg-gray-800 border-b border-gray-700 p-3">
+    <div className="h-screen bg-black text-white flex flex-col">
+      {/* Header */}
+      <div className="flex-shrink-0 bg-gray-800 border-b border-gray-700 p-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5" />
@@ -207,8 +188,8 @@ export const CommunityChatTab = () => {
         </div>
       </div>
 
-      {/* Messages Area - properly constrained */}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      {/* Messages Area */}
+      <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">
           <div className="p-3 space-y-3">
             {loading ? (
@@ -224,8 +205,8 @@ export const CommunityChatTab = () => {
             ) : (
               messages.map((message) => (
                 <div key={message.id} className="flex items-start gap-3">
-                  <div className="cursor-pointer" onClick={() => handleUserClick(message.user_id)}>
-                    <Avatar className="h-8 w-8 flex-shrink-0">
+                  <div className="cursor-pointer flex-shrink-0" onClick={() => handleUserClick(message.user_id)}>
+                    <Avatar className="h-8 w-8">
                       <AvatarImage src={message.profiles?.profile_picture_url} />
                       <AvatarFallback className="bg-gray-700 text-white text-sm">
                         {message.profiles?.name?.charAt(0)?.toUpperCase() || 'U'}
@@ -281,8 +262,8 @@ export const CommunityChatTab = () => {
         </ScrollArea>
       </div>
 
-      {/* Input Area - more compact and properly positioned */}
-      <div className="flex-none border-t border-gray-700 p-3 bg-gray-900 pb-20 lg:pb-3">
+      {/* Input Area */}
+      <div className="flex-shrink-0 border-t border-gray-700 p-3 bg-gray-900">
         {mediaPreview && (
           <div className="mb-2 relative inline-block">
             {mediaFile?.type.startsWith('image/') ? (
