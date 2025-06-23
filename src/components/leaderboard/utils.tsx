@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Crown, Medal, Award } from "lucide-react";
 
 export const getRankIcon = (rank: number) => {
