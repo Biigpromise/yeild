@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ProfileStats } from '@/components/profile/ProfileStats';
 import { ProfileBirdDisplay } from '@/components/profile/ProfileBirdDisplay';
+import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
 import { BirdProgression } from '@/components/referral/BirdProgression';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -64,9 +65,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
     <div className="space-y-6">
       {/* Profile Stats and Edit Profile - Now First */}
       <Tabs defaultValue="stats" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="stats">Profile Stats</TabsTrigger>
           <TabsTrigger value="edit">Edit Profile</TabsTrigger>
+          <TabsTrigger value="photo">Profile Photo</TabsTrigger>
         </TabsList>
         
         <TabsContent value="stats">
@@ -95,6 +97,13 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="photo">
+          <ProfilePictureUpload
+            userProfile={userProfile}
+            onProfileUpdate={onProfileUpdate}
+          />
         </TabsContent>
       </Tabs>
 
