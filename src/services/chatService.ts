@@ -17,6 +17,50 @@ export interface Message {
 }
 
 export const chatService = {
+  async ensureUserProfile(userId: string): Promise<void> {
+    try {
+      // Check if profile exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .eq('id', userId)
+        .single();
+
+      if (!existingProfile) {
+        // Get user email from auth
+        const { data: { user } } = await supabase.auth.getUser();
+        const userEmail = user?.email || 'Unknown User';
+        
+        // Create profile with email as name if no profile exists
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            name: userEmail.split('@')[0], // Use part before @ as default name
+            email: userEmail,
+            points: 0,
+            level: 1,
+            tasks_completed: 0
+          });
+
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+        }
+      } else if (!existingProfile.name || existingProfile.name.trim() === '') {
+        // Update existing profile with a name if it's missing
+        const { data: { user } } = await supabase.auth.getUser();
+        const userEmail = user?.email || 'Unknown User';
+        
+        await supabase
+          .from('profiles')
+          .update({ name: userEmail.split('@')[0] })
+          .eq('id', userId);
+      }
+    } catch (error) {
+      console.error('Error ensuring user profile:', error);
+    }
+  },
+
   async getMessages(): Promise<Message[]> {
     console.log('Fetching messages with profiles...');
     
@@ -42,10 +86,25 @@ export const chatService = {
     console.log('Raw messages from database:', data);
     
     // Transform the data to ensure proper typing and handle null profiles
-    const transformedData = data?.map(message => ({
-      ...message,
-      profiles: message.profiles || { name: 'Anonymous User', profile_picture_url: undefined, tasks_completed: 0 }
-    })) || [];
+    const transformedData = data?.map(message => {
+      let profileName = 'Anonymous User';
+      
+      if (message.profiles?.name && message.profiles.name.trim() !== '') {
+        profileName = message.profiles.name;
+      } else {
+        // If no name, try to get it from user ID (fallback)
+        profileName = `User ${message.user_id.substring(0, 8)}`;
+      }
+      
+      return {
+        ...message,
+        profiles: {
+          name: profileName,
+          profile_picture_url: message.profiles?.profile_picture_url,
+          tasks_completed: message.profiles?.tasks_completed || 0
+        }
+      };
+    }) || [];
     
     console.log('Transformed messages:', transformedData);
     return transformedData as Message[];
@@ -54,6 +113,9 @@ export const chatService = {
   async sendMessage(content: string, userId: string, mediaUrl?: string): Promise<boolean> {
     try {
       console.log('Sending message:', { content, userId, mediaUrl });
+      
+      // Ensure user has a profile before sending message
+      await this.ensureUserProfile(userId);
       
       const messageData = {
         content: content || '', 
@@ -178,7 +240,11 @@ export const chatService = {
       // Transform to ensure proper typing
       const transformedData = {
         ...data,
-        profiles: data.profiles || { name: 'Anonymous User', profile_picture_url: undefined, tasks_completed: 0 }
+        profiles: {
+          name: data.profiles?.name || `User ${data.user_id.substring(0, 8)}`,
+          profile_picture_url: data.profiles?.profile_picture_url,
+          tasks_completed: data.profiles?.tasks_completed || 0
+        }
       };
       
       return transformedData as Message;

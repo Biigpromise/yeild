@@ -34,6 +34,8 @@ export const useCommunityChat = () => {
 
   useEffect(() => {
     if (user) {
+      // Ensure user profile exists when they access chat
+      chatService.ensureUserProfile(user.id);
       loadMessages();
       const interval = setInterval(loadMessages, 5000);
       return () => clearInterval(interval);

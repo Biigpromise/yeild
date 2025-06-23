@@ -29,10 +29,10 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   currentUserId,
   onDelete
 }) => {
-  // Fallback to Anonymous User if name is null, undefined, or empty
+  // Ensure we always have a name to display
   const displayName = message.profiles?.name && message.profiles.name.trim() !== '' 
     ? message.profiles.name 
-    : 'Anonymous User';
+    : `User ${message.user_id.substring(0, 8)}`;
   
   console.log('MessageItem rendering:', { 
     messageId: message.id, 
