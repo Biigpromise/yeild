@@ -41,9 +41,9 @@ export const ProfileAvatar = ({
       />
       
       <div className="relative">
-        <Avatar className="h-24 w-24">
+        <Avatar className="h-24 w-24 border-2 border-gray-600">
           <AvatarImage src={user.avatar} alt={user.name} />
-          <AvatarFallback className="text-2xl">
+          <AvatarFallback className="text-2xl bg-gray-700 text-white">
             {user.name.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
@@ -58,7 +58,7 @@ export const ProfileAvatar = ({
         <div className="absolute -bottom-2 -right-2 flex gap-1">
           <Button
             size="sm"
-            className="h-8 w-8 rounded-full"
+            className="h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white"
             onClick={handleAvatarUpload}
             disabled={isUploadingAvatar}
           >

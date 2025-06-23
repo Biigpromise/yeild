@@ -97,18 +97,29 @@ export const CommunityChat = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!newMessage.trim() && !selectedFile) || sending || !user) return;
+    console.log('Send message clicked', { newMessage: newMessage.trim(), selectedFile, user, sending });
+    
+    if ((!newMessage.trim() && !selectedFile) || sending || !user) {
+      console.log('Cannot send message:', { 
+        hasContent: !!newMessage.trim(), 
+        hasFile: !!selectedFile, 
+        sending, 
+        hasUser: !!user 
+      });
+      return;
+    }
 
     try {
       setSending(true);
+      console.log('Starting to send message...');
       
       let mediaUrl: string | undefined;
       if (selectedFile) {
         setUploading(true);
-        toast.loading('Uploading file...');
+        console.log('Uploading file...');
         mediaUrl = await chatService.uploadMedia(selectedFile);
-        toast.dismiss();
         setUploading(false);
+        console.log('File uploaded:', mediaUrl);
         
         if (!mediaUrl) {
           toast.error('Failed to upload file');
@@ -117,12 +128,18 @@ export const CommunityChat = () => {
         }
       }
 
+      console.log('Sending message to service...', { content: newMessage.trim(), userId: user.id, mediaUrl });
       const success = await chatService.sendMessage(newMessage.trim(), user.id, mediaUrl);
+      
       if (success) {
+        console.log('Message sent successfully');
         setNewMessage('');
         removeFile();
         await loadMessages();
         toast.success('Message sent!');
+      } else {
+        console.log('Failed to send message');
+        toast.error('Failed to send message');
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -190,11 +207,11 @@ export const CommunityChat = () => {
 
   if (!user) {
     return (
-      <Card className="h-full flex items-center justify-center">
+      <Card className="h-full flex items-center justify-center bg-gray-900 border-gray-700">
         <CardContent>
           <div className="text-center">
-            <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-muted-foreground">Please log in to access community chat</p>
+            <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50 text-white" />
+            <p className="text-gray-300">Please log in to access community chat</p>
           </div>
         </CardContent>
       </Card>
@@ -203,11 +220,11 @@ export const CommunityChat = () => {
 
   if (loading) {
     return (
-      <Card className="h-full flex items-center justify-center">
+      <Card className="h-full flex items-center justify-center bg-gray-900 border-gray-700">
         <CardContent>
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading community chat...</p>
+            <p className="text-gray-300">Loading community chat...</p>
           </div>
         </CardContent>
       </Card>
@@ -215,12 +232,12 @@ export const CommunityChat = () => {
   }
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="border-b">
-        <CardTitle className="flex items-center gap-2">
+    <Card className="h-full flex flex-col bg-gray-900 border-gray-700">
+      <CardHeader className="border-b border-gray-700">
+        <CardTitle className="flex items-center gap-2 text-white">
           <MessageCircle className="h-5 w-5" />
           Community Chat
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1 text-sm text-gray-400">
             <Users className="h-4 w-4" />
             <span>{new Set(messages.map(m => m.user_id)).size} active</span>
           </div>
@@ -231,7 +248,7 @@ export const CommunityChat = () => {
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
             {messages.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-8 text-gray-400">
                 <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>No messages yet. Start the conversation!</p>
               </div>
@@ -257,10 +274,10 @@ export const CommunityChat = () => {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-sm">
+                        <span className="font-medium text-sm text-white">
                           {displayName}
                         </span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-gray-400">
                           {formatMessageTime(message.created_at)}
                         </span>
                         {user && user.id === message.user_id && (
@@ -274,9 +291,9 @@ export const CommunityChat = () => {
                           </Button>
                         )}
                       </div>
-                      <div className="bg-muted/50 rounded-lg p-3">
+                      <div className="bg-gray-800 rounded-lg p-3">
                         {message.content && (
-                          <p className="text-sm break-words mb-2">{message.content}</p>
+                          <p className="text-sm break-words mb-2 text-white">{message.content}</p>
                         )}
                         {message.media_url && (
                           <div className="mt-2">
@@ -308,7 +325,7 @@ export const CommunityChat = () => {
           </div>
         </ScrollArea>
 
-        <div className="border-t p-4">
+        <div className="border-t border-gray-700 p-4">
           {filePreview && (
             <div className="mb-3 relative inline-block">
               {selectedFile?.type.startsWith('image/') ? (
@@ -344,7 +361,7 @@ export const CommunityChat = () => {
                 placeholder="Type your message..."
                 disabled={sending || uploading}
                 maxLength={500}
-                className="flex-1"
+                className="flex-1 bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
               />
               <input
                 ref={fileInputRef}
@@ -359,7 +376,7 @@ export const CommunityChat = () => {
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={sending || uploading}
-                className="px-3"
+                className="px-3 border-gray-600 text-white hover:bg-gray-700"
               >
                 <Image className="h-4 w-4" />
               </Button>
@@ -368,6 +385,7 @@ export const CommunityChat = () => {
               type="submit" 
               disabled={(!newMessage.trim() && !selectedFile) || sending || uploading}
               size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               {sending || uploading ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
@@ -376,7 +394,7 @@ export const CommunityChat = () => {
               )}
             </Button>
           </form>
-          <div className="text-xs text-muted-foreground mt-2">
+          <div className="text-xs text-gray-400 mt-2">
             {newMessage.length}/500 characters
           </div>
         </div>

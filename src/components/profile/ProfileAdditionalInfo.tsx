@@ -1,12 +1,14 @@
 
 import React from "react";
-import { Calendar, Flame, Target, Trophy } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface ProfileAdditionalInfoProps {
   user: {
     joinDate: string;
     longestStreak: number;
     totalPointsEarned?: number;
+    averageTaskRating?: number;
+    favoriteCategory?: string;
     completionRate?: number;
   };
   formatDate: (dateString: string) => string;
@@ -14,45 +16,49 @@ interface ProfileAdditionalInfoProps {
 
 export const ProfileAdditionalInfo = ({ user, formatDate }: ProfileAdditionalInfoProps) => {
   return (
-    <div>
-      <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="text-sm font-medium">Member Since</p>
-              <p className="text-sm text-muted-foreground">{formatDate(user.joinDate)}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Flame className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="text-sm font-medium">Longest Streak</p>
-              <p className="text-sm text-muted-foreground">{user.longestStreak} days</p>
-            </div>
-          </div>
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold text-white">Additional Information</h3>
+      
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+        <div>
+          <span className="text-gray-400">Member since:</span>
+          <p className="font-medium text-white">{formatDate(user.joinDate)}</p>
         </div>
-        <div className="space-y-3">
-          {user.totalPointsEarned && (
-            <div className="flex items-center gap-3">
-              <Target className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Total Points Earned</p>
-                <p className="text-sm text-muted-foreground">{user.totalPointsEarned.toLocaleString()}</p>
-              </div>
-            </div>
-          )}
-          {user.completionRate && (
-            <div className="flex items-center gap-3">
-              <Trophy className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Success Rate</p>
-                <p className="text-sm text-muted-foreground">{user.completionRate}%</p>
-              </div>
-            </div>
-          )}
+        
+        <div>
+          <span className="text-gray-400">Longest streak:</span>
+          <p className="font-medium text-white">{user.longestStreak} days</p>
         </div>
+        
+        {user.totalPointsEarned && (
+          <div>
+            <span className="text-gray-400">Total earned:</span>
+            <p className="font-medium text-white">{user.totalPointsEarned.toLocaleString()} points</p>
+          </div>
+        )}
+        
+        {user.averageTaskRating && (
+          <div>
+            <span className="text-gray-400">Avg. rating:</span>
+            <p className="font-medium text-white">{user.averageTaskRating}/5.0</p>
+          </div>
+        )}
+        
+        {user.favoriteCategory && (
+          <div>
+            <span className="text-gray-400">Favorite category:</span>
+            <Badge variant="secondary" className="mt-1 bg-gray-700 text-white">
+              {user.favoriteCategory}
+            </Badge>
+          </div>
+        )}
+        
+        {user.completionRate && (
+          <div>
+            <span className="text-gray-400">Completion rate:</span>
+            <p className="font-medium text-white">{user.completionRate}%</p>
+          </div>
+        )}
       </div>
     </div>
   );

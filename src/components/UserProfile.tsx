@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -137,7 +138,7 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
       />
 
       {/* Profile Header */}
-      <Card>
+      <Card className="bg-gray-900 border-gray-700">
         <ProfileHeader
           isEditing={isEditing}
           onEditClick={() => setIsEditing(true)}
@@ -166,11 +167,11 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
             />
           </div>
 
-          <Separator />
+          <Separator className="bg-gray-700" />
 
           <ProfileStats user={user} />
 
-          <Separator />
+          <Separator className="bg-gray-700" />
 
           <ProfileAdditionalInfo user={user} formatDate={formatDate} />
         </CardContent>
