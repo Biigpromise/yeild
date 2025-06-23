@@ -63,22 +63,45 @@ export const PostItem: React.FC<PostItemProps> = ({
     if (!userId) return;
 
     try {
-      // Remove existing reaction if same type, or update if different
+      // Use raw SQL queries to interact with the post_reactions table
+      // since it's not yet in the TypeScript types
+      
       if (userReaction === reactionType) {
-        await supabase
-          .from('post_reactions')
-          .delete()
-          .eq('post_id', post.id)
-          .eq('user_id', userId);
+        // Remove existing reaction
+        const { error } = await supabase.rpc('delete_post_reaction', {
+          p_post_id: post.id,
+          p_user_id: userId
+        });
+        
+        if (error) {
+          // Fallback to direct table access
+          await supabase
+            .from('post_reactions' as any)
+            .delete()
+            .eq('post_id', post.id)
+            .eq('user_id', userId);
+        }
+        
         setUserReaction(null);
       } else {
-        await supabase
-          .from('post_reactions')
-          .upsert({
-            post_id: post.id,
-            user_id: userId,
-            reaction_type: reactionType
-          });
+        // Add or update reaction
+        const { error } = await supabase.rpc('upsert_post_reaction', {
+          p_post_id: post.id,
+          p_user_id: userId,
+          p_reaction_type: reactionType
+        });
+        
+        if (error) {
+          // Fallback to direct table access
+          await supabase
+            .from('post_reactions' as any)
+            .upsert({
+              post_id: post.id,
+              user_id: userId,
+              reaction_type: reactionType
+            });
+        }
+        
         setUserReaction(reactionType);
       }
       
@@ -92,20 +115,24 @@ export const PostItem: React.FC<PostItemProps> = ({
 
   const loadReactions = async () => {
     try {
+      // Use raw query since post_reactions is not in types yet
       const { data, error } = await supabase
-        .from('post_reactions')
+        .from('post_reactions' as any)
         .select('reaction_type, user_id')
         .eq('post_id', post.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading reactions:', error);
+        return;
+      }
 
-      const likes = data?.filter(r => r.reaction_type === 'like').length || 0;
-      const dislikes = data?.filter(r => r.reaction_type === 'dislike').length || 0;
+      const likes = data?.filter((r: any) => r.reaction_type === 'like').length || 0;
+      const dislikes = data?.filter((r: any) => r.reaction_type === 'dislike').length || 0;
       
       setReactions({ likes, dislikes });
       
       if (userId) {
-        const userReactionData = data?.find(r => r.user_id === userId);
+        const userReactionData = data?.find((r: any) => r.user_id === userId);
         setUserReaction(userReactionData?.reaction_type || null);
       }
     } catch (error) {
