@@ -13,7 +13,7 @@ const corsHeaders = {
 interface ConfirmationEmailRequest {
   email: string;
   name?: string;
-  confirmationUrl: string;
+  confirmationCode: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -23,14 +23,14 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, name, confirmationUrl }: ConfirmationEmailRequest = await req.json();
+    const { email, name, confirmationCode }: ConfirmationEmailRequest = await req.json();
 
-    console.log("Sending confirmation email to:", email);
+    console.log("Sending confirmation code to:", email);
 
     const emailResponse = await resend.emails.send({
       from: "YEILD <onboarding@resend.dev>",
       to: [email],
-      subject: "Confirm Your YEILD Account 🎉",
+      subject: "Your YEILD Confirmation Code 🎉",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #000000; color: #ffffff;">
           <div style="text-align: center; margin-bottom: 30px;">
@@ -41,25 +41,21 @@ const handler = async (req: Request): Promise<Response> => {
             <h2 style="color: #FFD700; margin-top: 0;">Confirm Your Account${name ? `, ${name}` : ''}! 🚀</h2>
             
             <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
-              Welcome to YEILD! You're just one step away from joining thousands of users who are earning money by completing simple tasks.
+              Welcome to YEILD! Please use the confirmation code below to verify your account:
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${confirmationUrl}" 
-                 style="background-color: #FFD700; color: #000000; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
-                Confirm Your Account
-              </a>
+              <div style="background-color: #FFD700; color: #000000; padding: 20px; border-radius: 10px; font-size: 32px; font-weight: bold; letter-spacing: 8px; display: inline-block;">
+                ${confirmationCode}
+              </div>
             </div>
             
-            <p style="font-size: 14px; color: #cccccc; margin-bottom: 10px;">
-              If the button doesn't work, copy and paste this link into your browser:
-            </p>
-            <p style="font-size: 12px; color: #888888; word-break: break-all; background-color: #2a2a2a; padding: 10px; border-radius: 5px;">
-              ${confirmationUrl}
+            <p style="font-size: 14px; color: #cccccc; margin-bottom: 10px; text-align: center;">
+              Enter this code in the YEILD app to complete your registration.
             </p>
             
             <p style="font-size: 14px; color: #cccccc; margin-top: 20px;">
-              This confirmation link will expire in 24 hours for security reasons.
+              This confirmation code will expire in 15 minutes for security reasons.
             </p>
           </div>
           

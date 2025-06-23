@@ -11,7 +11,7 @@ import { useSignupFraudDetection } from "@/hooks/useSignupFraudDetection";
 export const useSignUp = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signUp } = useAuth();
+  const { signUp, verifyConfirmationCode } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   // Form values
@@ -23,6 +23,8 @@ export const useSignUp = () => {
 
   // Confirmation step UI
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  const [confirmationCode, setConfirmationCode] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // For tracking any error encountered during sign up so we can display below the form
   const [signUpError, setSignUpError] = useState<string | null>(null);
@@ -89,13 +91,38 @@ export const useSignUp = () => {
         }
         
         setAwaitingConfirmation(true);
-        toast.success("Account created! Please check your email to confirm your account.");
+        toast.success("Account created! Please check your email for a confirmation code.");
       }
     } catch (error) {
       setSignUpError("An unexpected error occurred");
       toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCodeVerification = async () => {
+    if (!confirmationCode || confirmationCode.length !== 6) {
+      toast.error("Please enter a valid 6-digit code");
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      const result = await verifyConfirmationCode(confirmationCode);
+      
+      if (result.success) {
+        toast.success("Account confirmed! Redirecting to dashboard...");
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
+      } else {
+        toast.error(result.error || "Invalid confirmation code");
+      }
+    } catch (error) {
+      toast.error("Verification failed. Please try again.");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -119,7 +146,7 @@ export const useSignUp = () => {
         return;
       }
       setResendDone(true);
-      toast.success("Confirmation email resent! Check your inbox or spam folder.");
+      toast.success("Confirmation code resent! Check your inbox or spam folder.");
     } catch (err) {
       toast.error("Unexpected error during resend.");
     } finally {
@@ -146,6 +173,10 @@ export const useSignUp = () => {
     resending,
     resendDone,
     setAwaitingConfirmation,
-    referralCode
+    referralCode,
+    confirmationCode,
+    setConfirmationCode,
+    handleCodeVerification,
+    isVerifying
   };
 };

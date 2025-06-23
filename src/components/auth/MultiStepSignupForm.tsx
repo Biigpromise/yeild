@@ -8,6 +8,7 @@ import { Eye, EyeOff, MailCheck, ArrowLeft } from "lucide-react";
 import { useSignUp } from '@/hooks/useSignUp';
 import PasswordStrengthMeter from "@/components/ui/PasswordStrengthMeter";
 import { Link } from "react-router-dom";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const MultiStepSignupForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -25,6 +26,10 @@ const MultiStepSignupForm = () => {
     resending,
     resendDone,
     setAwaitingConfirmation,
+    confirmationCode,
+    setConfirmationCode,
+    handleCodeVerification,
+    isVerifying
   } = useSignUp();
 
   const [firstName, setFirstName] = useState("");
@@ -43,18 +48,36 @@ const MultiStepSignupForm = () => {
       <div className="text-center flex flex-col items-center p-6">
         <MailCheck className="mx-auto h-12 w-12 text-yeild-yellow mb-4" />
         <h2 className="text-2xl font-bold mb-3">Enter the confirmation code</h2>
-        <p className="text-gray-300 mb-3">
-          To confirm your account, enter the five-digit code that we sent to {email}.
+        <p className="text-gray-300 mb-6">
+          To confirm your account, enter the six-digit code that we sent to {email}.
         </p>
+        
         <div className="w-full max-w-sm mb-6">
-          <Input
-            placeholder="Confirmation code"
-            className="yeild-input text-center text-lg"
-          />
+          <InputOTP
+            maxLength={6}
+            value={confirmationCode}
+            onChange={(value) => setConfirmationCode(value)}
+            className="w-full"
+          >
+            <InputOTPGroup className="w-full justify-center">
+              <InputOTPSlot index={0} className="yeild-input" />
+              <InputOTPSlot index={1} className="yeild-input" />
+              <InputOTPSlot index={2} className="yeild-input" />
+              <InputOTPSlot index={3} className="yeild-input" />
+              <InputOTPSlot index={4} className="yeild-input" />
+              <InputOTPSlot index={5} className="yeild-input" />
+            </InputOTPGroup>
+          </InputOTP>
         </div>
-        <Button className="w-full mb-4 yeild-btn-primary">
-          Next
+        
+        <Button 
+          className="w-full mb-4 yeild-btn-primary" 
+          onClick={handleCodeVerification}
+          disabled={isVerifying || confirmationCode.length !== 6}
+        >
+          {isVerifying ? "Verifying..." : "Verify Account"}
         </Button>
+        
         <Button
           variant="outline"
           className="w-full mb-4"
@@ -63,6 +86,13 @@ const MultiStepSignupForm = () => {
         >
           {resending ? "Resending..." : "I didn't receive the code"}
         </Button>
+        
+        {resendDone && (
+          <div className="text-green-400 text-sm mb-4">
+            Confirmation code resent! Check your inbox.
+          </div>
+        )}
+        
         <Button
           variant="ghost"
           className="text-gray-400 hover:text-white"

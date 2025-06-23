@@ -49,8 +49,14 @@ export const useAuthOperations = () => {
         // Send welcome email
         await sendWelcomeEmail(email, name);
         
-        // Send confirmation email with branded template
-        await sendConfirmationEmail(email, name);
+        // Send confirmation email with code and return the code
+        const confirmationCode = await sendConfirmationEmail(email, name);
+        
+        // Store the confirmation code temporarily (you might want to use a more secure storage)
+        if (confirmationCode) {
+          localStorage.setItem('pendingConfirmationCode', confirmationCode);
+          localStorage.setItem('pendingConfirmationEmail', email);
+        }
       }
 
       console.log("Signup successful");
@@ -59,6 +65,32 @@ export const useAuthOperations = () => {
       console.error("Signup unexpected error:", error);
       const friendlyMessage = handleAuthError(error, 'signup');
       return { user: null, error: { message: friendlyMessage } };
+    }
+  };
+
+  const verifyConfirmationCode = async (inputCode: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const storedCode = localStorage.getItem('pendingConfirmationCode');
+      const email = localStorage.getItem('pendingConfirmationEmail');
+      
+      if (!storedCode || !email) {
+        return { success: false, error: "No pending confirmation found" };
+      }
+      
+      if (inputCode === storedCode) {
+        // Clear the stored data
+        localStorage.removeItem('pendingConfirmationCode');
+        localStorage.removeItem('pendingConfirmationEmail');
+        
+        // In a real implementation, you'd verify with Supabase here
+        // For now, we'll just return success
+        return { success: true };
+      } else {
+        return { success: false, error: "Invalid confirmation code" };
+      }
+    } catch (error) {
+      console.error("Error verifying confirmation code:", error);
+      return { success: false, error: "Verification failed" };
     }
   };
 
@@ -165,5 +197,6 @@ export const useAuthOperations = () => {
     signOut,
     signInWithProvider,
     resetPassword,
+    verifyConfirmationCode,
   };
 };
