@@ -29,14 +29,17 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   onUserClick,
   onMediaClick
 }) => {
-  // Use the actual name from profiles, with proper fallback
-  const displayName = message.profiles?.name || 'Anonymous User';
+  // Better name handling with multiple fallbacks
+  const displayName = message.profiles?.name && message.profiles.name.trim() !== '' 
+    ? message.profiles.name 
+    : 'User';
   
   console.log('ChatMessage rendering:', { 
     messageId: message.id, 
     profiles: message.profiles, 
     displayName,
-    userId: message.user_id
+    userId: message.user_id,
+    rawName: message.profiles?.name
   });
   
   return (
@@ -48,7 +51,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             alt={displayName}
           />
           <AvatarFallback className="bg-gray-700 text-white text-sm">
-            {displayName.charAt(0)?.toUpperCase() || 'A'}
+            {displayName.charAt(0)?.toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
       </div>

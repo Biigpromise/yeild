@@ -15,11 +15,14 @@ export const PostReactions: React.FC<PostReactionsProps> = ({ postId, userId }) 
   const [userReaction, setUserReaction] = useState<'like' | 'dislike' | null>(null);
 
   const handleReaction = async (reactionType: 'like' | 'dislike') => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error('Please log in to react');
+      return;
+    }
 
     try {
       if (userReaction === reactionType) {
-        // Remove existing reaction using direct table operation
+        // Remove existing reaction
         const { error } = await supabase
           .from('post_reactions')
           .delete()
@@ -28,8 +31,9 @@ export const PostReactions: React.FC<PostReactionsProps> = ({ postId, userId }) 
         
         if (error) throw error;
         setUserReaction(null);
+        console.log('Reaction removed');
       } else {
-        // Add or update reaction using upsert
+        // Add or update reaction
         const { error } = await supabase
           .from('post_reactions')
           .upsert({
@@ -40,10 +44,11 @@ export const PostReactions: React.FC<PostReactionsProps> = ({ postId, userId }) 
         
         if (error) throw error;
         setUserReaction(reactionType);
+        console.log('Reaction added/updated:', reactionType);
       }
       
       // Refresh reactions count
-      loadReactions();
+      await loadReactions();
     } catch (error) {
       console.error('Error updating reaction:', error);
       toast.error('Failed to update reaction');
@@ -52,6 +57,7 @@ export const PostReactions: React.FC<PostReactionsProps> = ({ postId, userId }) 
 
   const loadReactions = async () => {
     try {
+      console.log('Loading reactions for post:', postId);
       const { data, error } = await supabase
         .from('post_reactions')
         .select('reaction_type, user_id')
@@ -62,6 +68,8 @@ export const PostReactions: React.FC<PostReactionsProps> = ({ postId, userId }) 
         return;
       }
 
+      console.log('Reactions data:', data);
+
       const likes = data?.filter(r => r.reaction_type === 'like').length || 0;
       const dislikes = data?.filter(r => r.reaction_type === 'dislike').length || 0;
       
@@ -71,6 +79,8 @@ export const PostReactions: React.FC<PostReactionsProps> = ({ postId, userId }) 
         const userReactionData = data?.find(r => r.user_id === userId);
         setUserReaction(userReactionData?.reaction_type as 'like' | 'dislike' || null);
       }
+
+      console.log('Reactions loaded:', { likes, dislikes, userReaction: userReactionData?.reaction_type });
     } catch (error) {
       console.error('Error loading reactions:', error);
     }

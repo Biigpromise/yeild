@@ -22,7 +22,9 @@ export const PostActions: React.FC<PostActionsProps> = ({ post, userId, onLike }
     viewCount: post.view_count,
     likesCount: post.likes_count,
     hasLiked,
-    userId
+    userId,
+    likes_from_reactions: post.likes_from_reactions,
+    dislikes_from_reactions: post.dislikes_from_reactions
   });
 
   return (

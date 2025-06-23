@@ -65,12 +65,24 @@ export const CommunityChatTab = () => {
       
       console.log('Raw messages data:', data);
       
-      // Ensure all messages have proper profile data
+      // Ensure all messages have proper profile data with better fallbacks
       const messagesWithProfiles = data?.map(message => {
         console.log('Processing message:', message.id, 'Profile data:', message.profiles);
+        
+        // Ensure we have valid profile data
+        const profileData = message.profiles ? {
+          name: message.profiles.name && message.profiles.name.trim() !== '' 
+            ? message.profiles.name 
+            : 'User',
+          profile_picture_url: message.profiles.profile_picture_url || null
+        } : {
+          name: 'User',
+          profile_picture_url: null
+        };
+
         return {
           ...message,
-          profiles: message.profiles || null
+          profiles: profileData
         };
       }) || [];
       

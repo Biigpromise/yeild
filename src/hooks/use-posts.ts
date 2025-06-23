@@ -164,7 +164,9 @@ export const usePosts = () => {
     if (!userId) return;
     
     try {
-      // Use the updated function that takes user_id parameter to prevent duplicate views
+      console.log('Incrementing view count for post:', postId);
+      
+      // Use the updated function that prevents duplicate views
       const { error } = await supabase.rpc('increment_post_view', {
         post_id_to_inc: postId,
         user_id_param: userId
@@ -172,9 +174,8 @@ export const usePosts = () => {
 
       if (error) {
         console.error('Error incrementing view count:', error);
-        // Don't throw here as this shouldn't block the UI
       } else {
-        console.log('View count incremented for post:', postId);
+        console.log('View count incremented successfully for post:', postId);
         // Refresh posts to show updated view count
         await fetchPosts();
       }
