@@ -129,7 +129,7 @@ export const CommunityChatTab = () => {
       let mediaUrl: string | null = null;
 
       if (mediaFile) {
-        mediaUrl = await fileUploadService.uploadStory(mediaFile);
+        mediaUrl = await fileUploadService.uploadStoryMedia(mediaFile);
         if (!mediaUrl) {
           toast.error('Failed to upload media');
           return;
