@@ -64,21 +64,24 @@ export const PostItem: React.FC<PostItemProps> = ({
 
     try {
       if (userReaction === reactionType) {
-        // Remove existing reaction using the RPC function
-        const { error } = await supabase.rpc('delete_post_reaction', {
-          p_post_id: post.id,
-          p_user_id: userId
-        });
+        // Remove existing reaction using direct table operation
+        const { error } = await supabase
+          .from('post_reactions')
+          .delete()
+          .eq('post_id', post.id)
+          .eq('user_id', userId);
         
         if (error) throw error;
         setUserReaction(null);
       } else {
-        // Add or update reaction using the RPC function
-        const { error } = await supabase.rpc('upsert_post_reaction', {
-          p_post_id: post.id,
-          p_user_id: userId,
-          p_reaction_type: reactionType
-        });
+        // Add or update reaction using upsert
+        const { error } = await supabase
+          .from('post_reactions')
+          .upsert({
+            post_id: post.id,
+            user_id: userId,
+            reaction_type: reactionType
+          });
         
         if (error) throw error;
         setUserReaction(reactionType);
