@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ReferralBirdLevel {
@@ -44,6 +43,7 @@ export interface UserReferral {
   is_active: boolean;
   created_at: string;
   activated_at?: string;
+  referred_user?: UserProfile;
 }
 
 export interface ReferralStats {
@@ -51,6 +51,10 @@ export interface ReferralStats {
   activeReferrals: number;
   pointsEarned: number;
   conversionRate: number;
+  total_referrals: number;
+  active_referrals: number;
+  bird_level?: ReferralBirdLevel;
+  next_bird_level?: ReferralBirdLevel;
 }
 
 export interface Story {
@@ -63,6 +67,7 @@ export interface Story {
   expires_at: string;
   view_count: number;
   profiles?: UserProfile;
+  user?: UserProfile;
 }
 
 export const BIRD_LEVELS: ReferralBirdLevel[] = [
@@ -299,9 +304,16 @@ export const userService = {
 
       if (error) throw error;
 
-      // Update followers count
-      await supabase.rpc('increment_followers_count', { user_id: userId });
-      await supabase.rpc('increment_following_count', { user_id: user.id });
+      // Update followers count manually
+      const { error: followerError } = await supabase
+        .from('profiles')
+        .update({ followers_count: supabase.sql`followers_count + 1` })
+        .eq('id', userId);
+
+      const { error: followingError } = await supabase
+        .from('profiles')
+        .update({ following_count: supabase.sql`following_count + 1` })
+        .eq('id', user.id);
 
       return true;
     } catch (error) {
@@ -323,9 +335,16 @@ export const userService = {
 
       if (error) throw error;
 
-      // Update followers count
-      await supabase.rpc('decrement_followers_count', { user_id: userId });
-      await supabase.rpc('decrement_following_count', { user_id: user.id });
+      // Update followers count manually
+      const { error: followerError } = await supabase
+        .from('profiles')
+        .update({ followers_count: supabase.sql`GREATEST(0, followers_count - 1)` })
+        .eq('id', userId);
+
+      const { error: followingError } = await supabase
+        .from('profiles')
+        .update({ following_count: supabase.sql`GREATEST(0, following_count - 1)` })
+        .eq('id', user.id);
 
       return true;
     } catch (error) {
@@ -370,11 +389,26 @@ export const userService = {
       const pointsEarned = data?.reduce((sum, r) => sum + (r.points_awarded || 0), 0) || 0;
       const conversionRate = totalReferrals > 0 ? (activeReferrals / totalReferrals) * 100 : 0;
 
+      // Get user points for bird level calculation
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('points')
+        .eq('id', user.id)
+        .single();
+
+      const userPoints = profileData?.points || 0;
+      const currentBirdLevel = this.getBirdLevel(activeReferrals, userPoints);
+      const nextBirdLevel = this.getNextBirdLevel(currentBirdLevel);
+
       return {
         totalReferrals,
         activeReferrals,
         pointsEarned,
-        conversionRate
+        conversionRate,
+        total_referrals: totalReferrals,
+        active_referrals: activeReferrals,
+        bird_level: currentBirdLevel,
+        next_bird_level: nextBirdLevel
       };
     } catch (error) {
       console.error('Error getting referral stats:', error);
@@ -382,7 +416,9 @@ export const userService = {
         totalReferrals: 0,
         activeReferrals: 0,
         pointsEarned: 0,
-        conversionRate: 0
+        conversionRate: 0,
+        total_referrals: 0,
+        active_referrals: 0
       };
     }
   },
@@ -394,7 +430,10 @@ export const userService = {
 
       const { data, error } = await supabase
         .from('user_referrals')
-        .select('*')
+        .select(`
+          *,
+          referred_user:profiles!user_referrals_referred_id_fkey(*)
+        `)
         .eq('referrer_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -431,12 +470,21 @@ export const userService = {
 
       if (referralError) throw referralError;
 
-      // Award points to referrer
-      await supabase.rpc('add_points', { 
-        user_id: referrer.id, 
-        points: 100,
-        description: 'Referral bonus'
-      });
+      // Award points to referrer manually
+      const { error: pointsError } = await supabase
+        .from('profiles')
+        .update({ points: supabase.sql`points + 100` })
+        .eq('id', referrer.id);
+
+      // Create point transaction record
+      const { error: transactionError } = await supabase
+        .from('point_transactions')
+        .insert({
+          user_id: referrer.id,
+          points: 100,
+          transaction_type: 'referral_bonus',
+          description: 'Referral bonus'
+        });
 
       return true;
     } catch (error) {
@@ -473,7 +521,12 @@ export const userService = {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Map profiles to user for backward compatibility
+      return (data || []).map(story => ({
+        ...story,
+        user: story.profiles
+      }));
     } catch (error) {
       console.error('Error getting stories:', error);
       return [];
@@ -527,8 +580,11 @@ export const userService = {
 
       if (error) throw error;
 
-      // Increment view count
-      await supabase.rpc('increment_story_views', { story_id: storyId });
+      // Increment view count manually
+      const { error: updateError } = await supabase
+        .from('stories')
+        .update({ view_count: supabase.sql`view_count + 1` })
+        .eq('id', storyId);
 
       return true;
     } catch (error) {
@@ -575,8 +631,11 @@ export const userService = {
 
       if (error) throw error;
 
-      // Increment reply count
-      await supabase.rpc('increment_post_replies', { post_id: postId });
+      // Increment reply count manually
+      const { error: updateError } = await supabase
+        .from('posts')
+        .update({ reply_count: supabase.sql`reply_count + 1` })
+        .eq('id', postId);
 
       return true;
     } catch (error) {

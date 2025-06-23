@@ -103,13 +103,13 @@ export const EnhancedReferralSystem = () => {
       <BirdLevelNotification 
         previousLevel={previousStats?.bird_level || null}
         currentLevel={referralStats.bird_level}
-        activeReferrals={referralStats.active_referrals}
+        activeReferrals={referralStats.activeReferrals}
       />
 
       {/* Bird Progression Component */}
       <BirdProgression
         userPoints={userPoints}
-        activeReferrals={referralStats.active_referrals}
+        activeReferrals={referralStats.activeReferrals}
         currentBirdLevel={referralStats.bird_level}
         nextBirdLevel={referralStats.next_bird_level}
       />
@@ -124,7 +124,7 @@ export const EnhancedReferralSystem = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Referrals</p>
-                <p className="text-xl font-bold">{referralStats.total_referrals}</p>
+                <p className="text-xl font-bold">{referralStats.totalReferrals}</p>
               </div>
             </div>
           </CardContent>
@@ -138,7 +138,7 @@ export const EnhancedReferralSystem = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Active Referrals</p>
-                <p className="text-xl font-bold">{referralStats.active_referrals}</p>
+                <p className="text-xl font-bold">{referralStats.activeReferrals}</p>
               </div>
             </div>
           </CardContent>

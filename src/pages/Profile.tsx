@@ -296,7 +296,6 @@ const Profile = () => {
           <TabsContent value="stats">
             <StatsDashboard 
               userStats={{
-                total_points: userData.points,
                 tasks_completed: userData.tasksCompleted,
                 tasksCompleted: userData.tasksCompleted,
                 current_level: userData.level,

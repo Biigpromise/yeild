@@ -80,7 +80,10 @@ export const useSignUp = () => {
       } else {
         // Handle referral code if present
         if (referralCode) {
-          await userService.handleReferralSignup(referralCode);
+          const currentUser = await supabase.auth.getUser();
+          if (currentUser.data.user) {
+            await userService.handleReferralSignup(referralCode, currentUser.data.user.id);
+          }
         }
         
         // Store fraud detection data - this will now be handled by useSignupFraudDetection hook
