@@ -9,7 +9,7 @@ import { fileUploadService } from "@/services/fileUploadService";
 interface PostFormProps {
   newPost: string;
   setNewPost: (value: string) => void;
-  handlePostSubmit: (e: React.FormEvent, mediaUrl?: string) => void;
+  handlePostSubmit: (e: React.FormEvent, mediaUrl?: string) => Promise<void>;
   userId: string | null;
 }
 
@@ -98,30 +98,27 @@ export const PostForm: React.FC<PostFormProps> = ({
       return;
     }
 
-    let mediaUrl: string | undefined;
+    setIsUploading(true);
+    
+    try {
+      let mediaUrl: string | undefined;
 
-    if (mediaFile) {
-      setIsUploading(true);
-      try {
+      if (mediaFile) {
+        console.log('Uploading media file...');
         mediaUrl = await fileUploadService.uploadStoryMedia(mediaFile);
+        console.log('Media uploaded:', mediaUrl);
         if (!mediaUrl) {
           toast.error("Failed to upload media");
-          setIsUploading(false);
           return;
         }
-      } catch (error) {
-        console.error('Error uploading media:', error);
-        toast.error("Failed to upload media");
-        setIsUploading(false);
-        return;
       }
-    }
 
-    try {
-      setIsUploading(true);
+      console.log('Calling handlePostSubmit with mediaUrl:', mediaUrl);
       await handlePostSubmit(e, mediaUrl);
-      // Clear media after successful post
+      
+      // Clear form after successful post
       removeMedia();
+      console.log('Post submitted successfully');
     } catch (error) {
       console.error('Error submitting post:', error);
       toast.error("Failed to create post");

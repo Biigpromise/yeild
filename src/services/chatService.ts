@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { RealtimeChannel } from "@supabase/supabase-js";
@@ -18,11 +17,13 @@ export interface Message {
 
 export const chatService = {
   async getMessages(): Promise<Message[]> {
+    console.log('Fetching messages with profiles...');
+    
     const { data, error } = await supabase
       .from('messages')
       .select(`
         *,
-        profiles(
+        profiles!messages_user_id_fkey(
           name,
           profile_picture_url,
           tasks_completed
@@ -38,11 +39,21 @@ export const chatService = {
     }
     
     console.log('Raw messages from database:', data);
-    return data as Message[];
+    
+    // Transform the data to ensure proper typing and handle null profiles
+    const transformedData = data?.map(message => ({
+      ...message,
+      profiles: message.profiles || { name: null, profile_picture_url: undefined, tasks_completed: 0 }
+    })) || [];
+    
+    console.log('Transformed messages:', transformedData);
+    return transformedData as Message[];
   },
 
   async sendMessage(content: string, userId: string, mediaUrl?: string): Promise<boolean> {
     try {
+      console.log('Sending message:', { content, userId, mediaUrl });
+      
       const { error } = await supabase
         .from('messages')
         .insert({ 
@@ -139,7 +150,7 @@ export const chatService = {
         .from('messages')
         .select(`
           *,
-          profiles(
+          profiles!messages_user_id_fkey(
             name,
             profile_picture_url,
             tasks_completed
@@ -152,7 +163,14 @@ export const chatService = {
         console.error('Error fetching new message with profile:', error);
         return null;
       }
-      return data as Message;
+      
+      // Transform to ensure proper typing
+      const transformedData = {
+        ...data,
+        profiles: data.profiles || { name: null, profile_picture_url: undefined, tasks_completed: 0 }
+      };
+      
+      return transformedData as Message;
     } catch (error) {
       console.error('Error in getMessageWithProfile:', error);
       return null;

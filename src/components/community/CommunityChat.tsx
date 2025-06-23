@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -54,7 +53,7 @@ export const CommunityChat = () => {
   const loadMessages = async () => {
     try {
       const data = await chatService.getMessages();
-      console.log('Loaded messages:', data);
+      console.log('Loaded messages with profiles:', data);
       setMessages(data);
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -239,10 +238,11 @@ export const CommunityChat = () => {
             ) : (
               messages.map((message) => {
                 const displayName = message.profiles?.name || 'Anonymous User';
-                console.log('Message user data:', { 
+                console.log('Rendering message with user data:', { 
                   userId: message.user_id, 
                   profileName: message.profiles?.name,
-                  displayName 
+                  displayName,
+                  hasProfile: !!message.profiles
                 });
                 
                 return (

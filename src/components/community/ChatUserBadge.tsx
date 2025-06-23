@@ -22,6 +22,8 @@ export const ChatUserBadge: React.FC<ChatUserBadgeProps> = ({
 }) => {
   const avatarSize = size === 'sm' ? 'h-6 w-6' : size === 'md' ? 'h-8 w-8' : 'h-10 w-10';
   
+  console.log('ChatUserBadge rendering:', { userId, userName, userAvatar, showBirdBadge });
+  
   return (
     <div className="flex items-center space-x-2">
       <div className="relative">

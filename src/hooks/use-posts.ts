@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Post } from '@/types/post';
@@ -15,6 +14,7 @@ export const usePosts = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
+        console.log('User found:', user.id);
       }
     };
     fetchUser();
@@ -23,6 +23,7 @@ export const usePosts = () => {
   const fetchPosts = async () => {
     setLoading(true);
     try {
+      console.log('Fetching posts...');
       const { data, error } = await supabase
         .from('posts')
         .select(`
@@ -38,12 +39,16 @@ export const usePosts = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching posts:', error);
+        throw error;
+      }
       
-      console.log('Fetched posts:', data);
+      console.log('Fetched posts successfully:', data);
       setPosts(data || []);
     } catch (error) {
       console.error('Error fetching posts:', error);
+      toast.error('Failed to load posts');
     } finally {
       setLoading(false);
     }
@@ -53,42 +58,48 @@ export const usePosts = () => {
     fetchPosts();
   }, []);
 
-  const handlePostSubmit = async (e: React.FormEvent, mediaUrl?: string) => {
+  const handlePostSubmit = async (e: React.FormEvent, mediaUrl?: string): Promise<void> => {
     e.preventDefault();
     console.log('handlePostSubmit called', { newPost: newPost.trim(), mediaUrl, userId });
     
     if (!newPost.trim() && !mediaUrl) {
       toast.error('Please write something or add media');
-      return;
+      throw new Error('No content provided');
     }
     
     if (!userId) {
       toast.error('Please log in to post');
-      return;
+      throw new Error('User not authenticated');
     }
 
     try {
-      const { error } = await supabase
+      console.log('Inserting post into database...');
+      const postData = {
+        content: newPost.trim(),
+        user_id: userId,
+        media_url: mediaUrl || null
+      };
+      
+      console.log('Post data to insert:', postData);
+
+      const { data, error } = await supabase
         .from('posts')
-        .insert([
-          {
-            content: newPost.trim(),
-            user_id: userId,
-            media_url: mediaUrl
-          }
-        ]);
+        .insert([postData])
+        .select();
 
       if (error) {
         console.error('Error creating post:', error);
         throw error;
       }
 
+      console.log('Post created successfully:', data);
       setNewPost('');
       await fetchPosts();
       toast.success('Post created successfully!');
     } catch (error) {
       console.error('Error creating post:', error);
       toast.error('Failed to create post');
+      throw error;
     }
   };
 
