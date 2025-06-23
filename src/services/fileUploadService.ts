@@ -101,11 +101,11 @@ export const fileUploadService = {
   async uploadChatMedia(file: File): Promise<string | null> {
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `chat_${Date.now()}.${fileExt}`;
-      const filePath = `chat/${fileName}`;
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('stories')
+        .from('chat-media')
         .upload(filePath, file);
 
       if (uploadError) {
@@ -114,7 +114,7 @@ export const fileUploadService = {
       }
 
       const { data } = supabase.storage
-        .from('stories')
+        .from('chat-media')
         .getPublicUrl(filePath);
 
       return data.publicUrl;

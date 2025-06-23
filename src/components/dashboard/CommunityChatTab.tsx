@@ -6,12 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Send, Image, Users, MessageCircle, X } from 'lucide-react';
+import { Send, Image, Users, MessageCircle, X, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PublicProfileModal } from '@/components/PublicProfileModal';
 import { fileUploadService } from '@/services/fileUploadService';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface Message {
   id: string;
@@ -35,6 +36,8 @@ export const CommunityChatTab = () => {
   const [sending, setSending] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [mediaModalOpen, setMediaModalOpen] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -83,6 +86,11 @@ export const CommunityChatTab = () => {
       setSelectedUserId(userId);
       setIsProfileModalOpen(true);
     }
+  };
+
+  const handleMediaClick = (mediaUrl: string) => {
+    setSelectedMedia(mediaUrl);
+    setMediaModalOpen(true);
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -245,20 +253,25 @@ export const CommunityChatTab = () => {
                         <p className="text-sm text-gray-200 break-words whitespace-pre-wrap">{message.content}</p>
                       )}
                       {message.media_url && (
-                        <div className="mt-2">
-                          {message.media_url.includes('.mp4') || message.media_url.includes('.webm') ? (
-                            <video
-                              src={message.media_url}
-                              controls
-                              className="max-w-full max-h-40 rounded border object-cover"
-                            />
-                          ) : (
-                            <img
-                              src={message.media_url}
-                              alt="Shared media"
-                              className="max-w-full max-h-40 rounded border object-cover"
-                            />
-                          )}
+                        <div className="mt-2 relative group">
+                          <div className="cursor-pointer" onClick={() => handleMediaClick(message.media_url!)}>
+                            {message.media_url.includes('.mp4') || message.media_url.includes('.webm') ? (
+                              <video
+                                src={message.media_url}
+                                className="max-w-full max-h-40 rounded border object-cover"
+                                preload="metadata"
+                              />
+                            ) : (
+                              <img
+                                src={message.media_url}
+                                alt="Shared media"
+                                className="max-w-full max-h-40 rounded border object-cover hover:opacity-80 transition-opacity"
+                              />
+                            )}
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 rounded">
+                              <Eye className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -353,6 +366,32 @@ export const CommunityChatTab = () => {
           {newMessage.length}/500 • Enter to send, Shift+Enter for new line
         </div>
       </div>
+
+      {/* Media Viewer Modal */}
+      <Dialog open={mediaModalOpen} onOpenChange={setMediaModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] bg-black border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Media Viewer</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center justify-center p-4">
+            {selectedMedia && (
+              selectedMedia.includes('.mp4') || selectedMedia.includes('.webm') ? (
+                <video
+                  src={selectedMedia}
+                  controls
+                  className="max-w-full max-h-[70vh] rounded"
+                />
+              ) : (
+                <img
+                  src={selectedMedia}
+                  alt="Viewed media"
+                  className="max-w-full max-h-[70vh] rounded object-contain"
+                />
+              )
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* User Profile Modal */}
       <PublicProfileModal
