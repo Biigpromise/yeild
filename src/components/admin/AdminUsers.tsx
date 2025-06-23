@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -50,15 +49,12 @@ export const AdminUsers = () => {
     try {
       console.log('Changing role for user:', userId, 'to:', newRole);
       
-      // Use the roleService to assign the new role
-      const success = await roleService.assignRole(userId, newRole);
+      // Use the realAdminUserService to update the role
+      const success = await realAdminUserService.updateUserRole(userId, newRole);
       
       if (success) {
-        toast.success(`User role updated to ${newRole}`);
         // Reload users to reflect the change
         await loadUsers();
-      } else {
-        toast.error('Failed to update user role');
       }
     } catch (error) {
       console.error('Error updating user role:', error);
