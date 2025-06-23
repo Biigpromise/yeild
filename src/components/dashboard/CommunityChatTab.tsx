@@ -1,15 +1,343 @@
 
-import React from 'react';
-import { PostFeed } from "@/components/posts/PostFeed";
-import { PostForm } from "@/components/community/PostForm";
+import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Send, Image, Users, MessageCircle, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { formatDistanceToNow } from 'date-fns';
+
+interface Message {
+  id: string;
+  content: string;
+  user_id: string;
+  created_at: string;
+  media_url?: string;
+  profiles: {
+    name: string;
+    profile_picture_url?: string;
+  };
+}
 
 export const CommunityChatTab = () => {
-  return (
-    <div className="h-[calc(100vh-120px)] bg-background">
-      <div className="max-w-2xl mx-auto p-4">
-        <PostForm />
-        <PostFeed />
+  const { user } = useAuth();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (user) {
+      loadMessages();
+      const interval = setInterval(loadMessages, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const loadMessages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          profiles (
+            name,
+            profile_picture_url
+          )
+        `)
+        .order('created_at', { ascending: true })
+        .limit(50);
+
+      if (error) throw error;
+      setMessages(data || []);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+      toast.error('Please select an image or video file');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      return;
+    }
+
+    setMediaFile(file);
+    setMediaPreview(URL.createObjectURL(file));
+  };
+
+  const removeMedia = () => {
+    if (mediaPreview) {
+      URL.revokeObjectURL(mediaPreview);
+    }
+    setMediaFile(null);
+    setMediaPreview(null);
+  };
+
+  const uploadMedia = async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user!.id}-${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('chat-media')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat-media')
+        .getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading media:', error);
+      toast.error('Failed to upload media');
+      return null;
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user) {
+      toast.error('Please log in to send messages');
+      return;
+    }
+
+    if (!newMessage.trim() && !mediaFile) {
+      toast.error('Please enter a message or select media');
+      return;
+    }
+
+    setSending(true);
+    
+    try {
+      let mediaUrl: string | null = null;
+
+      if (mediaFile) {
+        mediaUrl = await uploadMedia(mediaFile);
+        if (!mediaUrl) return;
+      }
+
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          content: newMessage.trim(),
+          user_id: user.id,
+          media_url: mediaUrl
+        });
+
+      if (error) throw error;
+
+      setNewMessage('');
+      removeMedia();
+      await loadMessages();
+      toast.success('Message sent!');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const activeUsers = new Set(messages.map(m => m.user_id)).size;
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-[600px]">
+        <div className="text-center">
+          <MessageCircle className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+          <p className="text-lg text-muted-foreground">Please log in to access community chat</p>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="h-[calc(100vh-200px)] flex flex-col">
+      <Card className="flex-1 flex flex-col">
+        <CardHeader className="border-b bg-muted/50">
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5" />
+              Community Chat
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Users className="h-4 w-4" />
+              <span>{activeUsers} active</span>
+            </div>
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="flex-1 flex flex-col p-0">
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg mb-2">No messages yet</p>
+                <p>Start the conversation!</p>
+              </div>
+            ) : (
+              messages.map((message) => (
+                <div key={message.id} className="flex items-start gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={message.profiles?.profile_picture_url} />
+                    <AvatarFallback>
+                      {message.profiles?.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-medium text-sm">
+                        {message.profiles?.name || `User ${message.user_id.substring(0, 8)}`}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                      </span>
+                    </div>
+                    <div className="bg-muted rounded-lg p-3">
+                      {message.content && (
+                        <p className="text-sm break-words">{message.content}</p>
+                      )}
+                      {message.media_url && (
+                        <div className="mt-2">
+                          {message.media_url.includes('.mp4') || message.media_url.includes('.webm') ? (
+                            <video
+                              src={message.media_url}
+                              controls
+                              className="max-w-full max-h-48 rounded border"
+                            />
+                          ) : (
+                            <img
+                              src={message.media_url}
+                              alt="Shared media"
+                              className="max-w-full max-h-48 rounded border object-cover"
+                            />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Area */}
+          <div className="border-t p-4">
+            {mediaPreview && (
+              <div className="mb-3 relative inline-block">
+                {mediaFile?.type.startsWith('image/') ? (
+                  <img
+                    src={mediaPreview}
+                    alt="Preview"
+                    className="max-w-32 max-h-32 rounded border"
+                  />
+                ) : (
+                  <video
+                    src={mediaPreview}
+                    className="max-w-32 max-h-32 rounded border"
+                    preload="metadata"
+                  />
+                )}
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                  onClick={removeMedia}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+
+            <form onSubmit={handleSendMessage} className="flex gap-2">
+              <Textarea
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type your message..."
+                disabled={sending}
+                maxLength={500}
+                className="min-h-[60px] resize-none flex-1"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage(e);
+                  }
+                }}
+              />
+              
+              <div className="flex flex-col gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending}
+                >
+                  <Image className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={(!newMessage.trim() && !mediaFile) || sending}
+                  size="sm"
+                >
+                  {sending ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </form>
+            
+            <div className="text-xs text-muted-foreground mt-2">
+              {newMessage.length}/500 characters • Press Enter to send, Shift+Enter for new line
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
