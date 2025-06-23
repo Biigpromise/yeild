@@ -62,21 +62,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Bird Badge Display */}
-      <ProfileBirdDisplay 
-        userId={user.id}
-        activeReferrals={userProfile?.active_referrals_count || 0}
-        totalReferrals={userProfile?.total_referrals_count || 0}
-      />
-
-      {/* Bird Progression */}
-      <BirdProgression
-        userPoints={userStats.points || 0}
-        activeReferrals={userProfile?.active_referrals_count || 0}
-        currentBirdLevel={currentBirdLevel}
-        nextBirdLevel={nextBirdLevel}
-      />
-
+      {/* Profile Stats and Edit Profile - Now First */}
       <Tabs defaultValue="stats" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="stats">Profile Stats</TabsTrigger>
@@ -111,6 +97,21 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Bird Badge Display */}
+      <ProfileBirdDisplay 
+        userId={user.id}
+        activeReferrals={userProfile?.active_referrals_count || 0}
+        totalReferrals={userProfile?.total_referrals_count || 0}
+      />
+
+      {/* Bird Progression - Now Last */}
+      <BirdProgression
+        userPoints={userStats.points || 0}
+        activeReferrals={userProfile?.active_referrals_count || 0}
+        currentBirdLevel={currentBirdLevel}
+        nextBirdLevel={nextBirdLevel}
+      />
     </div>
   );
 };

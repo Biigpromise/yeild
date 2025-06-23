@@ -84,9 +84,9 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full bg-white">
       <CardHeader>
-        <CardTitle className="text-xl font-bold flex items-center gap-2">
+        <CardTitle className="text-xl font-bold flex items-center gap-2 text-black">
           <Crown className="h-5 w-5 text-yellow-600" />
           Bird Progression System
         </CardTitle>
@@ -125,11 +125,11 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
                   />
                 </div>
                 
-                <h4 className="font-semibold text-sm mb-2">{level.name}</h4>
+                <h4 className="font-semibold text-sm mb-2 text-black">{level.name}</h4>
                 
-                <div className="space-y-2 text-xs text-muted-foreground mb-3">
-                  <p className="font-mono">{level.minReferrals}+ referrals</p>
-                  <Badge variant="outline" className="text-xs px-2 py-1">
+                <div className="space-y-2 text-xs text-black mb-3">
+                  <p className="font-mono text-black">{level.minReferrals}+ referrals</p>
+                  <Badge variant="outline" className="text-xs px-2 py-1 text-black border-black">
                     {getBirdBenefits(level.icon)}
                   </Badge>
                 </div>
@@ -138,7 +138,7 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
                 {status === 'locked' && (
                   <div className="space-y-1 mb-3">
                     <Progress value={progress} className="h-1.5" />
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-black">
                       {referralsNeeded} more needed
                     </p>
                   </div>
@@ -149,7 +149,7 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
                   <span className={`text-xs font-medium ${
                     status === 'owned' ? 'text-green-600' :
                     status === 'active' ? 'text-blue-600' :
-                    'text-gray-500'
+                    'text-black'
                   }`}>
                     {getStatusText(status)}
                   </span>
@@ -158,7 +158,7 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
                 {/* Special indicators for animated birds */}
                 {(level.icon === 'eagle' || level.icon === 'falcon' || level.icon === 'phoenix') && status !== 'locked' && (
                   <div className="mt-2 flex justify-center">
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs text-black">
                       {level.icon === 'phoenix' ? '🔥 Animated' : 
                        level.icon === 'falcon' ? '⚡ Enhanced' : 
                        '✨ Special'}
@@ -171,11 +171,11 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
         </div>
         
         <div className="mt-6 flex gap-2 justify-center">
-          <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="flex items-center gap-2 text-black border-black hover:bg-gray-100">
             <Star className="h-4 w-4" />
             View Leaderboard
           </Button>
-          <Button variant="ghost" size="sm" className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" className="flex items-center gap-2 text-black hover:bg-gray-100">
             <Zap className="h-4 w-4" />
             Referral Guide
           </Button>
