@@ -1,68 +1,89 @@
 
 import React from 'react';
-import { TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from "@/components/ui/button";
 import { 
-  Home, 
-  Gift, 
-  Award, 
-  Wallet, 
+  CheckSquare, 
+  Camera, 
+  User, 
+  Users, 
   Trophy, 
-  MessageCircle 
-} from 'lucide-react';
+  BarChart3, 
+  Wallet, 
+  Gift, 
+  History, 
+  MessageCircle, 
+  Search, 
+  HelpCircle 
+} from "lucide-react";
 
 interface MobileTabNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  className?: string;
 }
-
-const tabs = [
-  { value: 'tasks', label: 'Home', icon: Home },
-  { value: 'rewards', label: 'Rewards', icon: Gift },
-  { value: 'achievements', label: 'Awards', icon: Award },
-  { value: 'wallet', label: 'Wallet', icon: Wallet },
-  { value: 'leaderboard', label: 'Ranks', icon: Trophy },
-  { value: 'community-chat', label: 'Chat', icon: MessageCircle },
-];
 
 export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
   activeTab,
-  onTabChange,
-  className
+  onTabChange
 }) => {
-  const isMobile = useIsMobile();
+  const tabs = [
+    { id: "tasks", label: "Tasks", icon: CheckSquare },
+    { id: "stories", label: "Stories", icon: Camera },
+    { id: "profile", label: "Profile", icon: User },
+    { id: "referrals", label: "Referrals", icon: Users },
+    { id: "achievements", label: "Badges", icon: Trophy },
+    { id: "leaderboard", label: "Leaderboard", icon: BarChart3 },
+    { id: "wallet", label: "Wallet", icon: Wallet },
+    { id: "rewards", label: "Rewards", icon: Gift },
+    { id: "history", label: "History", icon: History },
+    { id: "community", label: "Chat", icon: MessageCircle },
+    { id: "search", label: "Search", icon: Search },
+    { id: "support", label: "Support", icon: HelpCircle }
+  ];
 
-  if (!isMobile) return null;
+  const primaryTabs = tabs.slice(0, 4);
+  const secondaryTabs = tabs.slice(4);
 
   return (
-    <div className={cn(
-      "fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 safe-area-bottom",
-      className
-    )}>
-      <TabsList className="w-full h-14 bg-background p-0 grid grid-cols-6 rounded-none border-0">
-        {tabs.map((tab) => (
-          <TabsTrigger
-            key={tab.value}
-            value={tab.value}
-            onClick={() => onTabChange(tab.value)}
-            className={cn(
-              "flex-col h-full gap-0.5 data-[state=active]:bg-transparent rounded-none relative",
-              "transition-colors duration-200 p-1",
-              activeTab === tab.value 
-                ? "text-primary" 
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <tab.icon className="h-4 w-4" />
-            <span className="text-[10px] font-medium leading-tight">{tab.label}</span>
-            {activeTab === tab.value && (
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary rounded-b" />
-            )}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+    <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 z-50">
+      {/* Primary navigation */}
+      <div className="flex justify-around items-center py-2">
+        {primaryTabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <Button
+              key={tab.id}
+              variant={activeTab === tab.id ? "default" : "ghost"}
+              size="sm"
+              onClick={() => onTabChange(tab.id)}
+              className="flex flex-col items-center gap-1 h-auto py-2 px-3"
+            >
+              <Icon className="h-4 w-4" />
+              <span className="text-xs">{tab.label}</span>
+            </Button>
+          );
+        })}
+      </div>
+      
+      {/* Secondary navigation - scrollable */}
+      <div className="overflow-x-auto">
+        <div className="flex gap-2 px-4 py-2 min-w-max">
+          {secondaryTabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <Button
+                key={tab.id}
+                variant={activeTab === tab.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => onTabChange(tab.id)}
+                className="flex items-center gap-2 whitespace-nowrap"
+              >
+                <Icon className="h-3 w-3" />
+                {tab.label}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 };

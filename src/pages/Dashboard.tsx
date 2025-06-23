@@ -1,281 +1,135 @@
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import TaskCategories from "@/components/TaskCategories";
-import TaskFilter from "@/components/TaskFilter";
-import TaskHistory from "@/components/TaskHistory";
-import { Leaderboard } from "@/components/Leaderboard";
-import { ReferralSystem } from "@/components/ReferralSystem";
-import { RewardsStore } from "@/components/rewards/RewardsStore";
-import { AchievementsList } from "@/components/achievements/AchievementsList";
-import { RedemptionHistory } from "@/components/rewards/RedemptionHistory";
-import { WithdrawalForm } from "@/components/wallet/WithdrawalForm";
-import { WithdrawalHistory } from "@/components/wallet/WithdrawalHistory";
-import { WalletOverview } from "@/components/wallet/WalletOverview";
-import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
-import { MobileTabNavigation } from "@/components/ui/mobile-tab-navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
-import { useTouchGestures } from "@/hooks/use-touch-gestures";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
-import { CommunityChatTab } from "@/components/dashboard/CommunityChatTab";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { HistoryTab } from "@/components/dashboard/HistoryTab";
-import { LeaderboardTab } from "@/components/dashboard/LeaderboardTab";
-import { ReferralsTab } from "@/components/dashboard/ReferralsTab";
-import { RewardsTab } from "@/components/dashboard/RewardsTab";
 import { TasksTab } from "@/components/dashboard/TasksTab";
-import { WalletTab } from "@/components/dashboard/WalletTab";
-import { AchievementsTab } from "@/components/dashboard/AchievementsTab";
-import { SupportTab } from "@/components/dashboard/SupportTab";
+import { StoriesTab } from "@/components/dashboard/StoriesTab";
 import { ProfileTab } from "@/components/dashboard/ProfileTab";
+import { ReferralsTab } from "@/components/dashboard/ReferralsTab";
+import { AchievementsTab } from "@/components/dashboard/AchievementsTab";
+import { LeaderboardTab } from "@/components/dashboard/LeaderboardTab";
+import { WalletTab } from "@/components/dashboard/WalletTab";
+import { RewardsTab } from "@/components/dashboard/RewardsTab";
+import { HistoryTab } from "@/components/dashboard/HistoryTab";
+import { CommunityChatTab } from "@/components/dashboard/CommunityChatTab";
 import { UserSearchTab } from "@/components/dashboard/UserSearchTab";
+import { SupportTab } from "@/components/dashboard/SupportTab";
 import { DesktopTabNavigation } from "@/components/dashboard/DesktopTabNavigation";
-import { StoryReel } from "@/components/stories";
+import { MobileTabNavigation } from "@/components/ui/mobile-tab-navigation";
 import { useDashboard } from "@/hooks/useDashboard";
-import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
-import { useOnboarding } from "@/hooks/useOnboarding";
+import { LoadingState } from "@/components/ui/loading-state";
+import { useRole } from "@/hooks/useRole";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const { signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
-  
+  const { role } = useRole();
+  const [activeTab, setActiveTab] = useState("tasks");
   const {
-    user,
     userProfile,
     userStats,
-    userTasks,
-    userSubmissions,
-    withdrawalStats,
     loading,
-    loadUserData,
+    completedTasks,
+    totalPointsEarned,
+    loadUserData
   } = useDashboard();
 
-  const { showOnboarding, userType, completeOnboarding } = useOnboarding();
-
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("tasks");
-
-  // Real notifications from database - will be empty for new users
-  const [notifications, setNotifications] = useState<any[]>([]);
-
-  // Task filter state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedDifficulty, setSelectedDifficulty] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
-
-  // Touch gesture navigation
-  const tabs = ['tasks', 'rewards', 'achievements', 'wallet', 'leaderboard', 'profile', 'user-search', 'community-chat', 'support'];
-  
-  const handleSwipeLeft = () => {
-    const currentIndex = tabs.indexOf(activeTab);
-    if (currentIndex < tabs.length - 1) {
-      setActiveTab(tabs[currentIndex + 1]);
+  useEffect(() => {
+    if (role === 'brand') {
+      navigate('/brand-dashboard');
     }
-  };
+  }, [role, navigate]);
 
-  const handleSwipeRight = () => {
-    const currentIndex = tabs.indexOf(activeTab);
-    if (currentIndex > 0) {
-      setActiveTab(tabs[currentIndex - 1]);
-    }
-  };
-
-  const gestureRef = useTouchGestures({
-    onSwipeLeft: handleSwipeLeft,
-    onSwipeRight: handleSwipeRight,
-    threshold: 50,
-    enabled: isMobile
-  });
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      toast.success("Logged out successfully");
-    } catch (error) {
-      toast.error("Error logging out");
-    }
-  };
-
-  // Calculate task counts from real data
-  const taskCounts = {
-    available: 0, // Will be populated from real data
-    in_progress: userSubmissions.filter(s => s.status === 'pending').length,
-    completed: userTasks.length,
-    total: 0
-  };
-
-  const totalPointsEarned = userTasks.reduce((sum, task) => sum + (task.points_earned || 0), 0);
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const handleCategorySelect = (categoryId: string) => {
-    setSelectedCategory(categoryId);
-  };
-
-  const handleClearFilters = () => {
-    setSearchQuery("");
-    setSelectedCategory("all");
-    setSelectedDifficulty("all");
-    setSelectedStatus("all");
+  const handleProfileUpdate = () => {
+    loadUserData();
   };
 
   if (loading) {
-    return <DashboardSkeleton />;
+    return <LoadingState />;
   }
 
-  // Show onboarding if needed
-  if (showOnboarding) {
-    return (
-      <OnboardingFlow 
-        userType={userType} 
-        onComplete={completeOnboarding}
-      />
-    );
-  }
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "tasks":
+        return <TasksTab />;
+      case "stories":
+        return <StoriesTab />;
+      case "profile":
+        return (
+          <ProfileTab
+            userProfile={userProfile}
+            userStats={userStats}
+            totalPointsEarned={totalPointsEarned}
+            onProfileUpdate={handleProfileUpdate}
+          />
+        );
+      case "referrals":
+        return <ReferralsTab />;
+      case "achievements":
+        return <AchievementsTab userStats={userStats} />;
+      case "leaderboard":
+        return <LeaderboardTab />;
+      case "wallet":
+        return <WalletTab />;
+      case "rewards":
+        return <RewardsTab />;
+      case "history":
+        return (
+          <HistoryTab
+            completedTasks={completedTasks}
+            totalPointsEarned={totalPointsEarned}
+            totalTasksCompleted={userStats.tasksCompleted}
+          />
+        );
+      case "community":
+        return <CommunityChatTab />;
+      case "search":
+        return <UserSearchTab />;
+      case "support":
+        return <SupportTab />;
+      default:
+        return <TasksTab />;
+    }
+  };
 
   return (
-    <div 
-      ref={gestureRef}
-      className={cn(
-        "min-h-screen bg-background",
-        isMobile ? "pb-20" : "pb-4"
-      )}
-    >
-      <div className={cn(
-        "container mx-auto max-w-7xl",
-        activeTab === "community-chat" ? "p-0 h-screen" : "px-1 sm:px-4 py-1 sm:py-4"
-      )}>
-        {/* Only show header for non-community-chat tabs */}
-        {activeTab !== "community-chat" && (
-          <div className="mb-2 sm:mb-4">
-            <DashboardHeader
-              userProfile={userProfile}
-              user={user}
-              unreadCount={unreadCount}
-              isNotificationsOpen={isNotificationsOpen}
-              setIsNotificationsOpen={setIsNotificationsOpen}
-              handleLogout={handleLogout}
-              setActiveTab={setActiveTab}
+    <div className="min-h-screen bg-black text-white">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <DashboardHeader
+          user={userProfile}
+          points={userStats.points}
+          level={userStats.level}
+        />
+
+        <DashboardStats
+          userStats={userStats}
+          userProfile={userProfile}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+          {/* Desktop Navigation */}
+          <div className="hidden lg:block lg:col-span-3">
+            <DesktopTabNavigation
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
             />
           </div>
-        )}
 
-        {/* Show Dashboard Stats for tasks tab only */}
-        {activeTab === "tasks" && (
-          <div className="mb-4">
-            <DashboardStats userStats={userStats} />
+          {/* Main Content */}
+          <div className="lg:col-span-9">
+            {renderTabContent()}
           </div>
-        )}
+        </div>
 
-        {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className={cn(
-          activeTab === "community-chat" ? "h-full" : "space-y-2"
-        )}>
-          {/* Desktop Tab Navigation - hide for community chat */}
-          {!isMobile && activeTab !== "community-chat" && <DesktopTabNavigation />}
-
-          <TabsContent value="tasks" className="space-y-2 sm:space-y-4 mt-2">
-            {/* Hide story reel on mobile for more space */}
-            {!isMobile && <StoryReel />}
-            <TasksTab
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-              selectedDifficulty={selectedDifficulty}
-              onDifficultyChange={setSelectedDifficulty}
-              selectedStatus={selectedStatus}
-              onStatusChange={setSelectedStatus}
-              taskCounts={taskCounts}
-              onClearFilters={handleClearFilters}
-              handleCategorySelect={handleCategorySelect}
-              setActiveTab={setActiveTab}
-              userStats={userStats}
-              userTasks={userTasks}
-            />
-          </TabsContent>
-
-          <TabsContent value="rewards">
-            <RewardsTab userPoints={userStats.points} onRedemption={loadUserData} />
-          </TabsContent>
-
-          <TabsContent value="achievements">
-            <AchievementsTab userStats={userStats} />
-          </TabsContent>
-
-          <TabsContent value="wallet">
-            <WalletTab 
-              loading={loading}
-              userPoints={userStats.points}
-              totalEarned={totalPointsEarned}
-              pendingWithdrawals={withdrawalStats.pendingWithdrawals}
-              completedWithdrawals={withdrawalStats.completedWithdrawals}
-              onWithdrawalSubmitted={loadUserData}
-            />
-          </TabsContent>
-
-          <TabsContent value="leaderboard">
-            <LeaderboardTab />
-          </TabsContent>
-
-          <TabsContent value="referrals">
-            <ReferralsTab />
-          </TabsContent>
-
-          <TabsContent value="profile">
-            <ProfileTab
-              userProfile={userProfile}
-              userStats={userStats}
-              totalPointsEarned={totalPointsEarned}
-              onProfileUpdate={loadUserData}
-            />
-          </TabsContent>
-
-          <TabsContent value="user-search">
-            <UserSearchTab />
-          </TabsContent>
-
-          <TabsContent value="community-chat" className="h-full mt-0">
-            <CommunityChatTab />
-          </TabsContent>
-
-          <TabsContent value="support">
-            <SupportTab />
-          </TabsContent>
-
-          <TabsContent value="history">
-            <HistoryTab
-              completedTasks={userTasks}
-              totalPointsEarned={totalPointsEarned}
-            />
-          </TabsContent>
-
-          {/* Mobile Tab Navigation */}
-          <MobileTabNavigation 
+        {/* Mobile Navigation */}
+        <div className="lg:hidden">
+          <MobileTabNavigation
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />
-        </Tabs>
+        </div>
       </div>
     </div>
   );

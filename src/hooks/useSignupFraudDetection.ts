@@ -1,20 +1,22 @@
 
 import { useEffect } from 'react';
-import { integratedFraudDetectionService } from '@/services/integratedFraudDetectionService';
+import { fraudDetectionService } from '@/services/fraudDetectionService';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useSignupFraudDetection = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    // Initialize fraud detection when a new user is authenticated
-    if (user && user.id) {
-      // Add a small delay to ensure user data is fully loaded
-      const timer = setTimeout(() => {
-        integratedFraudDetectionService.initializeUserFraudDetection(user.id);
-      }, 1000);
+    const storeSignupData = async () => {
+      if (user) {
+        try {
+          await fraudDetectionService.storeSignupData(user.id);
+        } catch (error) {
+          console.error('Error storing signup fraud detection data:', error);
+        }
+      }
+    };
 
-      return () => clearTimeout(timer);
-    }
+    storeSignupData();
   }, [user]);
 };

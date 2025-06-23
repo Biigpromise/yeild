@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ReferralBirdLevel {
@@ -608,7 +607,7 @@ export const userService = {
     }
   },
 
-  async createStory(mediaUrl: string, mediaType: string, caption?: string): Promise<boolean> {
+  async createStory(mediaUrl: string, caption?: string): Promise<boolean> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
@@ -618,7 +617,7 @@ export const userService = {
         .insert({
           user_id: user.id,
           media_url: mediaUrl,
-          media_type: mediaType,
+          media_type: 'image',
           caption: caption || null
         });
 
