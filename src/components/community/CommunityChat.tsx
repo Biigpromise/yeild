@@ -3,9 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Users, MessageCircle, Trash2, Image, Video } from 'lucide-react';
+import { Send, Users, MessageCircle, Trash2, Image } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { chatService } from '@/services/chatService';
 import { toast } from 'sonner';
@@ -55,6 +54,7 @@ export const CommunityChat = () => {
   const loadMessages = async () => {
     try {
       const data = await chatService.getMessages();
+      console.log('Loaded messages:', data);
       setMessages(data);
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -237,63 +237,72 @@ export const CommunityChat = () => {
                 <p>No messages yet. Start the conversation!</p>
               </div>
             ) : (
-              messages.map((message) => (
-                <div key={message.id} className="flex items-start space-x-3 group">
-                  <ChatUserBadge
-                    userId={message.user_id}
-                    userName={message.profiles?.name || 'Anonymous'}
-                    userAvatar={message.profiles?.profile_picture_url}
-                    userTasksCompleted={message.profiles?.tasks_completed || 0}
-                    size="sm"
-                    showBirdBadge={true}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-sm">
-                        {message.profiles?.name || 'Anonymous'}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatMessageTime(message.created_at)}
-                      </span>
-                      {user && user.id === message.user_id && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteMessage(message.id, message.user_id)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                    <div className="bg-muted/50 rounded-lg p-3">
-                      {message.content && (
-                        <p className="text-sm break-words mb-2">{message.content}</p>
-                      )}
-                      {message.media_url && (
-                        <div className="mt-2">
-                          {isImage(message.media_url) && (
-                            <img
-                              src={message.media_url}
-                              alt="Shared media"
-                              className="max-w-full max-h-48 rounded-lg border object-cover"
-                              loading="lazy"
-                            />
-                          )}
-                          {isVideo(message.media_url) && (
-                            <video
-                              src={message.media_url}
-                              controls
-                              className="max-w-full max-h-48 rounded-lg border"
-                              preload="metadata"
-                            />
-                          )}
-                        </div>
-                      )}
+              messages.map((message) => {
+                const displayName = message.profiles?.name || 'Anonymous User';
+                console.log('Message user data:', { 
+                  userId: message.user_id, 
+                  profileName: message.profiles?.name,
+                  displayName 
+                });
+                
+                return (
+                  <div key={message.id} className="flex items-start space-x-3 group">
+                    <ChatUserBadge
+                      userId={message.user_id}
+                      userName={displayName}
+                      userAvatar={message.profiles?.profile_picture_url}
+                      userTasksCompleted={message.profiles?.tasks_completed || 0}
+                      size="sm"
+                      showBirdBadge={true}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm">
+                          {displayName}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatMessageTime(message.created_at)}
+                        </span>
+                        {user && user.id === message.user_id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteMessage(message.id, message.user_id)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="bg-muted/50 rounded-lg p-3">
+                        {message.content && (
+                          <p className="text-sm break-words mb-2">{message.content}</p>
+                        )}
+                        {message.media_url && (
+                          <div className="mt-2">
+                            {isImage(message.media_url) && (
+                              <img
+                                src={message.media_url}
+                                alt="Shared media"
+                                className="max-w-full max-h-48 rounded-lg border object-cover"
+                                loading="lazy"
+                              />
+                            )}
+                            {isVideo(message.media_url) && (
+                              <video
+                                src={message.media_url}
+                                controls
+                                className="max-w-full max-h-48 rounded-lg border"
+                                preload="metadata"
+                              />
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
             <div ref={messagesEndRef} />
           </div>

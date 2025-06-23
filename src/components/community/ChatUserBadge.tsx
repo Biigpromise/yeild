@@ -2,7 +2,6 @@
 import React from 'react';
 import { ProfileBirdBadge } from '@/components/referral/ProfileBirdBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CompactBirdBatch } from '@/components/ui/CompactBirdBatch';
 
 interface ChatUserBadgeProps {
   userId: string;
@@ -36,12 +35,6 @@ export const ChatUserBadge: React.FC<ChatUserBadgeProps> = ({
           <div className="absolute -top-1 -right-1">
             <ProfileBirdBadge userId={userId} size="sm" />
           </div>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="font-medium text-sm">{userName}</span>
-        {showBirdBadge && userId && (
-          <ProfileBirdBadge userId={userId} size="sm" showName={false} />
         )}
       </div>
     </div>

@@ -40,6 +40,7 @@ export const usePosts = () => {
 
       if (error) throw error;
       
+      console.log('Fetched posts:', data);
       setPosts(data || []);
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -54,8 +55,17 @@ export const usePosts = () => {
 
   const handlePostSubmit = async (e: React.FormEvent, mediaUrl?: string) => {
     e.preventDefault();
-    if (!newPost.trim() && !mediaUrl) return;
-    if (!userId) return;
+    console.log('handlePostSubmit called', { newPost: newPost.trim(), mediaUrl, userId });
+    
+    if (!newPost.trim() && !mediaUrl) {
+      toast.error('Please write something or add media');
+      return;
+    }
+    
+    if (!userId) {
+      toast.error('Please log in to post');
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -68,7 +78,10 @@ export const usePosts = () => {
           }
         ]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating post:', error);
+        throw error;
+      }
 
       setNewPost('');
       await fetchPosts();

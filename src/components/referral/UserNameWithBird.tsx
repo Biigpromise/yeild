@@ -17,6 +17,8 @@ export const UserNameWithBird: React.FC<UserNameWithBirdProps> = ({
   className = '',
   size = 'sm'
 }) => {
+  console.log('UserNameWithBird props:', { userId, userName, showBirdBadge, size });
+  
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <span className="font-medium">{userName}</span>

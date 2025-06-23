@@ -36,6 +36,8 @@ export const chatService = {
       toast.error("Could not fetch messages.");
       return [];
     }
+    
+    console.log('Raw messages from database:', data);
     return data as Message[];
   },
 

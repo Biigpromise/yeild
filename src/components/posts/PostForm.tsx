@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Image, Video, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { fileUploadService } from "@/services/fileUploadService";
 
@@ -86,7 +86,17 @@ export const PostForm: React.FC<PostFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPost.trim() && !mediaFile) return;
+    console.log('PostForm handleSubmit called', { newPost: newPost.trim(), mediaFile, userId });
+    
+    if (!userId) {
+      toast.error("Please log in to post");
+      return;
+    }
+
+    if (!newPost.trim() && !mediaFile) {
+      toast.error("Please write something or add media");
+      return;
+    }
 
     let mediaUrl: string | undefined;
 
@@ -100,17 +110,24 @@ export const PostForm: React.FC<PostFormProps> = ({
           return;
         }
       } catch (error) {
+        console.error('Error uploading media:', error);
         toast.error("Failed to upload media");
         setIsUploading(false);
         return;
       }
     }
 
-    await handlePostSubmit(e, mediaUrl);
-    
-    // Clear media after successful post
-    removeMedia();
-    setIsUploading(false);
+    try {
+      setIsUploading(true);
+      await handlePostSubmit(e, mediaUrl);
+      // Clear media after successful post
+      removeMedia();
+    } catch (error) {
+      console.error('Error submitting post:', error);
+      toast.error("Failed to create post");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const openFileDialog = () => {
