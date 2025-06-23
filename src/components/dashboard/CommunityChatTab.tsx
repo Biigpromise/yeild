@@ -9,7 +9,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Send, Image, Users, MessageCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
-import { ProfileBirdBadge } from '@/components/referral/ProfileBirdBadge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PublicProfileModal } from '@/components/PublicProfileModal';
 import { fileUploadService } from '@/services/fileUploadService';
@@ -130,7 +129,7 @@ export const CommunityChatTab = () => {
       let mediaUrl: string | null = null;
 
       if (mediaFile) {
-        mediaUrl = await fileUploadService.uploadChatMedia(mediaFile);
+        mediaUrl = await fileUploadService.uploadStory(mediaFile);
         if (!mediaUrl) {
           toast.error('Failed to upload media');
           return;
@@ -163,7 +162,7 @@ export const CommunityChatTab = () => {
 
   if (!user) {
     return (
-      <div className="h-screen flex items-center justify-center bg-black">
+      <div className="flex items-center justify-center h-full bg-black">
         <div className="text-center">
           <MessageCircle className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
           <p className="text-lg text-muted-foreground">Please log in to access community chat</p>
@@ -173,8 +172,8 @@ export const CommunityChatTab = () => {
   }
 
   return (
-    <div className="h-screen bg-black text-white flex flex-col">
-      {/* Header */}
+    <div className="flex flex-col h-screen bg-black text-white overflow-hidden">
+      {/* Header - Fixed */}
       <div className="flex-shrink-0 bg-gray-800 border-b border-gray-700 p-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -188,9 +187,9 @@ export const CommunityChatTab = () => {
         </div>
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full">
+      {/* Messages Area - Scrollable */}
+      <div className="flex-1 overflow-hidden min-h-0">
+        <div className="h-full overflow-y-auto">
           <div className="p-3 space-y-3">
             {loading ? (
               <div className="flex justify-center py-8">
@@ -214,24 +213,18 @@ export const CommunityChatTab = () => {
                     </Avatar>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <div className="flex items-center gap-2 mb-1">
                       <button 
                         onClick={() => handleUserClick(message.user_id)}
                         className="font-medium text-sm text-white hover:text-blue-400 transition-colors"
                       >
                         {message.profiles?.name || `User ${message.user_id.substring(0, 8)}`}
                       </button>
-                      <ProfileBirdBadge 
-                        userId={message.user_id} 
-                        size="sm" 
-                        showName={false}
-                        className="flex-shrink-0"
-                      />
-                      <span className="text-xs text-gray-400 flex-shrink-0">
+                      <span className="text-xs text-gray-400">
                         {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
                       </span>
                     </div>
-                    <div className="bg-gray-800 rounded-lg p-2.5 break-words">
+                    <div className="bg-gray-800 rounded-lg p-2.5 break-words max-w-full">
                       {message.content && (
                         <p className="text-sm text-gray-200 break-words whitespace-pre-wrap">{message.content}</p>
                       )}
@@ -259,10 +252,10 @@ export const CommunityChatTab = () => {
             )}
             <div ref={messagesEndRef} />
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
-      {/* Input Area */}
+      {/* Input Area - Fixed */}
       <div className="flex-shrink-0 border-t border-gray-700 p-3 bg-gray-900">
         {mediaPreview && (
           <div className="mb-2 relative inline-block">
