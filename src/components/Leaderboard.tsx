@@ -5,8 +5,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Medal, Award, Crown } from "lucide-react";
-import { userService, LeaderboardUser } from "@/services/userService";
+import { supabase } from "@/integrations/supabase/client";
 import { ProfileBirdBadge } from "@/components/referral/ProfileBirdBadge";
+import { toast } from "sonner";
+
+interface LeaderboardUser {
+  id: string;
+  name: string;
+  points: number;
+  level: number;
+  tasks_completed: number;
+  profile_picture_url?: string;
+  rank: number;
+}
 
 export const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
@@ -18,10 +29,32 @@ export const Leaderboard = () => {
 
   const loadLeaderboard = async () => {
     try {
-      const data = await userService.getLeaderboard();
-      setLeaderboard(data);
+      setLoading(true);
+      
+      // Fetch top users by points
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, points, level, tasks_completed, profile_picture_url')
+        .order('points', { ascending: false })
+        .limit(50);
+
+      if (error) {
+        console.error('Error loading leaderboard:', error);
+        toast.error('Failed to load leaderboard');
+        return;
+      }
+
+      // Add rank to each user
+      const rankedData = (data || []).map((user, index) => ({
+        ...user,
+        rank: index + 1,
+        name: user.name || 'Anonymous User'
+      }));
+
+      setLeaderboard(rankedData);
     } catch (error) {
-      console.error('Error loading leaderboard:', error);
+      console.error('Error in loadLeaderboard:', error);
+      toast.error('Failed to load leaderboard');
     } finally {
       setLoading(false);
     }
@@ -95,47 +128,55 @@ export const Leaderboard = () => {
           </TabsList>
           
           <TabsContent value="points" className="space-y-4 mt-4">
-            {leaderboard.map((user, index) => (
-              <div
-                key={user.id}
-                className={`flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
-                  index < 3 ? 'border-primary/20 bg-primary/5' : ''
-                }`}
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center justify-center w-8">
-                    {getRankIcon(user.rank)}
-                  </div>
-                  
-                  <div className="relative">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback>
-                        {user.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="absolute -top-1 -right-1">
-                      <ProfileBirdBadge userId={user.id} size="sm" />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{user.name}</p>
-                      <ProfileBirdBadge userId={user.id} size="sm" />
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Level {user.level} • {user.tasks_completed} tasks completed
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="text-right">
-                  <Badge className={getRankBadgeColor(user.rank)}>
-                    {user.points.toLocaleString()} pts
-                  </Badge>
-                </div>
+            {leaderboard.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No users found on the leaderboard yet.</p>
               </div>
-            ))}
+            ) : (
+              leaderboard.map((user, index) => (
+                <div
+                  key={user.id}
+                  className={`flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
+                    index < 3 ? 'border-primary/20 bg-primary/5' : ''
+                  }`}
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center justify-center w-8">
+                      {getRankIcon(user.rank)}
+                    </div>
+                    
+                    <div className="relative">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={user.profile_picture_url} />
+                        <AvatarFallback>
+                          {user.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -top-1 -right-1">
+                        <ProfileBirdBadge userId={user.id} size="sm" />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{user.name}</p>
+                        <ProfileBirdBadge userId={user.id} size="sm" />
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Level {user.level} • {user.tasks_completed} tasks completed
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="text-right">
+                    <Badge className={getRankBadgeColor(user.rank)}>
+                      {user.points.toLocaleString()} pts
+                    </Badge>
+                  </div>
+                </div>
+              ))
+            )}
           </TabsContent>
 
           <TabsContent value="tasks" className="space-y-4 mt-4">
@@ -155,6 +196,7 @@ export const Leaderboard = () => {
                     
                     <div className="relative">
                       <Avatar className="h-10 w-10">
+                        <AvatarImage src={user.profile_picture_url} />
                         <AvatarFallback>
                           {user.name.charAt(0).toUpperCase()}
                         </AvatarFallback>

@@ -40,34 +40,46 @@ export const chatService = {
   },
 
   async sendMessage(content: string, userId: string, mediaUrl?: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('messages')
-      .insert({ 
-        content: content || '', 
-        user_id: userId,
-        media_url: mediaUrl || null
-      });
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .insert({ 
+          content: content || '', 
+          user_id: userId,
+          media_url: mediaUrl || null
+        });
 
-    if (error) {
-      console.error("Error sending message:", error);
+      if (error) {
+        console.error("Error sending message:", error);
+        toast.error("Failed to send message.");
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Error in sendMessage:", error);
       toast.error("Failed to send message.");
       return false;
     }
-    return true;
   },
 
   async deleteMessage(messageId: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('messages')
-      .delete()
-      .eq('id', messageId);
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId);
 
-    if (error) {
-      console.error("Error deleting message:", error);
+      if (error) {
+        console.error("Error deleting message:", error);
+        toast.error("Failed to delete message.");
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Error in deleteMessage:", error);
       toast.error("Failed to delete message.");
       return false;
     }
-    return true;
   },
 
   async uploadMedia(file: File): Promise<string | null> {
@@ -80,18 +92,22 @@ export const chatService = {
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `chat-media/${fileName}`;
+      const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('stories')
-        .upload(filePath, file);
+        .from('chat-media')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
+        console.error('Upload error:', uploadError);
         throw uploadError;
       }
 
       const { data: { publicUrl } } = supabase.storage
-        .from('stories')
+        .from('chat-media')
         .getPublicUrl(filePath);
 
       return publicUrl;
@@ -116,23 +132,28 @@ export const chatService = {
   },
 
   async getMessageWithProfile(messageId: string): Promise<Message | null> {
-    const { data, error } = await supabase
-      .from('messages')
-      .select(`
-        *,
-        profiles(
-          name,
-          profile_picture_url,
-          tasks_completed
-        )
-      `)
-      .eq('id', messageId)
-      .single();
-    
-    if (error) {
-      console.error('Error fetching new message with profile:', error);
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          profiles(
+            name,
+            profile_picture_url,
+            tasks_completed
+          )
+        `)
+        .eq('id', messageId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching new message with profile:', error);
+        return null;
+      }
+      return data as Message;
+    } catch (error) {
+      console.error('Error in getMessageWithProfile:', error);
       return null;
     }
-    return data as Message;
   }
 };

@@ -32,6 +32,7 @@ export const CommunityChat = () => {
   const [sending, setSending] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,10 +41,12 @@ export const CommunityChat = () => {
   };
 
   useEffect(() => {
-    loadMessages();
-    const interval = setInterval(loadMessages, 5000); // Refresh every 5 seconds
-    return () => clearInterval(interval);
-  }, []);
+    if (user) {
+      loadMessages();
+      const interval = setInterval(loadMessages, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   useEffect(() => {
     scrollToBottom();
@@ -102,7 +105,12 @@ export const CommunityChat = () => {
       
       let mediaUrl: string | undefined;
       if (selectedFile) {
+        setUploading(true);
+        toast.loading('Uploading file...');
         mediaUrl = await chatService.uploadMedia(selectedFile);
+        toast.dismiss();
+        setUploading(false);
+        
         if (!mediaUrl) {
           toast.error('Failed to upload file');
           setSending(false);
@@ -110,15 +118,19 @@ export const CommunityChat = () => {
         }
       }
 
-      await chatService.sendMessage(newMessage.trim(), user.id, mediaUrl);
-      setNewMessage('');
-      removeFile();
-      await loadMessages();
+      const success = await chatService.sendMessage(newMessage.trim(), user.id, mediaUrl);
+      if (success) {
+        setNewMessage('');
+        removeFile();
+        await loadMessages();
+        toast.success('Message sent!');
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
     } finally {
       setSending(false);
+      setUploading(false);
     }
   };
 
@@ -129,9 +141,11 @@ export const CommunityChat = () => {
     }
 
     try {
-      await chatService.deleteMessage(messageId);
-      toast.success('Message deleted');
-      await loadMessages();
+      const success = await chatService.deleteMessage(messageId);
+      if (success) {
+        toast.success('Message deleted');
+        await loadMessages();
+      }
     } catch (error) {
       console.error('Error deleting message:', error);
       toast.error('Failed to delete message');
@@ -174,6 +188,19 @@ export const CommunityChat = () => {
   const isVideo = (url: string) => {
     return url && (url.includes('.mp4') || url.includes('.webm') || url.includes('.mov'));
   };
+
+  if (!user) {
+    return (
+      <Card className="h-full flex items-center justify-center">
+        <CardContent>
+          <div className="text-center">
+            <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-muted-foreground">Please log in to access community chat</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (loading) {
     return (
@@ -306,7 +333,7 @@ export const CommunityChat = () => {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type your message..."
-                disabled={sending}
+                disabled={sending || uploading}
                 maxLength={500}
                 className="flex-1"
               />
@@ -322,7 +349,7 @@ export const CommunityChat = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={sending}
+                disabled={sending || uploading}
                 className="px-3"
               >
                 <Image className="h-4 w-4" />
@@ -330,10 +357,14 @@ export const CommunityChat = () => {
             </div>
             <Button 
               type="submit" 
-              disabled={(!newMessage.trim() && !selectedFile) || sending}
+              disabled={(!newMessage.trim() && !selectedFile) || sending || uploading}
               size="sm"
             >
-              <Send className="h-4 w-4" />
+              {sending || uploading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
           </form>
           <div className="text-xs text-muted-foreground mt-2">
