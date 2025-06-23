@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ReferralBirdLevel {
@@ -209,7 +210,7 @@ export const userService = {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('level, points, tasks_completed')
+        .select('level, points, tasks_completed, total_referrals_count, active_referrals_count')
         .eq('id', user.id)
         .single();
 
@@ -218,10 +219,16 @@ export const userService = {
       // Get current streak
       const { data: streakData } = await supabase
         .from('user_streaks')
-        .select('current_streak')
+        .select('current_streak, longest_streak')
         .eq('user_id', user.id)
         .eq('streak_type', 'daily')
         .single();
+
+      // Get achievements count
+      const { data: achievementsData } = await supabase
+        .from('user_achievements')
+        .select('id')
+        .eq('user_id', user.id);
 
       return {
         level: data?.level || 1,
@@ -229,9 +236,9 @@ export const userService = {
         tasksCompleted: data?.tasks_completed || 0,
         tasks_completed: data?.tasks_completed || 0,
         currentStreak: streakData?.current_streak || 0,
-        longestStreak: streakData?.current_streak || 0,
+        longestStreak: streakData?.longest_streak || 0,
         referrals_made: data?.total_referrals_count || 0,
-        achievements_earned: data?.achievements_earned || 0
+        achievements_earned: achievementsData?.length || 0
       };
     } catch (error) {
       console.error('Error getting user stats:', error);
