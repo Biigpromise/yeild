@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ReferralBirdLevel {
@@ -31,6 +32,7 @@ export interface UserStats {
   level: number;
   points: number;
   tasksCompleted: number;
+  tasks_completed: number;
   currentStreak: number;
 }
 
@@ -223,6 +225,7 @@ export const userService = {
         level: data?.level || 1,
         points: data?.points || 0,
         tasksCompleted: data?.tasks_completed || 0,
+        tasks_completed: data?.tasks_completed || 0,
         currentStreak: streakData?.current_streak || 0
       };
     } catch (error) {
@@ -231,6 +234,7 @@ export const userService = {
         level: 1,
         points: 0,
         tasksCompleted: 0,
+        tasks_completed: 0,
         currentStreak: 0
       };
     }
@@ -304,15 +308,15 @@ export const userService = {
 
       if (error) throw error;
 
-      // Update followers count manually
+      // Update followers count using raw SQL increment
       const { error: followerError } = await supabase
         .from('profiles')
-        .update({ followers_count: supabase.sql`followers_count + 1` })
+        .update({ followers_count: supabase.rpc('increment', { x: 1 }) })
         .eq('id', userId);
 
       const { error: followingError } = await supabase
         .from('profiles')
-        .update({ following_count: supabase.sql`following_count + 1` })
+        .update({ following_count: supabase.rpc('increment', { x: 1 }) })
         .eq('id', user.id);
 
       return true;
@@ -335,16 +339,32 @@ export const userService = {
 
       if (error) throw error;
 
-      // Update followers count manually
-      const { error: followerError } = await supabase
+      // Update followers count using a safer approach
+      const { data: profile } = await supabase
         .from('profiles')
-        .update({ followers_count: supabase.sql`GREATEST(0, followers_count - 1)` })
-        .eq('id', userId);
+        .select('followers_count')
+        .eq('id', userId)
+        .single();
 
-      const { error: followingError } = await supabase
+      if (profile && profile.followers_count > 0) {
+        await supabase
+          .from('profiles')
+          .update({ followers_count: profile.followers_count - 1 })
+          .eq('id', userId);
+      }
+
+      const { data: userProfile } = await supabase
         .from('profiles')
-        .update({ following_count: supabase.sql`GREATEST(0, following_count - 1)` })
-        .eq('id', user.id);
+        .select('following_count')
+        .eq('id', user.id)
+        .single();
+
+      if (userProfile && userProfile.following_count > 0) {
+        await supabase
+          .from('profiles')
+          .update({ following_count: userProfile.following_count - 1 })
+          .eq('id', user.id);
+      }
 
       return true;
     } catch (error) {
@@ -428,17 +448,32 @@ export const userService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data, error } = await supabase
+      // Get referrals first
+      const { data: referrals, error } = await supabase
         .from('user_referrals')
-        .select(`
-          *,
-          referred_user:profiles!user_referrals_referred_id_fkey(*)
-        `)
+        .select('*')
         .eq('referrer_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Then get the referred user profiles separately
+      const referralsWithUsers = await Promise.all(
+        (referrals || []).map(async (referral) => {
+          const { data: userProfile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', referral.referred_id)
+            .single();
+
+          return {
+            ...referral,
+            referred_user: userProfile
+          };
+        })
+      );
+
+      return referralsWithUsers;
     } catch (error) {
       console.error('Error getting user referrals:', error);
       return [];
@@ -470,11 +505,19 @@ export const userService = {
 
       if (referralError) throw referralError;
 
-      // Award points to referrer manually
-      const { error: pointsError } = await supabase
+      // Award points to referrer using a safer approach
+      const { data: profile } = await supabase
         .from('profiles')
-        .update({ points: supabase.sql`points + 100` })
-        .eq('id', referrer.id);
+        .select('points')
+        .eq('id', referrer.id)
+        .single();
+
+      if (profile) {
+        await supabase
+          .from('profiles')
+          .update({ points: profile.points + 100 })
+          .eq('id', referrer.id);
+      }
 
       // Create point transaction record
       const { error: transactionError } = await supabase
@@ -580,11 +623,19 @@ export const userService = {
 
       if (error) throw error;
 
-      // Increment view count manually
-      const { error: updateError } = await supabase
+      // Increment view count safely
+      const { data: story } = await supabase
         .from('stories')
-        .update({ view_count: supabase.sql`view_count + 1` })
-        .eq('id', storyId);
+        .select('view_count')
+        .eq('id', storyId)
+        .single();
+
+      if (story) {
+        await supabase
+          .from('stories')
+          .update({ view_count: story.view_count + 1 })
+          .eq('id', storyId);
+      }
 
       return true;
     } catch (error) {
@@ -631,11 +682,19 @@ export const userService = {
 
       if (error) throw error;
 
-      // Increment reply count manually
-      const { error: updateError } = await supabase
+      // Increment reply count safely
+      const { data: post } = await supabase
         .from('posts')
-        .update({ reply_count: supabase.sql`reply_count + 1` })
-        .eq('id', postId);
+        .select('reply_count')
+        .eq('id', postId)
+        .single();
+
+      if (post) {
+        await supabase
+          .from('posts')
+          .update({ reply_count: post.reply_count + 1 })
+          .eq('id', postId);
+      }
 
       return true;
     } catch (error) {
