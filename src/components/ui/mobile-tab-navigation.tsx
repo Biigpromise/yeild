@@ -32,15 +32,15 @@ export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
 
   const tabs = [
     { id: "tasks", label: "Tasks", icon: CheckSquare },
-    { id: "stories", label: "Stories", icon: Camera },
+    { id: "community", label: "Chat", icon: MessageCircle }, // Moved chat to 2nd position
     { id: "profile", label: "Profile", icon: User },
+    { id: "stories", label: "Stories", icon: Camera }, // Moved stories to 4th position
     { id: "referrals", label: "Referrals", icon: Users },
     { id: "achievements", label: "Badges", icon: Trophy },
     { id: "leaderboard", label: "Leaderboard", icon: BarChart3 },
     { id: "wallet", label: "Wallet", icon: Wallet },
     { id: "rewards", label: "Rewards", icon: Gift },
     { id: "history", label: "History", icon: History },
-    { id: "community", label: "Chat", icon: MessageCircle },
     { id: "search", label: "Search", icon: Search },
     { id: "support", label: "Support", icon: HelpCircle }
   ];
@@ -51,8 +51,8 @@ export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 z-50 safe-area-bottom">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        {/* Primary navigation with dropdown */}
-        <div className="flex justify-around items-center py-2">
+        {/* Primary navigation with dropdown - made more compact */}
+        <div className="flex justify-around items-center py-1">
           {primaryTabs.slice(0, 3).map((tab) => {
             const Icon = tab.icon;
             return (
@@ -61,31 +61,31 @@ export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
                 variant={activeTab === tab.id ? "default" : "ghost"}
                 size="sm"
                 onClick={() => onTabChange(tab.id)}
-                className="flex flex-col items-center gap-1 h-auto py-2 px-3"
+                className="flex flex-col items-center gap-0.5 h-auto py-1.5 px-2 text-xs"
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-3.5 w-3.5" />
                 <span className="text-xs">{tab.label}</span>
               </Button>
             );
           })}
           
-          {/* Dropdown trigger */}
+          {/* Dropdown trigger - more compact */}
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"
               size="sm"
-              className="flex flex-col items-center gap-1 h-auto py-2 px-3"
+              className="flex flex-col items-center gap-0.5 h-auto py-1.5 px-2 text-xs"
             >
-              {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              {isOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
               <span className="text-xs">More</span>
             </Button>
           </CollapsibleTrigger>
         </div>
         
-        {/* Collapsible content */}
+        {/* Collapsible content - more compact */}
         <CollapsibleContent>
           <div className="overflow-x-auto border-t border-gray-700">
-            <div className="flex gap-2 px-4 py-2 min-w-max">
+            <div className="flex gap-1 px-2 py-1 min-w-max">
               {/* Fourth primary tab */}
               {primaryTabs.slice(3).map((tab) => {
                 const Icon = tab.icon;
@@ -95,7 +95,7 @@ export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
                     variant={activeTab === tab.id ? "default" : "outline"}
                     size="sm"
                     onClick={() => onTabChange(tab.id)}
-                    className="flex items-center gap-2 whitespace-nowrap"
+                    className="flex items-center gap-1 whitespace-nowrap text-xs py-1 px-2 h-auto"
                   >
                     <Icon className="h-3 w-3" />
                     {tab.label}
@@ -112,7 +112,7 @@ export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
                     variant={activeTab === tab.id ? "default" : "outline"}
                     size="sm"
                     onClick={() => onTabChange(tab.id)}
-                    className="flex items-center gap-2 whitespace-nowrap"
+                    className="flex items-center gap-1 whitespace-nowrap text-xs py-1 px-2 h-auto"
                   >
                     <Icon className="h-3 w-3" />
                     {tab.label}

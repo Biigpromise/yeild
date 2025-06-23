@@ -154,10 +154,10 @@ const Dashboard = () => {
   if (activeTab === "community") {
     return (
       <div className="h-screen bg-black text-white flex flex-col overflow-hidden">
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-hidden">
           <CommunityChatTab />
         </div>
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation - more compact */}
         <div className="lg:hidden flex-shrink-0">
           <MobileTabNavigation
             activeTab={activeTab}
@@ -186,14 +186,14 @@ const Dashboard = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-9">
-            {/* Add bottom padding on mobile to prevent content from being hidden behind the fixed navigation */}
-            <div className="pb-32 lg:pb-0">
+            {/* Add compact bottom padding on mobile to prevent content from being hidden behind the fixed navigation */}
+            <div className="pb-20 lg:pb-0">
               {renderTabContent()}
             </div>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation - more compact */}
         <div className="lg:hidden">
           <MobileTabNavigation
             activeTab={activeTab}
