@@ -15,6 +15,7 @@ interface Message {
     name: string;
     profile_picture_url?: string;
     tasks_completed?: number;
+    points?: number;
   };
 }
 
@@ -29,15 +30,16 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   currentUserId,
   onDelete
 }) => {
-  // Ensure we always have a name to display
-  const displayName = message.profiles?.name && message.profiles.name.trim() !== '' 
+  // Prioritize the actual name from profiles, fallback to email-based name or user ID
+  const displayName = message.profiles?.name && message.profiles.name.trim() !== '' && message.profiles.name !== 'Anonymous User'
     ? message.profiles.name 
     : `User ${message.user_id.substring(0, 8)}`;
   
   console.log('MessageItem rendering:', { 
     messageId: message.id, 
     profilesData: message.profiles, 
-    displayName 
+    displayName,
+    originalName: message.profiles?.name
   });
   
   return (
@@ -47,6 +49,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
         userName={displayName}
         userAvatar={message.profiles?.profile_picture_url}
         userTasksCompleted={message.profiles?.tasks_completed || 0}
+        userPoints={message.profiles?.points || 0}
         size="sm"
         showBirdBadge={true}
       />

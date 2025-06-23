@@ -19,6 +19,7 @@ export const ProfileBirdBadge: React.FC<ProfileBirdBadgeProps> = ({
 }) => {
   const [birdLevel, setBirdLevel] = useState<ReferralBirdLevel | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isQualified, setIsQualified] = useState(false);
 
   useEffect(() => {
     loadUserBirdLevel();
@@ -31,46 +32,46 @@ export const ProfileBirdBadge: React.FC<ProfileBirdBadgeProps> = ({
       // First try to get user's profile with referral counts
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('active_referrals_count, total_referrals_count, points')
+        .select('active_referrals_count, total_referrals_count, points, tasks_completed')
         .eq('id', userId)
         .single();
 
       if (error) {
         console.error('Error fetching user profile for bird badge:', error);
-        // Fallback to default bird level
-        const defaultLevel = userService.getBirdLevel(0, 0);
-        setBirdLevel(defaultLevel);
+        setIsQualified(false);
+        setBirdLevel(null);
       } else if (profile) {
         const activeReferrals = profile.active_referrals_count || 0;
         const userPoints = profile.points || 0;
-        const level = userService.getBirdLevel(activeReferrals, userPoints);
-        setBirdLevel(level);
+        const tasksCompleted = profile.tasks_completed || 0;
+        
+        // Only show bird badge if user has completed at least 1 task or has points
+        const qualified = tasksCompleted > 0 || userPoints > 0;
+        setIsQualified(qualified);
+        
+        if (qualified) {
+          const level = userService.getBirdLevel(activeReferrals, userPoints);
+          setBirdLevel(level);
+        } else {
+          setBirdLevel(null);
+        }
       } else {
-        // No profile found, use default level
-        const defaultLevel = userService.getBirdLevel(0, 0);
-        setBirdLevel(defaultLevel);
+        // No profile found, user is not qualified
+        setIsQualified(false);
+        setBirdLevel(null);
       }
     } catch (error) {
       console.error('Error loading bird level:', error);
-      // Fallback to default bird level
-      const defaultLevel = userService.getBirdLevel(0, 0);
-      setBirdLevel(defaultLevel);
+      setIsQualified(false);
+      setBirdLevel(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // Show a default bird badge while loading or if no level found
-  if (loading || !birdLevel) {
-    const defaultLevel = userService.getBirdLevel(0, 0);
-    return (
-      <BirdBadge 
-        birdLevel={defaultLevel} 
-        size={size} 
-        showName={showName}
-        className={className}
-      />
-    );
+  // Don't render anything if user is not qualified or still loading
+  if (loading || !isQualified || !birdLevel) {
+    return null;
   }
 
   return (

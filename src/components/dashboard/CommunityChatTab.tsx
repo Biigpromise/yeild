@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { CommunityChat } from "@/components/community/CommunityChat";
+import { PostFeed } from "@/components/posts/PostFeed";
 
 export const CommunityChatTab = () => {
   return (
-    <div className="h-screen bg-background">
-      <CommunityChat />
+    <div className="h-[calc(100vh-120px)] bg-background">
+      <PostFeed />
     </div>
   );
 };

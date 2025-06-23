@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { RealtimeChannel } from "@supabase/supabase-js";
@@ -13,6 +12,7 @@ export interface Message {
     name: string;
     profile_picture_url?: string;
     tasks_completed?: number;
+    points?: number;
   };
 }
 
@@ -48,8 +48,8 @@ export const chatService = {
         } else {
           console.log('Created new profile for user:', userId);
         }
-      } else if (!existingProfile.name || existingProfile.name.trim() === '') {
-        // Update existing profile with a name if it's missing
+      } else if (!existingProfile.name || existingProfile.name.trim() === '' || existingProfile.name === 'Anonymous User') {
+        // Update existing profile with a name if it's missing or anonymous
         const { data: { user } } = await supabase.auth.getUser();
         const userEmail = user?.email || 'Unknown User';
         
@@ -79,7 +79,8 @@ export const chatService = {
         profiles (
           name,
           profile_picture_url,
-          tasks_completed
+          tasks_completed,
+          points
         )
       `)
       .order('created_at', { ascending: true })
@@ -97,10 +98,10 @@ export const chatService = {
     const transformedData = data?.map(message => {
       let profileName = 'Anonymous User';
       
-      if (message.profiles && message.profiles.name && message.profiles.name.trim() !== '') {
+      if (message.profiles && message.profiles.name && message.profiles.name.trim() !== '' && message.profiles.name !== 'Anonymous User') {
         profileName = message.profiles.name;
       } else {
-        // If no name, try to get it from user ID (fallback)
+        // If no proper name, try to get it from user ID (fallback)
         profileName = `User ${message.user_id.substring(0, 8)}`;
       }
       
@@ -109,7 +110,8 @@ export const chatService = {
         profiles: {
           name: profileName,
           profile_picture_url: message.profiles?.profile_picture_url,
-          tasks_completed: message.profiles?.tasks_completed || 0
+          tasks_completed: message.profiles?.tasks_completed || 0,
+          points: message.profiles?.points || 0
         }
       };
     }) || [];
@@ -234,7 +236,8 @@ export const chatService = {
           profiles (
             name,
             profile_picture_url,
-            tasks_completed
+            tasks_completed,
+            points
           )
         `)
         .eq('id', messageId)
@@ -251,7 +254,8 @@ export const chatService = {
         profiles: {
           name: data.profiles?.name || `User ${data.user_id.substring(0, 8)}`,
           profile_picture_url: data.profiles?.profile_picture_url,
-          tasks_completed: data.profiles?.tasks_completed || 0
+          tasks_completed: data.profiles?.tasks_completed || 0,
+          points: data.profiles?.points || 0
         }
       };
       
