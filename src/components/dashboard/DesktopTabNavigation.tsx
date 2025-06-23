@@ -1,57 +1,61 @@
 
 import React from 'react';
-import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Home,
-  Gift,
-  Award,
-  Wallet,
-  Trophy,
-  User,
-  Search,
-  MessageCircle,
-  LifeBuoy,
+import { Button } from "@/components/ui/button";
+import { 
+  CheckSquare, 
+  Camera, 
+  User, 
+  Users, 
+  Trophy, 
+  BarChart3, 
+  Wallet, 
+  Gift, 
+  History, 
+  MessageCircle, 
+  Search, 
+  HelpCircle 
 } from "lucide-react";
 
-export const DesktopTabNavigation = () => {
+interface DesktopTabNavigationProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
+
+export const DesktopTabNavigation: React.FC<DesktopTabNavigationProps> = ({
+  activeTab,
+  onTabChange
+}) => {
+  const tabs = [
+    { id: "tasks", label: "Tasks", icon: CheckSquare },
+    { id: "stories", label: "Stories", icon: Camera },
+    { id: "profile", label: "Profile", icon: User },
+    { id: "referrals", label: "Referrals", icon: Users },
+    { id: "achievements", label: "Achievements", icon: Trophy },
+    { id: "leaderboard", label: "Leaderboard", icon: BarChart3 },
+    { id: "wallet", label: "Wallet", icon: Wallet },
+    { id: "rewards", label: "Rewards", icon: Gift },
+    { id: "history", label: "History", icon: History },
+    { id: "community", label: "Community", icon: MessageCircle },
+    { id: "search", label: "Search", icon: Search },
+    { id: "support", label: "Support", icon: HelpCircle }
+  ];
+
   return (
-    <TabsList className="grid w-full grid-cols-9">
-      <TabsTrigger value="tasks">
-        <Home className="h-4 w-4 mr-2" />
-        Home
-      </TabsTrigger>
-      <TabsTrigger value="rewards">
-        <Gift className="h-4 w-4 mr-2" />
-        Rewards
-      </TabsTrigger>
-      <TabsTrigger value="achievements">
-        <Award className="h-4 w-4 mr-2" />
-        Achievements
-      </TabsTrigger>
-      <TabsTrigger value="wallet">
-        <Wallet className="h-4 w-4 mr-2" />
-        Wallet
-      </TabsTrigger>
-      <TabsTrigger value="leaderboard">
-        <Trophy className="h-4 w-4 mr-2" />
-        Leaderboard
-      </TabsTrigger>
-      <TabsTrigger value="profile">
-         <User className="h-4 w-4 mr-2" />
-         Profile
-      </TabsTrigger>
-      <TabsTrigger value="user-search">
-         <Search className="h-4 w-4 mr-2" />
-         Find Users
-      </TabsTrigger>
-      <TabsTrigger value="community-chat">
-         <MessageCircle className="h-4 w-4 mr-2" />
-         Community Chat
-      </TabsTrigger>
-      <TabsTrigger value="support">
-         <LifeBuoy className="h-4 w-4 mr-2" />
-         Support
-      </TabsTrigger>
-    </TabsList>
+    <div className="space-y-2">
+      {tabs.map((tab) => {
+        const Icon = tab.icon;
+        return (
+          <Button
+            key={tab.id}
+            variant={activeTab === tab.id ? "default" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => onTabChange(tab.id)}
+          >
+            <Icon className="h-4 w-4 mr-2" />
+            {tab.label}
+          </Button>
+        );
+      })}
+    </div>
   );
 };

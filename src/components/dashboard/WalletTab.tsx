@@ -11,7 +11,7 @@ interface WalletTabProps {
   totalEarned: number;
   pendingWithdrawals: number;
   completedWithdrawals: number;
-  onWithdrawalSubmitted: () => void;
+  onRefresh: () => void;
 }
 
 export const WalletTab: React.FC<WalletTabProps> = ({
@@ -20,7 +20,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   totalEarned,
   pendingWithdrawals,
   completedWithdrawals,
-  onWithdrawalSubmitted,
+  onRefresh,
 }) => {
   if (loading) {
     return <WalletSkeleton />;
@@ -38,7 +38,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <WithdrawalForm 
           userPoints={userPoints}
-          onWithdrawalSubmitted={onWithdrawalSubmitted}
+          onWithdrawalSubmitted={onRefresh}
         />
         <WithdrawalHistory />
       </div>

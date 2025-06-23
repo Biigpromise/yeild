@@ -51,6 +51,14 @@ const Dashboard = () => {
     return <LoadingState />;
   }
 
+  // Default task counts
+  const defaultTaskCounts = {
+    available: 0,
+    in_progress: 0,
+    completed: completedTasks?.length || 0,
+    total: 0
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "tasks":
@@ -60,16 +68,16 @@ const Dashboard = () => {
             onSearchChange={() => {}}
             selectedCategory="all"
             onCategoryChange={() => {}}
-            sortBy="newest"
-            onSortChange={() => {}}
-            showCompleted={false}
-            onShowCompletedChange={() => {}}
+            selectedDifficulty="all"
+            onDifficultyChange={() => {}}
+            selectedStatus="all"
+            onStatusChange={() => {}}
+            taskCounts={defaultTaskCounts}
+            onClearFilters={() => {}}
+            handleCategorySelect={() => {}}
+            setActiveTab={setActiveTab}
             userStats={userStats}
-            onTaskComplete={loadUserData}
-            availableTasks={[]}
             userTasks={[]}
-            loading={false}
-            onTaskSubmit={() => {}}
           />
         );
       case "stories":
@@ -112,7 +120,6 @@ const Dashboard = () => {
           <HistoryTab
             completedTasks={completedTasks}
             totalPointsEarned={totalPointsEarned}
-            totalTasksCompleted={userStats.tasksCompleted}
           />
         );
       case "community":
@@ -128,16 +135,16 @@ const Dashboard = () => {
             onSearchChange={() => {}}
             selectedCategory="all"
             onCategoryChange={() => {}}
-            sortBy="newest"
-            onSortChange={() => {}}
-            showCompleted={false}
-            onShowCompletedChange={() => {}}
+            selectedDifficulty="all"
+            onDifficultyChange={() => {}}
+            selectedStatus="all"
+            onStatusChange={() => {}}
+            taskCounts={defaultTaskCounts}
+            onClearFilters={() => {}}
+            handleCategorySelect={() => {}}
+            setActiveTab={setActiveTab}
             userStats={userStats}
-            onTaskComplete={loadUserData}
-            availableTasks={[]}
             userTasks={[]}
-            loading={false}
-            onTaskSubmit={() => {}}
           />
         );
     }
@@ -146,13 +153,9 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        <DashboardHeader
-          user={userProfile}
-        />
+        <DashboardHeader user={userProfile} />
 
-        <DashboardStats
-          userStats={userStats}
-        />
+        <DashboardStats userStats={userStats} />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
           {/* Desktop Navigation */}

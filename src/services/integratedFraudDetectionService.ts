@@ -44,7 +44,7 @@ export const integratedFraudDetectionService = {
   async getFraudDetectionStats(): Promise<FraudDetectionStats> {
     try {
       const [fraudFlags, duplicateImageFlags] = await Promise.all([
-        fraudDetectionService.admin.getFraudFlags(),
+        fraudDetectionService.admin.getFraudFlagsByType(''),
         imageHashService.admin.getDuplicateFlags()
       ]);
 

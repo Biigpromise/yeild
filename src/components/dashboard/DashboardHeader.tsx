@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,30 +14,29 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Bell, LogOut, Settings, User, Menu } from "lucide-react";
+import { Bell, LogOut, Settings, User } from "lucide-react";
 import { CompactBirdBatch } from "@/components/ui/CompactBirdBatch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ProfileBirdBadge } from "@/components/referral/ProfileBirdBadge";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardHeaderProps {
-  userProfile: any;
   user: any;
-  unreadCount: number;
-  isNotificationsOpen: boolean;
-  setIsNotificationsOpen: (open: boolean) => void;
-  handleLogout: () => void;
-  setActiveTab: (tab: string) => void;
 }
 
-export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
-  userProfile,
-  user,
-  unreadCount,
-  isNotificationsOpen,
-  setIsNotificationsOpen,
-  handleLogout,
-  setActiveTab
-}) => {
+export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user }) => {
+  const { signOut } = useAuth();
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("tasks");
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   return (
     <div className="flex items-center justify-between p-2 sm:p-4 bg-background border-b">
       <div className="flex items-center space-x-3">        
@@ -45,26 +44,26 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           {/* User Avatar - No overlay */}
           <Avatar className="h-12 w-12 border-2 border-primary/20">
             <AvatarImage 
-              src={userProfile?.profile_picture_url} 
-              alt={userProfile?.name || user?.email?.split('@')[0] || 'User'} 
+              src={user?.profile_picture_url} 
+              alt={user?.name || user?.email?.split('@')[0] || 'User'} 
             />
             <AvatarFallback className="text-lg font-semibold">
-              {(userProfile?.name || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+              {(user?.name || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           
           <div className="flex items-center space-x-2">
             <div className="flex flex-col">
               <h1 className="text-lg sm:text-xl font-bold text-foreground">
-                Welcome back, {userProfile?.name || user?.email?.split('@')[0] || 'User'}!
+                Welcome back, {user?.name || user?.email?.split('@')[0] || 'User'}!
               </h1>
               <div className="flex items-center gap-2">
                 {user?.id && (
                   <ProfileBirdBadge userId={user.id} size="sm" showName />
                 )}
-                {userProfile && (
+                {user && (
                   <CompactBirdBatch 
-                    count={userProfile.tasks_completed || 0} 
+                    count={user.tasks_completed || 0} 
                     className="scale-90 sm:scale-100"
                   />
                 )}
@@ -80,14 +79,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <PopoverTrigger asChild>
             <Button variant="ghost" size="sm" className="relative">
               <Bell className="h-4 w-4" />
-              {unreadCount > 0 && (
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-                >
-                  {unreadCount}
-                </Badge>
-              )}
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+              >
+                0
+              </Badge>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80">
