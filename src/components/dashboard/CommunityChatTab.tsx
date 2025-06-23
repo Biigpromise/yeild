@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Send, Image, Users, MessageCircle, X } from 'lucide-react';
@@ -150,7 +149,7 @@ export const CommunityChatTab = () => {
         .insert({
           content: newMessage.trim(),
           user_id: user.id,
-          media_url: mediaUrl
+          ...(mediaUrl && { media_url: mediaUrl })
         });
 
       if (error) throw error;
@@ -171,7 +170,7 @@ export const CommunityChatTab = () => {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center h-[600px]">
+      <div className="flex items-center justify-center h-screen bg-black">
         <div className="text-center">
           <MessageCircle className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
           <p className="text-lg text-muted-foreground">Please log in to access community chat</p>
@@ -181,22 +180,22 @@ export const CommunityChatTab = () => {
   }
 
   return (
-    <div className="h-[calc(100vh-200px)] flex flex-col">
-      <Card className="flex-1 flex flex-col">
-        <CardHeader className="border-b bg-muted/50">
-          <CardTitle className="flex items-center justify-between">
+    <div className="flex-1 flex flex-col bg-black text-white">
+      <Card className="flex-1 flex flex-col bg-gray-900 border-gray-700">
+        <CardHeader className="border-b border-gray-700 bg-gray-800">
+          <CardTitle className="flex items-center justify-between text-white">
             <div className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5" />
               Community Chat
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm text-gray-400">
               <Users className="h-4 w-4" />
               <span>{activeUsers} active</span>
             </div>
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="flex-1 flex flex-col p-0">
+        <CardContent className="flex-1 flex flex-col p-0 bg-gray-900">
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {loading ? (
@@ -204,7 +203,7 @@ export const CommunityChatTab = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
             ) : messages.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
+              <div className="text-center py-12 text-gray-400">
                 <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
                 <p className="text-lg mb-2">No messages yet</p>
                 <p>Start the conversation!</p>
@@ -214,22 +213,22 @@ export const CommunityChatTab = () => {
                 <div key={message.id} className="flex items-start gap-3">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={message.profiles?.profile_picture_url} />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-gray-700 text-white">
                       {message.profiles?.name?.charAt(0)?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-sm">
+                      <span className="font-medium text-sm text-white">
                         {message.profiles?.name || `User ${message.user_id.substring(0, 8)}`}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-gray-400">
                         {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
                       </span>
                     </div>
-                    <div className="bg-muted rounded-lg p-3">
+                    <div className="bg-gray-800 rounded-lg p-3">
                       {message.content && (
-                        <p className="text-sm break-words">{message.content}</p>
+                        <p className="text-sm break-words text-gray-200">{message.content}</p>
                       )}
                       {message.media_url && (
                         <div className="mt-2">
@@ -257,7 +256,7 @@ export const CommunityChatTab = () => {
           </div>
 
           {/* Input Area */}
-          <div className="border-t p-4">
+          <div className="border-t border-gray-700 p-4 bg-gray-900">
             {mediaPreview && (
               <div className="mb-3 relative inline-block">
                 {mediaFile?.type.startsWith('image/') ? (
@@ -292,7 +291,7 @@ export const CommunityChatTab = () => {
                 placeholder="Type your message..."
                 disabled={sending}
                 maxLength={500}
-                className="min-h-[60px] resize-none flex-1"
+                className="min-h-[60px] resize-none flex-1 bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -315,6 +314,7 @@ export const CommunityChatTab = () => {
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={sending}
+                  className="border-gray-600 text-white hover:bg-gray-700"
                 >
                   <Image className="h-4 w-4" />
                 </Button>
@@ -322,6 +322,7 @@ export const CommunityChatTab = () => {
                   type="submit"
                   disabled={(!newMessage.trim() && !mediaFile) || sending}
                   size="sm"
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
                   {sending ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
@@ -332,7 +333,7 @@ export const CommunityChatTab = () => {
               </div>
             </form>
             
-            <div className="text-xs text-muted-foreground mt-2">
+            <div className="text-xs text-gray-400 mt-2">
               {newMessage.length}/500 characters • Press Enter to send, Shift+Enter for new line
             </div>
           </div>

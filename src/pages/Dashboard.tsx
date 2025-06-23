@@ -150,6 +150,24 @@ const Dashboard = () => {
     }
   };
 
+  // Special layout for community chat - full screen
+  if (activeTab === "community") {
+    return (
+      <div className="min-h-screen bg-black text-white">
+        <div className="h-screen flex flex-col">
+          <CommunityChatTab />
+          {/* Mobile Navigation */}
+          <div className="lg:hidden">
+            <MobileTabNavigation
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
