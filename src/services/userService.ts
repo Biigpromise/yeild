@@ -308,16 +308,33 @@ export const userService = {
 
       if (error) throw error;
 
-      // Update followers count using raw SQL increment
-      const { error: followerError } = await supabase
+      // Update followers count for the user being followed
+      const { data: followerProfile } = await supabase
         .from('profiles')
-        .update({ followers_count: supabase.rpc('increment', { x: 1 }) })
-        .eq('id', userId);
+        .select('followers_count')
+        .eq('id', userId)
+        .single();
 
-      const { error: followingError } = await supabase
+      if (followerProfile) {
+        await supabase
+          .from('profiles')
+          .update({ followers_count: followerProfile.followers_count + 1 })
+          .eq('id', userId);
+      }
+
+      // Update following count for the current user
+      const { data: currentUserProfile } = await supabase
         .from('profiles')
-        .update({ following_count: supabase.rpc('increment', { x: 1 }) })
-        .eq('id', user.id);
+        .select('following_count')
+        .eq('id', user.id)
+        .single();
+
+      if (currentUserProfile) {
+        await supabase
+          .from('profiles')
+          .update({ following_count: currentUserProfile.following_count + 1 })
+          .eq('id', user.id);
+      }
 
       return true;
     } catch (error) {

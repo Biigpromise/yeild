@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { UserProfile } from "@/components/UserProfile";
 import { AchievementSystem } from "@/components/AchievementSystem";
@@ -298,7 +297,6 @@ const Profile = () => {
             <StatsDashboard 
               userStats={{
                 tasksCompleted: userData.tasksCompleted,
-                current_level: userData.level,
                 level: userData.level,
                 points: userData.points,
                 currentStreak: userData.currentStreak,
