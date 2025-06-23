@@ -1,34 +1,37 @@
 
 import React from 'react';
-import { ThumbsUp, Eye } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Heart, Eye } from "lucide-react";
 import { Post } from '@/types/post';
+import { PostReactions } from './PostReactions';
 
 interface PostActionsProps {
   post: Post;
   userId: string | null;
-  handleLikePost: (post: Post) => void;
+  onLike: (post: Post) => void;
 }
 
-export const PostActions: React.FC<PostActionsProps> = ({ post, userId, handleLikePost }) => {
+export const PostActions: React.FC<PostActionsProps> = ({ post, userId, onLike }) => {
   const hasLiked = post.post_likes?.some(like => like.user_id === userId);
 
   return (
-    <div className="flex items-center gap-4 text-muted-foreground mt-3">
-      <button
-        onClick={() => handleLikePost(post)}
-        disabled={!userId}
-        className="flex items-center gap-1.5 group disabled:cursor-not-allowed"
-        aria-label={`Like post by ${post.profiles?.name ?? 'User'}`}
-      >
-        <ThumbsUp
-          className={`h-4 w-4 group-hover:text-primary transition-colors ${hasLiked ? 'text-primary fill-primary' : ''}`}
-        />
-        <span className="text-sm">{post.likes_count ?? 0}</span>
-      </button>
-      <div className="flex items-center gap-1.5" title={`${post.view_count ?? 0} views`}>
+    <div className="flex items-center gap-6 text-sm text-muted-foreground mb-3">
+      <div className="flex items-center gap-1 hover:text-blue-500 transition-colors">
         <Eye className="h-4 w-4" />
-        <span className="text-sm">{post.view_count ?? 0}</span>
+        <span>{post.view_count}</span>
       </div>
+      
+      <PostReactions postId={post.id} userId={userId} />
+      
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onLike(post)}
+        className={`p-0 h-auto hover:bg-transparent ${hasLiked ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'} transition-colors`}
+      >
+        <Heart className={`h-4 w-4 mr-1 ${hasLiked ? 'fill-current' : ''}`} />
+        <span>{post.likes_count}</span>
+      </Button>
     </div>
   );
 };
