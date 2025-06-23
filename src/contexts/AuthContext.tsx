@@ -29,6 +29,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     let mounted = true;
 
+    // Get initial session first
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Error getting initial session:", error);
+        }
+        
+        if (mounted) {
+          console.log("Initial session check:", session?.user?.email);
+          setSession(session);
+          setUser(session?.user ?? null);
+        }
+      } catch (error) {
+        console.error("Unexpected error getting session:", error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -37,11 +59,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log("Auth state changed:", event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Only set loading to false after we've processed the auth state
-        if (loading) {
-          setLoading(false);
-        }
 
         // Handle auth events
         if (event === 'SIGNED_OUT') {
@@ -54,29 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     );
 
-    // Check for existing session with error handling
-    const getInitialSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error("Error getting initial session:", error);
-          // Don't show toast error as it might be expected
-        }
-        
-        if (mounted) {
-          console.log("Initial session check:", session?.user?.email);
-          setSession(session);
-          setUser(session?.user ?? null);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error("Unexpected error getting session:", error);
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
+    // Get initial session
     getInitialSession();
 
     return () => {
@@ -84,7 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log("AuthProvider: Cleaning up auth listeners");
       subscription.unsubscribe();
     };
-  }, [loading, setUser, setSession, setLoading]);
+  }, [setUser, setSession, setLoading]);
 
   const value = {
     user,

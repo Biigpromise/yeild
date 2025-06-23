@@ -28,7 +28,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending confirmation code to:", email);
 
     const emailResponse = await resend.emails.send({
-      from: "YEILD <onboarding@resend.dev>",
+      from: "YEILD <noreply@yeildsocials.com>",
       to: [email],
       subject: "Your YEILD Confirmation Code 🎉",
       html: `
