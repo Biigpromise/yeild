@@ -10,10 +10,10 @@ export interface Message {
   created_at: string;
   media_url?: string;
   profiles: {
-    name: string | null;
+    name: string;
     profile_picture_url?: string;
     tasks_completed?: number;
-  } | null;
+  };
 }
 
 export const chatService = {
@@ -22,7 +22,7 @@ export const chatService = {
       // Check if profile exists
       const { data: existingProfile } = await supabase
         .from('profiles')
-        .select('id, name')
+        .select('id, name, email')
         .eq('id', userId)
         .single();
 
@@ -45,16 +45,24 @@ export const chatService = {
 
         if (insertError) {
           console.error('Error creating profile:', insertError);
+        } else {
+          console.log('Created new profile for user:', userId);
         }
       } else if (!existingProfile.name || existingProfile.name.trim() === '') {
         // Update existing profile with a name if it's missing
         const { data: { user } } = await supabase.auth.getUser();
         const userEmail = user?.email || 'Unknown User';
         
-        await supabase
+        const { error: updateError } = await supabase
           .from('profiles')
           .update({ name: userEmail.split('@')[0] })
           .eq('id', userId);
+
+        if (updateError) {
+          console.error('Error updating profile name:', updateError);
+        } else {
+          console.log('Updated profile name for user:', userId);
+        }
       }
     } catch (error) {
       console.error('Error ensuring user profile:', error);
@@ -68,7 +76,7 @@ export const chatService = {
       .from('messages')
       .select(`
         *,
-        profiles!messages_user_id_fkey(
+        profiles (
           name,
           profile_picture_url,
           tasks_completed
@@ -89,7 +97,7 @@ export const chatService = {
     const transformedData = data?.map(message => {
       let profileName = 'Anonymous User';
       
-      if (message.profiles?.name && message.profiles.name.trim() !== '') {
+      if (message.profiles && message.profiles.name && message.profiles.name.trim() !== '') {
         profileName = message.profiles.name;
       } else {
         // If no name, try to get it from user ID (fallback)
@@ -118,7 +126,7 @@ export const chatService = {
       await this.ensureUserProfile(userId);
       
       const messageData = {
-        content: content || '', 
+        content: content.trim() || '', 
         user_id: userId,
         media_url: mediaUrl || null
       };
@@ -132,7 +140,7 @@ export const chatService = {
 
       if (error) {
         console.error("Error sending message:", error);
-        toast.error("Failed to send message.");
+        toast.error("Failed to send message: " + error.message);
         return false;
       }
       
@@ -223,7 +231,7 @@ export const chatService = {
         .from('messages')
         .select(`
           *,
-          profiles!messages_user_id_fkey(
+          profiles (
             name,
             profile_picture_url,
             tasks_completed

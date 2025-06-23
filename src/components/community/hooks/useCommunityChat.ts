@@ -77,15 +77,27 @@ export const useCommunityChat = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Send message clicked', { newMessage: newMessage.trim(), selectedFile, user, sending });
+    console.log('Send message clicked', { 
+      newMessage: newMessage.trim(), 
+      selectedFile, 
+      user, 
+      sending 
+    });
     
-    if ((!newMessage.trim() && !selectedFile) || sending || !user) {
-      console.log('Cannot send message:', { 
-        hasContent: !!newMessage.trim(), 
-        hasFile: !!selectedFile, 
-        sending, 
-        hasUser: !!user 
-      });
+    if (!user) {
+      console.log('No user found');
+      toast.error('Please log in to send messages');
+      return;
+    }
+
+    if (!newMessage.trim() && !selectedFile) {
+      console.log('No message content and no file');
+      toast.error('Please enter a message or select a file');
+      return;
+    }
+
+    if (sending) {
+      console.log('Already sending message');
       return;
     }
 
@@ -107,7 +119,12 @@ export const useCommunityChat = () => {
         }
       }
 
-      console.log('Sending message to service...', { content: newMessage.trim(), userId: user.id, mediaUrl });
+      console.log('Sending message to service...', { 
+        content: newMessage.trim(), 
+        userId: user.id, 
+        mediaUrl 
+      });
+      
       const success = await chatService.sendMessage(newMessage.trim(), user.id, mediaUrl);
       
       if (success) {
