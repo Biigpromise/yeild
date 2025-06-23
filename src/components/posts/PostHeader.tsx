@@ -7,7 +7,12 @@ import { formatDistanceToNow } from 'date-fns';
 import { Post } from '@/types/post';
 
 interface PostHeaderProps {
-  post: Post;
+  post: Post & {
+    profiles?: {
+      name?: string;
+      profile_picture_url?: string;
+    } | null;
+  };
   userId: string | null;
   onProfileClick: () => void;
   onDeletePost: () => void;
@@ -19,6 +24,10 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
   onProfileClick,
   onDeletePost
 }) => {
+  // Ensure we have a display name
+  const displayName = post.profiles?.name || 'User';
+  const avatarUrl = post.profiles?.profile_picture_url;
+
   return (
     <div className="flex items-center gap-2 mb-1 justify-between">
       <div className="flex items-center gap-3">
@@ -27,8 +36,8 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
           className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full"
         >
           <Avatar className="h-10 w-10 hover:scale-105 transition-transform cursor-pointer">
-            <AvatarImage src={post.profiles?.profile_picture_url || undefined} />
-            <AvatarFallback>{post.profiles?.name?.charAt(0) || 'U'}</AvatarFallback>
+            <AvatarImage src={avatarUrl || undefined} />
+            <AvatarFallback>{displayName.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
           </Avatar>
         </button>
         
@@ -37,7 +46,7 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
             onClick={onProfileClick}
             className="font-semibold text-sm hover:underline focus:outline-none focus:underline truncate"
           >
-            {post.profiles?.name || 'User'}
+            {displayName}
           </button>
           <span className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}

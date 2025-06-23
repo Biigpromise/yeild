@@ -6,7 +6,10 @@ import { Post } from '@/types/post';
 import { PostReactions } from './PostReactions';
 
 interface PostActionsProps {
-  post: Post;
+  post: Post & { 
+    likes_from_reactions?: number;
+    dislikes_from_reactions?: number;
+  };
   userId: string | null;
   onLike: (post: Post) => void;
 }
@@ -18,7 +21,7 @@ export const PostActions: React.FC<PostActionsProps> = ({ post, userId, onLike }
     <div className="flex items-center gap-6 text-sm text-muted-foreground mb-3">
       <div className="flex items-center gap-1 hover:text-blue-500 transition-colors">
         <Eye className="h-4 w-4" />
-        <span>{post.view_count}</span>
+        <span>{post.view_count || 0}</span>
       </div>
       
       <PostReactions postId={post.id} userId={userId} />
@@ -30,7 +33,7 @@ export const PostActions: React.FC<PostActionsProps> = ({ post, userId, onLike }
         className={`p-0 h-auto hover:bg-transparent ${hasLiked ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'} transition-colors`}
       >
         <Heart className={`h-4 w-4 mr-1 ${hasLiked ? 'fill-current' : ''}`} />
-        <span>{post.likes_count}</span>
+        <span>{post.likes_count || 0}</span>
       </Button>
     </div>
   );

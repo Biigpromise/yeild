@@ -184,9 +184,25 @@ export const userService = {
 
   async getUserProfileById(userId: string): Promise<Partial<UserProfile> | null> {
     try {
+      console.log('Fetching profile for user ID:', userId);
+      
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          id,
+          name,
+          email,
+          bio,
+          profile_picture_url,
+          level,
+          points,
+          tasks_completed,
+          followers_count,
+          following_count,
+          created_at,
+          active_referrals_count,
+          total_referrals_count
+        `)
         .eq('id', userId)
         .single();
 
@@ -195,7 +211,18 @@ export const userService = {
         return null;
       }
 
-      return data;
+      console.log('Profile data loaded:', data);
+      
+      // Ensure we have a proper profile with default values
+      return {
+        ...data,
+        name: data.name || 'User',
+        followers_count: data.followers_count || 0,
+        following_count: data.following_count || 0,
+        level: data.level || 1,
+        points: data.points || 0,
+        tasks_completed: data.tasks_completed || 0
+      };
     } catch (error) {
       console.error('Error in getUserProfileById:', error);
       return null;
