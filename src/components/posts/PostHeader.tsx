@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { Post } from '@/types/post';
+import { useUserDisplay } from '@/utils/userDisplayUtils';
 
 interface PostHeaderProps {
   post: Post & {
@@ -12,6 +13,7 @@ interface PostHeaderProps {
       id?: string;
       name?: string;
       profile_picture_url?: string;
+      is_anonymous?: boolean;
     } | null;
   };
   userId: string | null;
@@ -25,15 +27,25 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
   onProfileClick,
   onDeletePost
 }) => {
-  // Ensure we have a display name
-  const displayName = post.profiles?.name || 'User';
-  const avatarUrl = post.profiles?.profile_picture_url;
+  const { getDisplayName, getAvatarFallback } = useUserDisplay();
+  
+  // Convert profiles to UserProfile format
+  const userProfile = post.profiles ? {
+    id: post.profiles.id || post.user_id,
+    name: post.profiles.name,
+    profile_picture_url: post.profiles.profile_picture_url,
+    is_anonymous: post.profiles.is_anonymous
+  } : null;
+  
+  const displayName = getDisplayName(userProfile);
+  const avatarFallback = getAvatarFallback(userProfile);
 
   console.log('PostHeader rendering:', {
     postId: post.id,
     profiles: post.profiles,
     displayName,
-    userId: post.user_id
+    userId: post.user_id,
+    isAnonymous: post.profiles?.is_anonymous
   });
 
   return (
@@ -44,8 +56,8 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
           className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full"
         >
           <Avatar className="h-10 w-10 hover:scale-105 transition-transform cursor-pointer">
-            <AvatarImage src={avatarUrl || undefined} />
-            <AvatarFallback>{displayName.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+            <AvatarImage src={userProfile?.profile_picture_url || undefined} />
+            <AvatarFallback>{avatarFallback}</AvatarFallback>
           </Avatar>
         </button>
         

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +20,7 @@ interface Message {
   profiles: {
     name: string;
     profile_picture_url?: string;
+    is_anonymous?: boolean;
   } | null;
 }
 
@@ -52,7 +54,8 @@ export const CommunityChatTab = () => {
           *,
           profiles!messages_user_id_fkey (
             name,
-            profile_picture_url
+            profile_picture_url,
+            is_anonymous
           )
         `)
         .order('created_at', { ascending: true })
@@ -74,10 +77,12 @@ export const CommunityChatTab = () => {
           name: message.profiles.name && message.profiles.name.trim() !== '' 
             ? message.profiles.name 
             : 'User',
-          profile_picture_url: message.profiles.profile_picture_url || null
+          profile_picture_url: message.profiles.profile_picture_url || null,
+          is_anonymous: message.profiles.is_anonymous || false
         } : {
           name: 'User',
-          profile_picture_url: null
+          profile_picture_url: null,
+          is_anonymous: false
         };
 
         return {

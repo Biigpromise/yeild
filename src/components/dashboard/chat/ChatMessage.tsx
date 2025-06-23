@@ -3,6 +3,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { Eye } from 'lucide-react';
+import { useUserDisplay } from '@/utils/userDisplayUtils';
 
 interface Message {
   id: string;
@@ -13,6 +14,7 @@ interface Message {
   profiles: {
     name: string;
     profile_picture_url?: string;
+    is_anonymous?: boolean;
   } | null;
 }
 
@@ -29,17 +31,25 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   onUserClick,
   onMediaClick
 }) => {
-  // Better name handling with multiple fallbacks
-  const displayName = message.profiles?.name && message.profiles.name.trim() !== '' 
-    ? message.profiles.name 
-    : 'User';
+  const { getDisplayName, getAvatarFallback } = useUserDisplay();
+  
+  // Convert profiles to UserProfile format
+  const userProfile = message.profiles ? {
+    id: message.user_id,
+    name: message.profiles.name,
+    profile_picture_url: message.profiles.profile_picture_url,
+    is_anonymous: message.profiles.is_anonymous
+  } : null;
+  
+  const displayName = getDisplayName(userProfile);
+  const avatarFallback = getAvatarFallback(userProfile);
   
   console.log('ChatMessage rendering:', { 
     messageId: message.id, 
     profiles: message.profiles, 
     displayName,
     userId: message.user_id,
-    rawName: message.profiles?.name
+    isAnonymous: message.profiles?.is_anonymous
   });
   
   return (
@@ -51,7 +61,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             alt={displayName}
           />
           <AvatarFallback className="bg-gray-700 text-white text-sm">
-            {displayName.charAt(0)?.toUpperCase() || 'U'}
+            {avatarFallback}
           </AvatarFallback>
         </Avatar>
       </div>
