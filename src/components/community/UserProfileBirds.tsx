@@ -1,11 +1,13 @@
 
 import React from "react";
 import { Badge } from "@/components/ui/badge";
+import { userService } from "@/services/userService";
 
 interface UserProfileBirdsProps {
   points: number;
   tasksCompleted: number;
   level: number;
+  activeReferrals?: number;
   compact?: boolean;
 }
 
@@ -13,28 +15,49 @@ export const UserProfileBirds: React.FC<UserProfileBirdsProps> = ({
   points,
   tasksCompleted,
   level,
+  activeReferrals = 0,
   compact = false
 }) => {
-  const getBirdTier = () => {
-    if (points >= 10000) return { tier: "Legendary", bird: "🦅", color: "bg-yellow-500" };
-    if (points >= 5000) return { tier: "Epic", bird: "🦜", color: "bg-purple-500" };
-    if (points >= 2000) return { tier: "Rare", bird: "🐦", color: "bg-blue-500" };
-    if (points >= 500) return { tier: "Common", bird: "🐤", color: "bg-green-500" };
-    return { tier: "Beginner", bird: "🐣", color: "bg-gray-400" };
+  // Get the correct bird level based on referrals and points
+  const birdLevel = userService.getBirdLevel(activeReferrals, points);
+  
+  console.log('UserProfileBirds rendering:', {
+    points,
+    activeReferrals,
+    birdLevel: birdLevel.name,
+    birdIcon: birdLevel.icon
+  });
+
+  const getBirdEmoji = (iconName: string) => {
+    switch (iconName) {
+      case 'dove':
+        return '🕊️';
+      case 'hawk':
+        return '🦅';
+      case 'eagle':
+        return '🦅';
+      case 'falcon':
+        return '🦅';
+      case 'phoenix':
+        return '🔥';
+      default:
+        return '🐦';
+    }
   };
 
-  const birdData = getBirdTier();
+  const birdEmoji = getBirdEmoji(birdLevel.icon);
   const birdCount = Math.floor(tasksCompleted / 5) + 1; // 1 bird per 5 tasks completed
 
   if (compact) {
     return (
       <div className="flex items-center gap-1">
-        <span className="text-sm">{birdData.bird}</span>
+        <span className="text-sm">{birdEmoji}</span>
         <Badge 
           variant="secondary" 
-          className={`text-xs text-white ${birdData.color}`}
+          className={`text-xs text-white`}
+          style={{ backgroundColor: birdLevel.color }}
         >
-          Lv.{level}
+          {birdLevel.name} Lv.{level}
         </Badge>
       </div>
     );
@@ -43,12 +66,13 @@ export const UserProfileBirds: React.FC<UserProfileBirdsProps> = ({
   return (
     <div className="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border">
       <div className="flex items-center gap-2">
-        <div className="text-2xl">{birdData.bird}</div>
+        <div className="text-2xl">{birdEmoji}</div>
         <div className="text-center">
           <Badge 
-            className={`text-white ${birdData.color} mb-1`}
+            className="text-white mb-1"
+            style={{ backgroundColor: birdLevel.color }}
           >
-            {birdData.tier}
+            {birdLevel.name}
           </Badge>
           <div className="text-xs text-gray-600">Level {level}</div>
         </div>
@@ -57,7 +81,7 @@ export const UserProfileBirds: React.FC<UserProfileBirdsProps> = ({
       <div className="flex items-center gap-1 flex-wrap justify-center">
         {Array.from({ length: Math.min(birdCount, 10) }, (_, index) => (
           <span key={index} className="text-xs opacity-75">
-            {birdData.bird}
+            {birdEmoji}
           </span>
         ))}
         {birdCount > 10 && (
@@ -66,7 +90,8 @@ export const UserProfileBirds: React.FC<UserProfileBirdsProps> = ({
       </div>
       
       <div className="text-xs text-center text-gray-500">
-        <div>{points} points • {tasksCompleted} tasks</div>
+        <div>{points} points • {tasksCompleted} tasks • {activeReferrals} referrals</div>
+        <div className="text-xs mt-1 text-gray-400">{birdLevel.description}</div>
       </div>
     </div>
   );

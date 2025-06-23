@@ -1,14 +1,15 @@
 
 import React from 'react';
-import { ReferralBirdLevel } from '@/services/userService';
+import { ReferralBirdLevel, userService } from '@/services/userService';
 import { AnimatedPhoenixBadge } from './AnimatedPhoenixBadge';
 import { Badge } from '@/components/ui/badge';
 import { Bird, Crown, Zap, Star, Feather } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface EnhancedBirdBadgeProps {
-  birdLevel: ReferralBirdLevel | null;
+  birdLevel?: ReferralBirdLevel | null;
   activeReferrals: number;
+  userPoints?: number;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   showName?: boolean;
   className?: string;
@@ -99,17 +100,28 @@ const getEnhancedAnimationClasses = (iconName: string, isAnimated: boolean = fal
 export const EnhancedBirdBadge: React.FC<EnhancedBirdBadgeProps> = ({ 
   birdLevel, 
   activeReferrals,
+  userPoints = 0,
   size = 'md', 
   showName = false,
   className = '',
   showAnimation = true
 }) => {
-  if (!birdLevel || birdLevel.name === 'None') {
+  // Calculate the correct bird level if not provided
+  const actualBirdLevel = birdLevel || userService.getBirdLevel(activeReferrals, userPoints);
+  
+  console.log('EnhancedBirdBadge rendering:', {
+    activeReferrals,
+    userPoints,
+    birdLevel: actualBirdLevel.name,
+    showName
+  });
+
+  if (!actualBirdLevel || actualBirdLevel.name === 'None') {
     return null;
   }
 
   // Phoenix gets special treatment with full animation
-  if (birdLevel.icon === 'phoenix') {
+  if (actualBirdLevel.icon === 'phoenix') {
     return (
       <AnimatedPhoenixBadge 
         size={size}
@@ -123,13 +135,13 @@ export const EnhancedBirdBadge: React.FC<EnhancedBirdBadgeProps> = ({
 
   // Determine if this bird level should have animations
   const shouldAnimate = showAnimation && (
-    birdLevel.icon === 'eagle' || 
-    birdLevel.icon === 'falcon'
+    actualBirdLevel.icon === 'eagle' || 
+    actualBirdLevel.icon === 'falcon'
   );
 
-  const icon = getEnhancedBirdIcon(birdLevel.icon, size, shouldAnimate);
-  const colorClass = getEnhancedBirdColor(birdLevel.icon, shouldAnimate);
-  const animationClass = getEnhancedAnimationClasses(birdLevel.icon, shouldAnimate);
+  const icon = getEnhancedBirdIcon(actualBirdLevel.icon, size, shouldAnimate);
+  const colorClass = getEnhancedBirdColor(actualBirdLevel.icon, shouldAnimate);
+  const animationClass = getEnhancedAnimationClasses(actualBirdLevel.icon, shouldAnimate);
   
   const badgeSize = size === 'sm' ? 'text-xs px-1.5 py-0.5' : 
                     size === 'lg' ? 'text-sm px-3 py-1' : 
@@ -138,14 +150,14 @@ export const EnhancedBirdBadge: React.FC<EnhancedBirdBadgeProps> = ({
   return (
     <div className="relative group">
       {/* Special effects for Eagle and Falcon */}
-      {shouldAnimate && birdLevel.icon === 'falcon' && (
+      {shouldAnimate && actualBirdLevel.icon === 'falcon' && (
         <>
           <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full blur opacity-20 group-hover:opacity-40 animate-pulse transition-opacity duration-300" />
           <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-400 to-indigo-400 rounded-full blur-sm opacity-15 group-hover:opacity-30 animate-pulse transition-opacity duration-300" />
         </>
       )}
       
-      {shouldAnimate && birdLevel.icon === 'eagle' && (
+      {shouldAnimate && actualBirdLevel.icon === 'eagle' && (
         <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full blur-sm opacity-20 group-hover:opacity-35 animate-pulse transition-opacity duration-300" />
       )}
       
@@ -158,10 +170,10 @@ export const EnhancedBirdBadge: React.FC<EnhancedBirdBadgeProps> = ({
           className,
           'flex items-center gap-1 font-medium relative z-10 cursor-pointer',
           shouldAnimate && 'ring-2 ring-opacity-0 hover:ring-opacity-50 transition-all duration-300',
-          birdLevel.icon === 'eagle' && 'hover:ring-blue-400',
-          birdLevel.icon === 'falcon' && 'hover:ring-purple-400'
+          actualBirdLevel.icon === 'eagle' && 'hover:ring-blue-400',
+          actualBirdLevel.icon === 'falcon' && 'hover:ring-purple-400'
         )}
-        title={`${birdLevel.description} - ${activeReferrals} active referrals`}
+        title={`${actualBirdLevel.description} - ${activeReferrals} active referrals, ${userPoints} points`}
       >
         {icon}
         {showName && (
@@ -169,12 +181,12 @@ export const EnhancedBirdBadge: React.FC<EnhancedBirdBadgeProps> = ({
             'ml-1 font-semibold',
             shouldAnimate && 'group-hover:animate-pulse'
           )}>
-            {birdLevel.name}
+            {actualBirdLevel.name}
           </span>
         )}
         
         {/* Referral count for higher levels */}
-        {(birdLevel.icon === 'eagle' || birdLevel.icon === 'falcon') && size !== 'sm' && (
+        {(actualBirdLevel.icon === 'eagle' || actualBirdLevel.icon === 'falcon') && size !== 'sm' && (
           <span className="ml-1 text-xs opacity-75">
             {activeReferrals}
           </span>

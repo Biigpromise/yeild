@@ -143,17 +143,21 @@ export const userService = {
     const referrals = Math.max(0, activeReferrals || 0);
     const points = Math.max(0, userPoints || 0);
     
+    console.log('Calculating bird level for:', { referrals, points });
+    
     // Find the highest level the user qualifies for
     let qualifiedLevel = BIRD_LEVELS[0]; // Default to beginner
     
     for (const level of BIRD_LEVELS) {
       if (referrals >= level.minReferrals && points >= level.minPoints) {
         qualifiedLevel = level;
+        console.log('User qualifies for level:', level.name);
       } else {
         break; // Levels are ordered, so we can break here
       }
     }
     
+    console.log('Final bird level:', qualifiedLevel.name);
     return qualifiedLevel;
   },
 
@@ -164,6 +168,8 @@ export const userService = {
 
   async getUserProfile(userId: string) {
     try {
+      console.log('Fetching user profile for ID:', userId);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -175,6 +181,7 @@ export const userService = {
         return null;
       }
 
+      console.log('User profile fetched successfully:', data);
       return data;
     } catch (error) {
       console.error('Error in getUserProfile:', error);
@@ -226,7 +233,9 @@ export const userService = {
           following_count: 0,
           level: 1,
           points: 0,
-          tasks_completed: 0
+          tasks_completed: 0,
+          active_referrals_count: 0,
+          total_referrals_count: 0
         };
       }
 
@@ -240,7 +249,9 @@ export const userService = {
         following_count: data.following_count || 0,
         level: data.level || 1,
         points: data.points || 0,
-        tasks_completed: data.tasks_completed || 0
+        tasks_completed: data.tasks_completed || 0,
+        active_referrals_count: data.active_referrals_count || 0,
+        total_referrals_count: data.total_referrals_count || 0
       };
     } catch (error) {
       console.error('Error in getUserProfileById:', error);
