@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ReferralBirdLevel {
@@ -34,6 +33,9 @@ export interface UserStats {
   tasksCompleted: number;
   tasks_completed: number;
   currentStreak: number;
+  longestStreak: number;
+  referrals_made?: number;
+  achievements_earned?: number;
 }
 
 export interface UserReferral {
@@ -226,7 +228,10 @@ export const userService = {
         points: data?.points || 0,
         tasksCompleted: data?.tasks_completed || 0,
         tasks_completed: data?.tasks_completed || 0,
-        currentStreak: streakData?.current_streak || 0
+        currentStreak: streakData?.current_streak || 0,
+        longestStreak: streakData?.current_streak || 0,
+        referrals_made: data?.total_referrals_count || 0,
+        achievements_earned: data?.achievements_earned || 0
       };
     } catch (error) {
       console.error('Error getting user stats:', error);
@@ -235,7 +240,10 @@ export const userService = {
         points: 0,
         tasksCompleted: 0,
         tasks_completed: 0,
-        currentStreak: 0
+        currentStreak: 0,
+        longestStreak: 0,
+        referrals_made: 0,
+        achievements_earned: 0
       };
     }
   },

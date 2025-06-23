@@ -301,6 +301,7 @@ const Profile = () => {
                 points: userData.points,
                 currentStreak: userData.currentStreak,
                 longestStreak: userData.longestStreak,
+                tasks_completed: userData.tasksCompleted,
                 referrals_made: 0,
                 achievements_earned: 0
               }}
