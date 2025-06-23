@@ -54,7 +54,7 @@ export const fileUploadService = {
     }
   },
 
-  async uploadProfilePicture(file: File, userId: string): Promise<string | null> {
+  async uploadProfilePicture(file: File, userId: string): Promise<{ url: string } | null> {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${userId}.${fileExt}`;
@@ -73,10 +73,28 @@ export const fileUploadService = {
         .from('stories')
         .getPublicUrl(filePath);
 
-      return data.publicUrl;
+      return { url: data.publicUrl };
     } catch (error) {
       console.error('Error in uploadProfilePicture:', error);
       return null;
+    }
+  },
+
+  async deleteProfilePicture(filePath: string): Promise<boolean> {
+    try {
+      const { error } = await supabase.storage
+        .from('stories')
+        .remove([filePath]);
+
+      if (error) {
+        console.error('Error deleting profile picture:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error in deleteProfilePicture:', error);
+      return false;
     }
   },
 

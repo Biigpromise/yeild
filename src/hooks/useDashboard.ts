@@ -20,6 +20,8 @@ export const useDashboard = () => {
   });
   const [userTasks, setUserTasks] = useState<any[]>([]);
   const [userSubmissions, setUserSubmissions] = useState<any[]>([]);
+  const [completedTasks, setCompletedTasks] = useState<any[]>([]);
+  const [totalPointsEarned, setTotalPointsEarned] = useState(0);
   const [withdrawalStats, setWithdrawalStats] = useState({
     pendingWithdrawals: 0,
     completedWithdrawals: 0
@@ -55,6 +57,7 @@ export const useDashboard = () => {
             followers: profile.followers_count || 0,
             following: profile.following_count || 0,
           }));
+          setTotalPointsEarned(profile.points || 0);
         }
       } catch (profileError) {
         console.error('Profile fetch exception:', profileError);
@@ -76,14 +79,19 @@ export const useDashboard = () => {
 
         if (submissionsData.status === 'fulfilled') {
           setUserSubmissions(submissionsData.value || []);
+          // Filter completed tasks from submissions
+          const completed = (submissionsData.value || []).filter((sub: any) => sub.status === 'approved');
+          setCompletedTasks(completed);
         } else {
           console.error('Failed to load user submissions:', submissionsData.reason);
           setUserSubmissions([]);
+          setCompletedTasks([]);
         }
       } catch (taskError) {
         console.error('Tasks fetch exception:', taskError);
         setUserTasks([]);
         setUserSubmissions([]);
+        setCompletedTasks([]);
       }
 
       // Load withdrawal data with better error handling
@@ -136,6 +144,8 @@ export const useDashboard = () => {
     userStats,
     userTasks,
     userSubmissions,
+    completedTasks,
+    totalPointsEarned,
     withdrawalStats,
     loading,
     loadUserData

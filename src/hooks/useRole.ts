@@ -44,6 +44,9 @@ export const useRole = (requiredRole?: string) => {
   const isModerator = () => hasRole('moderator');
   const isUser = () => hasRole('user');
 
+  // Add role property for backward compatibility
+  const role = userRoles.length > 0 ? userRoles[0] : 'user';
+
   return {
     userRoles,
     hasRequiredRole,
@@ -51,6 +54,7 @@ export const useRole = (requiredRole?: string) => {
     isAdmin,
     isModerator,
     isUser,
-    loading
+    loading,
+    role
   };
 };

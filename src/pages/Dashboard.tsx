@@ -33,6 +33,7 @@ const Dashboard = () => {
     loading,
     completedTasks,
     totalPointsEarned,
+    withdrawalStats,
     loadUserData
   } = useDashboard();
 
@@ -53,7 +54,24 @@ const Dashboard = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case "tasks":
-        return <TasksTab />;
+        return (
+          <TasksTab 
+            searchQuery=""
+            onSearchChange={() => {}}
+            selectedCategory="all"
+            onCategoryChange={() => {}}
+            sortBy="newest"
+            onSortChange={() => {}}
+            showCompleted={false}
+            onShowCompletedChange={() => {}}
+            userStats={userStats}
+            onTaskComplete={loadUserData}
+            availableTasks={[]}
+            userTasks={[]}
+            loading={false}
+            onTaskSubmit={() => {}}
+          />
+        );
       case "stories":
         return <StoriesTab />;
       case "profile":
@@ -72,9 +90,23 @@ const Dashboard = () => {
       case "leaderboard":
         return <LeaderboardTab />;
       case "wallet":
-        return <WalletTab />;
+        return (
+          <WalletTab 
+            loading={false}
+            userPoints={userStats.points}
+            totalEarned={totalPointsEarned}
+            pendingWithdrawals={withdrawalStats.pendingWithdrawals}
+            completedWithdrawals={withdrawalStats.completedWithdrawals}
+            onRefresh={loadUserData}
+          />
+        );
       case "rewards":
-        return <RewardsTab />;
+        return (
+          <RewardsTab 
+            userPoints={userStats.points}
+            onRedemption={loadUserData}
+          />
+        );
       case "history":
         return (
           <HistoryTab
@@ -90,7 +122,24 @@ const Dashboard = () => {
       case "support":
         return <SupportTab />;
       default:
-        return <TasksTab />;
+        return (
+          <TasksTab 
+            searchQuery=""
+            onSearchChange={() => {}}
+            selectedCategory="all"
+            onCategoryChange={() => {}}
+            sortBy="newest"
+            onSortChange={() => {}}
+            showCompleted={false}
+            onShowCompletedChange={() => {}}
+            userStats={userStats}
+            onTaskComplete={loadUserData}
+            availableTasks={[]}
+            userTasks={[]}
+            loading={false}
+            onTaskSubmit={() => {}}
+          />
+        );
     }
   };
 
@@ -99,13 +148,10 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <DashboardHeader
           user={userProfile}
-          points={userStats.points}
-          level={userStats.level}
         />
 
         <DashboardStats
           userStats={userStats}
-          userProfile={userProfile}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
