@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,50 +32,20 @@ export const Leaderboard = () => {
       
       console.log('Loading leaderboard data...');
       
-      // First, let's check if we can access profiles at all
-      const { data: currentUser } = await supabase.auth.getUser();
-      console.log('Current user:', currentUser?.user?.id);
-      
-      // Try to fetch leaderboard data with better error handling
-      const { data, error, count } = await supabase
+      // Try to fetch leaderboard data
+      const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, points, level, tasks_completed, profile_picture_url', { count: 'exact' })
+        .select('id, name, points, level, tasks_completed, profile_picture_url')
         .not('name', 'is', null)
         .not('name', 'eq', '')
         .order('points', { ascending: false })
         .limit(50);
 
-      console.log('Leaderboard query result:', { data, error, count });
+      console.log('Leaderboard query result:', { data, error });
 
       if (error) {
         console.error('Error loading leaderboard:', error);
-        
-        // If we get a policy error, try a different approach
-        if (error.code === '42501' || error.message.includes('policy')) {
-          console.log('Trying alternative query without RLS restrictions...');
-          
-          // Try using a more permissive query
-          const { data: altData, error: altError } = await supabase
-            .rpc('get_leaderboard_data');
-            
-          if (altError) {
-            console.error('Alternative query also failed:', altError);
-            toast.error('Unable to load leaderboard data');
-            return;
-          }
-          
-          if (altData) {
-            const rankedData = altData.map((user: any, index: number) => ({
-              ...user,
-              rank: index + 1,
-              name: user.name || 'Anonymous User'
-            }));
-            setLeaderboard(rankedData);
-            return;
-          }
-        }
-        
-        toast.error('Failed to load leaderboard');
+        toast.error('Failed to load leaderboard. Please try again later.');
         return;
       }
 
