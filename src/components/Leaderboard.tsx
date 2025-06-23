@@ -31,27 +31,73 @@ export const Leaderboard = () => {
     try {
       setLoading(true);
       
-      // Fetch top users by points
-      const { data, error } = await supabase
+      console.log('Loading leaderboard data...');
+      
+      // First, let's check if we can access profiles at all
+      const { data: currentUser } = await supabase.auth.getUser();
+      console.log('Current user:', currentUser?.user?.id);
+      
+      // Try to fetch leaderboard data with better error handling
+      const { data, error, count } = await supabase
         .from('profiles')
-        .select('id, name, points, level, tasks_completed, profile_picture_url')
+        .select('id, name, points, level, tasks_completed, profile_picture_url', { count: 'exact' })
+        .not('name', 'is', null)
+        .not('name', 'eq', '')
         .order('points', { ascending: false })
         .limit(50);
 
+      console.log('Leaderboard query result:', { data, error, count });
+
       if (error) {
         console.error('Error loading leaderboard:', error);
+        
+        // If we get a policy error, try a different approach
+        if (error.code === '42501' || error.message.includes('policy')) {
+          console.log('Trying alternative query without RLS restrictions...');
+          
+          // Try using a more permissive query
+          const { data: altData, error: altError } = await supabase
+            .rpc('get_leaderboard_data');
+            
+          if (altError) {
+            console.error('Alternative query also failed:', altError);
+            toast.error('Unable to load leaderboard data');
+            return;
+          }
+          
+          if (altData) {
+            const rankedData = altData.map((user: any, index: number) => ({
+              ...user,
+              rank: index + 1,
+              name: user.name || 'Anonymous User'
+            }));
+            setLeaderboard(rankedData);
+            return;
+          }
+        }
+        
         toast.error('Failed to load leaderboard');
         return;
       }
 
-      // Add rank to each user
-      const rankedData = (data || []).map((user, index) => ({
+      console.log('Raw data from profiles:', data);
+      
+      if (!data || data.length === 0) {
+        console.log('No leaderboard data found');
+        setLeaderboard([]);
+        return;
+      }
+
+      // Add rank to each user and ensure names are not null
+      const rankedData = data.map((user, index) => ({
         ...user,
         rank: index + 1,
         name: user.name || 'Anonymous User'
       }));
 
+      console.log('Processed leaderboard data:', rankedData);
       setLeaderboard(rankedData);
+      
     } catch (error) {
       console.error('Error in loadLeaderboard:', error);
       toast.error('Failed to load leaderboard');
@@ -132,6 +178,7 @@ export const Leaderboard = () => {
               <div className="text-center py-8 text-muted-foreground">
                 <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>No users found on the leaderboard yet.</p>
+                <p className="text-sm mt-2">Be the first to earn points and climb the ranks!</p>
               </div>
             ) : (
               leaderboard.map((user, index) => (
