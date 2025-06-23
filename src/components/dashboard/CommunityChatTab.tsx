@@ -109,6 +109,9 @@ export const CommunityChatTab = () => {
     }
     setMediaFile(null);
     setMediaPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -231,7 +234,7 @@ export const CommunityChatTab = () => {
                         onClick={() => handleUserClick(message.user_id)}
                         className="font-medium text-sm text-white hover:text-blue-400 transition-colors"
                       >
-                        {message.profiles?.name || `User ${message.user_id.substring(0, 8)}`}
+                        {message.profiles?.name || 'Anonymous User'}
                       </button>
                       <span className="text-xs text-gray-400">
                         {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
