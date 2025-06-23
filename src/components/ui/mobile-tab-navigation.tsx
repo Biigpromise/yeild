@@ -44,7 +44,7 @@ export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
   const secondaryTabs = tabs.slice(4);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 z-50">
+    <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 z-50 safe-area-bottom">
       {/* Primary navigation */}
       <div className="flex justify-around items-center py-2">
         {primaryTabs.map((tab) => {

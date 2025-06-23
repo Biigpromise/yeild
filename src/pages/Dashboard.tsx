@@ -168,7 +168,10 @@ const Dashboard = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-9">
-            {renderTabContent()}
+            {/* Add bottom padding on mobile to prevent content from being hidden behind the fixed navigation */}
+            <div className="pb-32 lg:pb-0">
+              {renderTabContent()}
+            </div>
           </div>
         </div>
 
