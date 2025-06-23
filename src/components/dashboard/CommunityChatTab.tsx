@@ -68,22 +68,28 @@ export const CommunityChatTab = () => {
       
       console.log('Raw messages data:', data);
       
-      // Ensure all messages have proper profile data with better fallbacks
+      // Process messages with proper error handling for profile data
       const messagesWithProfiles = data?.map(message => {
         console.log('Processing message:', message.id, 'Profile data:', message.profiles);
         
-        // Ensure we have valid profile data
-        const profileData = message.profiles ? {
-          name: message.profiles.name && message.profiles.name.trim() !== '' 
-            ? message.profiles.name 
-            : 'User',
-          profile_picture_url: message.profiles.profile_picture_url || null,
-          is_anonymous: message.profiles.is_anonymous || false
-        } : {
-          name: 'User',
-          profile_picture_url: null,
-          is_anonymous: false
-        };
+        // Handle case where profiles might be an error or null
+        let profileData;
+        if (message.profiles && typeof message.profiles === 'object' && !('error' in message.profiles)) {
+          profileData = {
+            name: message.profiles.name && message.profiles.name.trim() !== '' 
+              ? message.profiles.name 
+              : 'User',
+            profile_picture_url: message.profiles.profile_picture_url || null,
+            is_anonymous: message.profiles.is_anonymous || false
+          };
+        } else {
+          // Fallback profile data if query failed or profile not found
+          profileData = {
+            name: 'User',
+            profile_picture_url: null,
+            is_anonymous: false
+          };
+        }
 
         return {
           ...message,

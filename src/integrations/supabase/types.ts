@@ -813,6 +813,7 @@ export type Database = {
           followers_count: number
           following_count: number
           id: string
+          is_anonymous: boolean
           last_active_at: string | null
           last_login_at: string | null
           level: number | null
@@ -837,6 +838,7 @@ export type Database = {
           followers_count?: number
           following_count?: number
           id: string
+          is_anonymous?: boolean
           last_active_at?: string | null
           last_login_at?: string | null
           level?: number | null
@@ -861,6 +863,7 @@ export type Database = {
           followers_count?: number
           following_count?: number
           id?: string
+          is_anonymous?: boolean
           last_active_at?: string | null
           last_login_at?: string | null
           level?: number | null
