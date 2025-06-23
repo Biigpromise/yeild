@@ -17,11 +17,19 @@ interface PostActionsProps {
 export const PostActions: React.FC<PostActionsProps> = ({ post, userId, onLike }) => {
   const hasLiked = post.post_likes?.some(like => like.user_id === userId);
 
+  console.log('PostActions rendering:', {
+    postId: post.id,
+    viewCount: post.view_count,
+    likesCount: post.likes_count,
+    hasLiked,
+    userId
+  });
+
   return (
     <div className="flex items-center gap-6 text-sm text-muted-foreground mb-3">
       <div className="flex items-center gap-1 hover:text-blue-500 transition-colors">
         <Eye className="h-4 w-4" />
-        <span>{post.view_count || 0}</span>
+        <span>{post.view_count || 0} views</span>
       </div>
       
       <PostReactions postId={post.id} userId={userId} />
@@ -33,7 +41,7 @@ export const PostActions: React.FC<PostActionsProps> = ({ post, userId, onLike }
         className={`p-0 h-auto hover:bg-transparent ${hasLiked ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'} transition-colors`}
       >
         <Heart className={`h-4 w-4 mr-1 ${hasLiked ? 'fill-current' : ''}`} />
-        <span>{post.likes_count || 0}</span>
+        <span>{post.likes_count || 0} likes</span>
       </Button>
     </div>
   );

@@ -54,7 +54,15 @@ export const usePosts = () => {
       // Ensure all posts have proper profile data and reaction counts
       const postsWithData = data?.map(post => ({
         ...post,
-        profiles: post.profiles || { name: 'User', profile_picture_url: null },
+        profiles: post.profiles ? {
+          id: post.profiles.id || post.user_id,
+          name: post.profiles.name || 'User',
+          profile_picture_url: post.profiles.profile_picture_url || null
+        } : {
+          id: post.user_id,
+          name: 'User',
+          profile_picture_url: null
+        },
         // Calculate reaction counts
         likes_from_reactions: post.post_reactions?.filter(r => r.reaction_type === 'like').length || 0,
         dislikes_from_reactions: post.post_reactions?.filter(r => r.reaction_type === 'dislike').length || 0
@@ -166,6 +174,7 @@ export const usePosts = () => {
         console.error('Error incrementing view count:', error);
         // Don't throw here as this shouldn't block the UI
       } else {
+        console.log('View count incremented for post:', postId);
         // Refresh posts to show updated view count
         await fetchPosts();
       }

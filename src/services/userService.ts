@@ -186,6 +186,11 @@ export const userService = {
     try {
       console.log('Fetching profile for user ID:', userId);
       
+      if (!userId) {
+        console.error('No user ID provided');
+        return null;
+      }
+      
       const { data, error } = await supabase
         .from('profiles')
         .select(`
@@ -204,11 +209,25 @@ export const userService = {
           total_referrals_count
         `)
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching user profile by ID:', error);
         return null;
+      }
+
+      if (!data) {
+        console.log('No profile found for user ID:', userId);
+        // Return a basic profile structure if no data found
+        return {
+          id: userId,
+          name: 'User',
+          followers_count: 0,
+          following_count: 0,
+          level: 1,
+          points: 0,
+          tasks_completed: 0
+        };
       }
 
       console.log('Profile data loaded:', data);

@@ -9,6 +9,7 @@ import { Post } from '@/types/post';
 interface PostHeaderProps {
   post: Post & {
     profiles?: {
+      id?: string;
       name?: string;
       profile_picture_url?: string;
     } | null;
@@ -27,6 +28,13 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
   // Ensure we have a display name
   const displayName = post.profiles?.name || 'User';
   const avatarUrl = post.profiles?.profile_picture_url;
+
+  console.log('PostHeader rendering:', {
+    postId: post.id,
+    profiles: post.profiles,
+    displayName,
+    userId: post.user_id
+  });
 
   return (
     <div className="flex items-center gap-2 mb-1 justify-between">

@@ -46,6 +46,7 @@ export const CommunityChatTab = () => {
 
   const loadMessages = async () => {
     try {
+      console.log('Loading messages...');
       const { data, error } = await supabase
         .from('messages')
         .select(`
@@ -61,12 +62,19 @@ export const CommunityChatTab = () => {
       if (error) throw error;
       console.log('Loaded messages:', data);
       
-      // Ensure all messages have proper profile data
+      // Ensure all messages have proper profile data with default fallbacks
       const messagesWithProfiles = data?.map(message => ({
         ...message,
-        profiles: message.profiles || { name: 'User', profile_picture_url: null }
+        profiles: message.profiles ? {
+          name: message.profiles.name || 'User',
+          profile_picture_url: message.profiles.profile_picture_url || null
+        } : {
+          name: 'User',
+          profile_picture_url: null
+        }
       })) || [];
       
+      console.log('Messages with profiles:', messagesWithProfiles);
       setMessages(messagesWithProfiles);
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -77,6 +85,7 @@ export const CommunityChatTab = () => {
 
   const handleUserClick = (userId: string) => {
     if (userId !== user?.id) {
+      console.log('Opening profile for user:', userId);
       setSelectedUserId(userId);
       setIsProfileModalOpen(true);
     }

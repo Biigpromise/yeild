@@ -32,6 +32,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   // Ensure we always have a display name, fallback to 'User' instead of 'Anonymous User'
   const displayName = message.profiles?.name || 'User';
   
+  console.log('ChatMessage rendering:', { 
+    messageId: message.id, 
+    profiles: message.profiles, 
+    displayName 
+  });
+  
   return (
     <div className="flex items-start gap-3">
       <div className="cursor-pointer flex-shrink-0" onClick={() => onUserClick(message.user_id)}>
