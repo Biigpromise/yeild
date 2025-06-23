@@ -9,6 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Send, Image, Users, MessageCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import { ProfileBirdBadge } from '@/components/referral/ProfileBirdBadge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Message {
   id: string;
@@ -170,7 +172,7 @@ export const CommunityChatTab = () => {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center h-screen bg-black">
+      <div className="min-h-screen flex items-center justify-center bg-black">
         <div className="text-center">
           <MessageCircle className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
           <p className="text-lg text-muted-foreground">Please log in to access community chat</p>
@@ -180,24 +182,25 @@ export const CommunityChatTab = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-black text-white">
-      <Card className="flex-1 flex flex-col bg-gray-900 border-gray-700">
-        <CardHeader className="border-b border-gray-700 bg-gray-800">
-          <CardTitle className="flex items-center justify-between text-white">
-            <div className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
-              Community Chat
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <Users className="h-4 w-4" />
-              <span>{activeUsers} active</span>
-            </div>
-          </CardTitle>
-        </CardHeader>
+    <div className="min-h-screen bg-black text-white flex flex-col">
+      {/* Header */}
+      <div className="flex-none bg-gray-800 border-b border-gray-700 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <MessageCircle className="h-6 w-6" />
+            <h1 className="text-xl font-bold">Community Chat</h1>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <Users className="h-4 w-4" />
+            <span>{activeUsers} active</span>
+          </div>
+        </div>
+      </div>
 
-        <CardContent className="flex-1 flex flex-col p-0 bg-gray-900">
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages Area */}
+      <div className="flex-1 min-h-0">
+        <ScrollArea className="h-full">
+          <div className="p-4 space-y-4 pb-4">
             {loading ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -211,24 +214,30 @@ export const CommunityChatTab = () => {
             ) : (
               messages.map((message) => (
                 <div key={message.id} className="flex items-start gap-3">
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="h-10 w-10 flex-shrink-0">
                     <AvatarImage src={message.profiles?.profile_picture_url} />
                     <AvatarFallback className="bg-gray-700 text-white">
                       {message.profiles?.name?.charAt(0)?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="font-medium text-sm text-white">
                         {message.profiles?.name || `User ${message.user_id.substring(0, 8)}`}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <ProfileBirdBadge 
+                        userId={message.user_id} 
+                        size="sm" 
+                        showName={false}
+                        className="flex-shrink-0"
+                      />
+                      <span className="text-xs text-gray-400 flex-shrink-0">
                         {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
                       </span>
                     </div>
-                    <div className="bg-gray-800 rounded-lg p-3">
+                    <div className="bg-gray-800 rounded-lg p-3 break-words">
                       {message.content && (
-                        <p className="text-sm break-words text-gray-200">{message.content}</p>
+                        <p className="text-sm text-gray-200 break-words whitespace-pre-wrap">{message.content}</p>
                       )}
                       {message.media_url && (
                         <div className="mt-2">
@@ -236,7 +245,7 @@ export const CommunityChatTab = () => {
                             <video
                               src={message.media_url}
                               controls
-                              className="max-w-full max-h-48 rounded border"
+                              className="max-w-full max-h-48 rounded border object-cover"
                             />
                           ) : (
                             <img
@@ -254,91 +263,91 @@ export const CommunityChatTab = () => {
             )}
             <div ref={messagesEndRef} />
           </div>
+        </ScrollArea>
+      </div>
 
-          {/* Input Area */}
-          <div className="border-t border-gray-700 p-4 bg-gray-900">
-            {mediaPreview && (
-              <div className="mb-3 relative inline-block">
-                {mediaFile?.type.startsWith('image/') ? (
-                  <img
-                    src={mediaPreview}
-                    alt="Preview"
-                    className="max-w-32 max-h-32 rounded border"
-                  />
-                ) : (
-                  <video
-                    src={mediaPreview}
-                    className="max-w-32 max-h-32 rounded border"
-                    preload="metadata"
-                  />
-                )}
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
-                  onClick={removeMedia}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            )}
-
-            <form onSubmit={handleSendMessage} className="flex gap-2">
-              <Textarea
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type your message..."
-                disabled={sending}
-                maxLength={500}
-                className="min-h-[60px] resize-none flex-1 bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage(e);
-                  }
-                }}
+      {/* Input Area */}
+      <div className="flex-none border-t border-gray-700 p-4 bg-gray-900">
+        {mediaPreview && (
+          <div className="mb-3 relative inline-block">
+            {mediaFile?.type.startsWith('image/') ? (
+              <img
+                src={mediaPreview}
+                alt="Preview"
+                className="max-w-32 max-h-32 rounded border"
               />
-              
-              <div className="flex flex-col gap-2">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,video/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={sending}
-                  className="border-gray-600 text-white hover:bg-gray-700"
-                >
-                  <Image className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={(!newMessage.trim() && !mediaFile) || sending}
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {sending ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </form>
-            
-            <div className="text-xs text-gray-400 mt-2">
-              {newMessage.length}/500 characters • Press Enter to send, Shift+Enter for new line
-            </div>
+            ) : (
+              <video
+                src={mediaPreview}
+                className="max-w-32 max-h-32 rounded border"
+                preload="metadata"
+              />
+            )}
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+              onClick={removeMedia}
+            >
+              <X className="h-3 w-3" />
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        )}
+
+        <form onSubmit={handleSendMessage} className="flex gap-2">
+          <Textarea
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Type your message..."
+            disabled={sending}
+            maxLength={500}
+            className="min-h-[60px] max-h-[120px] resize-none flex-1 bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage(e);
+              }
+            }}
+          />
+          
+          <div className="flex flex-col gap-2 flex-shrink-0">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={sending}
+              className="border-gray-600 text-white hover:bg-gray-700 w-10 h-10 p-0"
+            >
+              <Image className="h-4 w-4" />
+            </Button>
+            <Button
+              type="submit"
+              disabled={(!newMessage.trim() && !mediaFile) || sending}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 w-10 h-10 p-0"
+            >
+              {sending ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </form>
+        
+        <div className="text-xs text-gray-400 mt-2">
+          {newMessage.length}/500 characters • Press Enter to send, Shift+Enter for new line
+        </div>
+      </div>
     </div>
   );
 };
