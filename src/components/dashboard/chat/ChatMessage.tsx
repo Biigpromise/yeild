@@ -29,13 +29,15 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   onUserClick,
   onMediaClick
 }) => {
+  const displayName = message.profiles?.name || 'Anonymous User';
+  
   return (
     <div className="flex items-start gap-3">
       <div className="cursor-pointer flex-shrink-0" onClick={() => onUserClick(message.user_id)}>
         <Avatar className="h-8 w-8">
           <AvatarImage src={message.profiles?.profile_picture_url} />
           <AvatarFallback className="bg-gray-700 text-white text-sm">
-            {message.profiles?.name?.charAt(0)?.toUpperCase() || 'U'}
+            {displayName.charAt(0)?.toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
       </div>
@@ -45,7 +47,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             onClick={() => onUserClick(message.user_id)}
             className="font-medium text-sm text-white hover:text-blue-400 transition-colors"
           >
-            {message.profiles?.name || 'Anonymous User'}
+            {displayName}
           </button>
           <span className="text-xs text-gray-400">
             {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}

@@ -36,6 +36,10 @@ export const PostFeed: React.FC = () => {
     setRefreshing(false);
   };
 
+  const handlePostDeleted = () => {
+    refreshPosts();
+  };
+
   return (
     <div className="flex flex-col h-full bg-background">
       <div className="sticky top-0 z-10 p-4 bg-background/80 backdrop-blur-md border-b flex items-center justify-between">
@@ -72,6 +76,7 @@ export const PostFeed: React.FC = () => {
                 onLike={handleLikePost}
                 onView={incrementViewCount}
                 onProfileClick={openProfile}
+                onPostDeleted={handlePostDeleted}
               />
             ))}
             {posts.length === 0 && !loading && (
