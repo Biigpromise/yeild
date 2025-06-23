@@ -1788,6 +1788,17 @@ export type Database = {
           tasks_completed: number
         }[]
       }
+      get_leaderboard_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          points: number
+          level: number
+          tasks_completed: number
+          profile_picture_url: string
+        }[]
+      }
       get_user_role_for_policy: {
         Args: { user_id: string }
         Returns: string

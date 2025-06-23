@@ -30,26 +30,21 @@ export const Leaderboard = () => {
     try {
       setLoading(true);
       
-      console.log('Loading leaderboard data...');
+      console.log('Loading leaderboard data using RPC function...');
       
-      // Try to fetch leaderboard data
+      // Use the new database function that bypasses RLS
       const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name, points, level, tasks_completed, profile_picture_url')
-        .not('name', 'is', null)
-        .not('name', 'eq', '')
-        .order('points', { ascending: false })
-        .limit(50);
+        .rpc('get_leaderboard_data');
 
-      console.log('Leaderboard query result:', { data, error });
+      console.log('Leaderboard RPC result:', { data, error });
 
       if (error) {
-        console.error('Error loading leaderboard:', error);
+        console.error('Error loading leaderboard via RPC:', error);
         toast.error('Failed to load leaderboard. Please try again later.');
         return;
       }
 
-      console.log('Raw data from profiles:', data);
+      console.log('Raw data from RPC function:', data);
       
       if (!data || data.length === 0) {
         console.log('No leaderboard data found');
@@ -57,11 +52,10 @@ export const Leaderboard = () => {
         return;
       }
 
-      // Add rank to each user and ensure names are not null
-      const rankedData = data.map((user, index) => ({
+      // Add rank to each user
+      const rankedData = data.map((user: any, index: number) => ({
         ...user,
-        rank: index + 1,
-        name: user.name || 'Anonymous User'
+        rank: index + 1
       }));
 
       console.log('Processed leaderboard data:', rankedData);
