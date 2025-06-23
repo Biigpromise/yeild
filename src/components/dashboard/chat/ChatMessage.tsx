@@ -13,7 +13,7 @@ interface Message {
   profiles: {
     name: string;
     profile_picture_url?: string;
-  };
+  } | null;
 }
 
 interface ChatMessageProps {
@@ -29,7 +29,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   onUserClick,
   onMediaClick
 }) => {
-  const displayName = message.profiles?.name || 'Anonymous User';
+  // Ensure we always have a display name, fallback to 'User' instead of 'Anonymous User'
+  const displayName = message.profiles?.name || 'User';
   
   return (
     <div className="flex items-start gap-3">

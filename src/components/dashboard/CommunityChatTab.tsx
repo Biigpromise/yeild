@@ -20,7 +20,7 @@ interface Message {
   profiles: {
     name: string;
     profile_picture_url?: string;
-  };
+  } | null;
 }
 
 export const CommunityChatTab = () => {
@@ -60,7 +60,14 @@ export const CommunityChatTab = () => {
 
       if (error) throw error;
       console.log('Loaded messages:', data);
-      setMessages(data || []);
+      
+      // Ensure all messages have proper profile data
+      const messagesWithProfiles = data?.map(message => ({
+        ...message,
+        profiles: message.profiles || { name: 'User', profile_picture_url: null }
+      })) || [];
+      
+      setMessages(messagesWithProfiles);
     } catch (error) {
       console.error('Error loading messages:', error);
     } finally {

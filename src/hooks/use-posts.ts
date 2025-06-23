@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Post } from '@/types/post';
@@ -141,12 +142,16 @@ export const usePosts = () => {
     if (!userId) return;
     
     try {
+      // Use the updated function that takes user_id parameter to prevent duplicate views
       const { error } = await supabase.rpc('increment_post_view', {
         post_id_to_inc: postId,
         user_id_param: userId
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error incrementing view count:', error);
+        // Don't throw here as this shouldn't block the UI
+      }
     } catch (error) {
       console.error('Error incrementing view count:', error);
     }
