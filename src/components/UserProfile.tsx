@@ -140,6 +140,12 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
       {/* Profile Header */}
       <Card className="bg-gray-900 border-gray-700">
         <ProfileHeader
+          user={user}
+          isOwnProfile={true}
+          isUploadingAvatar={isUploadingAvatar}
+          onAvatarUpload={() => {}}
+          onRemoveAvatar={handleRemoveAvatar}
+          onFileSelect={handleFileSelect}
           isEditing={isEditing}
           onEditClick={() => setIsEditing(true)}
           onSave={handleSave}

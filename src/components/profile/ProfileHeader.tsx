@@ -47,10 +47,10 @@ export const ProfileHeader = ({
   // If no user prop is passed, this is likely being used in a different context
   if (!user) {
     return (
-      <Card>
+      <Card className="bg-gray-900 border-gray-700">
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex-1">
-            <h2 className="text-lg font-semibold">Profile</h2>
+            <h2 className="text-lg font-semibold text-white">Profile</h2>
           </div>
           {isOwnProfile && (
             <div className="flex gap-2">
@@ -79,7 +79,7 @@ export const ProfileHeader = ({
   }
 
   return (
-    <Card>
+    <Card className="bg-gray-900 border-gray-700">
       <CardContent className="pt-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
           <ProfileAvatar
@@ -93,18 +93,18 @@ export const ProfileHeader = ({
           <div className="flex-1 space-y-3">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold">{user.name}</h1>
+                <h1 className="text-2xl font-bold text-white">{user.name}</h1>
                 {user.id && (
                   <ProfileBirdBadge userId={user.id} size="lg" showName />
                 )}
               </div>
-              <p className="text-muted-foreground">{user.email}</p>
+              <p className="text-gray-300">{user.email}</p>
               {user.bio && (
-                <p className="text-sm mt-2">{user.bio}</p>
+                <p className="text-sm mt-2 text-gray-300">{user.bio}</p>
               )}
             </div>
 
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-400">
               {user.joinDate && (
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
@@ -112,14 +112,14 @@ export const ProfileHeader = ({
                 </div>
               )}
               <div className="flex items-center gap-4">
-                <span><strong>{user.followers_count || 0}</strong> followers</span>
-                <span><strong>{user.following_count || 0}</strong> following</span>
+                <span className="text-gray-300"><strong>{user.followers_count || 0}</strong> followers</span>
+                <span className="text-gray-300"><strong>{user.following_count || 0}</strong> following</span>
               </div>
             </div>
 
             <div className="flex gap-2">
-              <Badge variant="secondary">Level {user.level}</Badge>
-              <Badge variant="outline">{user.points} points</Badge>
+              <Badge variant="secondary" className="bg-gray-700 text-white">Level {user.level}</Badge>
+              <Badge variant="outline" className="border-gray-600 text-gray-300">{user.points} points</Badge>
             </div>
           </div>
         </div>
