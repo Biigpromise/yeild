@@ -101,7 +101,6 @@ export const useCommunityChat = () => {
         
         if (!mediaUrl) {
           toast.error('Failed to upload file');
-          setSending(false);
           return;
         }
       }
@@ -113,6 +112,7 @@ export const useCommunityChat = () => {
         console.log('Message sent successfully');
         setNewMessage('');
         removeFile();
+        // Immediate reload to show the new message
         await loadMessages();
         toast.success('Message sent!');
       } else {

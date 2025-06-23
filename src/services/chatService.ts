@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { RealtimeChannel } from "@supabase/supabase-js";
@@ -43,7 +44,7 @@ export const chatService = {
     // Transform the data to ensure proper typing and handle null profiles
     const transformedData = data?.map(message => ({
       ...message,
-      profiles: message.profiles || { name: null, profile_picture_url: undefined, tasks_completed: 0 }
+      profiles: message.profiles || { name: 'Anonymous User', profile_picture_url: undefined, tasks_completed: 0 }
     })) || [];
     
     console.log('Transformed messages:', transformedData);
@@ -54,19 +55,26 @@ export const chatService = {
     try {
       console.log('Sending message:', { content, userId, mediaUrl });
       
-      const { error } = await supabase
+      const messageData = {
+        content: content || '', 
+        user_id: userId,
+        media_url: mediaUrl || null
+      };
+      
+      console.log('Message data to insert:', messageData);
+      
+      const { data, error } = await supabase
         .from('messages')
-        .insert({ 
-          content: content || '', 
-          user_id: userId,
-          media_url: mediaUrl || null
-        });
+        .insert(messageData)
+        .select();
 
       if (error) {
         console.error("Error sending message:", error);
         toast.error("Failed to send message.");
         return false;
       }
+      
+      console.log('Message sent successfully:', data);
       return true;
     } catch (error) {
       console.error("Error in sendMessage:", error);
@@ -107,6 +115,8 @@ export const chatService = {
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
+      console.log('Uploading file:', { fileName, filePath, fileSize: file.size });
+
       const { error: uploadError } = await supabase.storage
         .from('chat-media')
         .upload(filePath, file, {
@@ -123,6 +133,7 @@ export const chatService = {
         .from('chat-media')
         .getPublicUrl(filePath);
 
+      console.log('File uploaded successfully:', publicUrl);
       return publicUrl;
     } catch (error: any) {
       console.error('Error uploading media:', error);
@@ -167,7 +178,7 @@ export const chatService = {
       // Transform to ensure proper typing
       const transformedData = {
         ...data,
-        profiles: data.profiles || { name: null, profile_picture_url: undefined, tasks_completed: 0 }
+        profiles: data.profiles || { name: 'Anonymous User', profile_picture_url: undefined, tasks_completed: 0 }
       };
       
       return transformedData as Message;

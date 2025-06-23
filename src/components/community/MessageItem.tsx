@@ -29,7 +29,16 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   currentUserId,
   onDelete
 }) => {
-  const displayName = message.profiles?.name || 'Anonymous User';
+  // Fallback to Anonymous User if name is null, undefined, or empty
+  const displayName = message.profiles?.name && message.profiles.name.trim() !== '' 
+    ? message.profiles.name 
+    : 'Anonymous User';
+  
+  console.log('MessageItem rendering:', { 
+    messageId: message.id, 
+    profilesData: message.profiles, 
+    displayName 
+  });
   
   return (
     <div className="flex items-start space-x-3 group">
