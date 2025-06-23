@@ -29,22 +29,26 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   onUserClick,
   onMediaClick
 }) => {
-  // Ensure we always have a display name, fallback to 'User' instead of 'Anonymous User'
-  const displayName = message.profiles?.name || 'User';
+  // Use the actual name from profiles, with proper fallback
+  const displayName = message.profiles?.name || 'Anonymous User';
   
   console.log('ChatMessage rendering:', { 
     messageId: message.id, 
     profiles: message.profiles, 
-    displayName 
+    displayName,
+    userId: message.user_id
   });
   
   return (
     <div className="flex items-start gap-3">
       <div className="cursor-pointer flex-shrink-0" onClick={() => onUserClick(message.user_id)}>
         <Avatar className="h-8 w-8">
-          <AvatarImage src={message.profiles?.profile_picture_url} />
+          <AvatarImage 
+            src={message.profiles?.profile_picture_url || undefined} 
+            alt={displayName}
+          />
           <AvatarFallback className="bg-gray-700 text-white text-sm">
-            {displayName.charAt(0)?.toUpperCase() || 'U'}
+            {displayName.charAt(0)?.toUpperCase() || 'A'}
           </AvatarFallback>
         </Avatar>
       </div>

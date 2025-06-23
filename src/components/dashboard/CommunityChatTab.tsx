@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -51,7 +50,7 @@ export const CommunityChatTab = () => {
         .from('messages')
         .select(`
           *,
-          profiles (
+          profiles!messages_user_id_fkey (
             name,
             profile_picture_url
           )
@@ -59,25 +58,27 @@ export const CommunityChatTab = () => {
         .order('created_at', { ascending: true })
         .limit(50);
 
-      if (error) throw error;
-      console.log('Loaded messages:', data);
+      if (error) {
+        console.error('Error loading messages:', error);
+        throw error;
+      }
       
-      // Ensure all messages have proper profile data with default fallbacks
-      const messagesWithProfiles = data?.map(message => ({
-        ...message,
-        profiles: message.profiles ? {
-          name: message.profiles.name || 'User',
-          profile_picture_url: message.profiles.profile_picture_url || null
-        } : {
-          name: 'User',
-          profile_picture_url: null
-        }
-      })) || [];
+      console.log('Raw messages data:', data);
       
-      console.log('Messages with profiles:', messagesWithProfiles);
+      // Ensure all messages have proper profile data
+      const messagesWithProfiles = data?.map(message => {
+        console.log('Processing message:', message.id, 'Profile data:', message.profiles);
+        return {
+          ...message,
+          profiles: message.profiles || null
+        };
+      }) || [];
+      
+      console.log('Final processed messages:', messagesWithProfiles);
       setMessages(messagesWithProfiles);
     } catch (error) {
       console.error('Error loading messages:', error);
+      toast.error('Failed to load messages');
     } finally {
       setLoading(false);
     }
