@@ -78,9 +78,8 @@ export const PostReactions: React.FC<PostReactionsProps> = ({ postId, userId }) 
       if (userId) {
         const userReactionData = data?.find(r => r.user_id === userId);
         setUserReaction(userReactionData?.reaction_type as 'like' | 'dislike' || null);
+        console.log('Reactions loaded:', { likes, dislikes, userReaction: userReactionData?.reaction_type });
       }
-
-      console.log('Reactions loaded:', { likes, dislikes, userReaction: userReactionData?.reaction_type });
     } catch (error) {
       console.error('Error loading reactions:', error);
     }
