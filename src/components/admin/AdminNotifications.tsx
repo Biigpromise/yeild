@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bell, Send, Users, UserCheck, History } from "lucide-react";
+import { Bell, Send, Users, UserCheck, History, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { notificationService } from "@/services/admin/notificationService";
 import { realAdminUserService } from "@/services/admin/realAdminUserService";
@@ -22,6 +23,7 @@ export const AdminNotifications = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [lastSentNotification, setLastSentNotification] = useState<string | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -79,7 +81,8 @@ export const AdminNotifications = () => {
       });
 
       if (success) {
-        toast.success("Notification sent successfully!");
+        // Set success state
+        setLastSentNotification(`"${title}" sent successfully!`);
         
         // Reset form
         setTitle("");
@@ -90,6 +93,11 @@ export const AdminNotifications = () => {
         
         // Reload notifications
         await loadNotifications();
+        
+        // Clear success message after 5 seconds
+        setTimeout(() => {
+          setLastSentNotification(null);
+        }, 5000);
       }
     } catch (error) {
       console.error("Error sending notification:", error);
@@ -111,6 +119,18 @@ export const AdminNotifications = () => {
 
   return (
     <div className="space-y-6">
+      {/* Success Banner */}
+      {lastSentNotification && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-green-800">
+              <CheckCircle className="h-5 w-5" />
+              <span className="font-medium">{lastSentNotification}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>

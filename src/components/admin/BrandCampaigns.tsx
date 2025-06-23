@@ -1,0 +1,229 @@
+
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { 
+  Plus, 
+  Search, 
+  Calendar, 
+  Target, 
+  DollarSign, 
+  Users,
+  TrendingUp,
+  Eye
+} from "lucide-react";
+
+export const BrandCampaigns = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Mock data for campaigns
+  const campaigns = [
+    {
+      id: "1",
+      name: "Summer Product Launch",
+      brand: "TechCorp",
+      status: "active",
+      budget: 5000,
+      spent: 3200,
+      impressions: 45000,
+      clicks: 1200,
+      conversions: 48,
+      startDate: "2024-06-01",
+      endDate: "2024-07-31"
+    },
+    {
+      id: "2",
+      name: "Brand Awareness Drive",
+      brand: "FashionHub",
+      status: "paused",
+      budget: 3000,
+      spent: 1800,
+      impressions: 28000,
+      clicks: 850,
+      conversions: 32,
+      startDate: "2024-05-15",
+      endDate: "2024-06-30"
+    },
+    {
+      id: "3",
+      name: "Holiday Special Promo",
+      brand: "GadgetStore",
+      status: "completed",
+      budget: 8000,
+      spent: 7800,
+      impressions: 95000,
+      clicks: 2400,
+      conversions: 125,
+      startDate: "2024-04-01",
+      endDate: "2024-05-01"
+    }
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'paused': return 'bg-yellow-100 text-yellow-800';
+      case 'completed': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const filteredCampaigns = campaigns.filter(campaign =>
+    campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    campaign.brand.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Brand Campaigns</h2>
+          <p className="text-muted-foreground">Manage and monitor brand advertising campaigns</p>
+        </div>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Create Campaign
+        </Button>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-blue-500" />
+              <div>
+                <p className="text-2xl font-bold">{campaigns.length}</p>
+                <p className="text-sm text-muted-foreground">Total Campaigns</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-green-500" />
+              <div>
+                <p className="text-2xl font-bold">
+                  ${campaigns.reduce((sum, c) => sum + c.spent, 0).toLocaleString()}
+                </p>
+                <p className="text-sm text-muted-foreground">Total Spent</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-purple-500" />
+              <div>
+                <p className="text-2xl font-bold">
+                  {campaigns.reduce((sum, c) => sum + c.impressions, 0).toLocaleString()}
+                </p>
+                <p className="text-sm text-muted-foreground">Total Impressions</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-orange-500" />
+              <div>
+                <p className="text-2xl font-bold">
+                  {campaigns.reduce((sum, c) => sum + c.conversions, 0)}
+                </p>
+                <p className="text-sm text-muted-foreground">Total Conversions</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="all" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="all">All Campaigns</TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="paused">Paused</TabsTrigger>
+          <TabsTrigger value="completed">Completed</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Campaign Overview</CardTitle>
+                <div className="flex gap-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search campaigns..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 w-64"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Campaign</TableHead>
+                      <TableHead>Brand</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Budget</TableHead>
+                      <TableHead>Spent</TableHead>
+                      <TableHead>Impressions</TableHead>
+                      <TableHead>Clicks</TableHead>
+                      <TableHead>Conversions</TableHead>
+                      <TableHead>Period</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCampaigns.map((campaign) => (
+                      <TableRow key={campaign.id}>
+                        <TableCell className="font-medium">{campaign.name}</TableCell>
+                        <TableCell>{campaign.brand}</TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(campaign.status)}>
+                            {campaign.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>${campaign.budget.toLocaleString()}</TableCell>
+                        <TableCell>${campaign.spent.toLocaleString()}</TableCell>
+                        <TableCell>{campaign.impressions.toLocaleString()}</TableCell>
+                        <TableCell>{campaign.clicks.toLocaleString()}</TableCell>
+                        <TableCell>{campaign.conversions}</TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            <div>{new Date(campaign.startDate).toLocaleDateString()}</div>
+                            <div className="text-muted-foreground">to {new Date(campaign.endDate).toLocaleDateString()}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline">View</Button>
+                            <Button size="sm" variant="outline">Edit</Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};

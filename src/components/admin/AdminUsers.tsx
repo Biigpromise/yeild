@@ -1,11 +1,15 @@
+
 import React, { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { realAdminUserService } from "@/services/admin/realAdminUserService";
+import { roleService } from "@/services/roleService";
 import { LoadingState } from "@/components/ui/loading-state";
 import { UserSearchAutocomplete } from "@/components/admin/UserSearchAutocomplete";
+import { toast } from "sonner";
 
 type User = {
   id: string;
@@ -36,8 +40,29 @@ export const AdminUsers = () => {
       setUsers(userData);
     } catch (error) {
       console.error('Error loading users:', error);
+      toast.error('Failed to load users');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    try {
+      console.log('Changing role for user:', userId, 'to:', newRole);
+      
+      // Use the roleService to assign the new role
+      const success = await roleService.assignRole(userId, newRole);
+      
+      if (success) {
+        toast.success(`User role updated to ${newRole}`);
+        // Reload users to reflect the change
+        await loadUsers();
+      } else {
+        toast.error('Failed to update user role');
+      }
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      toast.error('Failed to update user role');
     }
   };
 
@@ -88,7 +113,6 @@ export const AdminUsers = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-4">
-            {/* Use the Autocomplete instead of Input */}
             <UserSearchAutocomplete
               value={searchTerm}
               onChange={setSearchTerm}
@@ -157,13 +181,19 @@ export const AdminUsers = () => {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        getUserRole(user) === "admin" ? "bg-red-100 text-red-800" :
-                        getUserRole(user) === "moderator" ? "bg-blue-100 text-blue-800" :
-                        "bg-green-100 text-green-800"
-                      }`}>
-                        {getUserRole(user)}
-                      </span>
+                      <Select 
+                        value={getUserRole(user)} 
+                        onValueChange={(value) => handleRoleChange(user.id, value)}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">User</SelectItem>
+                          <SelectItem value="moderator">Moderator</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>

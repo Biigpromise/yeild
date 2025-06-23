@@ -17,6 +17,8 @@ import { AdminCommunication } from "@/components/admin/AdminCommunication";
 import { AdminContentManagement } from "@/components/admin/AdminContentManagement";
 import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell";
 import { AntiFraudTracking } from "@/components/admin/AntiFraudTracking";
+import { BrandCampaigns } from "@/components/admin/BrandCampaigns";
+import { BrandAnalytics } from "@/components/admin/BrandAnalytics";
 import {
   LayoutDashboard,
   Users,
@@ -36,7 +38,9 @@ import {
   Shield,
   MessageSquare,
   Database,
-  AlertTriangle
+  AlertTriangle,
+  Target,
+  TrendingUp
 } from "lucide-react";
 
 const Admin = () => {
@@ -63,7 +67,7 @@ const Admin = () => {
     }
   }, [activeSection]);
 
-  // Map of sections to their component - Updated to include fraud detection
+  // Map of sections to their component - Updated to include brand campaigns and analytics
   const sectionComponents = {
     dashboard: <AdminOverview />,
     users: <EnhancedUserManagementSystem />,
@@ -72,17 +76,19 @@ const Admin = () => {
     referrals: <AdminReferrals />,
     streaks: <AdminStreaks />,
     brands: <AdminBrands />,
+    campaigns: <BrandCampaigns />,
+    brandAnalytics: <BrandAnalytics />,
+    fraud: <AntiFraudTracking />,
     notifications: <AdminNotifications />,
-    analytics: <AdminAnalytics />,
-    support: <AdminSupport />,
-    settings: <AdminSettings />,
-    security: <AdminSecurity />,
     communication: <AdminCommunication />,
     content: <AdminContentManagement />,
-    fraud: <AntiFraudTracking />
+    analytics: <AdminAnalytics />,
+    security: <AdminSecurity />,
+    support: <AdminSupport />,
+    settings: <AdminSettings />
   };
 
-  // Enhanced navigation items with fraud detection
+  // Enhanced navigation items with brand campaigns and analytics
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "users", label: "Users", icon: Users },
@@ -91,6 +97,8 @@ const Admin = () => {
     { id: "referrals", label: "Referral Levels", icon: Award },
     { id: "streaks", label: "Streaks", icon: Medal },
     { id: "brands", label: "Brands", icon: Flag },
+    { id: "campaigns", label: "Brand Campaigns", icon: Target },
+    { id: "brandAnalytics", label: "Brand Analytics", icon: TrendingUp },
     { id: "fraud", label: "Fraud Detection", icon: AlertTriangle },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "communication", label: "Communication", icon: MessageSquare },

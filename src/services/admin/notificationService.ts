@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface NotificationRequest {
   title: string;
@@ -14,6 +15,7 @@ export const notificationService = {
     try {
       console.log('Sending notification with data:', request);
 
+      // Call the edge function to send notifications
       const { data, error } = await supabase.functions.invoke('send-user-notification', {
         body: request
       });
@@ -24,9 +26,14 @@ export const notificationService = {
       }
 
       console.log('Notification sent successfully:', data);
+      
+      // Show success message
+      toast.success(`Notification sent successfully! ${data?.message || ''}`);
+      
       return true;
     } catch (error) {
       console.error('Error in notificationService.sendNotification:', error);
+      toast.error('Failed to send notification');
       throw error;
     }
   },
