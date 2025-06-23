@@ -69,6 +69,7 @@ export const CommunityChatTab = () => {
         .limit(50);
 
       if (error) throw error;
+      console.log('Loaded messages:', data);
       setMessages(data || []);
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -129,12 +130,21 @@ export const CommunityChatTab = () => {
       let mediaUrl: string | null = null;
 
       if (mediaFile) {
-        mediaUrl = await fileUploadService.uploadStoryMedia(mediaFile);
+        console.log('Uploading media file...');
+        mediaUrl = await fileUploadService.uploadChatMedia(mediaFile);
+        console.log('Media upload result:', mediaUrl);
         if (!mediaUrl) {
           toast.error('Failed to upload media');
+          setSending(false);
           return;
         }
       }
+
+      console.log('Inserting message with data:', {
+        content: newMessage.trim(),
+        user_id: user.id,
+        media_url: mediaUrl
+      });
 
       const { error } = await supabase
         .from('messages')
@@ -144,7 +154,10 @@ export const CommunityChatTab = () => {
           ...(mediaUrl && { media_url: mediaUrl })
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error inserting message:', error);
+        throw error;
+      }
 
       setNewMessage('');
       removeMedia();
