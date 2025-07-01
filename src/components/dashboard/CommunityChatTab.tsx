@@ -1,13 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Heart, Share, MoreHorizontal, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { PublicProfileModal } from '@/components/PublicProfileModal';
 import { fileUploadService } from '@/services/fileUploadService';
-import { ChatHeader } from './chat/ChatHeader';
-import { ChatMessagesList } from './chat/ChatMessagesList';
-import { ChatInput } from './chat/ChatInput';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { formatDistanceToNow } from 'date-fns';
+import { ChatPrivacyToggle } from './chat/ChatPrivacyToggle';
 import { MediaModal } from './chat/MediaModal';
 
 interface Message {
@@ -193,6 +196,17 @@ export const CommunityChatTab = () => {
     }
   };
 
+  const getDisplayName = (profiles: any) => {
+    if (!profiles) return 'User';
+    if (profiles.is_anonymous) return 'Anonymous';
+    return profiles.name && profiles.name.trim() !== '' ? profiles.name : 'User';
+  };
+
+  const getAvatarFallback = (profiles: any) => {
+    const displayName = getDisplayName(profiles);
+    return displayName.charAt(0)?.toUpperCase() || 'U';
+  };
+
   const activeUsers = new Set(messages.map(m => m.user_id)).size;
 
   if (!user) {
@@ -207,27 +221,199 @@ export const CommunityChatTab = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-black text-white overflow-hidden">
-      <ChatHeader activeUsers={activeUsers} />
-      
-      <ChatMessagesList
-        messages={messages}
-        loading={loading}
-        currentUserId={user.id}
-        onUserClick={handleUserClick}
-        onMediaClick={handleMediaClick}
-      />
+    <div className="flex flex-col h-screen bg-black text-white">
+      {/* Header */}
+      <div className="flex-shrink-0 bg-gray-900 border-b border-gray-800 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <MessageCircle className="h-6 w-6" />
+            <h1 className="text-xl font-bold">Community</h1>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <Users className="h-4 w-4" />
+            <span>{activeUsers} active</span>
+          </div>
+        </div>
+      </div>
 
-      <ChatInput
-        newMessage={newMessage}
-        setNewMessage={setNewMessage}
-        mediaFile={mediaFile}
-        mediaPreview={mediaPreview}
-        sending={sending}
-        onSendMessage={handleSendMessage}
-        onFileSelect={handleFileSelect}
-        onRemoveMedia={removeMedia}
-      />
+      {/* Feed */}
+      <div className="flex-1 overflow-y-auto bg-black">
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
+            <p className="text-lg mb-2">No posts yet</p>
+            <p>Be the first to share something!</p>
+          </div>
+        ) : (
+          <div className="space-y-0">
+            {messages.map((message) => (
+              <div key={message.id} className="border-b border-gray-800 bg-black">
+                <div className="p-4">
+                  {/* Post Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => handleUserClick(message.user_id)}
+                        className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full"
+                      >
+                        <Avatar className="h-10 w-10 hover:scale-105 transition-transform cursor-pointer">
+                          <AvatarImage 
+                            src={message.profiles?.profile_picture_url || undefined} 
+                            alt={getDisplayName(message.profiles)}
+                          />
+                          <AvatarFallback className="bg-gray-700 text-white">
+                            {getAvatarFallback(message.profiles)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </button>
+                      
+                      <div>
+                        <button
+                          onClick={() => handleUserClick(message.user_id)}
+                          className="font-semibold text-white hover:underline focus:outline-none focus:underline"
+                        >
+                          {getDisplayName(message.profiles)}
+                        </button>
+                        <p className="text-xs text-gray-400">
+                          {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Post Content */}
+                  <div className="mb-4">
+                    {message.content && (
+                      <p className="text-white text-sm leading-relaxed mb-3 whitespace-pre-wrap">
+                        {message.content}
+                      </p>
+                    )}
+                    
+                    {message.media_url && (
+                      <div className="rounded-lg overflow-hidden cursor-pointer" onClick={() => handleMediaClick(message.media_url!)}>
+                        {message.media_url.includes('.mp4') || message.media_url.includes('.webm') ? (
+                          <video
+                            src={message.media_url}
+                            className="w-full max-h-96 object-cover"
+                            preload="metadata"
+                          />
+                        ) : (
+                          <img
+                            src={message.media_url}
+                            alt="Post media"
+                            className="w-full max-h-96 object-cover hover:opacity-90 transition-opacity"
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Post Actions */}
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-800">
+                    <div className="flex items-center gap-6">
+                      <Button variant="ghost" size="sm" className="text-gray-400 hover:text-red-500 hover:bg-red-500/10">
+                        <Heart className="h-5 w-5 mr-2" />
+                        <span className="text-sm">Like</span>
+                      </Button>
+                      
+                      <Button variant="ghost" size="sm" className="text-gray-400 hover:text-blue-500 hover:bg-blue-500/10">
+                        <MessageCircle className="h-5 w-5 mr-2" />
+                        <span className="text-sm">Comment</span>
+                      </Button>
+                      
+                      <Button variant="ghost" size="sm" className="text-gray-400 hover:text-green-500 hover:bg-green-500/10">
+                        <Share className="h-5 w-5 mr-2" />
+                        <span className="text-sm">Share</span>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Post Creation */}
+      <div className="border-t border-gray-800 p-4 bg-gray-900">
+        <ChatPrivacyToggle />
+        
+        {mediaPreview && (
+          <div className="mb-3 relative inline-block">
+            <div className="relative">
+              {mediaFile?.type.startsWith('video/') ? (
+                <video src={mediaPreview} className="max-h-20 rounded border" />
+              ) : (
+                <img src={mediaPreview} alt="Preview" className="max-h-20 rounded border" />
+              )}
+              <Button
+                size="sm"
+                variant="destructive"
+                className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                onClick={removeMedia}
+              >
+                ×
+              </Button>
+            </div>
+          </div>
+        )}
+        
+        <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+          <Avatar className="h-10 w-10 flex-shrink-0">
+            <AvatarImage src={user?.user_metadata?.avatar_url} />
+            <AvatarFallback className="bg-gray-700 text-white">
+              {user?.email?.charAt(0)?.toUpperCase() || 'U'}
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="flex-1 flex items-center gap-2">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="What's on your mind?"
+              className="flex-1 bg-gray-800 border-gray-700 text-white placeholder-gray-400 rounded-full"
+              disabled={sending}
+            />
+            
+            <input
+              type="file"
+              accept="image/*,video/*"
+              className="hidden"
+              id="media-upload"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleFileSelect(file);
+              }}
+            />
+            
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => document.getElementById('media-upload')?.click()}
+              className="text-gray-400 hover:text-white"
+            >
+              📷
+            </Button>
+            
+            <Button 
+              type="submit" 
+              disabled={sending || (!newMessage.trim() && !mediaFile)}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
+            >
+              {sending ? '...' : 'Post'}
+            </Button>
+          </div>
+        </form>
+      </div>
 
       <MediaModal
         open={mediaModalOpen}
