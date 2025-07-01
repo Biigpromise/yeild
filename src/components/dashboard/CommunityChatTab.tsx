@@ -10,7 +10,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatDistanceToNow } from 'date-fns';
-import { ChatPrivacyToggle } from './chat/ChatPrivacyToggle';
 import { MediaModal } from './chat/MediaModal';
 
 interface Message {
@@ -19,11 +18,17 @@ interface Message {
   user_id: string;
   created_at: string;
   media_url?: string;
+  likes_count?: number;
   profiles: {
     name: string;
     profile_picture_url?: string;
-    is_anonymous?: boolean;
   } | null;
+}
+
+interface MessageLike {
+  id: string;
+  message_id: string;
+  user_id: string;
 }
 
 export const CommunityChatTab = () => {
@@ -38,11 +43,16 @@ export const CommunityChatTab = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [mediaModalOpen, setMediaModalOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [messageLikes, setMessageLikes] = useState<Record<string, MessageLike[]>>({});
 
   useEffect(() => {
     if (user) {
       loadMessages();
-      const interval = setInterval(loadMessages, 3000);
+      loadMessageLikes();
+      const interval = setInterval(() => {
+        loadMessages();
+        loadMessageLikes();
+      }, 3000);
       return () => clearInterval(interval);
     }
   }, [user]);
@@ -56,11 +66,10 @@ export const CommunityChatTab = () => {
           *,
           profiles!messages_user_id_fkey (
             name,
-            profile_picture_url,
-            is_anonymous
+            profile_picture_url
           )
         `)
-        .order('created_at', { ascending: true })
+        .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) {
@@ -70,27 +79,22 @@ export const CommunityChatTab = () => {
       
       console.log('Raw messages data:', data);
       
-      // Process messages with proper error handling for profile data
       const messagesWithProfiles = data?.map(message => {
         console.log('Processing message:', message.id, 'Profile data:', message.profiles);
         
-        // Handle case where profiles might be an error or null
         let profileData;
         if (message.profiles && typeof message.profiles === 'object' && !('error' in message.profiles)) {
-          const profiles = message.profiles as any; // Type assertion to bypass strict typing
+          const profiles = message.profiles as any;
           profileData = {
             name: profiles.name && profiles.name.trim() !== '' 
               ? profiles.name 
               : 'User',
-            profile_picture_url: profiles.profile_picture_url || null,
-            is_anonymous: profiles.is_anonymous || false
+            profile_picture_url: profiles.profile_picture_url || null
           };
         } else {
-          // Fallback profile data if query failed or profile not found
           profileData = {
             name: 'User',
-            profile_picture_url: null,
-            is_anonymous: false
+            profile_picture_url: null
           };
         }
 
@@ -107,6 +111,91 @@ export const CommunityChatTab = () => {
       toast.error('Failed to load messages');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMessageLikes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('message_likes')
+        .select('*');
+
+      if (error) throw error;
+
+      const likesGrouped = data?.reduce((acc, like) => {
+        if (!acc[like.message_id]) {
+          acc[like.message_id] = [];
+        }
+        acc[like.message_id].push(like);
+        return acc;
+      }, {} as Record<string, MessageLike[]>) || {};
+
+      setMessageLikes(likesGrouped);
+    } catch (error) {
+      console.error('Error loading message likes:', error);
+    }
+  };
+
+  const handleLike = async (messageId: string) => {
+    if (!user) {
+      toast.error('Please log in to like messages');
+      return;
+    }
+
+    try {
+      const existingLike = messageLikes[messageId]?.find(like => like.user_id === user.id);
+
+      if (existingLike) {
+        // Unlike
+        const { error } = await supabase
+          .from('message_likes')
+          .delete()
+          .eq('id', existingLike.id);
+
+        if (error) throw error;
+        toast.success('Like removed');
+      } else {
+        // Like
+        const { error } = await supabase
+          .from('message_likes')
+          .insert({
+            message_id: messageId,
+            user_id: user.id
+          });
+
+        if (error) throw error;
+        toast.success('Message liked!');
+      }
+
+      loadMessageLikes();
+    } catch (error) {
+      console.error('Error handling like:', error);
+      toast.error('Failed to update like');
+    }
+  };
+
+  const handleComment = (messageId: string) => {
+    // For now, just show a toast - you can implement comment functionality later
+    toast.info('Comment feature coming soon!');
+  };
+
+  const handleShare = async (messageId: string) => {
+    try {
+      const message = messages.find(m => m.id === messageId);
+      if (message && navigator.share) {
+        await navigator.share({
+          title: 'Check out this message',
+          text: message.content,
+          url: window.location.href
+        });
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(`${message?.content}\n\n${window.location.href}`);
+        toast.success('Message copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      toast.error('Failed to share message');
     }
   };
 
@@ -198,7 +287,6 @@ export const CommunityChatTab = () => {
 
   const getDisplayName = (profiles: any) => {
     if (!profiles) return 'User';
-    if (profiles.is_anonymous) return 'Anonymous';
     return profiles.name && profiles.name.trim() !== '' ? profiles.name : 'User';
   };
 
@@ -250,102 +338,120 @@ export const CommunityChatTab = () => {
           </div>
         ) : (
           <div className="space-y-0">
-            {messages.map((message) => (
-              <div key={message.id} className="border-b border-gray-800 bg-black">
-                <div className="p-4">
-                  {/* Post Header */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => handleUserClick(message.user_id)}
-                        className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full"
-                      >
-                        <Avatar className="h-10 w-10 hover:scale-105 transition-transform cursor-pointer">
-                          <AvatarImage 
-                            src={message.profiles?.profile_picture_url || undefined} 
-                            alt={getDisplayName(message.profiles)}
-                          />
-                          <AvatarFallback className="bg-gray-700 text-white">
-                            {getAvatarFallback(message.profiles)}
-                          </AvatarFallback>
-                        </Avatar>
-                      </button>
-                      
-                      <div>
+            {messages.map((message) => {
+              const likes = messageLikes[message.id] || [];
+              const userHasLiked = likes.some(like => like.user_id === user?.id);
+              
+              return (
+                <div key={message.id} className="border-b border-gray-800 bg-black">
+                  <div className="p-4">
+                    {/* Post Header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
                         <button
                           onClick={() => handleUserClick(message.user_id)}
-                          className="font-semibold text-white hover:underline focus:outline-none focus:underline"
+                          className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full"
                         >
-                          {getDisplayName(message.profiles)}
+                          <Avatar className="h-10 w-10 hover:scale-105 transition-transform cursor-pointer">
+                            <AvatarImage 
+                              src={message.profiles?.profile_picture_url || undefined} 
+                              alt={getDisplayName(message.profiles)}
+                            />
+                            <AvatarFallback className="bg-gray-700 text-white">
+                              {getAvatarFallback(message.profiles)}
+                            </AvatarFallback>
+                          </Avatar>
                         </button>
-                        <p className="text-xs text-gray-400">
-                          {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-                        </p>
+                        
+                        <div>
+                          <button
+                            onClick={() => handleUserClick(message.user_id)}
+                            className="font-semibold text-white hover:underline focus:outline-none focus:underline"
+                          >
+                            {getDisplayName(message.profiles)}
+                          </button>
+                          <p className="text-xs text-gray-400">
+                            {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                          </p>
+                        </div>
                       </div>
+                      
+                      <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
                     </div>
-                    
-                    <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </div>
 
-                  {/* Post Content */}
-                  <div className="mb-4">
-                    {message.content && (
-                      <p className="text-white text-sm leading-relaxed mb-3 whitespace-pre-wrap">
-                        {message.content}
-                      </p>
-                    )}
-                    
-                    {message.media_url && (
-                      <div className="rounded-lg overflow-hidden cursor-pointer" onClick={() => handleMediaClick(message.media_url!)}>
-                        {message.media_url.includes('.mp4') || message.media_url.includes('.webm') ? (
-                          <video
-                            src={message.media_url}
-                            className="w-full max-h-96 object-cover"
-                            preload="metadata"
-                          />
-                        ) : (
-                          <img
-                            src={message.media_url}
-                            alt="Post media"
-                            className="w-full max-h-96 object-cover hover:opacity-90 transition-opacity"
-                          />
-                        )}
+                    {/* Post Content */}
+                    <div className="mb-4">
+                      {message.content && (
+                        <p className="text-white text-sm leading-relaxed mb-3 whitespace-pre-wrap">
+                          {message.content}
+                        </p>
+                      )}
+                      
+                      {message.media_url && (
+                        <div className="rounded-lg overflow-hidden cursor-pointer" onClick={() => handleMediaClick(message.media_url!)}>
+                          {message.media_url.includes('.mp4') || message.media_url.includes('.webm') ? (
+                            <video
+                              src={message.media_url}
+                              className="w-full max-h-96 object-cover"
+                              preload="metadata"
+                            />
+                          ) : (
+                            <img
+                              src={message.media_url}
+                              alt="Post media"
+                              className="w-full max-h-96 object-cover hover:opacity-90 transition-opacity"
+                            />
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Post Actions */}
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-800">
+                      <div className="flex items-center gap-6">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleLike(message.id)}
+                          className={`${userHasLiked ? 'text-red-500' : 'text-gray-400'} hover:text-red-500 hover:bg-red-500/10`}
+                        >
+                          <Heart className={`h-5 w-5 mr-2 ${userHasLiked ? 'fill-current' : ''}`} />
+                          <span className="text-sm">{likes.length > 0 ? likes.length : 'Like'}</span>
+                        </Button>
+                        
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleComment(message.id)}
+                          className="text-gray-400 hover:text-blue-500 hover:bg-blue-500/10"
+                        >
+                          <MessageCircle className="h-5 w-5 mr-2" />
+                          <span className="text-sm">Comment</span>
+                        </Button>
+                        
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleShare(message.id)}
+                          className="text-gray-400 hover:text-green-500 hover:bg-green-500/10"
+                        >
+                          <Share className="h-5 w-5 mr-2" />
+                          <span className="text-sm">Share</span>
+                        </Button>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Post Actions */}
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-800">
-                    <div className="flex items-center gap-6">
-                      <Button variant="ghost" size="sm" className="text-gray-400 hover:text-red-500 hover:bg-red-500/10">
-                        <Heart className="h-5 w-5 mr-2" />
-                        <span className="text-sm">Like</span>
-                      </Button>
-                      
-                      <Button variant="ghost" size="sm" className="text-gray-400 hover:text-blue-500 hover:bg-blue-500/10">
-                        <MessageCircle className="h-5 w-5 mr-2" />
-                        <span className="text-sm">Comment</span>
-                      </Button>
-                      
-                      <Button variant="ghost" size="sm" className="text-gray-400 hover:text-green-500 hover:bg-green-500/10">
-                        <Share className="h-5 w-5 mr-2" />
-                        <span className="text-sm">Share</span>
-                      </Button>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* Post Creation */}
       <div className="border-t border-gray-800 p-4 bg-gray-900">
-        <ChatPrivacyToggle />
-        
         {mediaPreview && (
           <div className="mb-3 relative inline-block">
             <div className="relative">
