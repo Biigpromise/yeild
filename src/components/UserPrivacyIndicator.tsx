@@ -2,7 +2,6 @@
 import React from 'react';
 import { EyeOff, Eye } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserDisplay } from '@/utils/userDisplayUtils';
 
 interface UserPrivacyIndicatorProps {
   className?: string;
@@ -22,7 +21,9 @@ export const UserPrivacyIndicator: React.FC<UserPrivacyIndicatorProps> = ({ clas
           .eq('id', user.id)
           .maybeSingle()
           .then(({ data }) => {
-            setIsAnonymous(data?.is_anonymous || false);
+            // Use type assertion to handle the data
+            const profileData = data as any;
+            setIsAnonymous(profileData?.is_anonymous || false);
           });
       });
     }

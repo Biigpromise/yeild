@@ -34,7 +34,9 @@ export const ChatPrivacyToggle: React.FC = () => {
         return;
       }
 
-      setIsAnonymous(data?.is_anonymous || false);
+      // Handle the data with type assertion since types aren't updated yet
+      const profileData = data as any;
+      setIsAnonymous(profileData?.is_anonymous || false);
     } catch (error) {
       console.error('Error in loadPrivacySetting:', error);
     }
@@ -45,9 +47,12 @@ export const ChatPrivacyToggle: React.FC = () => {
     
     setLoading(true);
     try {
+      // Use type assertion to bypass strict typing temporarily
+      const updateData = { is_anonymous: anonymous } as any;
+      
       const { error } = await supabase
         .from('profiles')
-        .update({ is_anonymous: anonymous })
+        .update(updateData)
         .eq('id', user.id);
 
       if (error) {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -75,12 +74,13 @@ export const CommunityChatTab = () => {
         // Handle case where profiles might be an error or null
         let profileData;
         if (message.profiles && typeof message.profiles === 'object' && !('error' in message.profiles)) {
+          const profiles = message.profiles as any; // Type assertion to bypass strict typing
           profileData = {
-            name: message.profiles.name && message.profiles.name.trim() !== '' 
-              ? message.profiles.name 
+            name: profiles.name && profiles.name.trim() !== '' 
+              ? profiles.name 
               : 'User',
-            profile_picture_url: message.profiles.profile_picture_url || null,
-            is_anonymous: message.profiles.is_anonymous || false
+            profile_picture_url: profiles.profile_picture_url || null,
+            is_anonymous: profiles.is_anonymous || false
           };
         } else {
           // Fallback profile data if query failed or profile not found
