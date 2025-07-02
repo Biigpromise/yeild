@@ -19,6 +19,7 @@ interface Message {
   created_at: string;
   media_url?: string;
   likes_count?: number;
+  views_count?: number;
   profiles: {
     name: string;
     profile_picture_url?: string;
@@ -44,6 +45,7 @@ export const CommunityChatTab = () => {
   const [mediaModalOpen, setMediaModalOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [messageLikes, setMessageLikes] = useState<Record<string, MessageLike[]>>({});
+  const [viewedMessages, setViewedMessages] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (user) {
@@ -56,6 +58,46 @@ export const CommunityChatTab = () => {
       return () => clearInterval(interval);
     }
   }, [user]);
+
+  const trackMessageView = async (messageId: string) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase.rpc('increment_message_view', {
+        message_id_param: messageId,
+        user_id_param: user.id
+      });
+      
+      if (error) {
+        console.error('Error tracking message view:', error);
+      }
+    } catch (error) {
+      console.error('Error in trackMessageView:', error);
+    }
+  };
+
+  // Track message views when they come into view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && user) {
+            const messageId = entry.target.getAttribute('data-message-id');
+            if (messageId && !viewedMessages.has(messageId)) {
+              trackMessageView(messageId);
+              setViewedMessages(prev => new Set([...prev, messageId]));
+            }
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    const messageElements = document.querySelectorAll('[data-message-id]');
+    messageElements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [messages, user, viewedMessages]);
 
   const loadMessages = async () => {
     try {
@@ -88,12 +130,12 @@ export const CommunityChatTab = () => {
           profileData = {
             name: profiles.name && profiles.name.trim() !== '' 
               ? profiles.name 
-              : 'User',
+              : 'Anonymous User',
             profile_picture_url: profiles.profile_picture_url || null
           };
         } else {
           profileData = {
-            name: 'User',
+            name: 'Anonymous User',
             profile_picture_url: null
           };
         }
@@ -287,8 +329,8 @@ export const CommunityChatTab = () => {
   };
 
   const getDisplayName = (profiles: any) => {
-    if (!profiles) return 'User';
-    return profiles.name && profiles.name.trim() !== '' ? profiles.name : 'User';
+    if (!profiles) return 'Anonymous User';
+    return profiles.name && profiles.name.trim() !== '' ? profiles.name : 'Anonymous User';
   };
 
   const getAvatarFallback = (profiles: any) => {
@@ -344,7 +386,7 @@ export const CommunityChatTab = () => {
               const userHasLiked = likes.some(like => like.user_id === user?.id);
               
               return (
-                <div key={message.id} className="border-b border-gray-800 bg-black">
+                <div key={message.id} className="border-b border-gray-800 bg-black" data-message-id={message.id}>
                   <div className="p-4">
                     {/* Post Header */}
                     <div className="flex items-center justify-between mb-3">
@@ -441,6 +483,10 @@ export const CommunityChatTab = () => {
                           <Share className="h-5 w-5 mr-2" />
                           <span className="text-sm">Share</span>
                         </Button>
+                      </div>
+                      
+                      <div className="flex items-center text-gray-400 text-sm">
+                        <span>{message.views_count || 0} views</span>
                       </div>
                     </div>
                   </div>

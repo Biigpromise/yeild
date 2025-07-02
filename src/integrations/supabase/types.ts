@@ -443,6 +443,35 @@ export type Database = {
           },
         ]
       }
+      message_views: {
+        Row: {
+          id: string
+          message_id: string
+          user_id: string
+          viewed_at: string | null
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          user_id: string
+          viewed_at?: string | null
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          user_id?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_views_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -450,6 +479,7 @@ export type Database = {
           id: string
           media_url: string | null
           user_id: string
+          views_count: number | null
         }
         Insert: {
           content: string
@@ -457,6 +487,7 @@ export type Database = {
           id?: string
           media_url?: string | null
           user_id: string
+          views_count?: number | null
         }
         Update: {
           content?: string
@@ -464,6 +495,7 @@ export type Database = {
           id?: string
           media_url?: string | null
           user_id?: string
+          views_count?: number | null
         }
         Relationships: [
           {
@@ -1858,6 +1890,10 @@ export type Database = {
       has_role: {
         Args: { _user_id: string; _role: string }
         Returns: boolean
+      }
+      increment_message_view: {
+        Args: { message_id_param: string; user_id_param: string }
+        Returns: undefined
       }
       increment_post_view: {
         Args:
