@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MessageCircle, Heart, Share, MoreHorizontal, Users } from 'lucide-react';
+import { MessageCircle, Heart, Share, MoreHorizontal, Users, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { PublicProfileModal } from '@/components/PublicProfileModal';
 import { fileUploadService } from '@/services/fileUploadService';
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatDistanceToNow } from 'date-fns';
 import { MediaModal } from './chat/MediaModal';
+import { EnhancedBirdBadge } from '@/components/referral/EnhancedBirdBadge';
 
 interface Message {
   id: string;
@@ -406,16 +407,26 @@ export const CommunityChatTab = () => {
                           </Avatar>
                         </button>
                         
-                        <div>
-                          <button
-                            onClick={() => handleUserClick(message.user_id)}
-                            className="font-semibold text-white hover:underline focus:outline-none focus:underline"
-                          >
-                            {getDisplayName(message.profiles)}
-                          </button>
-                          <p className="text-xs text-gray-400">
-                            {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-                          </p>
+                        <div className="flex items-center gap-2">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleUserClick(message.user_id)}
+                                className="font-semibold text-white hover:underline focus:outline-none focus:underline"
+                              >
+                                {getDisplayName(message.profiles)}
+                              </button>
+                              <EnhancedBirdBadge 
+                                userId={message.user_id} 
+                                size="sm" 
+                                showTooltip={true}
+                                className="hover:scale-110 transition-transform" 
+                              />
+                            </div>
+                            <p className="text-xs text-gray-400">
+                              {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                            </p>
+                          </div>
                         </div>
                       </div>
                       

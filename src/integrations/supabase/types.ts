@@ -111,6 +111,54 @@ export type Database = {
         }
         Relationships: []
       }
+      bird_levels: {
+        Row: {
+          animation_type: string | null
+          benefits: string[] | null
+          color: string
+          created_at: string | null
+          description: string
+          emoji: string
+          glow_effect: boolean | null
+          icon: string
+          id: number
+          min_points: number | null
+          min_referrals: number
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          animation_type?: string | null
+          benefits?: string[] | null
+          color: string
+          created_at?: string | null
+          description: string
+          emoji: string
+          glow_effect?: boolean | null
+          icon: string
+          id?: number
+          min_points?: number | null
+          min_referrals: number
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          animation_type?: string | null
+          benefits?: string[] | null
+          color?: string
+          created_at?: string | null
+          description?: string
+          emoji?: string
+          glow_effect?: boolean | null
+          icon?: string
+          id?: number
+          min_points?: number | null
+          min_referrals?: number
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       brand_applications: {
         Row: {
           budget: string
@@ -1877,6 +1925,37 @@ export type Database = {
           level: number
           tasks_completed: number
           profile_picture_url: string
+        }[]
+      }
+      get_next_bird_level: {
+        Args: { user_id_param: string }
+        Returns: {
+          id: number
+          name: string
+          icon: string
+          emoji: string
+          min_referrals: number
+          min_points: number
+          description: string
+          color: string
+          referrals_needed: number
+          points_needed: number
+        }[]
+      }
+      get_user_bird_level: {
+        Args: { user_id_param: string }
+        Returns: {
+          id: number
+          name: string
+          icon: string
+          emoji: string
+          min_referrals: number
+          min_points: number
+          description: string
+          color: string
+          benefits: string[]
+          animation_type: string
+          glow_effect: boolean
         }[]
       }
       get_user_role_for_policy: {
