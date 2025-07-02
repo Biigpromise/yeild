@@ -151,11 +151,21 @@ export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-center">
-                    <ProfileBirdBadge userId={profile.id} size="xl" showName />
+                    <ProfileBirdBadge userId={profile.id} size="lg" showName />
                   </div>
                   <BirdProgression 
                     activeReferrals={profile.active_referrals_count}
                     userPoints={profile.points}
+                    currentBirdLevel={{ 
+                      id: 0, 
+                      name: 'Getting Started', 
+                      icon: 'dove', 
+                      minReferrals: 0, 
+                      minPoints: 0,
+                      description: 'Starting your journey',
+                      color: '#94a3b8',
+                      benefits: ['Basic profile features']
+                    }}
                   />
                 </div>
               </CardContent>
