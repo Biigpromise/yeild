@@ -9,6 +9,7 @@ import { fileUploadService } from '@/services/fileUploadService';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { formatDistanceToNow } from 'date-fns';
 import { MediaModal } from './chat/MediaModal';
 import { EnhancedBirdBadge } from '@/components/referral/EnhancedBirdBadge';
@@ -24,6 +25,7 @@ interface Message {
   profiles: {
     name: string;
     profile_picture_url?: string;
+    is_anonymous?: boolean;
   } | null;
 }
 
@@ -109,7 +111,8 @@ export const CommunityChatTab = () => {
           *,
           profiles!messages_user_id_fkey (
             name,
-            profile_picture_url
+            profile_picture_url,
+            is_anonymous
           )
         `)
         .order('created_at', { ascending: false })
@@ -128,16 +131,25 @@ export const CommunityChatTab = () => {
         let profileData;
         if (message.profiles && typeof message.profiles === 'object' && !('error' in message.profiles)) {
           const profiles = message.profiles as any;
+          
+          // Handle anonymous users - show "Anonymous" if they chose to be anonymous
+          let displayName = 'Anonymous User';
+          if (profiles.is_anonymous) {
+            displayName = 'Anonymous';
+          } else if (profiles.name && profiles.name.trim() !== '') {
+            displayName = profiles.name;
+          }
+          
           profileData = {
-            name: profiles.name && profiles.name.trim() !== '' 
-              ? profiles.name 
-              : 'Anonymous User',
-            profile_picture_url: profiles.profile_picture_url || null
+            name: displayName,
+            profile_picture_url: profiles.profile_picture_url || null,
+            is_anonymous: profiles.is_anonymous
           };
         } else {
           profileData = {
             name: 'Anonymous User',
-            profile_picture_url: null
+            profile_picture_url: null,
+            is_anonymous: false
           };
         }
 
@@ -159,8 +171,7 @@ export const CommunityChatTab = () => {
 
   const loadMessageLikes = async () => {
     try {
-      // Using any to bypass TypeScript type checking for new table
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('message_likes')
         .select('*');
 
@@ -191,7 +202,7 @@ export const CommunityChatTab = () => {
 
       if (existingLike) {
         // Unlike
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from('message_likes')
           .delete()
           .eq('id', existingLike.id);
@@ -200,7 +211,7 @@ export const CommunityChatTab = () => {
         toast.success('Like removed');
       } else {
         // Like
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from('message_likes')
           .insert({
             message_id: messageId,
@@ -430,9 +441,35 @@ export const CommunityChatTab = () => {
                         </div>
                       </div>
                       
-                      <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                          <DropdownMenuItem 
+                            onClick={() => handleShare(message.id)}
+                            className="text-gray-300 hover:text-white hover:bg-gray-700"
+                          >
+                            Share message
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => navigator.clipboard.writeText(message.content)}
+                            className="text-gray-300 hover:text-white hover:bg-gray-700"
+                          >
+                            Copy text
+                          </DropdownMenuItem>
+                          {message.user_id === user?.id && (
+                            <DropdownMenuItem 
+                              onClick={() => toast.info('Delete feature coming soon')}
+                              className="text-red-400 hover:text-red-300 hover:bg-gray-700"
+                            >
+                              Delete message
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
 
                     {/* Post Content */}
