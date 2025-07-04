@@ -109,6 +109,29 @@ export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({
               </div>
             </div>
 
+            {/* Social Stats - Moved to top */}
+            <div className="grid grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Users className="h-5 w-5 text-blue-500" />
+                    <span className="text-lg font-semibold">{profile.followers_count}</span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">Followers</div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Users className="h-5 w-5 text-green-500" />
+                    <span className="text-lg font-semibold">{profile.following_count}</span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">Following</div>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card>
@@ -136,60 +159,6 @@ export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-purple-600">{profile.level}</div>
                   <div className="text-sm text-muted-foreground">Level</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Bird Badge Progress */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5" />
-                  Bird Badge Progress
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-center">
-                    <ProfileBirdBadge userId={profile.id} size="lg" showName />
-                  </div>
-                  <BirdProgression 
-                    activeReferrals={profile.active_referrals_count}
-                    userPoints={profile.points}
-                    currentBirdLevel={{ 
-                      id: 0, 
-                      name: 'Getting Started', 
-                      icon: 'dove', 
-                      minReferrals: 0, 
-                      minPoints: 0,
-                      description: 'Starting your journey',
-                      color: '#94a3b8',
-                      benefits: ['Basic profile features']
-                    }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Social Stats */}
-            <div className="grid grid-cols-2 gap-4">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Users className="h-5 w-5 text-blue-500" />
-                    <span className="text-lg font-semibold">{profile.followers_count}</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">Followers</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Users className="h-5 w-5 text-green-500" />
-                    <span className="text-lg font-semibold">{profile.following_count}</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">Following</div>
                 </CardContent>
               </Card>
             </div>
