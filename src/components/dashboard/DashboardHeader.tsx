@@ -22,12 +22,18 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardHeaderProps {
   user: any;
+  onTabChange?: (tab: string) => void;
 }
 
-export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user }) => {
+export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabChange }) => {
   const { signOut } = useAuth();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("tasks");
+
+  const handleProfileClick = () => {
+    if (onTabChange) {
+      onTabChange('profile');
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -41,8 +47,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user }) => {
     <div className="flex items-center justify-between p-2 sm:p-4 bg-background border-b">
       <div className="flex items-center space-x-3">        
         <div className="flex items-center space-x-3">
-          {/* User Avatar - No overlay */}
-          <Avatar className="h-12 w-12 border-2 border-primary/20">
+          {/* User Avatar - Clickable */}
+          <Avatar 
+            className="h-12 w-12 border-2 border-primary/20 cursor-pointer hover:scale-105 transition-transform"
+            onClick={handleProfileClick}
+          >
             <AvatarImage 
               src={user?.profile_picture_url} 
               alt={user?.name || user?.email?.split('@')[0] || 'User'} 
@@ -105,11 +114,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user }) => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setActiveTab('profile')}>
+            <DropdownMenuItem onClick={handleProfileClick}>
               <User className="h-4 w-4 mr-2" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setActiveTab('wallet')}>
+            <DropdownMenuItem onClick={() => onTabChange && onTabChange('wallet')}>
               <Settings className="h-4 w-4 mr-2" />
               Wallet
             </DropdownMenuItem>

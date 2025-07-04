@@ -32,9 +32,9 @@ export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
 
   const tabs = [
     { id: "tasks", label: "Tasks", icon: CheckSquare },
-    { id: "community", label: "Chat", icon: MessageCircle }, // Moved chat to 2nd position
-    { id: "profile", label: "Profile", icon: User },
-    { id: "stories", label: "Stories", icon: Camera }, // Moved stories to 4th position
+    { id: "community", label: "Chat", icon: MessageCircle },
+    { id: "stories", label: "Stories", icon: Camera }, // Replaced Profile with Stories
+    { id: "profile", label: "Profile", icon: User }, // Moved to more menu
     { id: "referrals", label: "Referrals", icon: Users },
     { id: "achievements", label: "Badges", icon: Trophy },
     { id: "leaderboard", label: "Leaderboard", icon: BarChart3 },

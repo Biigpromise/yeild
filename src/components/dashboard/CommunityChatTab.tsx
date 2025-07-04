@@ -362,7 +362,7 @@ export const CommunityChatTab = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-black text-white">
+    <div className="flex flex-col h-full bg-black text-white">
       {/* Header */}
       <div className="flex-shrink-0 bg-gray-900 border-b border-gray-800 p-4">
         <div className="flex items-center justify-between">
@@ -378,7 +378,7 @@ export const CommunityChatTab = () => {
       </div>
 
       {/* Feed */}
-      <div className="flex-1 overflow-y-auto bg-black">
+      <div className="flex-1 overflow-y-auto bg-black min-h-0">
         {loading ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -390,7 +390,7 @@ export const CommunityChatTab = () => {
             <p>Be the first to share something!</p>
           </div>
         ) : (
-          <div className="space-y-0">
+          <div className="space-y-0 pb-20 lg:pb-4">
             {messages.map((message) => {
               const likes = messageLikes[message.id] || [];
               const userHasLiked = likes.some(like => like.user_id === user?.id);
@@ -544,7 +544,7 @@ export const CommunityChatTab = () => {
       </div>
 
       {/* Post Creation */}
-      <div className="border-t border-gray-800 p-4 bg-gray-900">
+      <div className="border-t border-gray-800 p-4 bg-gray-900 flex-shrink-0">
         {mediaPreview && (
           <div className="mb-3 relative inline-block">
             <div className="relative">

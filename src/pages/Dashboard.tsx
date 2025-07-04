@@ -150,15 +150,17 @@ const Dashboard = () => {
     }
   };
 
-  // Special layout for community chat - full viewport
+  // Special layout for community chat - full viewport with proper bottom spacing
   if (activeTab === "community") {
     return (
       <div className="h-screen bg-black text-white flex flex-col overflow-hidden">
         <div className="flex-1 min-h-0 overflow-hidden">
-          <CommunityChatTab />
+          <div className="h-full flex flex-col">
+            <CommunityChatTab />
+          </div>
         </div>
-        {/* Mobile Navigation - more compact */}
-        <div className="lg:hidden flex-shrink-0">
+        {/* Mobile Navigation with proper spacing */}
+        <div className="lg:hidden flex-shrink-0 safe-area-bottom">
           <MobileTabNavigation
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -171,7 +173,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        <DashboardHeader user={userProfile} />
+        <DashboardHeader user={userProfile} onTabChange={setActiveTab} />
 
         <DashboardStats userStats={userStats} />
 
