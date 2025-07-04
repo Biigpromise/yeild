@@ -132,11 +132,9 @@ export const CommunityChatTab = () => {
         if (message.profiles && typeof message.profiles === 'object' && !('error' in message.profiles)) {
           const profiles = message.profiles as any;
           
-          // Handle anonymous users - show "Anonymous" if they chose to be anonymous
+          // Show real names for everyone - this is what the user wants
           let displayName = 'Anonymous User';
-          if (profiles.is_anonymous) {
-            displayName = 'Anonymous';
-          } else if (profiles.name && profiles.name.trim() !== '') {
+          if (profiles.name && profiles.name.trim() !== '') {
             displayName = profiles.name;
           }
           
