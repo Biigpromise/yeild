@@ -544,7 +544,7 @@ export const CommunityChatTab = () => {
       </div>
 
       {/* Post Creation */}
-      <div className="border-t border-gray-800 p-4 bg-gray-900 flex-shrink-0">
+      <div className="border-t border-gray-800 p-4 pb-24 lg:pb-4 bg-gray-900 flex-shrink-0">
         {mediaPreview && (
           <div className="mb-3 relative inline-block">
             <div className="relative">
