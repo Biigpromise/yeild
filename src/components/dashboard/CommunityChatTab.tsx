@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { formatDistanceToNow } from 'date-fns';
 import { MediaModal } from './chat/MediaModal';
+import { MessageComments } from './chat/MessageComments';
 import { EnhancedBirdBadge } from '@/components/referral/EnhancedBirdBadge';
 
 interface Message {
@@ -224,15 +225,6 @@ export const CommunityChatTab = () => {
     } catch (error) {
       console.error('Error handling like:', error);
       toast.error('Failed to update like');
-    }
-  };
-
-  const handleComment = (messageId: string) => {
-    // Open a simple prompt for comment
-    const comment = prompt('Enter your comment:');
-    if (comment && comment.trim()) {
-      // For now, just show success toast - you can implement comment storage later
-      toast.success('Comment added! (Feature in development)');
     }
   };
 
@@ -514,15 +506,11 @@ export const CommunityChatTab = () => {
                           <span className="text-sm">{likes.length > 0 ? likes.length : 'Like'}</span>
                         </Button>
                         
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleComment(message.id)}
-                          className="text-gray-400 hover:text-blue-500 hover:bg-blue-500/10"
-                        >
-                          <MessageCircle className="h-5 w-5 mr-2" />
-                          <span className="text-sm">Comment</span>
-                        </Button>
+                        <MessageComments 
+                          messageId={message.id}
+                          userId={user?.id || null}
+                          onUserClick={handleUserClick}
+                        />
                         
                         <Button 
                           variant="ghost" 
