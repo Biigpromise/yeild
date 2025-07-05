@@ -228,8 +228,12 @@ export const CommunityChatTab = () => {
   };
 
   const handleComment = (messageId: string) => {
-    // For now, just show a toast - you can implement comment functionality later
-    toast.info('Comment feature coming soon!');
+    // Open a simple prompt for comment
+    const comment = prompt('Enter your comment:');
+    if (comment && comment.trim()) {
+      // For now, just show success toast - you can implement comment storage later
+      toast.success('Comment added! (Feature in development)');
+    }
   };
 
   const handleShare = async (messageId: string) => {
@@ -390,7 +394,7 @@ export const CommunityChatTab = () => {
             <p>Be the first to share something!</p>
           </div>
         ) : (
-          <div className="space-y-0 pb-20 lg:pb-4">
+          <div className="space-y-0 pb-32 lg:pb-4">
             {messages.map((message) => {
               const likes = messageLikes[message.id] || [];
               const userHasLiked = likes.some(like => like.user_id === user?.id);
@@ -544,7 +548,7 @@ export const CommunityChatTab = () => {
       </div>
 
       {/* Post Creation */}
-      <div className="border-t border-gray-800 p-4 pb-24 lg:pb-4 bg-gray-900 flex-shrink-0">
+      <div className="border-t border-gray-800 p-4 pb-32 lg:pb-4 bg-gray-900 flex-shrink-0">
         {mediaPreview && (
           <div className="mb-3 relative inline-block">
             <div className="relative">
