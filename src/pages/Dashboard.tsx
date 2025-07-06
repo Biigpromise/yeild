@@ -213,11 +213,6 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Quick Actions Panel */}
-        <QuickActionsPanel 
-          onTabChange={setActiveTab}
-          onAction={(action) => console.log('Quick action:', action)}
-        />
 
         {/* Onboarding Tutorial */}
         <OnboardingTutorial />

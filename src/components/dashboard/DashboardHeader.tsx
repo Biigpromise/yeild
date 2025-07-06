@@ -14,7 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Bell, LogOut, Settings, User, Search } from "lucide-react";
+import { Bell, LogOut, Settings, User, Search, Zap, Plus, MessageSquare, Gift, Trophy, Users, FileText } from "lucide-react";
 import { CompactBirdBatch } from "@/components/ui/CompactBirdBatch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ProfileBirdBadge } from "@/components/referral/ProfileBirdBadge";
@@ -31,6 +31,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
   const { signOut } = useAuth();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
+
+  const quickActions = [
+    { id: 'create-post', label: 'Create Post', icon: MessageSquare, tab: 'community' },
+    { id: 'find-tasks', label: 'Find Tasks', icon: Search, tab: 'tasks' },
+    { id: 'check-rewards', label: 'Check Rewards', icon: Gift, tab: 'rewards' },
+    { id: 'view-leaderboard', label: 'Leaderboard', icon: Trophy, tab: 'leaderboard' },
+    { id: 'invite-friends', label: 'Invite Friends', icon: Users, tab: 'referrals' },
+    { id: 'view-history', label: 'View History', icon: FileText, tab: 'history' }
+  ];
 
   const handleProfileClick = () => {
     if (onTabChange) {
@@ -86,6 +96,39 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
       </div>
 
       <div className="flex items-center space-x-2">
+        {/* Quick Actions */}
+        <DropdownMenu open={isQuickActionsOpen} onOpenChange={setIsQuickActionsOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="relative">
+              <Zap className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <div className="px-2 py-1.5">
+              <p className="text-sm font-medium flex items-center gap-2">
+                <Plus className="h-3 w-3" />
+                Quick Actions
+              </p>
+            </div>
+            {quickActions.map((action) => {
+              const IconComponent = action.icon;
+              return (
+                <DropdownMenuItem
+                  key={action.id}
+                  className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => {
+                    onTabChange?.(action.tab);
+                    setIsQuickActionsOpen(false);
+                  }}
+                >
+                  <IconComponent className="h-4 w-4" />
+                  {action.label}
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         {/* Global Search */}
         <Button 
           variant="ghost" 

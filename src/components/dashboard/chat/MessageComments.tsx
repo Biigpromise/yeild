@@ -124,21 +124,21 @@ export const MessageComments: React.FC<MessageCommentsProps> = ({
       </Button>
 
       {showComments && (
-        <div className="mt-3 bg-gray-900/50 rounded-lg p-3 border border-gray-700">
-          <div className="space-y-3 max-h-96 overflow-y-auto">
+        <div className="mt-2 pl-4 border-l-2 border-gray-700">
+          <div className="space-y-2 max-h-96 overflow-y-auto">
             {loading ? (
-              <p className="text-sm text-gray-400">Loading comments...</p>
+              <p className="text-xs text-gray-400">Loading comments...</p>
             ) : comments.length === 0 ? (
-              <p className="text-sm text-gray-400">No comments yet. Be the first to comment!</p>
+              <p className="text-xs text-gray-400">No comments yet. Be the first to comment!</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="flex gap-3 bg-gray-800/50 rounded-lg p-3">
+                  <div key={comment.id} className="flex gap-2">
                     <button
                       onClick={() => onUserClick(comment.user_id)}
-                      className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full flex-shrink-0"
+                      className="focus:outline-none focus:ring-1 focus:ring-primary rounded-full flex-shrink-0"
                     >
-                      <Avatar className="h-8 w-8 hover:scale-105 transition-transform cursor-pointer">
+                      <Avatar className="h-6 w-6 hover:scale-105 transition-transform cursor-pointer">
                         <AvatarImage 
                           src={comment.profiles?.profile_picture_url || undefined} 
                           alt={getDisplayName(comment.profiles)}
@@ -148,19 +148,25 @@ export const MessageComments: React.FC<MessageCommentsProps> = ({
                         </AvatarFallback>
                       </Avatar>
                     </button>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <button
-                          onClick={() => onUserClick(comment.user_id)}
-                          className="text-sm font-medium text-white hover:underline focus:outline-none focus:underline"
-                        >
-                          {getDisplayName(comment.profiles)}
-                        </button>
+                    <div className="flex-1 min-w-0 bg-gray-800/30 rounded-lg px-3 py-2">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <button
+                            onClick={() => onUserClick(comment.user_id)}
+                            className="text-xs font-medium text-white hover:underline focus:outline-none focus:underline"
+                          >
+                            {getDisplayName(comment.profiles)}
+                          </button>
+                          <p className="text-xs text-gray-200 break-words mt-1">{comment.content}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 mt-1">
                         <span className="text-xs text-gray-400">
                           {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
                         </span>
+                        <button className="text-xs text-gray-400 hover:text-white">Like</button>
+                        <button className="text-xs text-gray-400 hover:text-white">Reply</button>
                       </div>
-                      <p className="text-sm text-gray-200 break-words">{comment.content}</p>
                     </div>
                   </div>
                 ))}
@@ -169,9 +175,9 @@ export const MessageComments: React.FC<MessageCommentsProps> = ({
           </div>
 
           {userId && (
-            <div className="mt-4 pt-3 border-t border-gray-700">
-              <form onSubmit={handleSubmitComment} className="flex gap-3">
-                <Avatar className="h-8 w-8 flex-shrink-0">
+            <div className="mt-3">
+              <form onSubmit={handleSubmitComment} className="flex gap-2">
+                <Avatar className="h-6 w-6 flex-shrink-0">
                   <AvatarFallback className="bg-gray-700 text-white text-xs">
                     U
                   </AvatarFallback>
@@ -181,16 +187,16 @@ export const MessageComments: React.FC<MessageCommentsProps> = ({
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Write a comment..."
-                    className="flex-1 bg-gray-800 border-gray-700 text-white placeholder-gray-400 text-sm"
+                    className="flex-1 bg-gray-800/50 border-gray-600/50 text-white placeholder-gray-400 text-xs h-8 rounded-full"
                     disabled={submitting}
                   />
                   <Button 
                     type="submit" 
                     size="sm" 
                     disabled={submitting || !newComment.trim()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 h-8 text-xs"
                   >
-                    <Send className="h-4 w-4" />
+                    <Send className="h-3 w-3" />
                   </Button>
                 </div>
               </form>
