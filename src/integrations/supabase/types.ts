@@ -958,23 +958,26 @@ export type Database = {
       post_reactions: {
         Row: {
           created_at: string | null
+          emoji: string | null
           id: string
           post_id: string
-          reaction_type: string
+          reaction_type: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
+          emoji?: string | null
           id?: string
           post_id: string
-          reaction_type: string
+          reaction_type?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
+          emoji?: string | null
           id?: string
           post_id?: string
-          reaction_type?: string
+          reaction_type?: string | null
           user_id?: string
         }
         Relationships: [

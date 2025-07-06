@@ -3,12 +3,11 @@ import { Post } from '@/types/post';
 import { PostHeader } from './PostHeader';
 import { PostContent } from './PostContent';
 import { PostActions } from './PostActions';
-import { PostComments } from './PostComments';
+import { PostCommentsPage } from './PostCommentsPage';
 
 interface PostItemProps {
   post: Post & { media_url?: string };
   userId: string | null;
-  onLike: (post: Post) => void;
   onView: (postId: string) => void;
   onProfileClick?: (userId: string) => void;
   onPostDeleted?: () => void;
@@ -17,12 +16,11 @@ interface PostItemProps {
 export const PostItem: React.FC<PostItemProps> = ({ 
   post, 
   userId, 
-  onLike, 
   onView, 
   onProfileClick,
   onPostDeleted 
 }) => {
-  const [showComments, setShowComments] = useState(false);
+  const [showCommentsPage, setShowCommentsPage] = useState(false);
 
   const handleProfileClick = () => {
     if (onProfileClick && post.user_id) {
@@ -31,10 +29,12 @@ export const PostItem: React.FC<PostItemProps> = ({
   };
 
   const handleCommentToggle = () => {
-    setShowComments(!showComments);
-    if (!showComments) {
-      onView(post.id);
-    }
+    setShowCommentsPage(true);
+    onView(post.id);
+  };
+
+  const handleCloseComments = () => {
+    setShowCommentsPage(false);
   };
 
   return (
@@ -57,13 +57,14 @@ export const PostItem: React.FC<PostItemProps> = ({
             <PostActions
               post={post}
               userId={userId}
-              onLike={onLike}
               onComment={handleCommentToggle}
             />
 
-            <PostComments 
-              postId={post.id} 
-              isVisible={showComments}
+            <PostCommentsPage
+              post={post}
+              isOpen={showCommentsPage}
+              onClose={handleCloseComments}
+              onProfileClick={onProfileClick}
             />
           </div>
         </div>

@@ -73,7 +73,6 @@ export const PostFeed: React.FC = () => {
                 key={post.id}
                 post={post}
                 userId={userId}
-                onLike={handleLikePost}
                 onView={incrementViewCount}
                 onProfileClick={openProfile}
                 onPostDeleted={handlePostDeleted}

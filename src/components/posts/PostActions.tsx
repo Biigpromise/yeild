@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Heart, Eye, MessageCircle } from "lucide-react";
+import { Eye, MessageCircle } from "lucide-react";
 import { Post } from '@/types/post';
-import { PostReactions } from './PostReactions';
+import { EnhancedPostReactions } from './EnhancedPostReactions';
 
 interface PostActionsProps {
   post: Post & { 
@@ -11,23 +11,10 @@ interface PostActionsProps {
     dislikes_from_reactions?: number;
   };
   userId: string | null;
-  onLike: (post: Post) => void;
   onComment?: () => void;
 }
 
-export const PostActions: React.FC<PostActionsProps> = ({ post, userId, onLike, onComment }) => {
-  const hasLiked = post.post_likes?.some(like => like.user_id === userId);
-
-  console.log('PostActions rendering:', {
-    postId: post.id,
-    viewCount: post.view_count,
-    likesCount: post.likes_count,
-    hasLiked,
-    userId,
-    likes_from_reactions: post.likes_from_reactions,
-    dislikes_from_reactions: post.dislikes_from_reactions
-  });
-
+export const PostActions: React.FC<PostActionsProps> = ({ post, userId, onComment }) => {
   return (
     <div className="flex items-center gap-6 text-sm text-muted-foreground mb-3">
       <div className="flex items-center gap-1 hover:text-blue-500 transition-colors">
@@ -35,17 +22,7 @@ export const PostActions: React.FC<PostActionsProps> = ({ post, userId, onLike, 
         <span>{post.view_count || 0} views</span>
       </div>
       
-      <PostReactions postId={post.id} userId={userId} />
-      
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => onLike(post)}
-        className={`p-0 h-auto hover:bg-transparent ${hasLiked ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'} transition-colors`}
-      >
-        <Heart className={`h-4 w-4 mr-1 ${hasLiked ? 'fill-current' : ''}`} />
-        <span>{post.likes_count || 0} likes</span>
-      </Button>
+      <EnhancedPostReactions postId={post.id} userId={userId} />
       
       {onComment && (
         <Button

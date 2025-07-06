@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, Send } from 'lucide-react';
+import { Heart, MessageCircle, Send, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
+import { Post } from '@/types/post';
+import { PostHeader } from './PostHeader';
+import { PostContent } from './PostContent';
 
 interface Comment {
   id: string;
@@ -31,12 +35,19 @@ interface UserProfile {
   profile_picture_url?: string;
 }
 
-interface PostCommentsProps {
-  postId: string;
-  isVisible: boolean;
+interface PostCommentsPageProps {
+  post: Post & { media_url?: string };
+  isOpen: boolean;
+  onClose: () => void;
+  onProfileClick?: (userId: string) => void;
 }
 
-export const PostComments: React.FC<PostCommentsProps> = ({ postId, isVisible }) => {
+export const PostCommentsPage: React.FC<PostCommentsPageProps> = ({ 
+  post, 
+  isOpen, 
+  onClose, 
+  onProfileClick 
+}) => {
   const { user } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -53,10 +64,10 @@ export const PostComments: React.FC<PostCommentsProps> = ({ postId, isVisible })
   }, [user]);
 
   useEffect(() => {
-    if (isVisible && postId) {
+    if (isOpen && post.id) {
       loadComments();
     }
-  }, [isVisible, postId]);
+  }, [isOpen, post.id]);
 
   const loadUserProfile = async () => {
     if (!user) return;
@@ -93,7 +104,7 @@ export const PostComments: React.FC<PostCommentsProps> = ({ postId, isVisible })
   };
 
   const loadComments = async () => {
-    if (!postId) return;
+    if (!post.id) return;
     
     setLoadingComments(true);
     try {
@@ -112,7 +123,7 @@ export const PostComments: React.FC<PostCommentsProps> = ({ postId, isVisible })
             profile_picture_url
           )
         `)
-        .eq('post_id', postId)
+        .eq('post_id', post.id)
         .is('parent_comment_id', null)
         .order('created_at', { ascending: true });
 
@@ -179,7 +190,7 @@ export const PostComments: React.FC<PostCommentsProps> = ({ postId, isVisible })
       const { data, error } = await supabase
         .from('post_comments')
         .insert({
-          post_id: postId,
+          post_id: post.id,
           user_id: user.id,
           content: newComment.trim()
         })
@@ -219,7 +230,7 @@ export const PostComments: React.FC<PostCommentsProps> = ({ postId, isVisible })
       const { data, error } = await supabase
         .from('post_comments')
         .insert({
-          post_id: postId,
+          post_id: post.id,
           user_id: user.id,
           content: replyText.trim(),
           parent_comment_id: parentCommentId
@@ -388,59 +399,87 @@ export const PostComments: React.FC<PostCommentsProps> = ({ postId, isVisible })
     </div>
   );
 
-  if (!isVisible) return null;
+  const handleProfileClick = () => {
+    if (onProfileClick && post.user_id) {
+      onProfileClick(post.user_id);
+    }
+  };
 
   return (
-    <div className="border-t p-4 space-y-4">
-      {loadingComments ? (
-        <div className="text-center text-muted-foreground">Loading comments...</div>
-      ) : (
-        <>
-          {comments.map(comment => (
-            <CommentItem key={comment.id} comment={comment} />
-          ))}
-          
-          {comments.length === 0 && (
-            <div className="text-center text-muted-foreground py-4">
-              No comments yet. Be the first to comment!
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Add comment input */}
-      {user && userProfile && (
-        <div className="flex gap-3 pt-2 border-t">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={userProfile.profile_picture_url || ''} />
-            <AvatarFallback>
-              {userProfile.name?.charAt(0)?.toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
-          
-          <div className="flex-1 flex gap-2">
-            <Textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Write a comment..."
-              className="min-h-[60px] resize-none"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleAddComment();
-                }
-              }}
-            />
-            <Button
-              size="sm"
-              onClick={handleAddComment}
-              disabled={!newComment.trim() || loading}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogHeader className="border-b pb-4">
+          <DialogTitle className="text-lg font-semibold">Comments</DialogTitle>
+        </DialogHeader>
+        
+        {/* Post content */}
+        <div className="border-b pb-4">
+          <PostHeader
+            post={post}
+            userId={user?.id || null}
+            onProfileClick={handleProfileClick}
+          />
+          <PostContent
+            content={post.content}
+            mediaUrl={post.media_url}
+          />
         </div>
-      )}
-    </div>
+
+        {/* Comments section */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {loadingComments ? (
+            <div className="text-center text-muted-foreground">Loading comments...</div>
+          ) : (
+            <>
+              {comments.map(comment => (
+                <CommentItem key={comment.id} comment={comment} />
+              ))}
+              
+              {comments.length === 0 && (
+                <div className="text-center text-muted-foreground py-4">
+                  No comments yet. Be the first to comment!
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Add comment input */}
+        {user && userProfile && (
+          <div className="border-t pt-4">
+            <div className="flex gap-3">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={userProfile.profile_picture_url || ''} />
+                <AvatarFallback>
+                  {userProfile.name?.charAt(0)?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="flex-1 flex gap-2">
+                <Textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Write a comment..."
+                  className="min-h-[60px] resize-none"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleAddComment();
+                    }
+                  }}
+                />
+                <Button
+                  size="sm"
+                  onClick={handleAddComment}
+                  disabled={!newComment.trim() || loading}
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 };
