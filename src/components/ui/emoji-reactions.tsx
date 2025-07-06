@@ -43,26 +43,37 @@ export const EmojiReactions: React.FC<EmojiReactionsProps> = ({
 
   const loadReactions = async () => {
     try {
-      // Use existing message_likes table for now
-      const { data: likesData, error } = await supabase
-        .from('message_likes')
+      const { data: reactionsData, error } = await supabase
+        .from('message_reactions')
         .select('*')
         .eq('message_id', messageId);
 
       if (error) {
         console.error('Error loading reactions:', error);
+        setReactions([]);
+        return;
       }
 
-      // For now, just show likes as thumbs up emoji
-      const likeReaction: Reaction = {
-        id: '👍',
-        emoji: '👍',
-        count: likesData?.length || 0,
-        users: likesData?.map(like => like.user_id) || [],
-        hasReacted: user ? likesData?.some(like => like.user_id === user.id) || false : false
-      };
+      // Group reactions by emoji
+      const reactionGroups = reactionsData?.reduce((acc: any, reaction: any) => {
+        if (!acc[reaction.emoji]) {
+          acc[reaction.emoji] = {
+            id: reaction.emoji,
+            emoji: reaction.emoji,
+            count: 0,
+            users: [],
+            hasReacted: false
+          };
+        }
+        acc[reaction.emoji].count++;
+        acc[reaction.emoji].users.push(reaction.user_id);
+        if (user && reaction.user_id === user.id) {
+          acc[reaction.emoji].hasReacted = true;
+        }
+        return acc;
+      }, {}) || {};
 
-      setReactions(likeReaction.count > 0 ? [likeReaction] : []);
+      setReactions(Object.values(reactionGroups));
     } catch (error) {
       console.error('Error loading reactions:', error);
       setReactions([]);
@@ -73,13 +84,13 @@ export const EmojiReactions: React.FC<EmojiReactionsProps> = ({
 
   const setupRealTimeUpdates = () => {
     const channel = supabase
-      .channel(`message-likes-${messageId}`)
+      .channel(`message-reactions-${messageId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'message_likes',
+          table: 'message_reactions',
           filter: `message_id=eq.${messageId}`
         },
         () => {
@@ -97,55 +108,25 @@ export const EmojiReactions: React.FC<EmojiReactionsProps> = ({
     if (!user) return;
 
     try {
-      // For now, only handle thumbs up (like) using existing table
-      if (emoji === '👍') {
-        const existingReaction = reactions.find(r => r.emoji === emoji);
-        
-        if (existingReaction?.hasReacted) {
-          // Remove like
-          await supabase
-            .from('message_likes')
-            .delete()
-            .eq('message_id', messageId)
-            .eq('user_id', user.id);
-        } else {
-          // Add like
-          await supabase
-            .from('message_likes')
-            .insert({
-              message_id: messageId,
-              user_id: user.id
-            });
-        }
+      const existingReaction = reactions.find(r => r.emoji === emoji);
+      
+      if (existingReaction?.hasReacted) {
+        // Remove reaction
+        await supabase
+          .from('message_reactions')
+          .delete()
+          .eq('message_id', messageId)
+          .eq('user_id', user.id)
+          .eq('emoji', emoji);
       } else {
-        // For other emojis, show a temporary reaction
-        setReactions(prev => {
-          const updated = [...prev];
-          const existingIndex = updated.findIndex(r => r.emoji === emoji);
-          
-          if (existingIndex >= 0) {
-            if (updated[existingIndex].hasReacted) {
-              updated[existingIndex].count--;
-              updated[existingIndex].hasReacted = false;
-              if (updated[existingIndex].count <= 0) {
-                updated.splice(existingIndex, 1);
-              }
-            } else {
-              updated[existingIndex].count++;
-              updated[existingIndex].hasReacted = true;
-            }
-          } else {
-            updated.push({
-              id: emoji,
-              emoji,
-              count: 1,
-              users: [user.id],
-              hasReacted: true
-            });
-          }
-          
-          return updated;
-        });
+        // Add reaction
+        await supabase
+          .from('message_reactions')
+          .insert({
+            message_id: messageId,
+            user_id: user.id,
+            emoji: emoji
+          });
       }
     } catch (error) {
       console.error('Error handling reaction:', error);

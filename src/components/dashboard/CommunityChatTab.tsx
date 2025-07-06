@@ -14,6 +14,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { MediaModal } from './chat/MediaModal';
 import { MessageComments } from './chat/MessageComments';
 import { EnhancedBirdBadge } from '@/components/referral/EnhancedBirdBadge';
+import { EmojiReactions } from '@/components/ui/emoji-reactions';
 
 interface Message {
   id: string;
@@ -541,37 +542,43 @@ export const CommunityChatTab = () => {
                     </div>
 
                     {/* Post Actions */}
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-800">
-                      <div className="flex items-center gap-6">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleLike(message.id)}
-                          className={`${userHasLiked ? 'text-red-500' : 'text-gray-400'} hover:text-red-500 hover:bg-red-500/10`}
-                        >
-                          <Heart className={`h-5 w-5 mr-2 ${userHasLiked ? 'fill-current' : ''}`} />
-                          <span className="text-sm">{likes.length > 0 ? likes.length : 'Like'}</span>
-                        </Button>
-                        
-                        <MessageComments 
-                          messageId={message.id}
-                          userId={user?.id || null}
-                          onUserClick={handleUserClick}
-                        />
-                        
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleShare(message.id)}
-                          className="text-gray-400 hover:text-green-500 hover:bg-green-500/10"
-                        >
-                          <Share className="h-5 w-5 mr-2" />
-                          <span className="text-sm">Share</span>
-                        </Button>
-                      </div>
+                    <div className="pt-3 border-t border-gray-800 space-y-3">
+                      {/* Emoji Reactions */}
+                      <EmojiReactions messageId={message.id} className="px-1" />
                       
-                      <div className="flex items-center text-gray-400 text-sm">
-                        <span>{message.views_count || 0} views</span>
+                      {/* Action Buttons */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-6">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleLike(message.id)}
+                            className={`${userHasLiked ? 'text-red-500' : 'text-gray-400'} hover:text-red-500 hover:bg-red-500/10`}
+                          >
+                            <Heart className={`h-5 w-5 mr-2 ${userHasLiked ? 'fill-current' : ''}`} />
+                            <span className="text-sm">{likes.length > 0 ? likes.length : 'Like'}</span>
+                          </Button>
+                          
+                          <MessageComments 
+                            messageId={message.id}
+                            userId={user?.id || null}
+                            onUserClick={handleUserClick}
+                          />
+                          
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleShare(message.id)}
+                            className="text-gray-400 hover:text-green-500 hover:bg-green-500/10"
+                          >
+                            <Share className="h-5 w-5 mr-2" />
+                            <span className="text-sm">Share</span>
+                          </Button>
+                        </div>
+                        
+                        <div className="flex items-center text-gray-400 text-sm">
+                          <span>{message.views_count || 0} views</span>
+                        </div>
                       </div>
                     </div>
                   </div>
