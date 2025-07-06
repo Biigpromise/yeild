@@ -19,6 +19,7 @@ import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell"
 import { AntiFraudTracking } from "@/components/admin/AntiFraudTracking";
 import { BrandCampaigns } from "@/components/admin/BrandCampaigns";
 import { BrandAnalytics } from "@/components/admin/BrandAnalytics";
+import { AdminAIAssistant } from "@/components/admin/AdminAIAssistant";
 import {
   LayoutDashboard,
   Users,
@@ -40,12 +41,15 @@ import {
   Database,
   AlertTriangle,
   Target,
-  TrendingUp
+  TrendingUp,
+  Bot,
+  Sparkles
 } from "lucide-react";
 
 const Admin = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
 
   useEffect(() => {
     // Listen for navigation events from child components
@@ -111,6 +115,55 @@ const Admin = () => {
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleAINavigation = (section: string) => {
+    // Map AI section names to actual section IDs
+    const sectionMap = {
+      'users': 'users',
+      'user_management': 'users',
+      'tasks': 'tasks',
+      'task_management': 'tasks',
+      'enhanced-tasks': 'tasks', 
+      'analytics': 'analytics',
+      'notifications': 'notifications',
+      'security': 'security',
+      'brands': 'brands',
+      'content': 'content',
+      'communication': 'communication',
+      'settings': 'settings',
+      'support': 'support',
+      'wallet': 'wallet',
+      'financial': 'wallet',
+      'referrals': 'referrals',
+      'overview': 'dashboard',
+      'dashboard': 'dashboard'
+    };
+    
+    const mappedSection = sectionMap[section] || section;
+    if (sectionComponents[mappedSection]) {
+      setActiveSection(mappedSection);
+    }
+  };
+
+  const handleAIAction = (action: string, parameters: any) => {
+    console.log('Executing AI action:', action, parameters);
+    
+    // Handle specific AI actions
+    switch (action) {
+      case 'search_user':
+        setActiveSection('users');
+        // Could trigger user search with parameters.query
+        break;
+      case 'create_announcement':
+        setActiveSection('content');
+        break;
+      case 'view_analytics':
+        setActiveSection('analytics');
+        break;
+      default:
+        console.log('Unknown AI action:', action);
+    }
   };
 
   return (
@@ -183,6 +236,18 @@ const Admin = () => {
             </div>
             <div className="flex items-center gap-2 md:gap-4">
               <AdminNotificationBell />
+              <button 
+                onClick={() => setIsAIAssistantOpen(!isAIAssistantOpen)}
+                className={`flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-md border transition-all duration-200 text-sm ${
+                  isAIAssistantOpen 
+                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white border-purple-500' 
+                    : 'border-border bg-card hover:bg-muted'
+                }`}
+              >
+                <Bot className="h-4 w-4" />
+                <Sparkles className="h-3 w-3" />
+                AI Assistant
+              </button>
               <button className="px-3 py-1.5 md:px-4 md:py-2 rounded-md border border-border bg-card hover:bg-muted text-sm">
                 Broadcast
               </button>
@@ -198,6 +263,14 @@ const Admin = () => {
           </div>
         </div>
       </main>
+      
+      {/* AI Assistant Component */}
+      <AdminAIAssistant
+        isOpen={isAIAssistantOpen}
+        onToggle={() => setIsAIAssistantOpen(!isAIAssistantOpen)}
+        onNavigate={handleAINavigation}
+        onExecuteAction={handleAIAction}
+      />
     </div>
   );
 };
