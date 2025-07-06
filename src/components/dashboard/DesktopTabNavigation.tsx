@@ -13,7 +13,9 @@ import {
   History, 
   MessageCircle, 
   Search, 
-  HelpCircle 
+  HelpCircle,
+  Activity,
+  Bell
 } from "lucide-react";
 
 interface DesktopTabNavigationProps {
@@ -27,17 +29,11 @@ export const DesktopTabNavigation: React.FC<DesktopTabNavigationProps> = ({
 }) => {
   const tabs = [
     { id: "tasks", label: "Tasks", icon: CheckSquare },
-    { id: "community", label: "Community", icon: MessageCircle }, // Moved chat to 2nd position
-    { id: "profile", label: "Profile", icon: User },
-    { id: "stories", label: "Stories", icon: Camera }, // Moved stories to 4th position
-    { id: "referrals", label: "Referrals", icon: Users },
-    { id: "achievements", label: "Achievements", icon: Trophy },
-    { id: "leaderboard", label: "Leaderboard", icon: BarChart3 },
-    { id: "wallet", label: "Wallet", icon: Wallet },
-    { id: "rewards", label: "Rewards", icon: Gift },
-    { id: "history", label: "History", icon: History },
+    { id: "community", label: "Community", icon: MessageCircle },
+    { id: "activity", label: "Activity", icon: Activity },
+    { id: "notifications", label: "Notifications", icon: Bell },
     { id: "search", label: "Search", icon: Search },
-    { id: "support", label: "Support", icon: HelpCircle }
+    { id: "support", label: "Support", icon: HelpCircle },
   ];
 
   return (

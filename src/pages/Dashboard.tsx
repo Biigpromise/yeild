@@ -16,6 +16,10 @@ import { HistoryTab } from "@/components/dashboard/HistoryTab";
 import { CommunityChatTab } from "@/components/dashboard/CommunityChatTab";
 import { UserSearchTab } from "@/components/dashboard/UserSearchTab";
 import { SupportTab } from "@/components/dashboard/SupportTab";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+import { QuickActionsPanel } from "@/components/dashboard/QuickActionsPanel";
+import { EnhancedNotificationCenter } from "@/components/dashboard/EnhancedNotificationCenter";
+import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { DesktopTabNavigation } from "@/components/dashboard/DesktopTabNavigation";
 import { MobileTabNavigation } from "@/components/ui/mobile-tab-navigation";
 import { useDashboard } from "@/hooks/useDashboard";
@@ -129,6 +133,10 @@ const Dashboard = () => {
         return <UserSearchTab />;
       case "support":
         return <SupportTab />;
+      case "activity":
+        return <ActivityFeed />;
+      case "notifications":
+        return <EnhancedNotificationCenter />;
       default:
         return (
           <TasksTab 
@@ -204,6 +212,15 @@ const Dashboard = () => {
             onTabChange={setActiveTab}
           />
         </div>
+
+        {/* Quick Actions Panel */}
+        <QuickActionsPanel 
+          onTabChange={setActiveTab}
+          onAction={(action) => console.log('Quick action:', action)}
+        />
+
+        {/* Onboarding Tutorial */}
+        <OnboardingTutorial />
       </div>
     </div>
   );
