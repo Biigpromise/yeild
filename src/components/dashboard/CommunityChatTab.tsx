@@ -55,11 +55,58 @@ export const CommunityChatTab = () => {
     if (user) {
       loadMessages();
       loadMessageLikes();
-      const interval = setInterval(() => {
-        loadMessages();
-        loadMessageLikes();
-      }, 3000);
-      return () => clearInterval(interval);
+      
+      // Set up real-time subscriptions
+      const messagesChannel = supabase
+        .channel('messages-channel')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'messages'
+          },
+          () => {
+            loadMessages();
+          }
+        )
+        .subscribe();
+
+      const likesChannel = supabase
+        .channel('message-likes-channel')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'message_likes'
+          },
+          () => {
+            loadMessageLikes();
+          }
+        )
+        .subscribe();
+
+      const commentsChannel = supabase
+        .channel('message-comments-channel')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'message_comments'
+          },
+          () => {
+            loadMessages(); // Reload to update comment counts
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(messagesChannel);
+        supabase.removeChannel(likesChannel);
+        supabase.removeChannel(commentsChannel);
+      };
     }
   }, [user]);
 

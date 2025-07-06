@@ -6,10 +6,10 @@ import { Trophy } from "lucide-react";
 import { LeaderboardLoading } from "./leaderboard/LeaderboardLoading";
 import { EmptyLeaderboard } from "./leaderboard/EmptyLeaderboard";
 import { LeaderboardUserItem } from "./leaderboard/LeaderboardUserItem";
-import { useLeaderboard } from "./leaderboard/useLeaderboard";
+import { useRealTimeLeaderboard } from "@/hooks/useRealTimeLeaderboard";
 
 export const Leaderboard = () => {
-  const { leaderboard, loading } = useLeaderboard();
+  const { leaderboard, loading } = useRealTimeLeaderboard();
 
   if (loading) {
     return <LeaderboardLoading />;

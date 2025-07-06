@@ -20,17 +20,19 @@ import NotFound from '@/pages/NotFound';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { RoleProtectedRoute } from '@/components/RoleProtectedRoute';
 import { PhoenixUserProvider } from '@/components/referral/PhoenixUserProvider';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 function App() {
   const queryClient = new QueryClient();
 
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <OnboardingProvider>
-              <PhoenixUserProvider>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <AuthProvider>
+              <OnboardingProvider>
+                <PhoenixUserProvider>
                 <div className="min-h-screen bg-background">
                   <Toaster />
                   <Routes>
@@ -87,6 +89,7 @@ function App() {
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

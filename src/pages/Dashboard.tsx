@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
 import { TasksTab } from "@/components/dashboard/TasksTab";
 import { StoriesTab } from "@/components/dashboard/StoriesTab";
 import { ProfileTab } from "@/components/dashboard/ProfileTab";
@@ -175,6 +176,7 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <DashboardHeader user={userProfile} onTabChange={setActiveTab} />
 
+        <DashboardSummaryCards userStats={userStats} />
         <DashboardStats userStats={userStats} />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">

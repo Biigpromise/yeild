@@ -14,10 +14,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Bell, LogOut, Settings, User } from "lucide-react";
+import { Bell, LogOut, Settings, User, Search } from "lucide-react";
 import { CompactBirdBatch } from "@/components/ui/CompactBirdBatch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ProfileBirdBadge } from "@/components/referral/ProfileBirdBadge";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardHeaderProps {
@@ -28,6 +30,7 @@ interface DashboardHeaderProps {
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabChange }) => {
   const { signOut } = useAuth();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const handleProfileClick = () => {
     if (onTabChange) {
@@ -83,6 +86,19 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
       </div>
 
       <div className="flex items-center space-x-2">
+        {/* Global Search */}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setIsSearchOpen(true)}
+          className="relative"
+        >
+          <Search className="h-4 w-4" />
+        </Button>
+
+        {/* Theme Toggle */}
+        <ThemeToggle />
+
         {/* Notifications */}
         <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
           <PopoverTrigger asChild>
@@ -130,6 +146,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <GlobalSearch 
+        isOpen={isSearchOpen} 
+        onClose={() => setIsSearchOpen(false)} 
+      />
     </div>
   );
 };
