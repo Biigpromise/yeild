@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Heart, Eye } from "lucide-react";
+import { Heart, Eye, MessageCircle } from "lucide-react";
 import { Post } from '@/types/post';
 import { PostReactions } from './PostReactions';
 
@@ -12,9 +12,10 @@ interface PostActionsProps {
   };
   userId: string | null;
   onLike: (post: Post) => void;
+  onComment?: () => void;
 }
 
-export const PostActions: React.FC<PostActionsProps> = ({ post, userId, onLike }) => {
+export const PostActions: React.FC<PostActionsProps> = ({ post, userId, onLike, onComment }) => {
   const hasLiked = post.post_likes?.some(like => like.user_id === userId);
 
   console.log('PostActions rendering:', {
@@ -45,6 +46,18 @@ export const PostActions: React.FC<PostActionsProps> = ({ post, userId, onLike }
         <Heart className={`h-4 w-4 mr-1 ${hasLiked ? 'fill-current' : ''}`} />
         <span>{post.likes_count || 0} likes</span>
       </Button>
+      
+      {onComment && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onComment}
+          className="p-0 h-auto hover:bg-transparent text-muted-foreground hover:text-blue-500 transition-colors"
+        >
+          <MessageCircle className="h-4 w-4 mr-1" />
+          <span>{post.reply_count || 0} comments</span>
+        </Button>
+      )}
     </div>
   );
 };

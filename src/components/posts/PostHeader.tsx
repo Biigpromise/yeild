@@ -18,7 +18,7 @@ interface PostHeaderProps {
   };
   userId: string | null;
   onProfileClick: () => void;
-  onDeletePost: () => void;
+  onDeletePost?: () => void;
 }
 
 export const PostHeader: React.FC<PostHeaderProps> = ({
@@ -74,7 +74,7 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
         </div>
       </div>
       
-      {userId === post.user_id && (
+      {userId === post.user_id && onDeletePost && (
         <Button
           variant="ghost"
           size="sm"

@@ -1,12 +1,9 @@
-
-import React, { useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Post } from '@/types/post';
 import { PostHeader } from './PostHeader';
 import { PostContent } from './PostContent';
 import { PostActions } from './PostActions';
-import { PostReplies } from './PostReplies';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { PostComments } from './PostComments';
 
 interface PostItemProps {
   post: Post & { media_url?: string };
@@ -25,7 +22,7 @@ export const PostItem: React.FC<PostItemProps> = ({
   onProfileClick,
   onPostDeleted 
 }) => {
-  const hasViewed = useRef(false);
+  const [showComments, setShowComments] = useState(false);
 
   const handleProfileClick = () => {
     if (onProfileClick && post.user_id) {
@@ -33,35 +30,12 @@ export const PostItem: React.FC<PostItemProps> = ({
     }
   };
 
-  const handleDeletePost = async () => {
-    if (!userId || post.user_id !== userId) return;
-    
-    if (!confirm('Are you sure you want to delete this post?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', post.id)
-        .eq('user_id', userId);
-
-      if (error) throw error;
-      
-      toast.success('Post deleted successfully');
-      if (onPostDeleted) onPostDeleted();
-    } catch (error) {
-      console.error('Error deleting post:', error);
-      toast.error('Failed to delete post');
-    }
-  };
-
-  // Handle view count only once per post
-  useEffect(() => {
-    if (!hasViewed.current && userId) {
-      hasViewed.current = true;
+  const handleCommentToggle = () => {
+    setShowComments(!showComments);
+    if (!showComments) {
       onView(post.id);
     }
-  }, [post.id, onView, userId]);
+  };
 
   return (
     <div className="border-b border-border hover:bg-muted/30 transition-colors">
@@ -72,7 +46,7 @@ export const PostItem: React.FC<PostItemProps> = ({
               post={post}
               userId={userId}
               onProfileClick={handleProfileClick}
-              onDeletePost={handleDeletePost}
+              onDeletePost={onPostDeleted}
             />
             
             <PostContent
@@ -84,12 +58,12 @@ export const PostItem: React.FC<PostItemProps> = ({
               post={post}
               userId={userId}
               onLike={onLike}
+              onComment={handleCommentToggle}
             />
 
-            <PostReplies 
+            <PostComments 
               postId={post.id} 
-              userId={userId} 
-              replyCount={post.reply_count || 0}
+              isVisible={showComments}
             />
           </div>
         </div>
