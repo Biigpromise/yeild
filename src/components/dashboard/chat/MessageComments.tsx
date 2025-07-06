@@ -124,73 +124,77 @@ export const MessageComments: React.FC<MessageCommentsProps> = ({
       </Button>
 
       {showComments && (
-        <div className="space-y-3 ml-8 border-l border-gray-700 pl-4">
-          {loading ? (
-            <p className="text-sm text-gray-400">Loading comments...</p>
-          ) : comments.length === 0 ? (
-            <p className="text-sm text-gray-400">No comments yet. Be the first to comment!</p>
-          ) : (
-            comments.map((comment) => (
-              <div key={comment.id} className="flex gap-2">
-                <button
-                  onClick={() => onUserClick(comment.user_id)}
-                  className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full"
-                >
-                  <Avatar className="h-6 w-6 hover:scale-105 transition-transform cursor-pointer">
-                    <AvatarImage 
-                      src={comment.profiles?.profile_picture_url || undefined} 
-                      alt={getDisplayName(comment.profiles)}
-                    />
-                    <AvatarFallback className="bg-gray-700 text-white text-xs">
-                      {getAvatarFallback(comment.profiles)}
-                    </AvatarFallback>
-                  </Avatar>
-                </button>
-                <div className="flex-1">
-                  <div className="bg-gray-800 rounded-lg p-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <button
-                        onClick={() => onUserClick(comment.user_id)}
-                        className="text-xs font-medium text-white hover:underline focus:outline-none focus:underline"
-                      >
-                        {getDisplayName(comment.profiles)}
-                      </button>
-                      <span className="text-xs text-gray-400">
-                        {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                      </span>
+        <div className="mt-3 bg-gray-900/50 rounded-lg p-3 border border-gray-700">
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {loading ? (
+              <p className="text-sm text-gray-400">Loading comments...</p>
+            ) : comments.length === 0 ? (
+              <p className="text-sm text-gray-400">No comments yet. Be the first to comment!</p>
+            ) : (
+              <div className="space-y-3">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="flex gap-3 bg-gray-800/50 rounded-lg p-3">
+                    <button
+                      onClick={() => onUserClick(comment.user_id)}
+                      className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full flex-shrink-0"
+                    >
+                      <Avatar className="h-8 w-8 hover:scale-105 transition-transform cursor-pointer">
+                        <AvatarImage 
+                          src={comment.profiles?.profile_picture_url || undefined} 
+                          alt={getDisplayName(comment.profiles)}
+                        />
+                        <AvatarFallback className="bg-gray-700 text-white text-xs">
+                          {getAvatarFallback(comment.profiles)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <button
+                          onClick={() => onUserClick(comment.user_id)}
+                          className="text-sm font-medium text-white hover:underline focus:outline-none focus:underline"
+                        >
+                          {getDisplayName(comment.profiles)}
+                        </button>
+                        <span className="text-xs text-gray-400">
+                          {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-200 break-words">{comment.content}</p>
                     </div>
-                    <p className="text-sm text-gray-200">{comment.content}</p>
                   </div>
-                </div>
+                ))}
               </div>
-            ))
-          )}
+            )}
+          </div>
 
           {userId && (
-            <form onSubmit={handleSubmitComment} className="flex gap-2">
-              <Avatar className="h-6 w-6 flex-shrink-0">
-                <AvatarFallback className="bg-gray-700 text-white text-xs">
-                  U
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 flex gap-2">
-                <Input
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Write a comment..."
-                  className="flex-1 bg-gray-800 border-gray-700 text-white placeholder-gray-400 text-sm"
-                  disabled={submitting}
-                />
-                <Button 
-                  type="submit" 
-                  size="sm" 
-                  disabled={submitting || !newComment.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3"
-                >
-                  <Send className="h-3 w-3" />
-                </Button>
-              </div>
-            </form>
+            <div className="mt-4 pt-3 border-t border-gray-700">
+              <form onSubmit={handleSubmitComment} className="flex gap-3">
+                <Avatar className="h-8 w-8 flex-shrink-0">
+                  <AvatarFallback className="bg-gray-700 text-white text-xs">
+                    U
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 flex gap-2">
+                  <Input
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Write a comment..."
+                    className="flex-1 bg-gray-800 border-gray-700 text-white placeholder-gray-400 text-sm"
+                    disabled={submitting}
+                  />
+                  <Button 
+                    type="submit" 
+                    size="sm" 
+                    disabled={submitting || !newComment.trim()}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </form>
+            </div>
           )}
         </div>
       )}

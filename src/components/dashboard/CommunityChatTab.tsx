@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MessageCircle, Heart, Share, MoreHorizontal, Users, Eye } from 'lucide-react';
+import { MessageCircle, Users, Heart, Share, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 import { PublicProfileModal } from '@/components/PublicProfileModal';
 import { fileUploadService } from '@/services/fileUploadService';
@@ -12,6 +12,9 @@ import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { formatDistanceToNow } from 'date-fns';
 import { MediaModal } from './chat/MediaModal';
+import { ChatHeader } from './chat/ChatHeader';
+import { PostCreationForm } from './chat/PostCreationForm';
+import { VirtualizedMessageList } from './chat/VirtualizedMessageList';
 import { MessageComments } from './chat/MessageComments';
 import { EnhancedBirdBadge } from '@/components/referral/EnhancedBirdBadge';
 import { EmojiReactions } from '@/components/ui/emoji-reactions';
@@ -51,6 +54,8 @@ export const CommunityChatTab = () => {
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [messageLikes, setMessageLikes] = useState<Record<string, MessageLike[]>>({});
   const [viewedMessages, setViewedMessages] = useState<Set<string>>(new Set());
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerHeight, setContainerHeight] = useState(400);
 
   useEffect(() => {
     if (user) {
@@ -407,19 +412,7 @@ export const CommunityChatTab = () => {
 
   return (
     <div className="flex flex-col h-full bg-black text-white">
-      {/* Header */}
-      <div className="flex-shrink-0 bg-gray-900 border-b border-gray-800 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <MessageCircle className="h-6 w-6" />
-            <h1 className="text-xl font-bold">Community</h1>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <Users className="h-4 w-4" />
-            <span>{activeUsers} active</span>
-          </div>
-        </div>
-      </div>
+          <ChatHeader activeUsers={activeUsers} />
 
       {/* Feed */}
       <div className="flex-1 overflow-y-auto bg-black min-h-0">
