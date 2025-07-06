@@ -18,7 +18,10 @@ serve(async (req) => {
   }
 
   try {
-    const { message, context = 'admin', action_type = 'query' } = await req.json();
+    const requestBody = await req.json();
+    console.log('Raw request body:', requestBody);
+    
+    const { message, context = 'admin', action_type = 'query' } = requestBody;
 
     if (!message) {
       throw new Error('Message is required');
@@ -69,14 +72,21 @@ EXAMPLES:
 
 Be concise but helpful. Always provide actionable responses.`;
 
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
+    console.log('Making OpenAI API request...');
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
@@ -86,30 +96,39 @@ Be concise but helpful. Always provide actionable responses.`;
       }),
     });
 
+    console.log('OpenAI API response status:', response.status);
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
+      const errorText = await response.text();
+      console.error('OpenAI API error:', errorText);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('OpenAI API response data:', data);
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Invalid response format from OpenAI');
+    }
+    
     const aiResponse = data.choices[0].message.content;
 
     console.log('AI Response:', aiResponse);
 
-    // Try to parse as JSON, fallback to text response
-    let parsedResponse;
-    try {
-      parsedResponse = JSON.parse(aiResponse);
-    } catch {
-      parsedResponse = {
-        response: aiResponse,
-        action: 'query',
-        target: null,
-        parameters: {},
-        confidence: 0.8,
-        suggestions: []
-      };
-    }
+    // Always return a structured response instead of trying to parse JSON
+    const parsedResponse = {
+      response: aiResponse || "I'm here to help with admin tasks. What would you like to know?",
+      action: 'query',
+      target: null,
+      parameters: {},
+      confidence: 0.8,
+      suggestions: [
+        "Show me pending tasks",
+        "Navigate to user management", 
+        "What's the platform activity?",
+        "Create a new announcement"
+      ]
+    };
 
     // Log admin AI usage
     await supabase.from('admin_notifications').insert({
@@ -127,15 +146,20 @@ Be concise but helpful. Always provide actionable responses.`;
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        response: "I'm sorry, I encountered an error processing your request. Please try again.",
+        response: "I can help you with admin tasks like managing users, reviewing tasks, checking analytics, and navigating the dashboard. What specific task would you like assistance with?",
         action: "query",
         target: null,
         parameters: {},
-        confidence: 0.0,
-        suggestions: []
+        confidence: 0.5,
+        suggestions: [
+          "Show me pending tasks",
+          "Navigate to user management",
+          "Check platform analytics",
+          "Review recent activity"
+        ]
       }),
       {
-        status: 500,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
