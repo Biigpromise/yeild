@@ -256,7 +256,7 @@ export const AdminAIAssistant: React.FC<AdminAIAssistantProps> = ({
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-[400px]">
       <Card className={`w-full transition-all duration-300 ${isMinimized ? 'h-16' : 'h-[600px]'} shadow-xl border-primary/20 bg-background`}>
-        <CardHeader className="pb-2 bg-primary/5">
+        <CardHeader className="pb-2 bg-primary/5 flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
               <Bot className="h-5 w-5 text-primary" />
@@ -301,8 +301,8 @@ export const AdminAIAssistant: React.FC<AdminAIAssistantProps> = ({
         </CardHeader>
 
         {!isMinimized && (
-          <CardContent className="flex flex-col h-full p-0">
-            <ScrollArea className="flex-1 p-4">
+          <CardContent className="flex flex-col p-0 h-[calc(600px-80px)]">
+            <ScrollArea className="flex-1 p-4 h-[calc(100%-80px)]">
               <div className="space-y-4">
                 {messages.map((message) => (
                   <div
@@ -360,7 +360,7 @@ export const AdminAIAssistant: React.FC<AdminAIAssistantProps> = ({
               <div ref={messagesEndRef} />
             </ScrollArea>
 
-            <div className="p-4 border-t bg-background">
+            <div className="p-4 border-t bg-background flex-shrink-0">
               <div className="flex gap-2">
                 <Input
                   value={inputText}
