@@ -254,8 +254,8 @@ export const AdminAIAssistant: React.FC<AdminAIAssistantProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <Card className={`w-96 transition-all duration-300 ${isMinimized ? 'h-16' : 'h-[600px]'} shadow-xl border-primary/20`}>
+    <div className="fixed bottom-4 right-4 z-50 max-w-[400px]">
+      <Card className={`w-full transition-all duration-300 ${isMinimized ? 'h-16' : 'h-[600px]'} shadow-xl border-primary/20 bg-background`}>
         <CardHeader className="pb-2 bg-primary/5">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -360,7 +360,7 @@ export const AdminAIAssistant: React.FC<AdminAIAssistantProps> = ({
               <div ref={messagesEndRef} />
             </ScrollArea>
 
-            <div className="p-4 border-t">
+            <div className="p-4 border-t bg-background">
               <div className="flex gap-2">
                 <Input
                   value={inputText}
@@ -368,13 +368,14 @@ export const AdminAIAssistant: React.FC<AdminAIAssistantProps> = ({
                   placeholder="Ask me anything about admin tasks..."
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                   disabled={isLoading}
-                  className="flex-1"
+                  className="flex-1 bg-background"
                 />
                 <Button
                   onClick={isRecording ? stopRecording : startRecording}
                   variant={isRecording ? "destructive" : "outline"}
                   size="icon"
                   disabled={isLoading}
+                  className="shrink-0"
                 >
                   {isRecording ? (
                     <MicOff className="h-4 w-4" />
@@ -386,6 +387,7 @@ export const AdminAIAssistant: React.FC<AdminAIAssistantProps> = ({
                   onClick={handleSendMessage}
                   disabled={!inputText.trim() || isLoading}
                   size="icon"
+                  className="shrink-0"
                 >
                   <Send className="h-4 w-4" />
                 </Button>

@@ -73,7 +73,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
             </AvatarFallback>
           </Avatar>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 flex-wrap">
             {user?.id && (
               <ProfileBirdBadge userId={user.id} size="sm" showName />
             )}

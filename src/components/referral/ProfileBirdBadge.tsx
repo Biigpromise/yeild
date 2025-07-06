@@ -81,11 +81,13 @@ export const ProfileBirdBadge: React.FC<ProfileBirdBadgeProps> = ({
   }
 
   return (
-    <BirdBadge 
-      birdLevel={birdLevel} 
-      size={size} 
-      showName={showName}
-      className={className}
-    />
+    <div className="flex items-center gap-1">
+      <BirdBadge 
+        birdLevel={birdLevel} 
+        size={size} 
+        showName={showName}
+        className={className}
+      />
+    </div>
   );
 };
