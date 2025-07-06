@@ -362,6 +362,42 @@ export type Database = {
           },
         ]
       }
+      faqs: {
+        Row: {
+          answer: string
+          category: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_published: boolean | null
+          order_index: number | null
+          question: string
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean | null
+          order_index?: number | null
+          question: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean | null
+          order_index?: number | null
+          question?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fraud_flags: {
         Row: {
           admin_notes: string | null
@@ -1570,6 +1606,78 @@ export type Database = {
           id?: string
           ip_address?: unknown | null
           user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_activity_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_feedback: {
+        Row: {
+          admin_response: string | null
+          category: string
+          created_at: string
+          id: string
+          message: string
+          rating: number | null
+          responded_at: string | null
+          responded_by: string | null
+          status: string | null
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          admin_response?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          message: string
+          rating?: number | null
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string | null
+          subject: string
+          user_id: string
+        }
+        Update: {
+          admin_response?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          rating?: number | null
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string | null
+          subject?: string
           user_id?: string
         }
         Relationships: []

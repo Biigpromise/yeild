@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { adminUserManagementService, UserActivity } from "@/services/admin/adminUserManagementService";
+import { UserActivityMonitor } from "./UserActivityMonitor";
+import { RoleAssignmentInterface } from "./RoleAssignmentInterface";
 import { toast } from "sonner";
 import { 
   Users, 
@@ -345,9 +347,7 @@ export const EnhancedUserManagement = () => {
               <CardTitle>User Activity Monitor</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Real-time activity monitoring dashboard coming soon...
-              </div>
+              <UserActivityMonitor />
             </CardContent>
           </Card>
         </TabsContent>
@@ -358,9 +358,7 @@ export const EnhancedUserManagement = () => {
               <CardTitle>Role Assignment Interface</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Advanced role management interface coming soon...
-              </div>
+              <RoleAssignmentInterface />
             </CardContent>
           </Card>
         </TabsContent>
