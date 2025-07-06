@@ -86,13 +86,14 @@ Be concise but helpful. Always provide actionable responses.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-2025-04-14',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
-        temperature: 0.7,
-        max_tokens: 500,
+        temperature: 0.3,
+        max_tokens: 800,
+        response_format: { type: "json_object" }
       }),
     });
 
@@ -112,23 +113,30 @@ Be concise but helpful. Always provide actionable responses.`;
     }
     
     const aiResponse = data.choices[0].message.content;
+    console.log('Raw AI Response:', aiResponse);
 
-    console.log('AI Response:', aiResponse);
-
-    // Always return a structured response instead of trying to parse JSON
-    const parsedResponse = {
-      response: aiResponse || "I'm here to help with admin tasks. What would you like to know?",
-      action: 'query',
-      target: null,
-      parameters: {},
-      confidence: 0.8,
-      suggestions: [
-        "Show me pending tasks",
-        "Navigate to user management", 
-        "What's the platform activity?",
-        "Create a new announcement"
-      ]
-    };
+    // Try to parse the AI's JSON response
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(aiResponse);
+      console.log('Parsed AI Response:', parsedResponse);
+    } catch (parseError) {
+      console.error('Failed to parse AI response as JSON:', parseError);
+      // Fallback response
+      parsedResponse = {
+        response: aiResponse || "I'm here to help with admin tasks. What would you like to know?",
+        action: 'query',
+        target: null,
+        parameters: {},
+        confidence: 0.8,
+        suggestions: [
+          "Show me pending tasks",
+          "Navigate to user management", 
+          "What's the platform activity?",
+          "Create a new announcement"
+        ]
+      };
+    }
 
     // Log admin AI usage
     await supabase.from('admin_notifications').insert({
