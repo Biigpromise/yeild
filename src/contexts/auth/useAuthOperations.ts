@@ -30,12 +30,13 @@ export const useAuthOperations = () => {
         ...additionalData
       };
       
+      // Create user without sending Supabase confirmation email
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl,
           data: Object.keys(signUpData).length > 0 ? signUpData : undefined
+          // Note: Removed emailRedirectTo to prevent Supabase from sending confirmation emails
         }
       });
       
