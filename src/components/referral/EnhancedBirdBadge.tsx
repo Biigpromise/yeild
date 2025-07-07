@@ -153,7 +153,7 @@ export const EnhancedBirdBadge: React.FC<EnhancedBirdBadgeProps> = ({
     <div className="max-w-xs p-2">
       <div className="flex items-center gap-2 mb-2">
         <span className="text-lg">{birdLevel.emoji}</span>
-        <span className="font-bold text-base">{birdLevel.name} YEILDER</span>
+        <span className="font-bold text-base">{birdLevel.name}</span>
       </div>
       <p className="text-sm text-muted-foreground mb-2">{birdLevel.description}</p>
       <div className="text-xs text-muted-foreground mb-2">

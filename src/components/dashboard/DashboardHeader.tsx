@@ -17,7 +17,7 @@ import {
 import { Bell, LogOut, Settings, User, Search } from "lucide-react";
 import { CompactBirdBatch } from "@/components/ui/CompactBirdBatch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ProfileBirdBadge } from "@/components/referral/ProfileBirdBadge";
+import { EnhancedBirdBadge } from "@/components/referral/EnhancedBirdBadge";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { useAuth } from "@/contexts/AuthContext";
@@ -75,7 +75,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
           
         <div className="flex items-center gap-3 flex-wrap">
           {user?.id && (
-            <ProfileBirdBadge userId={user.id} size="sm" showName={false} />
+            <EnhancedBirdBadge userId={user.id} size="sm" showName={false} />
           )}
           {user && (
             <CompactBirdBatch 
