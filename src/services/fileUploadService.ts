@@ -57,11 +57,11 @@ export const fileUploadService = {
   async uploadProfilePicture(file: File, userId: string): Promise<{ url: string } | null> {
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const fileName = `${userId}/${userId}.${fileExt}`;
+      const filePath = fileName;
 
       const { error: uploadError } = await supabase.storage
-        .from('stories')
+        .from('profile-pictures')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) {
@@ -70,7 +70,7 @@ export const fileUploadService = {
       }
 
       const { data } = supabase.storage
-        .from('stories')
+        .from('profile-pictures')
         .getPublicUrl(filePath);
 
       return { url: data.publicUrl };
@@ -83,7 +83,7 @@ export const fileUploadService = {
   async deleteProfilePicture(filePath: string): Promise<boolean> {
     try {
       const { error } = await supabase.storage
-        .from('stories')
+        .from('profile-pictures')
         .remove([filePath]);
 
       if (error) {
