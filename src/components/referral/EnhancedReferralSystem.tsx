@@ -90,11 +90,34 @@ export const EnhancedReferralSystem = () => {
   };
 
   if (loading) {
-    return <div className="flex justify-center p-8">Loading referral data...</div>;
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading referral data...</p>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (!referralStats) {
-    return <div className="text-center p-8">Unable to load referral data</div>;
+    // Provide fallback content instead of just error message
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Referral System</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-center py-8">
+              <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground mb-4">Get started with referrals!</p>
+              <Button onClick={loadReferralData}>Try Again</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (

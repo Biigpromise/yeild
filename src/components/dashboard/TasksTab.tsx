@@ -66,8 +66,15 @@ export const TasksTab: React.FC<TasksTabProps> = ({
           onClearFilters={onClearFilters}
         />
         
-        {/* Compact task categories for mobile */}
-        <TaskCategories onCategorySelect={handleCategorySelect} />
+        {/* Fallback categories if loading fails */}
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" onClick={() => navigate('/tasks')}>Browse All</Button>
+              <Button variant="outline" size="sm" onClick={() => navigate('/tasks')}>Get Started</Button>
+            </div>
+          </CardContent>
+        </Card>
         
         {/* Mobile progress card */}
         <Card className="border-0 shadow-sm">
@@ -142,7 +149,16 @@ export const TasksTab: React.FC<TasksTabProps> = ({
           taskCounts={taskCounts}
           onClearFilters={onClearFilters}
         />
-        <TaskCategories onCategorySelect={handleCategorySelect} />
+        {/* Fallback for desktop categories */}
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-3 gap-2">
+              <Button variant="outline" size="sm" onClick={() => navigate('/tasks')}>Browse All Tasks</Button>
+              <Button variant="outline" size="sm" onClick={() => navigate('/tasks')}>Get Started</Button>
+              <Button variant="outline" size="sm" onClick={() => navigate('/tasks')}>View Featured</Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
       <div className="space-y-4">
         {/* Quick Actions */}
