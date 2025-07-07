@@ -2275,6 +2275,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: string
       }
+      get_user_role_safe: {
+        Args: { user_id_param: string }
+        Returns: string
+      }
       handle_referral_signup: {
         Args: { new_user_id: string; referral_code_param: string }
         Returns: undefined
@@ -2295,6 +2299,10 @@ export type Database = {
       }
       is_admin: {
         Args: { user_id: string }
+        Returns: boolean
+      }
+      is_admin_safe: {
+        Args: { user_id_param: string }
         Returns: boolean
       }
       is_admin_user: {
