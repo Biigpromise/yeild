@@ -73,17 +73,17 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
             </AvatarFallback>
           </Avatar>
           
-          <div className="flex items-center gap-3 flex-wrap">
-            {user?.id && (
-              <ProfileBirdBadge userId={user.id} size="sm" showName />
-            )}
-            {user && (
-              <CompactBirdBatch 
-                count={user.tasks_completed || 0} 
-                className="scale-90 sm:scale-100"
-              />
-            )}
-          </div>
+        <div className="flex items-center gap-3 flex-wrap">
+          {user?.id && (
+            <ProfileBirdBadge userId={user.id} size="sm" showName={false} />
+          )}
+          {user && (
+            <CompactBirdBatch 
+              count={user.tasks_completed || 0} 
+              className="scale-90 sm:scale-100"
+            />
+          )}
+        </div>
         </div>
       </div>
 
