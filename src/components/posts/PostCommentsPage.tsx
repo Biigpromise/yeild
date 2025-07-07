@@ -420,7 +420,7 @@ export const PostCommentsPage: React.FC<PostCommentsPageProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
+      <DialogContent className="fixed inset-0 max-w-none max-h-none w-full h-full overflow-hidden flex flex-col p-0 gap-0 translate-x-0 translate-y-0 rounded-none border-0 bg-background data-[state=open]:slide-in-from-bottom-0">
         {/* Clean Header with Back Button */}
         <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm sticky top-0 z-10">
           <div className="flex items-center gap-3">
