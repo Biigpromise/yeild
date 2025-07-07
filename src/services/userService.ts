@@ -74,66 +74,67 @@ export interface Story {
   user?: UserProfile;
 }
 
+// Updated bird levels matching database and user requirements
 export const BIRD_LEVELS: ReferralBirdLevel[] = [
   {
-    id: 0,
-    name: 'Beginner',
+    id: 1,
+    name: 'Dove',
     icon: 'dove',
     minReferrals: 0,
     minPoints: 0,
-    description: 'Welcome to the community! Start your journey here.',
-    color: '#9CA3AF',
-    benefits: ['Basic profile features', 'Community access']
-  },
-  {
-    id: 1,
-    name: 'Scout',
-    icon: 'dove',
-    minReferrals: 1,
-    minPoints: 100,
-    description: 'Your first referral! Keep building your network.',
-    color: '#10B981',
-    benefits: ['Basic profile features', 'Community access']
+    description: 'Starting your referral journey',
+    color: '#94a3b8',
+    benefits: ['Basic profile features']
   },
   {
     id: 2,
-    name: 'Networker',
-    icon: 'hawk',
+    name: 'Sparrow',
+    icon: 'bird',
     minReferrals: 5,
-    minPoints: 500,
-    description: 'Strong networking skills! You\'re building a community.',
-    color: '#3B82F6',
-    benefits: ['Premium task access', 'Priority support']
+    minPoints: 100,
+    description: 'First steps taken',
+    color: '#84cc16',
+    benefits: ['Profile customization', 'Basic rewards']
   },
   {
     id: 3,
-    name: 'Influencer',
-    icon: 'eagle',
-    minReferrals: 15,
-    minPoints: 1500,
-    description: 'Your influence is growing! People trust your recommendations.',
-    color: '#8B5CF6',
-    benefits: ['Leaderboard visibility', 'Special badges', 'Enhanced profile']
+    name: 'Hawk',
+    icon: 'zap',
+    minReferrals: 20,
+    minPoints: 500,
+    description: 'Rising through the ranks',
+    color: '#f59e0b',
+    benefits: ['Priority support', 'Enhanced visibility']
   },
   {
     id: 4,
-    name: 'Leader',
-    icon: 'falcon',
-    minReferrals: 30,
-    minPoints: 3000,
-    description: 'A true leader in the community! Your network is impressive.',
-    color: '#F59E0B',
-    benefits: ['Special rank', 'Early task access', 'VIP status']
+    name: 'Eagle',
+    icon: 'crown',
+    minReferrals: 100,
+    minPoints: 2500,
+    description: 'Soaring to new heights',
+    color: '#dc2626',
+    benefits: ['Exclusive features', 'Premium rewards', 'Special recognition']
   },
   {
     id: 5,
+    name: 'Falcon',
+    icon: 'gem',
+    minReferrals: 500,
+    minPoints: 12500,
+    description: 'Elite performer',
+    color: '#7c3aed',
+    benefits: ['VIP status', 'Maximum rewards', 'Early access']
+  },
+  {
+    id: 6,
     name: 'Phoenix',
-    icon: 'phoenix',
-    minReferrals: 50,
-    minPoints: 5000,
-    description: 'Legendary status! You\'ve built an amazing community.',
-    color: '#EF4444',
-    benefits: ['Elite status', 'Exclusive rewards', 'Phoenix badge']
+    icon: 'flame',
+    minReferrals: 1000,
+    minPoints: 25000,
+    description: 'Legendary achievement',
+    color: '#ec4899',
+    benefits: ['Ultimate recognition', 'Exclusive perks', 'Hall of fame']
   }
 ];
 
@@ -146,19 +147,32 @@ export const userService = {
     console.log('Calculating bird level for:', { referrals, points });
     
     // Find the highest level the user qualifies for
-    let qualifiedLevel = BIRD_LEVELS[0]; // Default to beginner
+    let qualifiedLevel = BIRD_LEVELS[0]; // Default to Dove
     
     for (const level of BIRD_LEVELS) {
       if (referrals >= level.minReferrals && points >= level.minPoints) {
         qualifiedLevel = level;
         console.log('User qualifies for level:', level.name);
-      } else {
-        break; // Levels are ordered, so we can break here
       }
     }
     
     console.log('Final bird level:', qualifiedLevel.name);
     return qualifiedLevel;
+  },
+
+  // Enhanced method to get bird level from database (for most accurate data)
+  async getBirdLevelFromDB(userId: string): Promise<any> {
+    try {
+      const { data, error } = await supabase.rpc('get_user_bird_level', {
+        user_id_param: userId
+      });
+      
+      if (error) throw error;
+      return data?.[0] || BIRD_LEVELS[0];
+    } catch (error) {
+      console.error('Error getting bird level from DB:', error);
+      return BIRD_LEVELS[0];
+    }
   },
 
   getNextBirdLevel(currentLevel: ReferralBirdLevel): ReferralBirdLevel | undefined {

@@ -362,12 +362,40 @@ export const UserProfile = ({ user, onUpdate }: UserProfileProps) => {
         </CardContent>
       </Card>
 
-      {/* Bird Badge Display */}
+      {/* Bird Badge Display with Enhanced Features */}
       <ProfileBirdDisplay 
         userId={user.id}
         activeReferrals={user.active_referrals_count}
         totalReferrals={user.total_referrals_count}
       />
+
+      {/* Bird Level Benefits Card */}
+      <Card className="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 border-indigo-500/30 shadow-xl">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+            <Trophy className="h-6 w-6 text-yellow-500" />
+            Your Bird Tier Benefits
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white/10 rounded-lg p-4">
+              <h4 className="font-semibold text-white mb-2">Current Tier Perks</h4>
+              <ul className="text-sm text-gray-300 space-y-1">
+                <li>• Priority task access</li>
+                <li>• Enhanced profile visibility</li>
+                <li>• Exclusive community features</li>
+              </ul>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4">
+              <h4 className="font-semibold text-white mb-2">Next Tier Preview</h4>
+              <p className="text-sm text-gray-300">
+                Keep growing to unlock VIP status, premium rewards, and exclusive perks!
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
