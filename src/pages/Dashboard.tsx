@@ -77,9 +77,6 @@ const Dashboard = () => {
     loadUserData();
   };
 
-  if (loading) {
-    return <LoadingState />;
-  }
 
   // Default task counts
   const defaultTaskCounts = {

@@ -26,16 +26,14 @@ export const useDashboard = () => {
     pendingWithdrawals: 0,
     completedWithdrawals: 0
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const loadUserData = async () => {
     if (!user) {
-        setLoading(false);
         return;
     }
     
     try {
-      setLoading(true);
       
       // Load profile data with better error handling
       try {
@@ -125,16 +123,12 @@ export const useDashboard = () => {
     } catch (error) {
       console.error('Error loading user data:', error);
       // Don't show toast error as it might be a temporary issue
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
     if (user) {
       loadUserData();
-    } else {
-      setLoading(false);
     }
   }, [user]);
   
