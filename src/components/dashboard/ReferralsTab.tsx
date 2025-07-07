@@ -20,21 +20,6 @@ export const ReferralsTab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Bird Progression Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Bird Level Progress</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <BirdProgression
-            userPoints={userStats.points || 0}
-            activeReferrals={userProfile?.active_referrals_count || 0}
-            currentBirdLevel={currentBirdLevel}
-            nextBirdLevel={nextBirdLevel}
-          />
-        </CardContent>
-      </Card>
-
       {/* Enhanced Referral System */}
       <EnhancedReferralSystem />
     </div>

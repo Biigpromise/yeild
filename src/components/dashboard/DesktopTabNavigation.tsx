@@ -47,8 +47,8 @@ export const DesktopTabNavigation: React.FC<DesktopTabNavigationProps> = ({
 
   const allTabs = [
     { id: "tasks", label: "Tasks", icon: CheckSquare, tier: "beginner" },
-    { id: "profile", label: "Profile", icon: User, tier: "beginner" },
     { id: "wallet", label: "Wallet", icon: Wallet, tier: "beginner" },
+    { id: "profile", label: "Profile", icon: User, tier: "beginner" },
     { id: "support", label: "Support", icon: HelpCircle, tier: "beginner" },
     { id: "referrals", label: "Referrals", icon: Users, tier: "beginner" },
     { id: "community", label: "Community", icon: MessageCircle, tier: "intermediate" },

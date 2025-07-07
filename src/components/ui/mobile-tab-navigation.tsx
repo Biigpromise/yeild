@@ -50,13 +50,13 @@ export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
 
   const allTabs = [
     { id: "tasks", label: "Tasks", icon: CheckSquare, tier: "beginner" },
-    { id: "community", label: "Chat", icon: MessageCircle, tier: "intermediate" },
-    { id: "stories", label: "Stories", icon: Camera, tier: "intermediate" },
-    { id: "profile", label: "Profile", icon: User, tier: "beginner" },
     { id: "referrals", label: "Referrals", icon: Users, tier: "beginner" },
+    { id: "stories", label: "Stories", icon: Camera, tier: "intermediate" },
+    { id: "wallet", label: "Wallet", icon: Wallet, tier: "beginner" },
+    { id: "community", label: "Chat", icon: MessageCircle, tier: "intermediate" },
     { id: "achievements", label: "Badges", icon: Trophy, tier: "advanced" },
     { id: "leaderboard", label: "Leaderboard", icon: BarChart3, tier: "intermediate" },
-    { id: "wallet", label: "Wallet", icon: Wallet, tier: "beginner" },
+    { id: "profile", label: "Profile", icon: User, tier: "beginner" },
     { id: "rewards", label: "Rewards", icon: Gift, tier: "advanced" },
     { id: "history", label: "History", icon: History, tier: "advanced" },
     { id: "search", label: "Search", icon: Search, tier: "advanced" },
