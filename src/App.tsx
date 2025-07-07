@@ -15,6 +15,7 @@ import Login from '@/pages/Login';
 import SignUp from '@/pages/SignUp';
 import ForgotPassword from '@/pages/ForgotPassword';
 import BrandDashboard from '@/pages/BrandDashboard';
+import BrandPortal from '@/pages/BrandPortal';
 import BrandSignup from '@/pages/BrandSignup';
 import NotFound from '@/pages/NotFound';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -70,6 +71,14 @@ function App() {
                       element={
                         <RoleProtectedRoute requiredRole="brand">
                           <BrandDashboard />
+                        </RoleProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/brand-portal"
+                      element={
+                        <RoleProtectedRoute requiredRole="brand">
+                          <BrandPortal />
                         </RoleProtectedRoute>
                       }
                     />
