@@ -57,6 +57,7 @@ export const useExperienceLevel = (
 ): UseExperienceLevelResult => {
   return useMemo(() => {
     // Find current tier - user must meet BOTH tasks and referrals requirements
+    // Always ensure users have at least beginner tier access
     const currentTier = [...EXPERIENCE_TIERS]
       .reverse()
       .find(tier => tasksCompleted >= tier.minTasks && referralsCount >= tier.minReferrals) || EXPERIENCE_TIERS[0];

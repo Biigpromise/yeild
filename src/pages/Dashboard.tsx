@@ -48,7 +48,8 @@ const Dashboard = () => {
 
   const { justUnlockedFeatures, currentTier, isFeatureUnlocked } = useExperienceLevel(
     userStats.tasksCompleted, 
-    previousTasksCompleted
+    previousTasksCompleted,
+    userProfile?.active_referrals_count || 0
   );
 
   useEffect(() => {
