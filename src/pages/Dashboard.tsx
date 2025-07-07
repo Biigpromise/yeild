@@ -210,6 +210,7 @@ const Dashboard = () => {
             activeTab={activeTab}
             onTabChange={setActiveTab}
             tasksCompleted={userStats.tasksCompleted}
+            referralsCount={userProfile?.active_referrals_count || 0}
           />
         </div>
       </div>
@@ -231,6 +232,7 @@ const Dashboard = () => {
               activeTab={activeTab}
               onTabChange={setActiveTab}
               tasksCompleted={userStats.tasksCompleted}
+              referralsCount={userProfile?.active_referrals_count || 0}
             />
           </div>
 
@@ -249,6 +251,7 @@ const Dashboard = () => {
             activeTab={activeTab}
             onTabChange={setActiveTab}
             tasksCompleted={userStats.tasksCompleted}
+            referralsCount={userProfile?.active_referrals_count || 0}
           />
         </div>
 

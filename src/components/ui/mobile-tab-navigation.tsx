@@ -23,27 +23,37 @@ import {
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useExperienceLevel } from '@/hooks/useExperienceLevel';
+import { FeatureUnlockPopup } from '../dashboard/FeatureUnlockPopup';
 
 interface MobileTabNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   tasksCompleted?: number;
+  referralsCount?: number;
 }
 
 export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
   activeTab,
   onTabChange,
-  tasksCompleted = 0
+  tasksCompleted = 0,
+  referralsCount = 0
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isFeatureUnlocked, tasksToNextTier } = useExperienceLevel(tasksCompleted);
+  const [showUnlockPopup, setShowUnlockPopup] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState('');
+  
+  const { isFeatureUnlocked, tasksToNextTier, referralsToNextTier, nextTier } = useExperienceLevel(
+    tasksCompleted, 
+    tasksCompleted, 
+    referralsCount
+  );
 
   const allTabs = [
     { id: "tasks", label: "Tasks", icon: CheckSquare, tier: "beginner" },
     { id: "community", label: "Chat", icon: MessageCircle, tier: "intermediate" },
     { id: "stories", label: "Stories", icon: Camera, tier: "intermediate" },
     { id: "profile", label: "Profile", icon: User, tier: "beginner" },
-    { id: "referrals", label: "Referrals", icon: Users, tier: "intermediate" },
+    { id: "referrals", label: "Referrals", icon: Users, tier: "beginner" },
     { id: "achievements", label: "Badges", icon: Trophy, tier: "advanced" },
     { id: "leaderboard", label: "Leaderboard", icon: BarChart3, tier: "intermediate" },
     { id: "wallet", label: "Wallet", icon: Wallet, tier: "beginner" },
@@ -54,6 +64,11 @@ export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
     { id: "activity", label: "Activity", icon: Activity, tier: "advanced" },
     { id: "notifications", label: "Notifications", icon: Bell, tier: "advanced" }
   ];
+
+  const handleLockedFeatureClick = (featureName: string) => {
+    setSelectedFeature(featureName);
+    setShowUnlockPopup(true);
+  };
 
   // Filter tabs based on experience level for primary tabs (always show unlocked ones)
   const unlockedTabs = allTabs.filter(tab => isFeatureUnlocked(tab.id));
@@ -139,8 +154,11 @@ export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
               {lockedTabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
-                  <div
+                  <Button
                     key={tab.id}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleLockedFeatureClick(tab.label)}
                     className="relative flex items-center gap-1 whitespace-nowrap text-xs py-1 px-2 h-auto opacity-50"
                   >
                     <Lock className="h-3 w-3" />
@@ -149,15 +167,24 @@ export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
                       variant="outline" 
                       className="text-xs px-1 ml-1"
                     >
-                      {tasksToNextTier}
+                      {tasksToNextTier + referralsToNextTier}
                     </Badge>
-                  </div>
+                  </Button>
                 );
               })}
             </div>
           </div>
         </CollapsibleContent>
       </Collapsible>
+      
+      <FeatureUnlockPopup
+        isOpen={showUnlockPopup}
+        onClose={() => setShowUnlockPopup(false)}
+        nextTier={nextTier}
+        tasksToNextTier={tasksToNextTier}
+        referralsToNextTier={referralsToNextTier}
+        featureName={selectedFeature}
+      />
     </div>
   );
 };
