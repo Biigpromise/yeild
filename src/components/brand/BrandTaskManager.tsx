@@ -17,50 +17,12 @@ import {
   Users
 } from 'lucide-react';
 import { CreateTaskDialog } from './CreateTaskDialog';
+import { useBrandTasks } from '@/hooks/useBrandTasks';
 
 export const BrandTaskManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-
-  // Mock task data
-  const tasks = [
-    {
-      id: '1',
-      title: 'Instagram Story Post',
-      description: 'Share our summer collection with your followers',
-      category: 'Social Media',
-      status: 'active',
-      budget: 200,
-      submissions: 8,
-      approved: 3,
-      deadline: '2024-01-20',
-      createdAt: '2024-01-10'
-    },
-    {
-      id: '2', 
-      title: 'Product Review Video',
-      description: 'Create an honest review of our new gadget',
-      category: 'Content Creation',
-      status: 'paused',
-      budget: 500,
-      submissions: 15,
-      approved: 12,
-      deadline: '2024-01-25',
-      createdAt: '2024-01-08'
-    },
-    {
-      id: '3',
-      title: 'Brand Awareness Survey',
-      description: 'Complete a 5-minute survey about brand recognition',
-      category: 'Research',
-      status: 'completed',
-      budget: 50,
-      submissions: 100,
-      approved: 95,
-      deadline: '2024-01-15',
-      createdAt: '2024-01-05'
-    }
-  ];
+  const { tasks, loading, updateTaskStatus } = useBrandTasks();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -74,8 +36,20 @@ export const BrandTaskManager = () => {
 
   const filteredTasks = tasks.filter(task =>
     task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    task.category.toLowerCase().includes(searchTerm.toLowerCase())
+    (task.category?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
+          <div className="h-32 bg-muted rounded mb-6"></div>
+          <div className="h-64 bg-muted rounded"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -151,24 +125,24 @@ export const BrandTaskManager = () => {
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
-                        {task.budget}
+                        {task.points}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Users className="h-4 w-4 text-muted-foreground" />
-                        {task.submissions}
+                        {task.submissions_count || 0}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="font-medium text-green-600">
-                        {task.approved}
+                        {task.approved_count || 0}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1 text-sm">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        {new Date(task.deadline).toLocaleDateString()}
+                        {task.expires_at ? new Date(task.expires_at).toLocaleDateString() : 'No deadline'}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -180,11 +154,19 @@ export const BrandTaskManager = () => {
                           <Edit className="h-4 w-4" />
                         </Button>
                         {task.status === 'active' ? (
-                          <Button size="sm" variant="ghost">
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            onClick={() => updateTaskStatus(task.id, 'paused')}
+                          >
                             <Pause className="h-4 w-4" />
                           </Button>
                         ) : (
-                          <Button size="sm" variant="ghost">
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            onClick={() => updateTaskStatus(task.id, 'active')}
+                          >
                             <Play className="h-4 w-4" />
                           </Button>
                         )}

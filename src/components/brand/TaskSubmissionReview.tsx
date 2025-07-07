@@ -14,64 +14,11 @@ import {
   Flag,
   ExternalLink
 } from 'lucide-react';
+import { useBrandSubmissions } from '@/hooks/useBrandSubmissions';
 
 export const TaskSubmissionReview = () => {
   const [selectedSubmission, setSelectedSubmission] = useState<string | null>(null);
-
-  // Mock submission data
-  const submissions = [
-    {
-      id: '1',
-      taskTitle: 'Instagram Story Post',
-      userName: 'Sarah Chen',
-      userAvatar: '/avatars/sarah.jpg',
-      submittedAt: '2024-01-15T10:30:00Z',
-      status: 'pending',
-      content: 'Amazing summer collection! Love the colors and style. Perfect for beach season! 🌊☀️',
-      mediaUrl: '/submissions/summer-post.jpg',
-      socialProof: {
-        likes: 245,
-        comments: 18,
-        shares: 12
-      },
-      userRating: 4.8,
-      userFollowers: 12500
-    },
-    {
-      id: '2',
-      taskTitle: 'Product Review Video',
-      userName: 'Mike Johnson', 
-      userAvatar: '/avatars/mike.jpg',
-      submittedAt: '2024-01-14T15:45:00Z',
-      status: 'approved',
-      content: 'Honest review of the new gadget. Really impressed with the build quality and features.',
-      mediaUrl: '/submissions/gadget-review.mp4',
-      socialProof: {
-        likes: 1200,
-        comments: 89,
-        shares: 45
-      },
-      userRating: 4.9,
-      userFollowers: 35000
-    },
-    {
-      id: '3',
-      taskTitle: 'Brand Awareness Survey',
-      userName: 'Emma Davis',
-      userAvatar: '/avatars/emma.jpg', 
-      submittedAt: '2024-01-13T09:15:00Z',
-      status: 'rejected',
-      content: 'Completed the brand survey about recognition and preferences.',
-      socialProof: {
-        likes: 0,
-        comments: 0,
-        shares: 0
-      },
-      userRating: 4.2,
-      userFollowers: 2800,
-      rejectionReason: 'Incomplete survey responses'
-    }
-  ];
+  const { submissions, loading, approveSubmission, rejectSubmission } = useBrandSubmissions();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -95,14 +42,26 @@ export const TaskSubmissionReview = () => {
   const reviewedSubmissions = submissions.filter(s => s.status !== 'pending');
 
   const handleApprove = (submissionId: string) => {
-    console.log('Approving submission:', submissionId);
-    // TODO: Implement approval logic
+    approveSubmission(submissionId);
   };
 
   const handleReject = (submissionId: string) => {
-    console.log('Rejecting submission:', submissionId);
-    // TODO: Implement rejection logic
+    const reason = prompt('Please provide a reason for rejection:');
+    if (reason) {
+      rejectSubmission(submissionId, reason);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
+          <div className="h-64 bg-muted rounded"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -133,14 +92,14 @@ export const TaskSubmissionReview = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={submission.userAvatar} />
-                        <AvatarFallback>{submission.userName.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={submission.profiles?.profile_picture_url} />
+                        <AvatarFallback>{submission.profiles?.name?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <h3 className="font-semibold">{submission.userName}</h3>
+                        <h3 className="font-semibold">{submission.profiles?.name || 'Unknown User'}</h3>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          {submission.userRating} • {submission.userFollowers.toLocaleString()} followers
+                          Submitted {new Date(submission.submitted_at).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
@@ -153,30 +112,29 @@ export const TaskSubmissionReview = () => {
 
                 <CardContent className="space-y-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Task: {submission.taskTitle}</p>
-                    <p className="mt-1">{submission.content}</p>
+                    <p className="text-sm text-muted-foreground">Task: {submission.tasks?.title}</p>
+                    <p className="mt-1">{submission.evidence || 'No description provided'}</p>
                   </div>
 
-                  {submission.mediaUrl && (
+                  {submission.evidence_file_url && (
                     <div className="bg-muted rounded-lg p-4 flex items-center justify-center">
                       <div className="text-center">
                         <Eye className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">Media Content</p>
-                        <Button variant="link" size="sm">
-                          <ExternalLink className="h-4 w-4 mr-1" />
-                          View Submission
+                        <p className="text-sm text-muted-foreground">Evidence File</p>
+                        <Button variant="link" size="sm" asChild>
+                          <a href={submission.evidence_file_url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-4 w-4 mr-1" />
+                            View Evidence
+                          </a>
                         </Button>
                       </div>
                     </div>
                   )}
 
-                  {submission.socialProof && (
-                    <div className="flex gap-6 text-sm text-muted-foreground">
-                      <span>{submission.socialProof.likes} likes</span>
-                      <span>{submission.socialProof.comments} comments</span>
-                      <span>{submission.socialProof.shares} shares</span>
-                    </div>
-                  )}
+                  <div className="flex gap-6 text-sm text-muted-foreground">
+                    <span>Points: {submission.tasks?.points || 0}</span>
+                    <span>Submitted: {new Date(submission.submitted_at).toLocaleString()}</span>
+                  </div>
 
                   <div className="flex gap-3 pt-2">
                     <Button 
@@ -227,12 +185,12 @@ export const TaskSubmissionReview = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={submission.userAvatar} />
-                        <AvatarFallback>{submission.userName.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={submission.profiles?.profile_picture_url} />
+                        <AvatarFallback>{submission.profiles?.name?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <h4 className="font-medium">{submission.userName}</h4>
-                        <p className="text-sm text-muted-foreground">{submission.taskTitle}</p>
+                        <h4 className="font-medium">{submission.profiles?.name || 'Unknown User'}</h4>
+                        <p className="text-sm text-muted-foreground">{submission.tasks?.title}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -240,14 +198,18 @@ export const TaskSubmissionReview = () => {
                         {getStatusIcon(submission.status)}
                         {submission.status}
                       </Badge>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      {submission.evidence_file_url && (
+                        <Button variant="ghost" size="sm" asChild>
+                          <a href={submission.evidence_file_url} target="_blank" rel="noopener noreferrer">
+                            <Eye className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      )}
                     </div>
                   </div>
-                  {submission.rejectionReason && (
+                  {submission.admin_notes && (
                     <div className="mt-3 p-2 bg-red-50 dark:bg-red-900/20 rounded text-sm text-red-700 dark:text-red-300">
-                      Reason: {submission.rejectionReason}
+                      Reason: {submission.admin_notes}
                     </div>
                   )}
                 </CardContent>

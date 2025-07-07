@@ -10,6 +10,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon, DollarSign, Target, Users } from 'lucide-react';
 import { format } from 'date-fns';
+import { useBrandTasks } from '@/hooks/useBrandTasks';
 
 interface CreateTaskDialogProps {
   open: boolean;
@@ -17,11 +18,13 @@ interface CreateTaskDialogProps {
 }
 
 export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange }) => {
+  const { createTask } = useBrandTasks();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: '',
-    budget: '',
+    points: '',
     maxSubmissions: '',
     deadline: undefined as Date | undefined,
     requirements: '',
@@ -56,11 +59,49 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpen
     'Review'
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Creating task:', formData);
-    // TODO: Implement task creation logic
-    onOpenChange(false);
+    
+    if (!formData.title || !formData.description || !formData.points || !formData.deadline) {
+      return;
+    }
+
+    setLoading(true);
+    
+    const taskData = {
+      title: formData.title,
+      description: formData.description,
+      category: formData.category,
+      points: parseInt(formData.points),
+      expires_at: formData.deadline.toISOString(),
+      requirements: formData.requirements,
+      social_media_platform: formData.socialMediaPlatform,
+      content_type: formData.contentType,
+      social_media_links: {
+        platform: formData.socialMediaPlatform,
+        content_type: formData.contentType,
+        requirements: formData.requirements,
+      }
+    };
+
+    const result = await createTask(taskData);
+    setLoading(false);
+    
+    if (result) {
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        category: '',
+        points: '',
+        maxSubmissions: '',
+        deadline: undefined,
+        requirements: '',
+        socialMediaPlatform: '',
+        contentType: ''
+      });
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -127,16 +168,16 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpen
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="budget">Budget per Completion</Label>
+                  <Label htmlFor="points">Points per Completion</Label>
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="budget"
+                      id="points"
                       type="number"
                       placeholder="50"
                       className="pl-10"
-                      value={formData.budget}
-                      onChange={(e) => setFormData({...formData, budget: e.target.value})}
+                      value={formData.points}
+                      onChange={(e) => setFormData({...formData, points: e.target.value})}
                       required
                     />
                   </div>
@@ -239,8 +280,8 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpen
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">
-              Create Task
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Creating...' : 'Create Task'}
             </Button>
           </div>
         </form>
