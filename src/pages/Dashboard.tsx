@@ -22,7 +22,9 @@ import { EnhancedNotificationCenter } from "@/components/dashboard/EnhancedNotif
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { DesktopTabNavigation } from "@/components/dashboard/DesktopTabNavigation";
 import { MobileTabNavigation } from "@/components/ui/mobile-tab-navigation";
+import { FeatureUnlockNotification } from "@/components/dashboard/FeatureUnlockNotification";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useExperienceLevel } from "@/hooks/useExperienceLevel";
 import { LoadingState } from "@/components/ui/loading-state";
 import { useRole } from "@/hooks/useRole";
 import { useNavigate } from "react-router-dom";
@@ -32,6 +34,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { role } = useRole();
   const [activeTab, setActiveTab] = useState("tasks");
+  const [showUnlockNotification, setShowUnlockNotification] = useState(false);
+  const [previousTasksCompleted, setPreviousTasksCompleted] = useState(0);
   const {
     userProfile,
     userStats,
@@ -42,11 +46,31 @@ const Dashboard = () => {
     loadUserData
   } = useDashboard();
 
+  const { justUnlockedFeatures, currentTier, isFeatureUnlocked } = useExperienceLevel(
+    userStats.tasksCompleted, 
+    previousTasksCompleted
+  );
+
   useEffect(() => {
     if (role === 'brand') {
       navigate('/brand-dashboard');
     }
   }, [role, navigate]);
+
+  // Track task completion changes and show unlock notifications
+  useEffect(() => {
+    if (userStats.tasksCompleted > previousTasksCompleted && justUnlockedFeatures.length > 0) {
+      setShowUnlockNotification(true);
+    }
+    setPreviousTasksCompleted(userStats.tasksCompleted);
+  }, [userStats.tasksCompleted, justUnlockedFeatures.length, previousTasksCompleted]);
+
+  // Redirect to available tab if current tab is locked
+  useEffect(() => {
+    if (!isFeatureUnlocked(activeTab)) {
+      setActiveTab("tasks"); // Always fallback to tasks (always unlocked)
+    }
+  }, [activeTab, isFeatureUnlocked]);
 
   const handleProfileUpdate = () => {
     loadUserData();
@@ -65,6 +89,18 @@ const Dashboard = () => {
   };
 
   const renderTabContent = () => {
+    // Only render content if feature is unlocked
+    if (!isFeatureUnlocked(activeTab)) {
+      return (
+        <div className="text-center py-20">
+          <h2 className="text-2xl font-bold mb-4">Feature Locked</h2>
+          <p className="text-muted-foreground">
+            Complete more tasks to unlock this feature
+          </p>
+        </div>
+      );
+    }
+
     switch (activeTab) {
       case "tasks":
         return (
@@ -173,6 +209,7 @@ const Dashboard = () => {
           <MobileTabNavigation
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            tasksCompleted={userStats.tasksCompleted}
           />
         </div>
       </div>
@@ -193,6 +230,7 @@ const Dashboard = () => {
             <DesktopTabNavigation
               activeTab={activeTab}
               onTabChange={setActiveTab}
+              tasksCompleted={userStats.tasksCompleted}
             />
           </div>
 
@@ -210,9 +248,18 @@ const Dashboard = () => {
           <MobileTabNavigation
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            tasksCompleted={userStats.tasksCompleted}
           />
         </div>
 
+
+        {/* Feature Unlock Notification */}
+        <FeatureUnlockNotification
+          isOpen={showUnlockNotification}
+          onClose={() => setShowUnlockNotification(false)}
+          unlockedFeatures={justUnlockedFeatures}
+          newTier={currentTier}
+        />
 
         {/* Onboarding Tutorial */}
         <OnboardingTutorial />

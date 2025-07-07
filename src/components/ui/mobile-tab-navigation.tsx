@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
   CheckSquare, 
   Camera, 
@@ -15,38 +16,52 @@ import {
   Search, 
   HelpCircle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Lock,
+  Activity,
+  Bell
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useExperienceLevel } from '@/hooks/useExperienceLevel';
 
 interface MobileTabNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  tasksCompleted?: number;
 }
 
 export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
   activeTab,
-  onTabChange
+  onTabChange,
+  tasksCompleted = 0
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { isFeatureUnlocked, tasksToNextTier } = useExperienceLevel(tasksCompleted);
 
-  const tabs = [
-    { id: "tasks", label: "Tasks", icon: CheckSquare },
-    { id: "community", label: "Chat", icon: MessageCircle },
-    { id: "stories", label: "Stories", icon: Camera }, // Replaced Profile with Stories
-    { id: "profile", label: "Profile", icon: User }, // Moved to more menu
-    { id: "referrals", label: "Referrals", icon: Users },
-    { id: "achievements", label: "Badges", icon: Trophy },
-    { id: "leaderboard", label: "Leaderboard", icon: BarChart3 },
-    { id: "wallet", label: "Wallet", icon: Wallet },
-    { id: "rewards", label: "Rewards", icon: Gift },
-    { id: "history", label: "History", icon: History },
-    { id: "search", label: "Search", icon: Search },
-    { id: "support", label: "Support", icon: HelpCircle }
+  const allTabs = [
+    { id: "tasks", label: "Tasks", icon: CheckSquare, tier: "beginner" },
+    { id: "community", label: "Chat", icon: MessageCircle, tier: "intermediate" },
+    { id: "stories", label: "Stories", icon: Camera, tier: "intermediate" },
+    { id: "profile", label: "Profile", icon: User, tier: "beginner" },
+    { id: "referrals", label: "Referrals", icon: Users, tier: "intermediate" },
+    { id: "achievements", label: "Badges", icon: Trophy, tier: "advanced" },
+    { id: "leaderboard", label: "Leaderboard", icon: BarChart3, tier: "intermediate" },
+    { id: "wallet", label: "Wallet", icon: Wallet, tier: "beginner" },
+    { id: "rewards", label: "Rewards", icon: Gift, tier: "advanced" },
+    { id: "history", label: "History", icon: History, tier: "advanced" },
+    { id: "search", label: "Search", icon: Search, tier: "advanced" },
+    { id: "support", label: "Support", icon: HelpCircle, tier: "beginner" },
+    { id: "activity", label: "Activity", icon: Activity, tier: "advanced" },
+    { id: "notifications", label: "Notifications", icon: Bell, tier: "advanced" }
   ];
 
-  const primaryTabs = tabs.slice(0, 4);
-  const secondaryTabs = tabs.slice(4);
+  // Filter tabs based on experience level for primary tabs (always show unlocked ones)
+  const unlockedTabs = allTabs.filter(tab => isFeatureUnlocked(tab.id));
+  const primaryTabs = unlockedTabs.slice(0, 3); // Show first 3 unlocked tabs
+  const secondaryTabs = unlockedTabs.slice(3); // Rest go in the dropdown
+  
+  // Include some locked tabs in secondary to show progress
+  const lockedTabs = allTabs.filter(tab => !isFeatureUnlocked(tab.id)).slice(0, 3);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 z-50 safe-area-bottom">
@@ -117,6 +132,26 @@ export const MobileTabNavigation: React.FC<MobileTabNavigationProps> = ({
                     <Icon className="h-3 w-3" />
                     {tab.label}
                   </Button>
+                );
+              })}
+              
+              {/* Locked tabs preview */}
+              {lockedTabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <div
+                    key={tab.id}
+                    className="relative flex items-center gap-1 whitespace-nowrap text-xs py-1 px-2 h-auto opacity-50"
+                  >
+                    <Lock className="h-3 w-3" />
+                    {tab.label}
+                    <Badge 
+                      variant="outline" 
+                      className="text-xs px-1 ml-1"
+                    >
+                      {tasksToNextTier}
+                    </Badge>
+                  </div>
                 );
               })}
             </div>
