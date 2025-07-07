@@ -1,4 +1,6 @@
 
+import { economicControlService, ECONOMIC_CONSTANTS } from "./economicControlService";
+
 interface PointCalculationFactors {
   basePoints: number;
   difficulty: string;
@@ -119,7 +121,11 @@ class PointCalculationService {
       qualityScore
     } = factors;
 
-    // Calculate all multipliers
+    // Apply economic sustainability controls - reduce base points for economic balance
+    const economicMultiplier = 0.7; // 30% reduction for economic sustainability
+    const adjustedBasePoints = Math.floor(basePoints * economicMultiplier);
+
+    // Calculate all multipliers with updated ranges
     const difficultyMultiplier = this.difficultyMultipliers[difficulty as keyof typeof this.difficultyMultipliers] || 1.0;
     const levelPenalty = this.calculateLevelPenalty(userLevel);
     const dailyTasksPenalty = this.calculateDailyTasksPenalty(tasksCompletedToday);
@@ -130,12 +136,17 @@ class PointCalculationService {
     // Calculate total multiplier
     const totalMultiplier = difficultyMultiplier * levelPenalty * dailyTasksPenalty * categoryBonus * qualityBonus * timeBonus;
 
-    // Calculate final points (minimum 1 point)
-    const finalPoints = Math.max(1, Math.floor(basePoints * totalMultiplier));
+    // Calculate final points with economic controls
+    let finalPoints = Math.max(1, Math.floor(adjustedBasePoints * totalMultiplier));
+    
+    // Apply hard caps based on economic constants
+    const maxPointsPerTask = Math.floor(ECONOMIC_CONSTANTS.DAILY_LIMITS.NEW_USER / 3); // Max 1/3 of daily limit per task
+    finalPoints = Math.min(finalPoints, maxPointsPerTask);
 
     // Generate explanation
     const explanation: string[] = [];
-    explanation.push(`Base points: ${basePoints}`);
+    explanation.push(`Original base points: ${basePoints}`);
+    explanation.push(`Economic adjustment: ${basePoints} × ${economicMultiplier} = ${adjustedBasePoints}`);
     
     if (difficultyMultiplier !== 1.0) {
       explanation.push(`Difficulty (${difficulty}): ${difficultyMultiplier}x`);
@@ -161,12 +172,18 @@ class PointCalculationService {
       explanation.push(`Time bonus: ${timeBonus}x`);
     }
 
-    explanation.push(`Final: ${basePoints} × ${totalMultiplier.toFixed(2)} = ${finalPoints} points`);
+    explanation.push(`Calculated: ${adjustedBasePoints} × ${totalMultiplier.toFixed(2)} = ${Math.floor(adjustedBasePoints * totalMultiplier)}`);
+    
+    if (finalPoints < Math.floor(adjustedBasePoints * totalMultiplier)) {
+      explanation.push(`Capped at maximum ${maxPointsPerTask} points per task`);
+    }
+    
+    explanation.push(`Final award: ${finalPoints} points`);
 
     return {
       finalPoints,
       breakdown: {
-        basePoints,
+        basePoints: adjustedBasePoints,
         difficultyMultiplier,
         levelPenalty,
         dailyTasksPenalty,
@@ -176,6 +193,35 @@ class PointCalculationService {
         totalMultiplier
       },
       explanation
+    };
+  }
+
+  // New method to calculate points with full economic controls
+  async calculateEconomicPoints(
+    userId: string,
+    campaignId: string,
+    factors: PointCalculationFactors
+  ): Promise<PointCalculationResult & { economicControls: any }> {
+    // First calculate base points
+    const baseResult = this.calculatePoints(factors);
+    
+    // Apply economic controls
+    const economicResult = await economicControlService.calculateSafePointAward(
+      userId,
+      campaignId,
+      baseResult.finalPoints,
+      factors.qualityScore
+    );
+
+    return {
+      ...baseResult,
+      finalPoints: economicResult.awardedPoints,
+      explanation: [...baseResult.explanation, ...economicResult.explanation],
+      economicControls: {
+        originalPoints: economicResult.originalPoints,
+        limitedBy: economicResult.limitedBy,
+        economicExplanation: economicResult.explanation
+      }
     };
   }
 

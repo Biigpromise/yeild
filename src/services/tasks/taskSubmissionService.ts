@@ -61,7 +61,7 @@ export const taskSubmissionService = {
         taskCategory: task.category || 'general'
       };
 
-      const pointResult = pointCalculationService.calculatePoints(pointFactors);
+      const pointResult = await pointCalculationService.calculateEconomicPoints(user.id, taskId, pointFactors);
 
       // File upload logic with duplicate detection
       let evidenceFileUrl: string | undefined = undefined;
