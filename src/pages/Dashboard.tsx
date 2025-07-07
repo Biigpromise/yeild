@@ -222,7 +222,7 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <DashboardHeader user={userProfile} onTabChange={setActiveTab} />
 
-        <DashboardSummaryCards userStats={userStats} />
+        {activeTab === "tasks" && <DashboardSummaryCards userStats={userStats} />}
         <DashboardStats userStats={userStats} />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
