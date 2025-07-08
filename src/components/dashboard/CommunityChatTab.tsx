@@ -453,35 +453,35 @@ export const CommunityChatTab = () => {
 
       {/* Chat Unlock Banner */}
       {!canPostInChat && (
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 border-b border-gray-800">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 border-b border-gray-800 flex-shrink-0">
           <Card className="bg-black/50 border-gray-700">
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <div className="flex items-center gap-3">
-                <Lock className="h-6 w-6 text-yellow-400" />
-                <CardTitle className="text-lg text-white">Unlock Chat Posting</CardTitle>
+                <Lock className="h-5 w-5 text-yellow-400" />
+                <CardTitle className="text-base text-white">Unlock Chat Posting</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <p className="text-gray-300 mb-3">
+              <p className="text-gray-300 mb-2 text-sm">
                 Complete these requirements to start posting in the community chat:
               </p>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <Target className={`h-4 w-4 ${tasksCompleted >= 1 ? 'text-green-400' : 'text-gray-400'}`} />
-                  <span className={tasksCompleted >= 1 ? 'text-green-400' : 'text-gray-300'}>
+                  <Target className={`h-3 w-3 ${tasksCompleted >= 1 ? 'text-green-400' : 'text-gray-400'}`} />
+                  <span className={`text-xs ${tasksCompleted >= 1 ? 'text-green-400' : 'text-gray-300'}`}>
                     Complete {tasksNeeded > 0 ? `${tasksNeeded} more` : ''} task{tasksNeeded !== 1 ? 's' : ''} 
                     {tasksCompleted >= 1 ? ' ✓' : ` (${tasksCompleted}/1)`}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Users className={`h-4 w-4 ${activeReferrals >= 3 ? 'text-green-400' : 'text-gray-400'}`} />
-                  <span className={activeReferrals >= 3 ? 'text-green-400' : 'text-gray-300'}>
+                  <Users className={`h-3 w-3 ${activeReferrals >= 3 ? 'text-green-400' : 'text-gray-400'}`} />
+                  <span className={`text-xs ${activeReferrals >= 3 ? 'text-green-400' : 'text-gray-300'}`}>
                     Get {referralsNeeded > 0 ? `${referralsNeeded} more` : ''} active referral{referralsNeeded !== 1 ? 's' : ''}
                     {activeReferrals >= 3 ? ' ✓' : ` (${activeReferrals}/3)`}
                   </span>
                 </div>
               </div>
-              <p className="text-sm text-gray-400 mt-3">
+              <p className="text-xs text-gray-400 mt-2">
                 You can still view all messages and interact with the community!
               </p>
             </CardContent>

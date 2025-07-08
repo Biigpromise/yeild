@@ -43,11 +43,11 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
   return (
     <div className="space-y-4">
       {/* Current Bird Level */}
-      <Card className="border-0 shadow-sm bg-gradient-to-r from-purple-50 to-blue-50">
+      <Card className="border border-border bg-card">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Crown className="h-5 w-5 text-purple-600" />
+            <CardTitle className="text-lg flex items-center gap-2 text-card-foreground">
+              <Crown className="h-5 w-5 text-primary" />
               Current Bird Level
             </CardTitle>
             {currentBirdLevel && (
@@ -64,15 +64,15 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
         <CardContent className="pt-0">
           {currentBirdLevel ? (
             <div className="space-y-3">
-              <p className="text-sm text-gray-600">{currentBirdLevel.description}</p>
+              <p className="text-sm text-muted-foreground">{currentBirdLevel.description}</p>
               
               {/* Current Benefits */}
               <div className="space-y-2">
-                <h4 className="font-medium text-sm">Your Current Benefits:</h4>
+                <h4 className="font-medium text-sm text-card-foreground">Your Current Benefits:</h4>
                 <div className="grid grid-cols-1 gap-2">
                   {getBirdLevelBenefits(currentBirdLevel).map((benefit: string, index: number) => (
-                    <div key={index} className="flex items-center gap-2 text-sm">
-                      <Sparkles className="h-3 w-3 text-purple-500" />
+                    <div key={index} className="flex items-center gap-2 text-sm text-card-foreground">
+                      <Sparkles className="h-3 w-3 text-primary" />
                       <span>{benefit}</span>
                     </div>
                   ))}
@@ -80,56 +80,56 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-500">Start your bird progression journey!</p>
+            <p className="text-sm text-muted-foreground">Start your bird progression journey!</p>
           )}
         </CardContent>
       </Card>
 
       {/* Next Bird Level Progress */}
       {nextBirdLevel && (
-        <Card className="border-0 shadow-sm">
+        <Card className="border border-border bg-card">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Target className="h-5 w-5 text-blue-600" />
+            <CardTitle className="text-lg flex items-center gap-2 text-card-foreground">
+              <Target className="h-5 w-5 text-primary" />
               Next: {nextBirdLevel.emoji} {nextBirdLevel.name}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 pt-0">
-            <p className="text-sm text-gray-600">{nextBirdLevel.description}</p>
+            <p className="text-sm text-muted-foreground">{nextBirdLevel.description}</p>
             
             {/* Progress Bar */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Progress to Next Level</span>
-                <span className="text-sm text-gray-500">{Math.round(progress)}%</span>
+                <span className="text-sm font-medium text-card-foreground">Progress to Next Level</span>
+                <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
               </div>
               <Progress value={progress} className="h-2" />
             </div>
 
             {/* Requirements */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-center p-3 bg-muted rounded-lg">
                 <div className="flex items-center justify-center gap-1 mb-1">
-                  <Target className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm font-medium">Points</span>
+                  <Target className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-card-foreground">Points</span>
                 </div>
-                <p className="text-lg font-bold text-blue-600">
+                <p className="text-lg font-bold text-primary">
                   {userPoints.toLocaleString()}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   / {nextBirdLevel.min_points?.toLocaleString() || 0} needed
                 </p>
               </div>
               
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-center p-3 bg-muted rounded-lg">
                 <div className="flex items-center justify-center gap-1 mb-1">
-                  <Users className="h-4 w-4 text-green-500" />
-                  <span className="text-sm font-medium">Referrals</span>
+                  <Users className="h-4 w-4 text-secondary" />
+                  <span className="text-sm font-medium text-card-foreground">Referrals</span>
                 </div>
-                <p className="text-lg font-bold text-green-600">
+                <p className="text-lg font-bold text-secondary">
                   {activeReferrals}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   / {nextBirdLevel.min_referrals} needed
                 </p>
               </div>
@@ -137,11 +137,11 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
 
             {/* Next Level Benefits Preview */}
             <div className="space-y-2">
-              <h4 className="font-medium text-sm">Unlock These Benefits:</h4>
+              <h4 className="font-medium text-sm text-card-foreground">Unlock These Benefits:</h4>
               <div className="grid grid-cols-1 gap-2">
                 {getBirdLevelBenefits(nextBirdLevel).map((benefit: string, index: number) => (
-                  <div key={index} className="flex items-center gap-2 text-sm text-gray-600">
-                    <Sparkles className="h-3 w-3 text-yellow-500" />
+                  <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Sparkles className="h-3 w-3 text-accent" />
                     <span>{benefit}</span>
                   </div>
                 ))}
@@ -152,11 +152,11 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
       )}
 
       {!nextBirdLevel && currentBirdLevel && (
-        <Card className="border-0 shadow-sm bg-gradient-to-r from-yellow-50 to-orange-50">
+        <Card className="border border-border bg-card">
           <CardContent className="text-center py-6">
-            <Crown className="h-12 w-12 mx-auto mb-3 text-yellow-600" />
-            <h3 className="font-bold text-lg mb-2">Maximum Level Achieved!</h3>
-            <p className="text-sm text-gray-600">
+            <Crown className="h-12 w-12 mx-auto mb-3 text-accent" />
+            <h3 className="font-bold text-lg mb-2 text-card-foreground">Maximum Level Achieved!</h3>
+            <p className="text-sm text-muted-foreground">
               Congratulations! You've reached the highest bird level. Keep earning to maintain your status!
             </p>
           </CardContent>
