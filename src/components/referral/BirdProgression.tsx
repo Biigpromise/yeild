@@ -129,9 +129,9 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
                 <p className="text-lg font-bold text-secondary">
                   {activeReferrals}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  / {nextBirdLevel.min_referrals} needed
-                </p>
+                 <p className="text-xs text-muted-foreground">
+                   / {nextBirdLevel.min_referrals || 0} needed
+                 </p>
               </div>
             </div>
 

@@ -658,15 +658,9 @@ export const CommunityChatTab = () => {
       </div>
 
       {/* Post Creation */}
-      <div className="border-t border-gray-800 p-4 pb-32 lg:pb-4 bg-gray-900 flex-shrink-0">
-        {!canPostInChat ? (
-          <div className="text-center py-4">
-            <Lock className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-            <p className="text-gray-400 text-sm">Complete the requirements above to start posting</p>
-          </div>
-        ) : (
-          <>
-            {mediaPreview && (
+      {canPostInChat && (
+        <div className="border-t border-gray-800 p-4 pb-32 lg:pb-4 bg-gray-900 flex-shrink-0">
+          {mediaPreview && (
               <div className="mb-3 relative inline-block">
                 <div className="relative">
                   {mediaFile?.type.startsWith('video/') ? (
@@ -733,9 +727,8 @@ export const CommunityChatTab = () => {
                 </Button>
               </div>
             </form>
-          </>
-        )}
-      </div>
+        </div>
+      )}
 
       <MediaModal
         open={mediaModalOpen}
