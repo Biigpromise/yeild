@@ -1,19 +1,15 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { Lock, CheckCircle, Clock, Crown, Star, Zap } from 'lucide-react';
-import { BIRD_LEVELS, ReferralBirdLevel } from '@/services/userService';
-import { BirdBadge } from './BirdBadge';
-import { BirdProgressIndicator } from './BirdProgressIndicator';
+import { Badge } from '@/components/ui/badge';
+import { Sparkles, Crown, Users, Target } from 'lucide-react';
 
 interface BirdProgressionProps {
   userPoints: number;
   activeReferrals: number;
-  currentBirdLevel: ReferralBirdLevel;
-  nextBirdLevel?: ReferralBirdLevel;
+  currentBirdLevel: any;
+  nextBirdLevel: any;
 }
 
 export const BirdProgression: React.FC<BirdProgressionProps> = ({
@@ -22,165 +18,150 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
   currentBirdLevel,
   nextBirdLevel
 }) => {
-  const getBirdStatus = (level: ReferralBirdLevel) => {
-    const hasEnoughReferrals = activeReferrals >= level.minReferrals;
-    const hasEnoughPoints = userPoints >= level.minPoints;
+  const calculateProgress = () => {
+    if (!nextBirdLevel) return 100;
     
-    if (hasEnoughReferrals && hasEnoughPoints) {
-      return 'owned';
-    } else if (level.name === currentBirdLevel.name) {
-      return 'active';
-    } else {
-      return 'locked';
-    }
+    const pointsProgress = nextBirdLevel.min_points > 0 
+      ? Math.min(100, (userPoints / nextBirdLevel.min_points) * 100)
+      : 100;
+    
+    const referralsProgress = nextBirdLevel.min_referrals > 0 
+      ? Math.min(100, (activeReferrals / nextBirdLevel.min_referrals) * 100)
+      : 100;
+    
+    // Both requirements must be met, so take the minimum
+    return Math.min(pointsProgress, referralsProgress);
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'owned':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'active':
-        return <CheckCircle className="h-4 w-4 text-blue-500" />;
-      case 'locked':
-        return <Lock className="h-4 w-4 text-gray-400" />;
-      default:
-        return <Clock className="h-4 w-4 text-orange-500" />;
-    }
+  const getBirdLevelBenefits = (birdLevel: any) => {
+    if (!birdLevel?.benefits) return [];
+    return birdLevel.benefits;
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'owned':
-        return 'Owned';
-      case 'active':
-        return 'Current';
-      case 'locked':
-        return 'Locked';
-      default:
-        return 'Pending';
-    }
-  };
-
-  const getBirdBenefits = (birdIcon: string) => {
-    switch (birdIcon) {
-      case 'dove':
-        return 'Basic profile features';
-      case 'hawk':
-        return 'Premium task access';
-      case 'eagle':
-        return 'Leaderboard visibility & badges';
-      case 'falcon':
-        return 'Special rank & early task access';
-      case 'phoenix':
-        return 'Elite status & exclusive rewards';
-      default:
-        return 'Standard features';
-    }
-  };
-
-  const getProgressToNext = (level: ReferralBirdLevel) => {
-    if (activeReferrals >= level.minReferrals) return 100;
-    return Math.min(100, (activeReferrals / level.minReferrals) * 100);
-  };
+  const progress = calculateProgress();
 
   return (
-    <Card className="w-full bg-white">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold flex items-center gap-2 text-black">
-          <Crown className="h-5 w-5 text-yellow-600" />
-          Bird Progression System
-        </CardTitle>
-        {nextBirdLevel && (
-          <BirdProgressIndicator
-            currentBirdLevel={currentBirdLevel}
-            nextBirdLevel={nextBirdLevel}
-            activeReferrals={activeReferrals}
-          />
-        )}
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {BIRD_LEVELS.slice(1).map((level) => {
-            const status = getBirdStatus(level);
-            const isActive = level.name === currentBirdLevel.name;
-            const progress = getProgressToNext(level);
-            const referralsNeeded = Math.max(0, level.minReferrals - activeReferrals);
-            
-            return (
-              <div 
-                key={level.name}
-                className={`
-                  p-4 rounded-lg border-2 text-center transition-all hover:scale-105
-                  ${status === 'owned' ? 'border-green-300 bg-green-50' : 
-                    isActive ? 'border-blue-300 bg-blue-50 ring-2 ring-blue-400 ring-opacity-50' : 
-                    'border-gray-200 bg-gray-50 hover:border-gray-300'}
-                  ${level.icon === 'phoenix' ? 'bg-gradient-to-br from-red-50 to-orange-50 border-orange-300' : ''}
-                `}
+    <div className="space-y-4">
+      {/* Current Bird Level */}
+      <Card className="border-0 shadow-sm bg-gradient-to-r from-purple-50 to-blue-50">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Crown className="h-5 w-5 text-purple-600" />
+              Current Bird Level
+            </CardTitle>
+            {currentBirdLevel && (
+              <Badge 
+                variant="secondary" 
+                className="text-lg px-3 py-1"
+                style={{ backgroundColor: currentBirdLevel.color + '20', color: currentBirdLevel.color }}
               >
-                <div className="flex justify-center mb-3">
-                  <BirdBadge 
-                    birdLevel={level} 
-                    activeReferrals={activeReferrals}
-                    size="lg" 
-                  />
+                {currentBirdLevel.emoji} {currentBirdLevel.name}
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {currentBirdLevel ? (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600">{currentBirdLevel.description}</p>
+              
+              {/* Current Benefits */}
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">Your Current Benefits:</h4>
+                <div className="grid grid-cols-1 gap-2">
+                  {getBirdLevelBenefits(currentBirdLevel).map((benefit: string, index: number) => (
+                    <div key={index} className="flex items-center gap-2 text-sm">
+                      <Sparkles className="h-3 w-3 text-purple-500" />
+                      <span>{benefit}</span>
+                    </div>
+                  ))}
                 </div>
-                
-                <h4 className="font-semibold text-sm mb-2 text-black">{level.name}</h4>
-                
-                <div className="space-y-2 text-xs text-black mb-3">
-                  <p className="font-mono text-black">{level.minReferrals}+ referrals</p>
-                  <Badge variant="outline" className="text-xs px-2 py-1 text-black border-black">
-                    {getBirdBenefits(level.icon)}
-                  </Badge>
-                </div>
-
-                {/* Progress Bar for locked levels */}
-                {status === 'locked' && (
-                  <div className="space-y-1 mb-3">
-                    <Progress value={progress} className="h-1.5" />
-                    <p className="text-xs text-black">
-                      {referralsNeeded} more needed
-                    </p>
-                  </div>
-                )}
-                
-                <div className="flex items-center justify-center gap-1">
-                  {getStatusIcon(status)}
-                  <span className={`text-xs font-medium ${
-                    status === 'owned' ? 'text-green-600' :
-                    status === 'active' ? 'text-blue-600' :
-                    'text-black'
-                  }`}>
-                    {getStatusText(status)}
-                  </span>
-                </div>
-
-                {/* Special indicators for animated birds */}
-                {(level.icon === 'eagle' || level.icon === 'falcon' || level.icon === 'phoenix') && status !== 'locked' && (
-                  <div className="mt-2 flex justify-center">
-                    <Badge variant="secondary" className="text-xs text-black">
-                      {level.icon === 'phoenix' ? '🔥 Animated' : 
-                       level.icon === 'falcon' ? '⚡ Enhanced' : 
-                       '✨ Special'}
-                    </Badge>
-                  </div>
-                )}
               </div>
-            );
-          })}
-        </div>
-        
-        <div className="mt-6 flex gap-2 justify-center">
-          <Button variant="outline" size="sm" className="flex items-center gap-2 text-black border-black hover:bg-gray-100">
-            <Star className="h-4 w-4" />
-            View Leaderboard
-          </Button>
-          <Button variant="ghost" size="sm" className="flex items-center gap-2 text-black hover:bg-gray-100">
-            <Zap className="h-4 w-4" />
-            Referral Guide
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">Start your bird progression journey!</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Next Bird Level Progress */}
+      {nextBirdLevel && (
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Target className="h-5 w-5 text-blue-600" />
+              Next: {nextBirdLevel.emoji} {nextBirdLevel.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-0">
+            <p className="text-sm text-gray-600">{nextBirdLevel.description}</p>
+            
+            {/* Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Progress to Next Level</span>
+                <span className="text-sm text-gray-500">{Math.round(progress)}%</span>
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
+
+            {/* Requirements */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Target className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm font-medium">Points</span>
+                </div>
+                <p className="text-lg font-bold text-blue-600">
+                  {userPoints.toLocaleString()}
+                </p>
+                <p className="text-xs text-gray-500">
+                  / {nextBirdLevel.min_points?.toLocaleString() || 0} needed
+                </p>
+              </div>
+              
+              <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Users className="h-4 w-4 text-green-500" />
+                  <span className="text-sm font-medium">Referrals</span>
+                </div>
+                <p className="text-lg font-bold text-green-600">
+                  {activeReferrals}
+                </p>
+                <p className="text-xs text-gray-500">
+                  / {nextBirdLevel.min_referrals} needed
+                </p>
+              </div>
+            </div>
+
+            {/* Next Level Benefits Preview */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-sm">Unlock These Benefits:</h4>
+              <div className="grid grid-cols-1 gap-2">
+                {getBirdLevelBenefits(nextBirdLevel).map((benefit: string, index: number) => (
+                  <div key={index} className="flex items-center gap-2 text-sm text-gray-600">
+                    <Sparkles className="h-3 w-3 text-yellow-500" />
+                    <span>{benefit}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {!nextBirdLevel && currentBirdLevel && (
+        <Card className="border-0 shadow-sm bg-gradient-to-r from-yellow-50 to-orange-50">
+          <CardContent className="text-center py-6">
+            <Crown className="h-12 w-12 mx-auto mb-3 text-yellow-600" />
+            <h3 className="font-bold text-lg mb-2">Maximum Level Achieved!</h3>
+            <p className="text-sm text-gray-600">
+              Congratulations! You've reached the highest bird level. Keep earning to maintain your status!
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };

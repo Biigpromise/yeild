@@ -1129,6 +1129,7 @@ export type Database = {
           active_referrals_count: number | null
           average_session_duration: number | null
           bio: string | null
+          can_post_in_chat: boolean | null
           created_at: string | null
           email: string | null
           followers_count: number
@@ -1154,6 +1155,7 @@ export type Database = {
           active_referrals_count?: number | null
           average_session_duration?: number | null
           bio?: string | null
+          can_post_in_chat?: boolean | null
           created_at?: string | null
           email?: string | null
           followers_count?: number
@@ -1179,6 +1181,7 @@ export type Database = {
           active_referrals_count?: number | null
           average_session_duration?: number | null
           bio?: string | null
+          can_post_in_chat?: boolean | null
           created_at?: string | null
           email?: string | null
           followers_count?: number
@@ -2213,6 +2216,10 @@ export type Database = {
       check_and_award_achievements: {
         Args: { p_user_id: string }
         Returns: undefined
+      }
+      check_chat_posting_eligibility: {
+        Args: { user_id_param: string }
+        Returns: boolean
       }
       generate_referral_code: {
         Args: Record<PropertyKey, never>

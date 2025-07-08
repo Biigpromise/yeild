@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MessageCircle, Users, Heart, Share, MoreHorizontal } from 'lucide-react';
+import { MessageCircle, Users, Heart, Share, MoreHorizontal, Lock, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import { PublicProfileModal } from '@/components/PublicProfileModal';
 import { fileUploadService } from '@/services/fileUploadService';
@@ -18,6 +18,7 @@ import { VirtualizedMessageList } from './chat/VirtualizedMessageList';
 import { MessageComments } from './chat/MessageComments';
 import { EnhancedBirdBadge } from '@/components/referral/EnhancedBirdBadge';
 import { EmojiReactions } from '@/components/ui/emoji-reactions';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Message {
   id: string;
@@ -40,6 +41,12 @@ interface MessageLike {
   user_id: string;
 }
 
+interface UserProfile {
+  can_post_in_chat: boolean;
+  tasks_completed: number;
+  active_referrals_count: number;
+}
+
 export const CommunityChatTab = () => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -54,11 +61,13 @@ export const CommunityChatTab = () => {
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [messageLikes, setMessageLikes] = useState<Record<string, MessageLike[]>>({});
   const [viewedMessages, setViewedMessages] = useState<Set<string>>(new Set());
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(400);
 
   useEffect(() => {
     if (user) {
+      loadUserProfile();
       loadMessages();
       loadMessageLikes();
       
@@ -115,6 +124,23 @@ export const CommunityChatTab = () => {
       };
     }
   }, [user]);
+
+  const loadUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('can_post_in_chat, tasks_completed, active_referrals_count')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      setUserProfile(data);
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  };
 
   const trackMessageView = async (messageId: string) => {
     if (!user) return;
@@ -335,6 +361,11 @@ export const CommunityChatTab = () => {
       return;
     }
 
+    if (!userProfile?.can_post_in_chat) {
+      toast.error('You need to complete requirements to post messages');
+      return;
+    }
+
     if (!newMessage.trim() && !mediaFile) {
       toast.error('Please enter a message or select media');
       return;
@@ -399,6 +430,12 @@ export const CommunityChatTab = () => {
 
   const activeUsers = new Set(messages.map(m => m.user_id)).size;
 
+  const canPostInChat = userProfile?.can_post_in_chat || false;
+  const tasksCompleted = userProfile?.tasks_completed || 0;
+  const activeReferrals = userProfile?.active_referrals_count || 0;
+  const tasksNeeded = Math.max(0, 1 - tasksCompleted);
+  const referralsNeeded = Math.max(0, 3 - activeReferrals);
+
   if (!user) {
     return (
       <div className="flex items-center justify-center h-full bg-black">
@@ -412,7 +449,45 @@ export const CommunityChatTab = () => {
 
   return (
     <div className="flex flex-col h-full bg-black text-white">
-          <ChatHeader activeUsers={activeUsers} />
+      <ChatHeader activeUsers={activeUsers} />
+
+      {/* Chat Unlock Banner */}
+      {!canPostInChat && (
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 border-b border-gray-800">
+          <Card className="bg-black/50 border-gray-700">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <Lock className="h-6 w-6 text-yellow-400" />
+                <CardTitle className="text-lg text-white">Unlock Chat Posting</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-gray-300 mb-3">
+                Complete these requirements to start posting in the community chat:
+              </p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Target className={`h-4 w-4 ${tasksCompleted >= 1 ? 'text-green-400' : 'text-gray-400'}`} />
+                  <span className={tasksCompleted >= 1 ? 'text-green-400' : 'text-gray-300'}>
+                    Complete {tasksNeeded > 0 ? `${tasksNeeded} more` : ''} task{tasksNeeded !== 1 ? 's' : ''} 
+                    {tasksCompleted >= 1 ? ' ✓' : ` (${tasksCompleted}/1)`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className={`h-4 w-4 ${activeReferrals >= 3 ? 'text-green-400' : 'text-gray-400'}`} />
+                  <span className={activeReferrals >= 3 ? 'text-green-400' : 'text-gray-300'}>
+                    Get {referralsNeeded > 0 ? `${referralsNeeded} more` : ''} active referral{referralsNeeded !== 1 ? 's' : ''}
+                    {activeReferrals >= 3 ? ' ✓' : ` (${activeReferrals}/3)`}
+                  </span>
+                </div>
+              </div>
+              <p className="text-sm text-gray-400 mt-3">
+                You can still view all messages and interact with the community!
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Feed */}
       <div className="flex-1 overflow-y-auto bg-black min-h-0">
@@ -584,73 +659,82 @@ export const CommunityChatTab = () => {
 
       {/* Post Creation */}
       <div className="border-t border-gray-800 p-4 pb-32 lg:pb-4 bg-gray-900 flex-shrink-0">
-        {mediaPreview && (
-          <div className="mb-3 relative inline-block">
-            <div className="relative">
-              {mediaFile?.type.startsWith('video/') ? (
-                <video src={mediaPreview} className="max-h-20 rounded border" />
-              ) : (
-                <img src={mediaPreview} alt="Preview" className="max-h-20 rounded border" />
-              )}
-              <Button
-                size="sm"
-                variant="destructive"
-                className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                onClick={removeMedia}
-              >
-                ×
-              </Button>
-            </div>
+        {!canPostInChat ? (
+          <div className="text-center py-4">
+            <Lock className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+            <p className="text-gray-400 text-sm">Complete the requirements above to start posting</p>
           </div>
+        ) : (
+          <>
+            {mediaPreview && (
+              <div className="mb-3 relative inline-block">
+                <div className="relative">
+                  {mediaFile?.type.startsWith('video/') ? (
+                    <video src={mediaPreview} className="max-h-20 rounded border" />
+                  ) : (
+                    <img src={mediaPreview} alt="Preview" className="max-h-20 rounded border" />
+                  )}
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                    onClick={removeMedia}
+                  >
+                    ×
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+              <Avatar className="h-10 w-10 flex-shrink-0">
+                <AvatarImage src={user?.user_metadata?.avatar_url} />
+                <AvatarFallback className="bg-gray-700 text-white">
+                  {user?.email?.charAt(0)?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="flex-1 flex items-center gap-2">
+                <Input
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="What's on your mind?"
+                  className="flex-1 bg-gray-800 border-gray-700 text-white placeholder-gray-400 rounded-full"
+                  disabled={sending}
+                />
+                
+                <input
+                  type="file"
+                  accept="image/*,video/*"
+                  className="hidden"
+                  id="media-upload"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileSelect(file);
+                  }}
+                />
+                
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => document.getElementById('media-upload')?.click()}
+                  className="text-gray-400 hover:text-white"
+                >
+                  📷
+                </Button>
+                
+                <Button 
+                  type="submit" 
+                  disabled={sending || (!newMessage.trim() && !mediaFile)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
+                >
+                  {sending ? '...' : 'Post'}
+                </Button>
+              </div>
+            </form>
+          </>
         )}
-        
-        <form onSubmit={handleSendMessage} className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 flex-shrink-0">
-            <AvatarImage src={user?.user_metadata?.avatar_url} />
-            <AvatarFallback className="bg-gray-700 text-white">
-              {user?.email?.charAt(0)?.toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
-          
-          <div className="flex-1 flex items-center gap-2">
-            <Input
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="What's on your mind?"
-              className="flex-1 bg-gray-800 border-gray-700 text-white placeholder-gray-400 rounded-full"
-              disabled={sending}
-            />
-            
-            <input
-              type="file"
-              accept="image/*,video/*"
-              className="hidden"
-              id="media-upload"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleFileSelect(file);
-              }}
-            />
-            
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => document.getElementById('media-upload')?.click()}
-              className="text-gray-400 hover:text-white"
-            >
-              📷
-            </Button>
-            
-            <Button 
-              type="submit" 
-              disabled={sending || (!newMessage.trim() && !mediaFile)}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
-            >
-              {sending ? '...' : 'Post'}
-            </Button>
-          </div>
-        </form>
       </div>
 
       <MediaModal

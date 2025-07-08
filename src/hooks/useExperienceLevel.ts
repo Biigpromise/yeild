@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 
 export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced';
@@ -18,7 +19,7 @@ export const EXPERIENCE_TIERS: ExperienceTier[] = [
     description: 'Focus on completing your first tasks and earning points',
     minTasks: 0,
     minReferrals: 0,
-    features: ['tasks', 'profile', 'wallet', 'support', 'referrals']
+    features: ['tasks', 'profile', 'wallet', 'support', 'referrals', 'community']
   },
   {
     level: 'intermediate', 
