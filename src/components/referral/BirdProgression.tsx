@@ -21,12 +21,12 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
   const calculateProgress = () => {
     if (!nextBirdLevel) return 100;
     
-    const pointsProgress = nextBirdLevel.min_points > 0 
-      ? Math.min(100, (userPoints / nextBirdLevel.min_points) * 100)
+    const pointsProgress = nextBirdLevel.minPoints > 0 
+      ? Math.min(100, (userPoints / nextBirdLevel.minPoints) * 100)
       : 100;
     
-    const referralsProgress = nextBirdLevel.min_referrals > 0 
-      ? Math.min(100, (activeReferrals / nextBirdLevel.min_referrals) * 100)
+    const referralsProgress = nextBirdLevel.minReferrals > 0 
+      ? Math.min(100, (activeReferrals / nextBirdLevel.minReferrals) * 100)
       : 100;
     
     // Both requirements must be met, so take the minimum
@@ -116,9 +116,9 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
                 <p className="text-lg font-bold text-primary">
                   {userPoints.toLocaleString()}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  / {nextBirdLevel.min_points?.toLocaleString() || 0} needed
-                </p>
+                 <p className="text-xs text-muted-foreground">
+                   / {nextBirdLevel.minPoints?.toLocaleString() || 0} needed
+                 </p>
               </div>
               
               <div className="text-center p-3 bg-muted rounded-lg">
@@ -130,7 +130,7 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
                   {activeReferrals}
                 </p>
                  <p className="text-xs text-muted-foreground">
-                   / {nextBirdLevel.min_referrals || 0} needed
+                   / {nextBirdLevel.minReferrals || 0} needed
                  </p>
               </div>
             </div>
