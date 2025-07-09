@@ -3,7 +3,7 @@ import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { handleAuthError } from "./authErrorHandler";
-import { sendWelcomeEmail, sendConfirmationEmail } from "./emailService";
+import { sendWelcomeEmail } from "./emailService";
 
 export const useAuthOperations = () => {
   const signUp = async (email: string, password: string, name?: string, additionalData?: Record<string, any>) => {
@@ -21,8 +21,8 @@ export const useAuthOperations = () => {
         return { user: null, error };
       }
 
-      // Use the current origin as the redirect URL - this will work for both preview and deployed versions
-      const redirectUrl = window.location.origin;
+      // Use proper redirect URL for email confirmation
+      const redirectUrl = `${window.location.origin}/dashboard`;
       console.log("Using redirect URL:", redirectUrl);
 
       const signUpData = {
@@ -30,13 +30,13 @@ export const useAuthOperations = () => {
         ...additionalData
       };
       
-      // Create user without sending Supabase confirmation email
+      // Use Supabase's built-in email confirmation
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: Object.keys(signUpData).length > 0 ? signUpData : undefined
-          // Note: Removed emailRedirectTo to prevent Supabase from sending confirmation emails
+          data: Object.keys(signUpData).length > 0 ? signUpData : undefined,
+          emailRedirectTo: redirectUrl
         }
       });
       
@@ -45,19 +45,9 @@ export const useAuthOperations = () => {
         return { user: null, error: { ...error, message: friendlyMessage } };
       }
 
-      // Send both welcome and confirmation emails after successful signup
+      // Send welcome email after successful signup
       if (data.user && !error) {
-        // Send welcome email
         await sendWelcomeEmail(email, name);
-        
-        // Send confirmation email with code and return the code
-        const confirmationCode = await sendConfirmationEmail(email, name);
-        
-        // Store the confirmation code temporarily (you might want to use a more secure storage)
-        if (confirmationCode) {
-          localStorage.setItem('pendingConfirmationCode', confirmationCode);
-          localStorage.setItem('pendingConfirmationEmail', email);
-        }
       }
 
       console.log("Signup successful");
@@ -71,24 +61,9 @@ export const useAuthOperations = () => {
 
   const verifyConfirmationCode = async (inputCode: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const storedCode = localStorage.getItem('pendingConfirmationCode');
-      const email = localStorage.getItem('pendingConfirmationEmail');
-      
-      if (!storedCode || !email) {
-        return { success: false, error: "No pending confirmation found" };
-      }
-      
-      if (inputCode === storedCode) {
-        // Clear the stored data
-        localStorage.removeItem('pendingConfirmationCode');
-        localStorage.removeItem('pendingConfirmationEmail');
-        
-        // In a real implementation, you'd verify with Supabase here
-        // For now, we'll just return success
-        return { success: true };
-      } else {
-        return { success: false, error: "Invalid confirmation code" };
-      }
+      // This is no longer needed as we use Supabase's built-in email confirmation
+      // Users will be automatically confirmed when they click the email link
+      return { success: true };
     } catch (error) {
       console.error("Error verifying confirmation code:", error);
       return { success: false, error: "Verification failed" };

@@ -20,9 +20,6 @@ const SignUpForm = () => {
     handleSignUp,
     awaitingConfirmation,
     signUpError,
-    resendConfirmation,
-    resending,
-    resendDone,
     setAwaitingConfirmation,
   } = useSignUp();
 
@@ -33,29 +30,16 @@ const SignUpForm = () => {
     return (
       <div className="text-center flex flex-col items-center p-6">
         <MailCheck className="mx-auto h-12 w-12 text-yeild-yellow mb-2" />
-        <h2 className="text-xl font-bold mb-2">Confirm Your Email</h2>
+        <h2 className="text-xl font-bold mb-2">Check Your Email</h2>
         <p className="text-gray-300 mb-3">
           We&apos;ve sent a confirmation email to:
         </p>
         <div className="font-semibold text-gray-100 mb-3">{email}</div>
         <p className="text-gray-400 mb-4">
-          Please check your inbox and click the confirmation link. You can close this tab and finish later.
+          Please check your inbox and click the confirmation link to activate your account.
         </p>
-        <Button
-          disabled={resending}
-          className="w-full mb-2"
-          variant="outline"
-          onClick={resendConfirmation}
-        >
-          {resending ? "Resending..." : "Resend Confirmation Email"}
-        </Button>
-        {resendDone ? (
-          <div className="text-green-400 text-sm mt-1">
-            Confirmation email resent! Check your inbox.
-          </div>
-        ) : null}
         <div className="mt-4 text-gray-400 text-sm">
-          Didn&apos;t get the email? Check your spam or promotions folder. If you still can&apos;t find it, click <b>Resend</b> above.
+          Didn&apos;t get the email? Check your spam or promotions folder.
         </div>
         <Button
           variant="ghost"
@@ -68,7 +52,7 @@ const SignUpForm = () => {
         </Button>
         <div className="mt-4 text-center">
           <p className="text-gray-400">
-            Already confirmed?{" "}
+            Already have an account?{" "}
             <span
               role="button"
               className="text-yeild-yellow hover:underline cursor-pointer ml-1"

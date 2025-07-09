@@ -27,7 +27,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending welcome email to:", email);
 
     const emailResponse = await resend.emails.send({
-      from: "YEILD <onboarding@resend.dev>",
+      from: "YEILD <noreply@yeildsocials.com>",
       to: [email],
       subject: "Welcome to YEILD! Start Earning Today 🎉",
       html: `
@@ -53,7 +53,7 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${Deno.env.get('SUPABASE_URL')?.replace('/v1', '') || 'https://yeildsocials.com'}/dashboard" 
+              <a href="https://yeildsocials.com/dashboard" 
                  style="background-color: #FFD700; color: #000000; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
                 Go to Dashboard
               </a>

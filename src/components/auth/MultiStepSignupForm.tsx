@@ -22,9 +22,6 @@ const MultiStepSignupForm = () => {
     handleSignUp,
     awaitingConfirmation,
     signUpError,
-    resendConfirmation,
-    resending,
-    resendDone,
     setAwaitingConfirmation,
     confirmationCode,
     setConfirmationCode,
@@ -47,51 +44,11 @@ const MultiStepSignupForm = () => {
     return (
       <div className="text-center flex flex-col items-center p-6">
         <MailCheck className="mx-auto h-12 w-12 text-yeild-yellow mb-4" />
-        <h2 className="text-2xl font-bold mb-3">Enter the confirmation code</h2>
+        <h2 className="text-2xl font-bold mb-3">Check Your Email</h2>
         <p className="text-gray-300 mb-6">
-          To confirm your account, enter the six-digit code that we sent to {email}.
+          We&apos;ve sent a confirmation email to {email}. Please check your inbox and click the confirmation link to activate your account.
         </p>
         
-        <div className="w-full max-w-sm mb-6">
-          <InputOTP
-            maxLength={6}
-            value={confirmationCode}
-            onChange={(value) => setConfirmationCode(value)}
-            className="w-full"
-          >
-            <InputOTPGroup className="w-full justify-center">
-              <InputOTPSlot index={0} className="yeild-input" />
-              <InputOTPSlot index={1} className="yeild-input" />
-              <InputOTPSlot index={2} className="yeild-input" />
-              <InputOTPSlot index={3} className="yeild-input" />
-              <InputOTPSlot index={4} className="yeild-input" />
-              <InputOTPSlot index={5} className="yeild-input" />
-            </InputOTPGroup>
-          </InputOTP>
-        </div>
-        
-        <Button 
-          className="w-full mb-4 yeild-btn-primary" 
-          onClick={handleCodeVerification}
-          disabled={isVerifying || confirmationCode.length !== 6}
-        >
-          {isVerifying ? "Verifying..." : "Verify Account"}
-        </Button>
-        
-        <Button
-          variant="outline"
-          className="w-full mb-4"
-          onClick={resendConfirmation}
-          disabled={resending}
-        >
-          {resending ? "Resending..." : "I didn't receive the code"}
-        </Button>
-        
-        {resendDone && (
-          <div className="text-green-400 text-sm mb-4">
-            Confirmation code resent! Check your inbox.
-          </div>
-        )}
         
         <Button
           variant="ghost"

@@ -19,36 +19,4 @@ export const sendWelcomeEmail = async (email: string, name?: string) => {
   }
 };
 
-// Function to generate a 6-digit confirmation code
-const generateConfirmationCode = (): string => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-};
-
-// Function to send confirmation email with code
-export const sendConfirmationEmail = async (email: string, name?: string) => {
-  try {
-    console.log("Sending confirmation email to:", email);
-    
-    // Generate a 6-digit confirmation code
-    const confirmationCode = generateConfirmationCode();
-    
-    const { error } = await supabase.functions.invoke('send-signup-confirmation', {
-      body: { 
-        email, 
-        name,
-        confirmationCode 
-      }
-    });
-    
-    if (error) {
-      console.error("Error sending confirmation email:", error);
-    } else {
-      console.log("Confirmation email sent successfully");
-    }
-    
-    return confirmationCode;
-  } catch (error) {
-    console.error("Unexpected error sending confirmation email:", error);
-    return null;
-  }
-};
+// Note: Custom confirmation email no longer needed as we use Supabase's built-in email confirmation

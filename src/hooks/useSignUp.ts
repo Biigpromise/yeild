@@ -129,33 +129,7 @@ export const useSignUp = () => {
     }
   };
 
-  // RESEND EMAIL LOGIC
-  const [resending, setResending] = useState(false);
-  const [resendDone, setResendDone] = useState(false);
-
-  const resendConfirmation = async () => {
-    if (!email) {
-      toast.error("No email found to resend confirmation. Please refresh and sign up again.");
-      return;
-    }
-    setResending(true);
-    try {
-      const { error } = await supabase.auth.resend({
-        type: "signup",
-        email,
-      });
-      if (error) {
-        toast.error("Could not resend confirmation email. Please wait a moment and try again.");
-        return;
-      }
-      setResendDone(true);
-      toast.success("Confirmation code resent! Check your inbox or spam folder.");
-    } catch (err) {
-      toast.error("Unexpected error during resend.");
-    } finally {
-      setResending(false);
-    }
-  };
+  // Note: Resend logic removed as we now use Supabase's built-in email confirmation
 
   return {
     email,
@@ -172,9 +146,6 @@ export const useSignUp = () => {
     handleSignUp,
     awaitingConfirmation,
     signUpError,
-    resendConfirmation,
-    resending,
-    resendDone,
     setAwaitingConfirmation,
     referralCode,
     confirmationCode,
