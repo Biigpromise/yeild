@@ -22,7 +22,9 @@ const MultiStepSignupForm = () => {
     handleSignUp,
     awaitingConfirmation,
     signUpError,
-    setAwaitingConfirmation
+    setAwaitingConfirmation,
+    handleResendConfirmation,
+    resendLoading
   } = useSignUp();
 
   const [firstName, setFirstName] = useState("");
@@ -42,17 +44,27 @@ const MultiStepSignupForm = () => {
         <MailCheck className="mx-auto h-12 w-12 text-yeild-yellow mb-4" />
         <h2 className="text-2xl font-bold mb-3">Check Your Email</h2>
         <p className="text-gray-300 mb-6">
-          We&apos;ve sent a confirmation email to {email}. Please check your inbox and click the confirmation link to activate your account.
+          We&apos;ve sent a confirmation email to {email}. Please check your inbox and click the confirmation link to complete your registration and access your dashboard.
         </p>
         
-        <Button
-          variant="ghost"
-          className="text-gray-400 hover:text-white"
-          onClick={() => setAwaitingConfirmation(false)}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Sign Up
-        </Button>
+        <div className="space-y-3">
+          <Button 
+            variant="default" 
+            className="w-full yeild-btn-primary" 
+            onClick={handleResendConfirmation}
+            disabled={resendLoading}
+          >
+            {resendLoading ? "Sending..." : "Resend Confirmation Email"}
+          </Button>
+          <Button
+            variant="ghost"
+            className="text-gray-400 hover:text-white"
+            onClick={() => setAwaitingConfirmation(false)}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Sign Up
+          </Button>
+        </div>
       </div>
     );
   }

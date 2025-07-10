@@ -3,7 +3,7 @@ import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { handleAuthError } from "./authErrorHandler";
-import { sendWelcomeEmail } from "./emailService";
+
 
 export const useAuthOperations = () => {
   const signUp = async (email: string, password: string, name?: string, additionalData?: Record<string, any>) => {
@@ -45,10 +45,7 @@ export const useAuthOperations = () => {
         return { user: null, error: { ...error, message: friendlyMessage } };
       }
 
-      // Send welcome email after successful signup
-      if (data.user && !error) {
-        await sendWelcomeEmail(email, name);
-      }
+      // Email confirmation is handled by Supabase built-in system
 
       console.log("Signup successful");
       return { user: data.user, error: null };
@@ -167,12 +164,47 @@ export const useAuthOperations = () => {
     }
   };
 
+  const resendConfirmation = async (email: string) => {
+    try {
+      console.log("AuthContext: Resending confirmation email for:", email);
+      
+      // Input validation
+      if (!email) {
+        const error = new Error("Email is required");
+        return { error };
+      }
+
+      const redirectUrl = `${window.location.origin}/dashboard`;
+      
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: redirectUrl
+        }
+      });
+      
+      if (error) {
+        const friendlyMessage = handleAuthError(error, 'resend confirmation');
+        return { error: { ...error, message: friendlyMessage } };
+      }
+
+      console.log("AuthContext: Confirmation email resent successfully");
+      return { error: null };
+    } catch (error) {
+      console.error("AuthContext: Resend confirmation unexpected error:", error);
+      const friendlyMessage = handleAuthError(error, 'resend confirmation');
+      return { error: { message: friendlyMessage } };
+    }
+  };
+
   return {
     signUp,
     signIn,
     signOut,
     signInWithProvider,
     resetPassword,
+    resendConfirmation,
     verifyConfirmationCode,
   };
 };

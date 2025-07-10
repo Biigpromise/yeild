@@ -10,5 +10,6 @@ export interface AuthContextType {
   signOut: () => Promise<void>;
   signInWithProvider: (provider: 'google' | 'github' | 'twitter') => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
+  resendConfirmation: (email: string) => Promise<{ error: any }>;
   verifyConfirmationCode: (inputCode: string) => Promise<{ success: boolean; error?: string }>;
 }

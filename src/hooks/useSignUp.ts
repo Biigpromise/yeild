@@ -11,8 +11,9 @@ import { useSignupFraudDetection } from "@/hooks/useSignupFraudDetection";
 export const useSignUp = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signUp } = useAuth();
+  const { signUp, resendConfirmation } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   // Form values
   const [email, setEmail] = useState("");
@@ -102,8 +103,28 @@ export const useSignUp = () => {
     }
   };
 
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
 
-  // Note: Resend logic removed as we now use Supabase's built-in email confirmation
+    setResendLoading(true);
+    
+    try {
+      const { error } = await resendConfirmation(email);
+      
+      if (error) {
+        toast.error(error.message || "Failed to resend confirmation email");
+      } else {
+        toast.success("Confirmation email sent! Please check your inbox.");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   return {
     email,
@@ -121,6 +142,8 @@ export const useSignUp = () => {
     awaitingConfirmation,
     signUpError,
     setAwaitingConfirmation,
-    referralCode
+    referralCode,
+    handleResendConfirmation,
+    resendLoading
   };
 };
