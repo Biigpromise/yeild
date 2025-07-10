@@ -35,6 +35,9 @@ serve(async (req) => {
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'magiclink',
       email: email,
+      options: {
+        redirectTo: 'https://yeildsocials.com/brand-dashboard'
+      }
     })
 
     if (linkError) throw linkError
@@ -43,26 +46,26 @@ serve(async (req) => {
 
     // Send the email using Resend with your verified domain
     const { data, error: resendError } = await resend.emails.send({
-      from: 'Yeild Team <noreply@yeildsocials.com>', // Using your verified domain
+      from: 'YEILD <noreply@yeildsocials.com>', // Using your verified domain
       to: [email],
-      subject: '✅ Confirm your Yeild account - Action Required',
+      subject: '✅ Confirm your YEILD account - Action Required',
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Confirm Your Yeild Account</title>
+          <title>Confirm Your YEILD Account</title>
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Yeild!</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to YEILD!</h1>
             <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Hi ${companyName}, let's get you started</p>
           </div>
           
           <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
             <p style="font-size: 16px; margin-bottom: 20px;">
-              Thank you for signing up with Yeild! To complete your registration and access your account, please confirm your email address by clicking the button below.
+              Thank you for signing up with YEILD! To complete your registration and access your account, please confirm your email address by clicking the button below.
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
@@ -104,17 +107,17 @@ serve(async (req) => {
           <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
             <p style="margin: 0; font-size: 14px; color: #666;">
               Best regards,<br>
-              <strong>The Yeild Team</strong>
+              <strong>The YEILD Team</strong>
             </p>
             <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
-              © 2024 Yeild. All rights reserved.
+              © 2024 YEILD. All rights reserved.
             </p>
           </div>
         </body>
         </html>
       `,
       text: `
-Welcome to Yeild, ${companyName}!
+Welcome to YEILD, ${companyName}!
 
 Thank you for signing up! To complete your registration, please confirm your email address by visiting this link:
 
@@ -128,7 +131,7 @@ What's Next?
 If you didn't create this account, please ignore this email.
 
 Best regards,
-The Yeild Team
+The YEILD Team
       `.trim(),
     })
 

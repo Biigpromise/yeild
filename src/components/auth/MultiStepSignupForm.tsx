@@ -22,11 +22,7 @@ const MultiStepSignupForm = () => {
     handleSignUp,
     awaitingConfirmation,
     signUpError,
-    setAwaitingConfirmation,
-    confirmationCode,
-    setConfirmationCode,
-    handleCodeVerification,
-    isVerifying
+    setAwaitingConfirmation
   } = useSignUp();
 
   const [firstName, setFirstName] = useState("");
@@ -48,7 +44,6 @@ const MultiStepSignupForm = () => {
         <p className="text-gray-300 mb-6">
           We&apos;ve sent a confirmation email to {email}. Please check your inbox and click the confirmation link to activate your account.
         </p>
-        
         
         <Button
           variant="ghost"

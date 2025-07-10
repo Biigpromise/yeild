@@ -11,7 +11,7 @@ import { useSignupFraudDetection } from "@/hooks/useSignupFraudDetection";
 export const useSignUp = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signUp, verifyConfirmationCode } = useAuth();
+  const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   // Form values
@@ -23,8 +23,6 @@ export const useSignUp = () => {
 
   // Confirmation step UI
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
-  const [confirmationCode, setConfirmationCode] = useState("");
-  const [isVerifying, setIsVerifying] = useState(false);
 
   // For tracking any error encountered during sign up so we can display below the form
   const [signUpError, setSignUpError] = useState<string | null>(null);
@@ -94,7 +92,7 @@ export const useSignUp = () => {
         }
         
         setAwaitingConfirmation(true);
-        toast.success("Account created! Please check your email for a confirmation code.");
+        toast.success("Account created! Please check your email for a confirmation link.");
       }
     } catch (error) {
       setSignUpError("An unexpected error occurred");
@@ -104,30 +102,6 @@ export const useSignUp = () => {
     }
   };
 
-  const handleCodeVerification = async () => {
-    if (!confirmationCode || confirmationCode.length !== 6) {
-      toast.error("Please enter a valid 6-digit code");
-      return;
-    }
-
-    setIsVerifying(true);
-    try {
-      const result = await verifyConfirmationCode(confirmationCode);
-      
-      if (result.success) {
-        toast.success("Account confirmed! Redirecting to dashboard...");
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 1000);
-      } else {
-        toast.error(result.error || "Invalid confirmation code");
-      }
-    } catch (error) {
-      toast.error("Verification failed. Please try again.");
-    } finally {
-      setIsVerifying(false);
-    }
-  };
 
   // Note: Resend logic removed as we now use Supabase's built-in email confirmation
 
@@ -147,10 +121,6 @@ export const useSignUp = () => {
     awaitingConfirmation,
     signUpError,
     setAwaitingConfirmation,
-    referralCode,
-    confirmationCode,
-    setConfirmationCode,
-    handleCodeVerification,
-    isVerifying
+    referralCode
   };
 };
