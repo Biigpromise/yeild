@@ -1,10 +1,9 @@
 
 import { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import MultiStepSignupForm from "@/components/auth/MultiStepSignupForm";
+import TwitterStyleSignup from "@/components/auth/TwitterStyleSignup";
+import YieldGuideSection from "@/components/onboarding/YieldGuideSection";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -20,7 +19,7 @@ const SignUp = () => {
   // Show loading while auth state is being determined
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-yeild-black">
+      <div className="min-h-screen flex items-center justify-center bg-black">
         <div className="text-white">Loading...</div>
       </div>
     );
@@ -32,32 +31,10 @@ const SignUp = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-yeild-black relative">
-      {/* Yellow accent graphics */}
-      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-yeild-yellow opacity-10 blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-yeild-yellow opacity-10 blur-3xl"></div>
-      
-      <div className="w-full max-w-md p-6">
-        <MultiStepSignupForm />
-        
-        <div className="mt-8 text-center">
-          <p className="text-gray-400 mb-4">
-            Already have an account?{" "}
-            <Link to="/login" className="text-yeild-yellow hover:underline">
-              Log in
-            </Link>
-          </p>
-          <Button 
-            variant="ghost" 
-            className="text-gray-400 hover:text-white" 
-            onClick={() => navigate("/")}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Home
-          </Button>
-        </div>
-      </div>
-    </div>
+    <>
+      <TwitterStyleSignup />
+      <YieldGuideSection />
+    </>
   );
 };
 
