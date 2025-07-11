@@ -30,7 +30,7 @@ export const useAuthOperations = () => {
         ...additionalData
       };
       
-      // Use Supabase's built-in email confirmation
+      // Sign up user without email confirmation to avoid rate limits
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -117,7 +117,7 @@ export const useAuthOperations = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin
+          redirectTo: `${window.location.origin}/dashboard`
         }
       });
       

@@ -82,7 +82,8 @@ const TwitterStyleSignup = () => {
       if (error) {
         setError(error.message);
       } else {
-        setCurrentStep(6); // Go to confirmation step
+        // Skip confirmation step and redirect directly to dashboard
+        window.location.href = '/dashboard';
       }
     } catch (error: any) {
       setError('An unexpected error occurred');
@@ -232,7 +233,24 @@ const TwitterStyleSignup = () => {
             )}
 
             <Button 
-              onClick={handleNext}
+              onClick={() => {
+                // Email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+                
+                if (signupData.contactMethod === 'email' && !emailRegex.test(signupData.contact)) {
+                  setError('Please enter a valid email address');
+                  return;
+                }
+                
+                if (signupData.contactMethod === 'phone' && !phoneRegex.test(signupData.contact)) {
+                  setError('Please enter a valid phone number');
+                  return;
+                }
+                
+                setError('');
+                handleNext();
+              }}
               disabled={!isStepValid()}
               className="w-full bg-yeild-yellow text-black hover:bg-yellow-400 py-6 text-lg font-bold rounded-full disabled:opacity-50"
             >
