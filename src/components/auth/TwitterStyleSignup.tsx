@@ -60,6 +60,9 @@ const TwitterStyleSignup = () => {
       const { error } = await signInWithProvider('google');
       if (error) {
         setError(error.message);
+      } else {
+        // Redirect to progressive onboarding after Google signup
+        window.location.href = '/onboarding';
       }
     } catch (error: any) {
       setError(error.message);
@@ -82,8 +85,8 @@ const TwitterStyleSignup = () => {
       if (error) {
         setError(error.message);
       } else {
-        // Skip confirmation step and redirect directly to dashboard
-        window.location.href = '/dashboard';
+        // Redirect to progressive onboarding
+        window.location.href = '/onboarding';
       }
     } catch (error: any) {
       setError('An unexpected error occurred');

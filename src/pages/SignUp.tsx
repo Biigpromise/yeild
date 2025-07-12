@@ -30,12 +30,7 @@ const SignUp = () => {
     return null;
   }
 
-  return (
-    <>
-      <TwitterStyleSignup />
-      <YieldGuideSection />
-    </>
-  );
+  return <TwitterStyleSignup />;
 };
 
 export default SignUp;
