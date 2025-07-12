@@ -31,7 +31,7 @@ const WelcomePage = ({ onNext }: WelcomePageProps) => {
           }`}>
             <div className="inline-block p-4 bg-yeild-yellow/10 rounded-full">
               <img 
-                src="/lovable-uploads/cb163ee5-dbef-4122-b312-dacff15aa072.png" 
+                src="/lovable-uploads/54ccebd1-9d4c-452f-b0a9-0b9de0fcfebf.png" 
                 alt="YEILD Logo" 
                 className="w-20 h-20 md:w-24 md:h-24 object-contain"
               />

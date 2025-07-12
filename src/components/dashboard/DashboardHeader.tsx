@@ -52,7 +52,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
         {/* YEILD Logo */}
         <div className="flex items-center">
           <img 
-            src="/lovable-uploads/cb163ee5-dbef-4122-b312-dacff15aa072.png" 
+            src="/lovable-uploads/54ccebd1-9d4c-452f-b0a9-0b9de0fcfebf.png" 
             alt="YEILD" 
             className="w-10 h-10 object-contain"
           />
