@@ -1,4 +1,3 @@
-
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -22,7 +21,7 @@ export const useAuthOperations = () => {
       }
 
       // Use proper redirect URL for email confirmation
-      const redirectUrl = `${window.location.origin}/dashboard`;
+      const redirectUrl = `${window.location.origin}/onboarding`;
       console.log("Using redirect URL:", redirectUrl);
 
       const signUpData = {
@@ -30,7 +29,7 @@ export const useAuthOperations = () => {
         ...additionalData
       };
       
-      // Sign up user without email confirmation to avoid rate limits
+      // Sign up user with email confirmation redirect to onboarding
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -44,8 +43,6 @@ export const useAuthOperations = () => {
         const friendlyMessage = handleAuthError(error, 'signup');
         return { user: null, error: { ...error, message: friendlyMessage } };
       }
-
-      // Email confirmation is handled by Supabase built-in system
 
       console.log("Signup successful");
       return { user: data.user, error: null };
@@ -117,7 +114,7 @@ export const useAuthOperations = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/onboarding`
         }
       });
       

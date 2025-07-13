@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -6,18 +5,17 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import Index from '@/pages/Index';
+import Welcome from '@/pages/Welcome';
+import Auth from '@/pages/Auth';
+import NewUserOnboarding from '@/components/onboarding/NewUserOnboarding';
 import Dashboard from '@/pages/Dashboard';
 import Tasks from '@/pages/Tasks';
 import Profile from '@/pages/Profile';
 import Admin from '@/pages/Admin';
-import Login from '@/pages/Login';
-import SignUp from '@/pages/SignUp';
 import ForgotPassword from '@/pages/ForgotPassword';
 import BrandDashboard from '@/pages/BrandDashboard';
 import BrandPortal from '@/pages/BrandPortal';
 import BrandSignup from '@/pages/BrandSignup';
-import Onboarding from '@/pages/Onboarding';
 import NotFound from '@/pages/NotFound';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { RoleProtectedRoute } from '@/components/RoleProtectedRoute';
@@ -38,11 +36,10 @@ function App() {
                 <div className="min-h-screen bg-background">
                   <Toaster />
                   <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<SignUp />} />
+                    <Route path="/" element={<Welcome />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/onboarding" element={<NewUserOnboarding />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/brand-signup" element={<BrandSignup />} />
                     <Route
                       path="/dashboard"
@@ -92,6 +89,9 @@ function App() {
                         </RoleProtectedRoute>
                       }
                     />
+                    {/* Legacy routes for backward compatibility */}
+                    <Route path="/login" element={<Auth />} />
+                    <Route path="/signup" element={<Auth />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </div>
