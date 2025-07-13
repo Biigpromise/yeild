@@ -1,43 +1,79 @@
 
-import React from 'react';
-import { useRole } from '@/hooks/useRole';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface RoleProtectedRouteProps {
   children: React.ReactNode;
   requiredRole: string;
-  fallback?: React.ReactNode;
 }
 
-export const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({
-  children,
-  requiredRole,
-  fallback
-}) => {
-  const { hasRequiredRole, loading } = useRole(requiredRole);
+export const RoleProtectedRoute = ({ children, requiredRole }: RoleProtectedRouteProps) => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [hasRole, setHasRole] = useState<boolean | null>(null);
 
-  if (loading) {
+  useEffect(() => {
+    const checkUserRole = async () => {
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+
+      try {
+        const { data: userRoles, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id);
+
+        if (error) {
+          console.error("Error checking user role:", error);
+          navigate("/auth");
+          return;
+        }
+
+        const userHasRole = userRoles?.some(roleObj => roleObj.role === requiredRole);
+        
+        if (userHasRole) {
+          setHasRole(true);
+        } else {
+          // If user doesn't have the required role, redirect based on their roles
+          const isBrand = userRoles?.some(roleObj => roleObj.role === 'brand');
+          const isAdmin = userRoles?.some(roleObj => roleObj.role === 'admin');
+          
+          if (isAdmin) {
+            navigate("/admin");
+          } else if (isBrand) {
+            navigate("/brand-dashboard");
+          } else {
+            navigate("/dashboard");
+          }
+        }
+      } catch (error) {
+        console.error("Error in role check:", error);
+        navigate("/auth");
+      }
+    };
+
+    if (!loading) {
+      checkUserRole();
+    }
+  }, [user, loading, navigate, requiredRole]);
+
+  if (loading || hasRole === null) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-pulse">
-          <Shield className="h-8 w-8 text-muted-foreground" />
+      <div className="min-h-screen flex items-center justify-center bg-yeild-black">
+        <div className="text-white flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          <div>Checking permissions...</div>
         </div>
       </div>
     );
   }
 
-  if (!hasRequiredRole) {
-    return fallback || (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Alert className="max-w-md">
-          <Shield className="h-4 w-4" />
-          <AlertDescription>
-            You don't have permission to access this page. Required role: {requiredRole}
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
+  if (!hasRole) {
+    return null;
   }
 
   return <>{children}</>;
