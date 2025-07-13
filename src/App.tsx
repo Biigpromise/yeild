@@ -7,7 +7,8 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Welcome from '@/pages/Welcome';
-import Auth from '@/pages/Auth';
+import UserTypeSelection from '@/pages/UserTypeSelection';
+import ProgressiveAuth from '@/pages/ProgressiveAuth';
 import NewUserOnboarding from '@/components/onboarding/NewUserOnboarding';
 import Dashboard from '@/pages/Dashboard';
 import Tasks from '@/pages/Tasks';
@@ -38,7 +39,8 @@ function App() {
                   <Toaster />
                   <Routes>
                     <Route path="/" element={<Welcome />} />
-                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/user-type" element={<UserTypeSelection />} />
+                    <Route path="/auth" element={<ProgressiveAuth />} />
                     <Route path="/onboarding" element={<NewUserOnboarding />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/brand-signup" element={<BrandSignup />} />
@@ -91,8 +93,8 @@ function App() {
                       }
                     />
                     {/* Legacy routes for backward compatibility */}
-                    <Route path="/login" element={<Auth />} />
-                    <Route path="/signup" element={<Auth />} />
+                    <Route path="/login" element={<ProgressiveAuth />} />
+                    <Route path="/signup" element={<ProgressiveAuth />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </div>
