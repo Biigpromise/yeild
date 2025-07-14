@@ -10,6 +10,7 @@ import Welcome from '@/pages/Welcome';
 import UserTypeSelection from '@/pages/UserTypeSelection';
 import ProgressiveAuth from '@/pages/ProgressiveAuth';
 import NewUserOnboarding from '@/components/onboarding/NewUserOnboarding';
+import AuthCallback from '@/pages/AuthCallback';
 import Dashboard from '@/pages/Dashboard';
 import Tasks from '@/pages/Tasks';
 import Profile from '@/pages/Profile';
@@ -41,6 +42,8 @@ function App() {
                     <Route path="/" element={<Welcome />} />
                     <Route path="/user-type" element={<UserTypeSelection />} />
                     <Route path="/auth" element={<ProgressiveAuth />} />
+                    <Route path="/auth/progressive" element={<ProgressiveAuth />} />
+                    <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/onboarding" element={<NewUserOnboarding />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/brand-signup" element={<BrandSignup />} />

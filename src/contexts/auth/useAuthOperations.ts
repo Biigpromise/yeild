@@ -112,20 +112,17 @@ export const useAuthOperations = () => {
     try {
       console.log("AuthContext: Attempting provider sign in with:", provider, "Type:", userType);
       
-      // Set redirect URL based on user type - but don't auto-redirect, let flow complete
-      const redirectUrl = userType === 'brand' 
-        ? `${window.location.origin}/auth?type=brand&step=achievement`
-        : `${window.location.origin}/auth?type=user&step=achievement`;
+      // Always redirect to OAuth callback handler
+      const redirectUrl = `${window.location.origin}/auth/callback`;
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: redirectUrl,
-          ...(userType && {
-            queryParams: {
-              user_type: userType
-            }
-          })
+          queryParams: {
+            user_type: userType || 'user',
+            next: '/auth/progressive'
+          }
         }
       });
       
