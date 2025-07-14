@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -32,11 +31,8 @@ const ProgressiveAuth = () => {
 
   useEffect(() => {
     if (!loading && user) {
-      if (userType === 'brand') {
-        navigate('/brand-signup');
-      } else {
-        navigate('/onboarding');
-      }
+      // Don't auto-redirect for Google signup - let them complete the flow
+      console.log("User authenticated, but staying in flow for completion");
     }
   }, [user, loading, navigate, userType]);
 
@@ -65,8 +61,14 @@ const ProgressiveAuth = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        // Skip to achievement step for social signup
-        setCurrentStep(5);
+        // For Google signup, skip directly to achievement step to complete the flow
+        if (userType === 'brand') {
+          // For brands, redirect to brand signup to complete application
+          navigate('/brand-signup');
+        } else {
+          // For users, continue with the achievement flow
+          setCurrentStep(5); // Skip to achievement step
+        }
       }
     } catch (error: any) {
       toast.error(error.message);
@@ -107,8 +109,11 @@ const ProgressiveAuth = () => {
     setIsLoading(true);
     
     try {
+      // Add userType prefix to email for brands to avoid conflicts
+      const emailToUse = userType === 'brand' ? `brand_${formData.email}` : formData.email;
+      
       const { error } = await signUp(
-        formData.email, 
+        emailToUse, 
         formData.password, 
         formData.name,
         userType,
@@ -117,7 +122,8 @@ const ProgressiveAuth = () => {
           phone: formData.phone,
           user_preference: formData.userPreference,
           language: formData.language,
-          timezone: formData.timezone
+          timezone: formData.timezone,
+          original_email: formData.email // Store the original email for brands
         }
       );
       
@@ -143,7 +149,17 @@ const ProgressiveAuth = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await signIn(formData.email, formData.password);
+      // Try both regular email and brand-prefixed email for signin
+      let signInEmail = formData.email;
+      let { error } = await signIn(signInEmail, formData.password);
+      
+      // If regular email fails and we're on brand flow, try brand-prefixed email
+      if (error && userType === 'brand') {
+        signInEmail = `brand_${formData.email}`;
+        const brandResult = await signIn(signInEmail, formData.password);
+        error = brandResult.error;
+      }
+      
       if (error) {
         toast.error(error.message);
       } else {
@@ -175,7 +191,10 @@ const ProgressiveAuth = () => {
                 Welcome to <span className="text-yeild-yellow">YEILD</span>
               </h1>
               <p className="text-xl text-gray-300">
-                Let's set up your account and get you earning.
+                {userType === 'brand' 
+                  ? "Let's set up your brand account and start creating tasks."
+                  : "Let's set up your account and get you earning."
+                }
               </p>
             </div>
             
@@ -199,7 +218,10 @@ const ProgressiveAuth = () => {
           >
             <div className="space-y-4">
               <h1 className="text-3xl font-bold">
-                {isSignUp ? 'Choose how to sign up' : 'Sign in to continue'}
+                {isSignUp 
+                  ? `${userType === 'brand' ? 'Create your brand account' : 'Choose how to sign up'}` 
+                  : 'Sign in to continue'
+                }
               </h1>
             </div>
             
@@ -215,10 +237,13 @@ const ProgressiveAuth = () => {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                {isSignUp ? 'Sign up with Google' : 'Sign in with Google'}
+                {isSignUp 
+                  ? `Sign up with Google ${userType === 'brand' ? '(Brand Account)' : ''}` 
+                  : 'Sign in with Google'
+                }
               </Button>
 
-              {isSignUp && (
+              {isSignUp && userType === 'user' && (
                 <Button 
                   onClick={handlePhoneSignup}
                   className="w-full bg-gray-800 text-white hover:bg-gray-700 py-6 text-lg font-medium rounded-lg flex items-center justify-center gap-3"
@@ -233,7 +258,10 @@ const ProgressiveAuth = () => {
                 className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-6 text-lg font-bold rounded-lg flex items-center justify-center gap-3"
               >
                 <Mail className="w-5 h-5" />
-                {isSignUp ? 'Sign up with Email' : 'Sign in with Email'}
+                {isSignUp 
+                  ? `Sign up with Email ${userType === 'brand' ? '(Brand Account)' : ''}` 
+                  : 'Sign in with Email'
+                }
               </Button>
             </div>
 
@@ -273,8 +301,15 @@ const ProgressiveAuth = () => {
             className="space-y-6"
           >
             <div className="space-y-2 text-center">
-              <h2 className="text-3xl font-bold">Basic Info</h2>
-              <p className="text-gray-300">Tell us a bit about yourself</p>
+              <h2 className="text-3xl font-bold">
+                {userType === 'brand' ? 'Brand Information' : 'Basic Info'}
+              </h2>
+              <p className="text-gray-300">
+                {userType === 'brand' 
+                  ? 'Tell us about your brand' 
+                  : 'Tell us a bit about yourself'
+                }
+              </p>
             </div>
             
             <div className="space-y-4">
@@ -282,7 +317,7 @@ const ProgressiveAuth = () => {
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
                   type="text"
-                  placeholder="Full Name"
+                  placeholder={userType === 'brand' ? 'Brand Name' : 'Full Name'}
                   value={formData.name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   className="w-full bg-black border-gray-600 text-white pl-10 py-6 text-lg rounded-lg focus:border-yeild-yellow focus:ring-yeild-yellow"
@@ -290,16 +325,18 @@ const ProgressiveAuth = () => {
                 />
               </div>
 
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg">@</span>
-                <Input
-                  type="text"
-                  placeholder="Username"
-                  value={formData.username}
-                  onChange={(e) => setFormData({...formData, username: e.target.value})}
-                  className="w-full bg-black border-gray-600 text-white pl-10 py-6 text-lg rounded-lg focus:border-yeild-yellow focus:ring-yeild-yellow"
-                />
-              </div>
+              {userType === 'user' && (
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg">@</span>
+                  <Input
+                    type="text"
+                    placeholder="Username"
+                    value={formData.username}
+                    onChange={(e) => setFormData({...formData, username: e.target.value})}
+                    className="w-full bg-black border-gray-600 text-white pl-10 py-6 text-lg rounded-lg focus:border-yeild-yellow focus:ring-yeild-yellow"
+                  />
+                </div>
+              )}
 
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -332,11 +369,18 @@ const ProgressiveAuth = () => {
             </div>
             
             <Button 
-              onClick={handleNext}
-              disabled={!formData.name || !formData.username || !formData.email || !formData.password}
+              onClick={() => {
+                if (userType === 'brand') {
+                  // For brands, redirect to brand signup to complete application
+                  navigate('/brand-signup');
+                } else {
+                  handleNext();
+                }
+              }}
+              disabled={!formData.name || !formData.email || !formData.password || (userType === 'user' && !formData.username)}
               className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-6 text-lg font-bold rounded-lg disabled:opacity-50"
             >
-              Next
+              {userType === 'brand' ? 'Continue to Brand Application' : 'Next'}
             </Button>
           </motion.div>
         );
@@ -558,10 +602,10 @@ const ProgressiveAuth = () => {
             </div>
             
             <Button 
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate(userType === 'brand' ? '/brand-dashboard' : '/dashboard')}
               className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-6 text-lg font-bold rounded-lg"
             >
-              Start Earning
+              {userType === 'brand' ? 'Go to Brand Dashboard' : 'Start Earning'}
             </Button>
           </motion.div>
         );
@@ -673,6 +717,9 @@ const ProgressiveAuth = () => {
         
         <div className="text-center">
           <span className="text-yeild-yellow text-xl font-bold">YEILD</span>
+          {userType === 'brand' && (
+            <div className="text-xs text-gray-400">Brand Account</div>
+          )}
         </div>
         
         <div className="w-10"></div>

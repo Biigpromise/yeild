@@ -110,12 +110,12 @@ export const useAuthOperations = () => {
 
   const signInWithProvider = async (provider: 'google' | 'github' | 'twitter', userType?: string) => {
     try {
-      console.log("AuthContext: Attempting provider sign in with:", provider);
+      console.log("AuthContext: Attempting provider sign in with:", provider, "Type:", userType);
       
-      // Set redirect URL based on user type
+      // Set redirect URL based on user type - but don't auto-redirect, let flow complete
       const redirectUrl = userType === 'brand' 
-        ? `${window.location.origin}/brand-signup`
-        : `${window.location.origin}/onboarding`;
+        ? `${window.location.origin}/auth?type=brand&step=achievement`
+        : `${window.location.origin}/auth?type=user&step=achievement`;
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
