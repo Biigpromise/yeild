@@ -43,6 +43,7 @@ export function useFormSubmission({ onSubmissionComplete, clearDraft }: FormSubm
         data.email,
         data.password,
         data.companyName,
+        'brand',
         { brand_application_data: applicationData }
       );
 

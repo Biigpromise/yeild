@@ -89,6 +89,7 @@ const BrandSignup = () => {
         formData.email, 
         formData.password, 
         formData.companyName,
+        'brand',
         {
           brand_application_data: {
             companyName: formData.companyName,
