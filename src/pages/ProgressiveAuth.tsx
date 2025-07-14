@@ -15,6 +15,7 @@ const ProgressiveAuth = () => {
   const [isSignUp, setIsSignUp] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [userPreference, setUserPreference] = useState<string>('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,7 +25,6 @@ const ProgressiveAuth = () => {
   const { signIn, signUp, signInWithProvider, user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if user is already logged in
   useEffect(() => {
     if (!loading && user) {
       if (userType === 'brand') {
@@ -36,7 +36,7 @@ const ProgressiveAuth = () => {
   }, [user, loading, navigate, userType]);
 
   const steps = isSignUp 
-    ? ['method', 'email', 'password', 'name']
+    ? ['welcome', 'method', 'email', 'password', 'name', 'preference']
     : ['method', 'email', 'password'];
 
   const handleNext = () => {
@@ -56,7 +56,7 @@ const ProgressiveAuth = () => {
   const handleGoogleAuth = async () => {
     try {
       setIsLoading(true);
-      const { error } = await signInWithProvider('google');
+      const { error } = await signInWithProvider('google', userType);
       if (error) {
         toast.error(error.message);
       }
@@ -82,11 +82,13 @@ const ProgressiveAuth = () => {
     
     try {
       if (isSignUp) {
-        const { error } = await signUp(formData.email, formData.password, formData.name);
+        const { error } = await signUp(formData.email, formData.password, formData.name, userType, {
+          user_preference: userPreference
+        });
         if (error) {
           toast.error(error.message);
         } else {
-          toast.success("Account created successfully!");
+          toast.success("Account created successfully! Please check your email to confirm.");
           if (userType === 'brand') {
             navigate('/brand-signup');
           } else {
@@ -99,11 +101,7 @@ const ProgressiveAuth = () => {
           toast.error(error.message);
         } else {
           toast.success("Welcome back!");
-          if (userType === 'brand') {
-            navigate('/brand-dashboard');
-          } else {
-            navigate('/dashboard');
-          }
+          // Navigation will be handled by auth state change
         }
       }
     } catch (error: any) {
@@ -115,6 +113,33 @@ const ProgressiveAuth = () => {
 
   const getStepContent = () => {
     switch (steps[currentStep]) {
+      case 'welcome':
+        return (
+          <motion.div 
+            key="welcome"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            className="space-y-8 text-center"
+          >
+            <div className="space-y-6">
+              <h1 className="text-4xl font-bold">
+                Welcome to <span className="text-yeild-yellow">YEILD</span> 👋
+              </h1>
+              <p className="text-xl text-gray-300">
+                Let's set up your account and get you earning.
+              </p>
+            </div>
+            
+            <Button 
+              onClick={handleNext}
+              className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-6 text-lg font-bold rounded-lg"
+            >
+              Continue
+            </Button>
+          </motion.div>
+        );
+
       case 'method':
         return (
           <motion.div 
@@ -141,7 +166,7 @@ const ProgressiveAuth = () => {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Continue with Google
+              {isSignUp ? 'Sign up with Google' : 'Sign in with Google'}
             </Button>
             
             <div className="flex items-center justify-center space-x-4 text-gray-400">
@@ -154,7 +179,7 @@ const ProgressiveAuth = () => {
               onClick={handleNext}
               className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-6 text-lg font-bold rounded-lg"
             >
-              Continue with Email
+              {isSignUp ? 'Sign up with Email' : 'Sign in with Email'}
             </Button>
 
             <div className="text-center">
@@ -277,11 +302,69 @@ const ProgressiveAuth = () => {
             />
             
             <Button 
-              onClick={handleEmailAuth}
-              disabled={!formData.name || isLoading}
+              onClick={handleNext}
+              disabled={!formData.name}
               className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-6 text-lg font-bold rounded-lg disabled:opacity-50"
             >
-              {isLoading ? "Creating Account..." : "Create Account"}
+              Next
+            </Button>
+          </motion.div>
+        );
+
+      case 'preference':
+        return (
+          <motion.div 
+            key="preference"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            className="space-y-8 text-center"
+          >
+            <div className="space-y-4">
+              <h2 className="text-3xl font-bold">What do you prefer?</h2>
+            </div>
+            
+            <div className="space-y-4">
+              <button
+                onClick={() => setUserPreference('tasks')}
+                className={`w-full p-4 rounded-lg border-2 transition-all ${
+                  userPreference === 'tasks' 
+                    ? 'border-yeild-yellow bg-yeild-yellow/10 text-yeild-yellow' 
+                    : 'border-gray-600 text-white hover:border-gray-500'
+                }`}
+              >
+                <div className="font-semibold text-lg">Tasks</div>
+              </button>
+              
+              <button
+                onClick={() => setUserPreference('referrals')}
+                className={`w-full p-4 rounded-lg border-2 transition-all ${
+                  userPreference === 'referrals' 
+                    ? 'border-yeild-yellow bg-yeild-yellow/10 text-yeild-yellow' 
+                    : 'border-gray-600 text-white hover:border-gray-500'
+                }`}
+              >
+                <div className="font-semibold text-lg">Referrals</div>
+              </button>
+              
+              <button
+                onClick={() => setUserPreference('both')}
+                className={`w-full p-4 rounded-lg border-2 transition-all ${
+                  userPreference === 'both' 
+                    ? 'border-yeild-yellow bg-yeild-yellow/10 text-yeild-yellow' 
+                    : 'border-gray-600 text-white hover:border-gray-500'
+                }`}
+              >
+                <div className="font-semibold text-lg">Both</div>
+              </button>
+            </div>
+            
+            <Button 
+              onClick={handleEmailAuth}
+              disabled={!userPreference || isLoading}
+              className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-6 text-lg font-bold rounded-lg disabled:opacity-50"
+            >
+              {isLoading ? "Creating Account..." : "Continue"}
             </Button>
           </motion.div>
         );
@@ -301,7 +384,6 @@ const ProgressiveAuth = () => {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      {/* Header */}
       <div className="p-6 flex items-center justify-between">
         <Button
           onClick={handleBack}
@@ -318,7 +400,6 @@ const ProgressiveAuth = () => {
         <div className="w-10"></div>
       </div>
 
-      {/* Progress indicator */}
       {currentStep > 0 && (
         <div className="px-6 mb-8">
           <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
@@ -333,7 +414,6 @@ const ProgressiveAuth = () => {
         </div>
       )}
 
-      {/* Main content */}
       <div className="flex-1 flex items-center justify-center px-6">
         <div className="w-full max-w-md">
           <AnimatePresence mode="wait">

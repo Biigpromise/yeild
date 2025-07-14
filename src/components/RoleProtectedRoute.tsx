@@ -22,6 +22,15 @@ export const RoleProtectedRoute = ({ children, requiredRole }: RoleProtectedRout
       }
 
       try {
+        // Check if user is admin first (hardcoded check)
+        if (user.email === 'yeildsocials@gmail.com') {
+          if (requiredRole === 'admin') {
+            setHasRole(true);
+            return;
+          }
+        }
+
+        // Check user roles in database
         const { data: userRoles, error } = await supabase
           .from('user_roles')
           .select('role')
@@ -29,18 +38,26 @@ export const RoleProtectedRoute = ({ children, requiredRole }: RoleProtectedRout
 
         if (error) {
           console.error("Error checking user role:", error);
-          navigate("/auth");
+          // Default to user role if error
+          if (requiredRole === 'user') {
+            setHasRole(true);
+          } else {
+            navigate("/dashboard");
+          }
           return;
         }
 
-        const userHasRole = userRoles?.some(roleObj => roleObj.role === requiredRole);
+        const roleNames = userRoles?.map(r => r.role) || [];
+        console.log("User roles found:", roleNames);
+        
+        const userHasRole = roleNames.includes(requiredRole);
         
         if (userHasRole) {
           setHasRole(true);
         } else {
-          // If user doesn't have the required role, redirect based on their roles
-          const isBrand = userRoles?.some(roleObj => roleObj.role === 'brand');
-          const isAdmin = userRoles?.some(roleObj => roleObj.role === 'admin');
+          // Redirect based on user's actual roles
+          const isBrand = roleNames.includes('brand');
+          const isAdmin = roleNames.includes('admin') || user.email === 'yeildsocials@gmail.com';
           
           if (isAdmin) {
             navigate("/admin");
@@ -52,7 +69,7 @@ export const RoleProtectedRoute = ({ children, requiredRole }: RoleProtectedRout
         }
       } catch (error) {
         console.error("Error in role check:", error);
-        navigate("/auth");
+        navigate("/dashboard");
       }
     };
 

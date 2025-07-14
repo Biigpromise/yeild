@@ -3,13 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { handleAuthError } from "./authErrorHandler";
 
-
 export const useAuthOperations = () => {
-  const signUp = async (email: string, password: string, name?: string, additionalData?: Record<string, any>) => {
+  const signUp = async (email: string, password: string, name?: string, userType?: string, additionalData?: Record<string, any>) => {
     try {
-      console.log("Attempting signup for:", email);
+      console.log("Attempting signup for:", email, "Type:", userType);
       
-      // Input validation
       if (!email || !password) {
         const error = new Error("Email and password are required");
         return { user: null, error };
@@ -20,16 +18,19 @@ export const useAuthOperations = () => {
         return { user: null, error };
       }
 
-      // Use proper redirect URL for email confirmation
-      const redirectUrl = `${window.location.origin}/onboarding`;
+      // Set redirect URL based on user type
+      const redirectUrl = userType === 'brand' 
+        ? `${window.location.origin}/brand-signup`
+        : `${window.location.origin}/onboarding`;
+      
       console.log("Using redirect URL:", redirectUrl);
 
       const signUpData = {
         ...(name ? { name } : {}),
+        ...(userType ? { user_type: userType } : {}),
         ...additionalData
       };
       
-      // Sign up user with email confirmation redirect to onboarding
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -53,28 +54,16 @@ export const useAuthOperations = () => {
     }
   };
 
-  const verifyConfirmationCode = async (inputCode: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      // This is no longer needed as we use Supabase's built-in email confirmation
-      // Users will be automatically confirmed when they click the email link
-      return { success: true };
-    } catch (error) {
-      console.error("Error verifying confirmation code:", error);
-      return { success: false, error: "Verification failed" };
-    }
-  };
-
   const signIn = async (email: string, password: string) => {
     try {
       console.log("AuthContext: Attempting sign in for:", email);
       
-      // Input validation
       if (!email || !password) {
         const error = new Error("Email and password are required");
         return { error };
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -85,6 +74,17 @@ export const useAuthOperations = () => {
       }
 
       console.log("AuthContext: Sign in successful");
+      
+      // Check user roles after successful sign in
+      if (data.user) {
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id);
+        
+        console.log("User roles:", roleData);
+      }
+
       return { error: null };
     } catch (error) {
       console.error("AuthContext: Sign in unexpected error:", error);
@@ -108,13 +108,24 @@ export const useAuthOperations = () => {
     }
   };
 
-  const signInWithProvider = async (provider: 'google' | 'github' | 'twitter') => {
+  const signInWithProvider = async (provider: 'google' | 'github' | 'twitter', userType?: string) => {
     try {
       console.log("AuthContext: Attempting provider sign in with:", provider);
+      
+      // Set redirect URL based on user type
+      const redirectUrl = userType === 'brand' 
+        ? `${window.location.origin}/brand-signup`
+        : `${window.location.origin}/onboarding`;
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/onboarding`
+          redirectTo: redirectUrl,
+          ...(userType && {
+            queryParams: {
+              user_type: userType
+            }
+          })
         }
       });
       
@@ -135,7 +146,6 @@ export const useAuthOperations = () => {
     try {
       console.log("AuthContext: Attempting password reset for:", email);
       
-      // Input validation
       if (!email) {
         const error = new Error("Email is required");
         return { error };
@@ -165,7 +175,6 @@ export const useAuthOperations = () => {
     try {
       console.log("AuthContext: Resending confirmation email for:", email);
       
-      // Input validation
       if (!email) {
         const error = new Error("Email is required");
         return { error };
@@ -192,6 +201,15 @@ export const useAuthOperations = () => {
       console.error("AuthContext: Resend confirmation unexpected error:", error);
       const friendlyMessage = handleAuthError(error, 'resend confirmation');
       return { error: { message: friendlyMessage } };
+    }
+  };
+
+  const verifyConfirmationCode = async (inputCode: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      return { success: true };
+    } catch (error) {
+      console.error("Error verifying confirmation code:", error);
+      return { success: false, error: "Verification failed" };
     }
   };
 
