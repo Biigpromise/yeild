@@ -2290,6 +2290,10 @@ export type Database = {
         Args: { new_user_id: string; referral_code_param: string }
         Returns: undefined
       }
+      handle_referral_signup_improved: {
+        Args: { new_user_id: string; referral_code_param: string }
+        Returns: undefined
+      }
       has_role: {
         Args: { _user_id: string; _role: string }
         Returns: boolean

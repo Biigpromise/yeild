@@ -15,6 +15,7 @@ import Dashboard from '@/pages/Dashboard';
 import Tasks from '@/pages/Tasks';
 import Profile from '@/pages/Profile';
 import Admin from '@/pages/Admin';
+import SignUp from '@/pages/SignUp';
 import ForgotPassword from '@/pages/ForgotPassword';
 import BrandDashboard from '@/pages/BrandDashboard';
 import BrandPortal from '@/pages/BrandPortal';
@@ -95,9 +96,9 @@ function App() {
                         </RoleProtectedRoute>
                       }
                     />
-                    {/* Legacy routes for backward compatibility */}
+                    {/* Legacy routes for backward compatibility and referral links */}
                     <Route path="/login" element={<ProgressiveAuth />} />
-                    <Route path="/signup" element={<ProgressiveAuth />} />
+                    <Route path="/signup" element={<SignUp />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </div>

@@ -106,8 +106,9 @@ const BrandSignup = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success("Brand application submitted successfully!");
-        navigate('/brand-dashboard');
+        toast.success("Brand application submitted successfully! Please check your email to verify your account.");
+        // Don't immediately redirect, let email verification complete first
+        setStep(5); // Show success step
       }
     } catch (error: any) {
       toast.error("An unexpected error occurred");
@@ -188,18 +189,18 @@ const BrandSignup = () => {
       <div className="px-6 py-4">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-2">
-            {[1, 2, 3, 4].map((num) => (
+            {[1, 2, 3, 4, 5].map((num) => (
               <div key={num} className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                 step >= num ? 'bg-yeild-yellow text-black' : 'bg-gray-700 text-gray-400'
               }`}>
-                {num}
+                {num === 5 ? '✓' : num}
               </div>
             ))}
           </div>
           <div className="w-full bg-gray-700 rounded-full h-2">
             <div 
               className="bg-yeild-yellow h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(step / 4) * 100}%` }}
+              style={{ width: `${(Math.min(step, 5) / 5) * 100}%` }}
             />
           </div>
         </div>
@@ -426,6 +427,60 @@ const BrandSignup = () => {
                   className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-6 text-lg font-bold"
                 >
                   {isLoading ? "Submitting Application..." : "Submit Application"}
+                </Button>
+              </motion.div>
+            )}
+
+            {step === 5 && (
+              <motion.div
+                key="step5"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center space-y-6"
+              >
+                <div className="w-20 h-20 mx-auto bg-yeild-yellow rounded-full flex items-center justify-center mb-6">
+                  <div className="text-3xl">🎉</div>
+                </div>
+                
+                <h1 className="text-3xl font-bold text-white">Application Submitted!</h1>
+                
+                <div className="bg-gray-900/50 p-6 rounded-lg border border-gray-800 space-y-4">
+                  <p className="text-gray-300">
+                    Thank you for applying to become a YIELD brand partner! Here's what happens next:
+                  </p>
+                  
+                  <div className="text-left space-y-3 text-sm text-gray-400">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-yeild-yellow rounded-full flex items-center justify-center text-black font-bold text-xs mt-0.5">1</div>
+                      <div>
+                        <p className="font-medium text-white">Check Your Email</p>
+                        <p>Verify your account using the link we sent to {formData.email}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-gray-600 rounded-full flex items-center justify-center text-white font-bold text-xs mt-0.5">2</div>
+                      <div>
+                        <p className="font-medium text-white">Application Review</p>
+                        <p>Our team will review your application within 24-48 hours</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-gray-600 rounded-full flex items-center justify-center text-white font-bold text-xs mt-0.5">3</div>
+                      <div>
+                        <p className="font-medium text-white">Get Started</p>
+                        <p>Once approved, you'll receive access to the Brand Dashboard</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button
+                  onClick={() => navigate('/')}
+                  className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-6 text-lg font-bold"
+                >
+                  Return to Home
                 </Button>
               </motion.div>
             )}
