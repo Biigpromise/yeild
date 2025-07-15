@@ -38,10 +38,45 @@ const AuthCallback = () => {
           .eq('id', session.user.id)
           .single();
 
+        // Check user roles
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id);
+
+        const userRoles = roleData?.map(r => r.role) || [];
+        console.log('User roles after OAuth:', userRoles);
+
+        // Check for admin access
+        if (session.user.email === 'yeildsocials@gmail.com' || userRoles.includes('admin')) {
+          navigate('/admin');
+          return;
+        }
+
+        // Check for brand role
+        if (userRoles.includes('brand')) {
+          navigate('/brand-dashboard');
+          return;
+        }
+
         // If it's a brand signup, redirect to brand application
         if (userType === 'brand') {
           navigate('/brand-signup');
           return;
+        }
+
+        // Check for referral code and handle it
+        const refCode = searchParams.get('ref');
+        if (refCode && profile) {
+          try {
+            await supabase.rpc('handle_referral_signup', {
+              new_user_id: session.user.id,
+              referral_code_param: refCode
+            });
+            console.log('Referral code processed:', refCode);
+          } catch (error) {
+            console.error('Error processing referral:', error);
+          }
         }
 
         // If user has no profile or incomplete profile, go to progressive auth

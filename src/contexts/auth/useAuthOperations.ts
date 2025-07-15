@@ -18,6 +18,10 @@ export const useAuthOperations = () => {
         return { user: null, error };
       }
 
+      // Check for referral code in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const refCode = urlParams.get('ref');
+
       // Set redirect URL based on user type
       const redirectUrl = userType === 'brand' 
         ? `${window.location.origin}/brand-signup`
@@ -28,6 +32,7 @@ export const useAuthOperations = () => {
       const signUpData = {
         ...(name ? { name } : {}),
         ...(userType ? { user_type: userType } : {}),
+        ...(refCode ? { referral_code: refCode } : {}),
         ...additionalData
       };
       
@@ -43,6 +48,19 @@ export const useAuthOperations = () => {
       if (error) {
         const friendlyMessage = handleAuthError(error, 'signup');
         return { user: null, error: { ...error, message: friendlyMessage } };
+      }
+
+      // Handle referral code after successful signup
+      if (refCode && data.user) {
+        try {
+          await supabase.rpc('handle_referral_signup', {
+            new_user_id: data.user.id,
+            referral_code_param: refCode
+          });
+          console.log('Referral code processed during signup:', refCode);
+        } catch (refError) {
+          console.error('Error processing referral during signup:', refError);
+        }
       }
 
       console.log("Signup successful");
@@ -112,17 +130,28 @@ export const useAuthOperations = () => {
     try {
       console.log("AuthContext: Attempting provider sign in with:", provider, "Type:", userType);
       
+      // Get current URL for referral code
+      const urlParams = new URLSearchParams(window.location.search);
+      const refCode = urlParams.get('ref');
+      
       // Always redirect to OAuth callback handler
       const redirectUrl = `${window.location.origin}/auth/callback`;
+      
+      const queryParams: Record<string, string> = {
+        user_type: userType || 'user',
+        next: '/auth/progressive'
+      };
+      
+      // Include referral code if present
+      if (refCode) {
+        queryParams.ref = refCode;
+      }
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: redirectUrl,
-          queryParams: {
-            user_type: userType || 'user',
-            next: '/auth/progressive'
-          }
+          queryParams
         }
       });
       

@@ -10,7 +10,22 @@ export const roleService = {
         return [];
       }
 
-      // Only yeildsocials@gmail.com has admin role
+      // Check database for user roles first
+      const { data: roleData, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching user roles from database:', error);
+      }
+
+      // If user has roles in database, return them
+      if (roleData && roleData.length > 0) {
+        return roleData;
+      }
+
+      // Fallback: check if user is the admin email
       if (user.email === 'yeildsocials@gmail.com') {
         return [{ role: 'admin' }];
       }

@@ -70,14 +70,23 @@ export const EnhancedReferralSystem = () => {
     }
   };
 
-  const referralLink = `${window.location.origin}/signup?ref=${referralCode}`;
+  const referralLink = referralCode ? `${window.location.origin}/signup?ref=${referralCode}` : '';
 
   const copyReferralLink = () => {
+    if (!referralLink) {
+      toast.error("Referral code not available");
+      return;
+    }
     navigator.clipboard.writeText(referralLink);
     toast.success("Referral link copied to clipboard!");
   };
 
   const shareReferralLink = () => {
+    if (!referralLink) {
+      toast.error("Referral code not available");
+      return;
+    }
+    
     if (navigator.share) {
       navigator.share({
         title: "Join YIELD and help me earn my next bird badge!",
@@ -223,22 +232,31 @@ export const EnhancedReferralSystem = () => {
               <CardTitle>Share Your Referral Link</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input 
-                  value={referralLink}
-                  readOnly
-                  className="font-mono text-sm"
-                />
-                <Button onClick={copyReferralLink} variant="outline">
-                  <Copy className="h-4 w-4" />
-                </Button>
-                <Button onClick={shareReferralLink}>
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Share this link and build your way to the <strong>Phoenix badge</strong> with points and referrals!
-              </p>
+              {referralCode ? (
+                <>
+                  <div className="flex gap-2">
+                    <Input 
+                      value={referralLink}
+                      readOnly
+                      className="font-mono text-sm"
+                    />
+                    <Button onClick={copyReferralLink} variant="outline">
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button onClick={shareReferralLink}>
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Share this link and build your way to the <strong>Phoenix badge</strong> with points and referrals!
+                  </p>
+                </>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Your referral code is being generated...</p>
+                  <p className="text-xs mt-2">Please try refreshing the page if this persists.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
