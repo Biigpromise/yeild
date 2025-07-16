@@ -42,7 +42,7 @@ function App() {
                   <Routes>
                     <Route path="/" element={<Welcome />} />
                     <Route path="/user-type" element={<UserTypeSelection />} />
-                    <Route path="/auth" element={<ProgressiveAuth />} />
+                    <Route path="/auth" element={<SignUp />} />
                     <Route path="/auth/progressive" element={<ProgressiveAuth />} />
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/onboarding" element={<NewUserOnboarding />} />
