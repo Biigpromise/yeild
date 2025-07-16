@@ -5,9 +5,10 @@ import { User, Building } from "lucide-react";
 interface UserTypeSelectionProps {
   onSelectUser: () => void;
   onSelectBrand: () => void;
+  onSwitchToSignin: () => void;
 }
 
-const UserTypeSelection = ({ onSelectUser, onSelectBrand }: UserTypeSelectionProps) => {
+const UserTypeSelection = ({ onSelectUser, onSelectBrand, onSwitchToSignin }: UserTypeSelectionProps) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-yeild-black relative">
       {/* Yellow accent graphics */}
@@ -17,9 +18,9 @@ const UserTypeSelection = ({ onSelectUser, onSelectBrand }: UserTypeSelectionPro
       <div className="text-center space-y-8 p-6 max-w-md w-full">
         <div className="space-y-4">
           <h2 className="text-3xl font-bold text-white">
-            Sign in as a <span className="text-yeild-yellow">Brand</span> or <span className="text-yeild-yellow">User</span>?
+            Create Account
           </h2>
-          <p className="text-gray-300">Choose your account type to continue</p>
+          <p className="text-gray-300">Join YIELD as a Creator or Brand Partner</p>
         </div>
         
         <div className="space-y-4">
@@ -40,6 +41,15 @@ const UserTypeSelection = ({ onSelectUser, onSelectBrand }: UserTypeSelectionPro
             <Building className="mr-3 h-6 w-6" />
             Continue as Brand
           </Button>
+          
+          <div className="text-center pt-4">
+            <p className="text-gray-400">
+              Already have an account?{' '}
+              <button onClick={onSwitchToSignin} className="text-yeild-yellow font-medium">
+                Sign in
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     </div>

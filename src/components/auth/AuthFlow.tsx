@@ -21,6 +21,10 @@ const AuthFlow = () => {
     navigate("/brand-signup");
   };
 
+  const handleSwitchToSignin = () => {
+    setCurrentStep(2); // Or navigate to signin flow
+  };
+
   const handleBackToUserTypeSelection = () => {
     setCurrentStep(1);
   };
@@ -29,7 +33,7 @@ const AuthFlow = () => {
     case 0:
       return <WelcomePage onNext={handleWelcomeNext} />;
     case 1:
-      return <UserTypeSelection onSelectUser={handleSelectUser} onSelectBrand={handleSelectBrand} />;
+      return <UserTypeSelection onSelectUser={handleSelectUser} onSelectBrand={handleSelectBrand} onSwitchToSignin={handleSwitchToSignin} />;
     case 2:
       return <MetaStyleLoginForm onBack={handleBackToUserTypeSelection} />;
     default:

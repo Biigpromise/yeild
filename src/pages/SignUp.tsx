@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import ModernSignupPage from "@/components/auth/ModernSignupPage";
+import ProgressiveSignupFlow from "@/components/auth/ProgressiveSignupFlow";
+import ModernSignInFlow from "@/components/auth/ModernSignInFlow";
 import UserTypeSelection from "@/components/auth/UserTypeSelection";
 
 const SignUp = () => {
@@ -10,6 +11,7 @@ const SignUp = () => {
   const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
   const [selectedUserType, setSelectedUserType] = useState<'user' | 'brand' | null>(null);
+  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup');
 
   // Check for user type in URL params
   useEffect(() => {
@@ -46,17 +48,28 @@ const SignUp = () => {
       <UserTypeSelection
         onSelectUser={() => setSelectedUserType('user')}
         onSelectBrand={() => setSelectedUserType('brand')}
+        onSwitchToSignin={() => setAuthMode('signin')}
       />
     );
   }
 
-  // Show modern signup page
-  return (
-    <ModernSignupPage
-      userType={selectedUserType}
-      onBack={() => setSelectedUserType(null)}
-    />
-  );
+  // Show signup or signin flow
+  if (authMode === 'signup') {
+    return (
+      <ProgressiveSignupFlow
+        userType={selectedUserType}
+        onBack={() => setSelectedUserType(null)}
+      />
+    );
+  } else {
+    return (
+      <ModernSignInFlow
+        userType={selectedUserType}
+        onBack={() => setSelectedUserType(null)}
+        onSwitchToSignup={() => setAuthMode('signup')}
+      />
+    );
+  }
 };
 
 export default SignUp;
