@@ -8,7 +8,7 @@ import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Welcome from '@/pages/Welcome';
 import UserTypeSelection from '@/pages/UserTypeSelection';
-import ProgressiveAuth from '@/pages/ProgressiveAuth';
+
 import NewUserOnboarding from '@/components/onboarding/NewUserOnboarding';
 import AuthCallback from '@/pages/AuthCallback';
 import Dashboard from '@/pages/Dashboard';
@@ -43,7 +43,6 @@ function App() {
                     <Route path="/" element={<Welcome />} />
                     <Route path="/user-type" element={<UserTypeSelection />} />
                     <Route path="/auth" element={<SignUp />} />
-                    <Route path="/auth/progressive" element={<ProgressiveAuth />} />
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/onboarding" element={<NewUserOnboarding />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -97,7 +96,7 @@ function App() {
                       }
                     />
                     {/* Legacy routes for backward compatibility and referral links */}
-                    <Route path="/login" element={<ProgressiveAuth />} />
+                    <Route path="/login" element={<SignUp />} />
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>

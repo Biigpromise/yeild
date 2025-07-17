@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Eye, EyeOff, Sparkles } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import yieldLogo from '@/assets/yield-logo.png';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -64,7 +65,7 @@ const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, o
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div className="flex items-center justify-center">
-          <Sparkles className="w-8 h-8 text-primary" />
+          <img src={yieldLogo} alt="YIELD" className="h-8" />
         </div>
         <div className="w-6"></div>
       </div>

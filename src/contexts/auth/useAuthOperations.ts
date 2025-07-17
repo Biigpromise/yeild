@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { handleAuthError } from "./authErrorHandler";
 
 export const useAuthOperations = () => {
-  const signUp = async (email: string, password: string, name?: string, userType?: string, additionalData?: Record<string, any>) => {
+  const signUp = async (email: string, password: string, name?: string, userType?: string, additionalData?: Record<string, any>, emailRedirectTo?: string) => {
     try {
       console.log("Attempting signup for:", email, "Type:", userType);
       
@@ -22,10 +22,10 @@ export const useAuthOperations = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref');
 
-      // Set redirect URL based on user type
-      const redirectUrl = userType === 'brand' 
+      // Set redirect URL based on user type or use provided one
+      const redirectUrl = emailRedirectTo || (userType === 'brand' 
         ? `${window.location.origin}/brand-signup`
-        : `${window.location.origin}/onboarding`;
+        : `${window.location.origin}/onboarding`);
       
       console.log("Using redirect URL:", redirectUrl);
 

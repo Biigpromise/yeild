@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Eye, EyeOff, Sparkles, Upload, Camera } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Upload, Camera } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import yieldLogo from '@/assets/yield-logo.png';
 
 interface ProgressiveSignupFlowProps {
   userType: 'user' | 'brand';
@@ -58,14 +59,25 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
       
       try {
         setIsLoading(true);
-        // Start the signup process
-        const { error } = await signUp(data.email, 'temp_password', data.name, userType);
+        // Prepare the redirect URL
+        const redirectUrl = `${window.location.origin}/onboarding`;
+        
+        // Start the signup process with redirect URL
+        const { error } = await signUp(
+          data.email, 
+          'temp_password', 
+          data.name, 
+          userType,
+          {},
+          redirectUrl
+        );
+        
         if (error) {
           toast.error(error.message);
           return;
         }
         setAwaitingVerification(true);
-        toast.success('Verification code sent to your email');
+        toast.success('Verification email sent! Please check your inbox.');
         setCurrentStep(2);
       } catch (error: any) {
         toast.error(error.message);
@@ -109,7 +121,9 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
   const completeSignup = async () => {
     try {
       setIsLoading(true);
-      // Update the user's password and profile with the final data
+      const redirectUrl = `${window.location.origin}/onboarding`;
+      
+      // Complete the signup with final data
       const { error } = await signUp(
         data.email,
         data.password,
@@ -119,7 +133,8 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
           username: data.username,
           profile_picture_url: data.profilePicture,
           date_of_birth: data.dateOfBirth
-        }
+        },
+        redirectUrl
       );
       
       if (error) {
@@ -373,7 +388,7 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div className="flex items-center justify-center">
-          <Sparkles className="w-8 h-8 text-primary" />
+          <img src={yieldLogo} alt="YIELD" className="h-8" />
         </div>
         <div className="w-6"></div>
       </div>
