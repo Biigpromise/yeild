@@ -81,7 +81,10 @@ export const useSignUp = () => {
         if (referralCode) {
           const currentUser = await supabase.auth.getUser();
           if (currentUser.data.user) {
-            await userService.handleReferralSignup(referralCode, currentUser.data.user.id);
+            const success = await userService.handleReferralSignup(referralCode, currentUser.data.user.id);
+            if (success) {
+              toast.success("Referral bonus applied!");
+            }
           }
         }
         

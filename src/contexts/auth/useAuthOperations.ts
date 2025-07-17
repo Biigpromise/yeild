@@ -24,7 +24,7 @@ export const useAuthOperations = () => {
 
       // Set redirect URL based on user type or use provided one
       const redirectUrl = emailRedirectTo || (userType === 'brand' 
-        ? `${window.location.origin}/brand-signup`
+        ? `${window.location.origin}/brand-dashboard`
         : `${window.location.origin}/onboarding`);
       
       console.log("Using redirect URL:", redirectUrl);
@@ -60,6 +60,25 @@ export const useAuthOperations = () => {
           console.log('Referral code processed during signup:', refCode);
         } catch (refError) {
           console.error('Error processing referral during signup:', refError);
+        }
+      }
+
+      // For brand users, trigger the brand confirmation email
+      if (userType === 'brand' && data.user) {
+        try {
+          const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-brand-confirmation-email', {
+            body: {
+              email: email,
+              companyName: name || 'Brand User'
+            }
+          });
+          if (emailError) {
+            console.error('Error sending brand confirmation email:', emailError);
+          } else {
+            console.log('Brand confirmation email sent successfully');
+          }
+        } catch (emailError) {
+          console.error('Error sending brand confirmation email:', emailError);
         }
       }
 

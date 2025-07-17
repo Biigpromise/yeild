@@ -1,6 +1,21 @@
 
 project_id = "stehjqdbncykevpokcvj"
 
+[auth]
+# The base URL of your website. Used as an allow-list for redirects and for constructing URLs used in emails.
+site_url = "https://yeildsocials.com"
+enabled = true
+# A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
+additional_redirect_urls = ["https://lovable.dev", "https://yeildsocials.com/auth", "https://yeildsocials.com/brand-dashboard", "https://yeildsocials.com/dashboard", "https://yeildsocials.com/onboarding"]
+
+[auth.email]
+# Allow/disallow new user signups via email to your project.
+enable_signup = true
+# If enabled, a user will be required to confirm any email change on both the old, and new email addresses. If disabled, only the new email is required to confirm.
+double_confirm_changes = true
+# If enabled, users need to confirm their email address before signing in.
+enable_confirmations = true
+
 [api]
 enabled = true
 port = 54321
@@ -12,4 +27,4 @@ max_rows = 1000
 verify_jwt = true
 
 [functions.send-brand-confirmation-email]
-verify_jwt = true
+verify_jwt = false

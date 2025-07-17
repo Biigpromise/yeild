@@ -59,16 +59,22 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
       
       try {
         setIsLoading(true);
-        // Prepare the redirect URL
-        const redirectUrl = `${window.location.origin}/onboarding`;
+        // Prepare the redirect URL for users and brands differently
+        const redirectUrl = userType === 'brand' 
+          ? `${window.location.origin}/brand-dashboard`
+          : `${window.location.origin}/onboarding`;
         
-        // Start the signup process with redirect URL
+        // For progressive signup, we'll directly complete the signup
         const { error } = await signUp(
           data.email, 
-          'temp_password', 
+          data.password || 'TempPass123!', // Use a temp password initially
           data.name, 
           userType,
-          {},
+          {
+            date_of_birth: data.dateOfBirth,
+            username: data.username || data.name.toLowerCase().replace(/\s+/g, ''),
+            profile_picture_url: data.profilePicture
+          },
           redirectUrl
         );
         
@@ -76,9 +82,14 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
           toast.error(error.message);
           return;
         }
-        setAwaitingVerification(true);
-        toast.success('Verification email sent! Please check your inbox.');
-        setCurrentStep(2);
+        
+        if (userType === 'brand') {
+          toast.success('Account created! Please check your email for confirmation.');
+        } else {
+          setAwaitingVerification(true);
+          toast.success('Verification email sent! Please check your inbox.');
+          setCurrentStep(2);
+        }
       } catch (error: any) {
         toast.error(error.message);
       } finally {
@@ -121,7 +132,9 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
   const completeSignup = async () => {
     try {
       setIsLoading(true);
-      const redirectUrl = `${window.location.origin}/onboarding`;
+      const redirectUrl = userType === 'brand' 
+        ? `${window.location.origin}/brand-dashboard`
+        : `${window.location.origin}/onboarding`;
       
       // Complete the signup with final data
       const { error } = await signUp(
@@ -140,7 +153,11 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success('Account created successfully!');
+        if (userType === 'brand') {
+          toast.success('Account created! Please check your email for confirmation.');
+        } else {
+          toast.success('Account created successfully!');
+        }
         // The auth system will handle redirect to onboarding/dashboard
       }
     } catch (error: any) {

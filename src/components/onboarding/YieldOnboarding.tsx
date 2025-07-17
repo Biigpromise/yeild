@@ -1,12 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Sparkles, Target, Users, Zap, ArrowRight } from "lucide-react";
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Sparkles, Target, Users, Zap, ArrowRight, X } from "lucide-react";
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { userService } from '@/services/userService';
+import { toast } from 'sonner';
 
 const YieldOnboarding: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [showReferralMessage, setShowReferralMessage] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check for referral code and handle it
+    const searchParams = new URLSearchParams(location.search);
+    const referralCode = searchParams.get('ref');
+    
+    if (referralCode) {
+      setShowReferralMessage(true);
+      // The referral handling is already done in the signup process
+      // This is just to show a nice welcome message
+    }
+  }, [location]);
 
   const slides = [
     {
@@ -56,6 +72,36 @@ const YieldOnboarding: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden relative">
+      {/* Referral Success Message */}
+      <AnimatePresence>
+        {showReferralMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -100 }}
+            className="fixed top-4 left-4 right-4 z-50 mx-auto max-w-md"
+          >
+            <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-4 rounded-lg shadow-lg flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Sparkles className="w-5 h-5" />
+                <div>
+                  <p className="font-semibold">Welcome bonus applied!</p>
+                  <p className="text-sm opacity-90">You've joined through a referral link</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setShowReferralMessage(false)}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20 p-1"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Animated background */}
       <div className="absolute inset-0">
         <motion.div
