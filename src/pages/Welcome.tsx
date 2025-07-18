@@ -37,7 +37,7 @@ const Welcome = () => {
           transition={{ delay: 0.5, duration: 0.8 }}
         >
           <Button
-            onClick={() => navigate('/user-type')}
+            onClick={() => navigate('/auth')}
             className="bg-yeild-yellow text-black hover:bg-yeild-yellow/90 px-12 py-6 text-xl font-bold rounded-full transition-all duration-300 transform hover:scale-105"
           >
             Get Started

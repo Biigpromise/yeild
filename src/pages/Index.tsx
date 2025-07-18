@@ -1,16 +1,9 @@
 
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import Welcome from './Welcome';
 
 const Index = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Redirect to the new welcome page
-    navigate('/', { replace: true });
-  }, [navigate]);
-
-  return null;
+  return <Welcome />;
 };
 
 export default Index;
