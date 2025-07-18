@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 interface ProgressiveSignupFlowProps {
   userType: 'user' | 'brand';
@@ -38,6 +40,7 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
   });
 
   const { signUp, signInWithProvider } = useAuth();
+  const navigate = useNavigate();
 
   const steps = [
     { id: 1, title: "Create your account", subtitle: `Join YIELD as a ${userType === 'brand' ? 'Brand Partner' : 'Creator'}` },
@@ -52,6 +55,9 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
   const handleNext = async () => {
     console.log('handleNext called, current step:', currentStep);
     console.log('Current data:', data);
+    console.log('User type:', userType);
+
+    if (isLoading) return; // Prevent double submission
 
     try {
       setIsLoading(true);
@@ -62,8 +68,9 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
           return;
         }
         
-        // For brands, we'll complete signup immediately
+        // For brands, complete signup immediately
         if (userType === 'brand') {
+          console.log('Processing brand signup...');
           const redirectUrl = `${window.location.origin}/brand-dashboard`;
           
           const { error } = await signUp(
@@ -74,17 +81,24 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
             {
               date_of_birth: data.dateOfBirth,
               username: data.name.toLowerCase().replace(/\s+/g, ''),
+              company_name: data.name
             },
             redirectUrl
           );
           
           if (error) {
             console.error('Brand signup error:', error);
-            toast.error(error.message);
+            if (error.message.includes('User already registered')) {
+              toast.error('An account with this email already exists. Please try signing in instead.');
+            } else {
+              toast.error(error.message);
+            }
             return;
           }
           
           toast.success('Account created! Please check your email for confirmation.');
+          // Navigate to brand dashboard after successful signup
+          navigate('/brand-dashboard');
           return;
         } else {
           // For users, proceed to next step
@@ -111,7 +125,7 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
           return;
         }
         // Complete signup for users
-        await completeSignup();
+        await completeUserSignup();
       }
     } catch (error: any) {
       console.error('handleNext error:', error);
@@ -129,7 +143,7 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
     }
   };
 
-  const completeSignup = async () => {
+  const completeUserSignup = async () => {
     try {
       const redirectUrl = `${window.location.origin}/onboarding`;
       
@@ -151,6 +165,7 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
         toast.error(error.message);
       } else {
         toast.success('Account created successfully!');
+        navigate('/onboarding');
       }
     } catch (error: any) {
       console.error('Complete signup unexpected error:', error);
@@ -210,13 +225,15 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">Name</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
+                  {userType === 'brand' ? 'Company Name' : 'Name'}
+                </label>
                 <Input
                   type="text"
                   value={data.name}
                   onChange={(e) => setData({ ...data, name: e.target.value })}
                   className="w-full py-4 px-4 bg-transparent border-b border-muted-foreground/30 rounded-none focus:border-primary focus:ring-0 text-lg"
-                  placeholder=""
+                  placeholder={userType === 'brand' ? 'Your company name' : 'Your full name'}
                 />
               </div>
               
@@ -227,12 +244,14 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
                   value={data.email}
                   onChange={(e) => setData({ ...data, email: e.target.value })}
                   className="w-full py-4 px-4 bg-transparent border-b border-muted-foreground/30 rounded-none focus:border-primary focus:ring-0 text-lg"
-                  placeholder=""
+                  placeholder="your@email.com"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">Date of birth</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
+                  {userType === 'brand' ? 'Founded Date' : 'Date of birth'}
+                </label>
                 <Input
                   type="date"
                   value={data.dateOfBirth}
@@ -425,14 +444,15 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
           <Button
             onClick={handleNext}
             disabled={isLoading}
-            className="w-full bg-muted hover:bg-muted/80 text-foreground py-4 rounded-full text-lg font-semibold"
+            className="w-full bg-yeild-yellow hover:bg-yeild-yellow/90 text-black py-4 rounded-full text-lg font-semibold"
           >
             {isLoading ? (
               <div className="flex items-center gap-2">
-                <div className="w-5 h-5 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
-                Loading...
+                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                {userType === 'brand' ? 'Creating Account...' : 'Loading...'}
               </div>
             ) : (
+              userType === 'brand' ? 'Create Brand Account' : 
               currentStep === 5 ? 'Sign up' : 'Next'
             )}
           </Button>
