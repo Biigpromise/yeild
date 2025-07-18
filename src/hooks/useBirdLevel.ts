@@ -72,9 +72,9 @@ export const useBirdLevel = () => {
             // Transform the next bird data to match our interface
             const nextBirdLevel: NextBirdLevel = {
               ...nextBirdData[0],
-              benefits: nextBirdData[0].benefits || [],
-              animation_type: nextBirdData[0].animation_type || 'static',
-              glow_effect: nextBirdData[0].glow_effect || false
+              benefits: [],
+              animation_type: 'static',
+              glow_effect: false
             };
             setNextBird(nextBirdLevel);
           }
