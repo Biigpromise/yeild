@@ -1,7 +1,7 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TaskFilter from '@/components/TaskFilter';
-import TaskCategories from '@/components/TaskCategories';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Target, Gift, Wallet } from 'lucide-react';
@@ -9,45 +9,37 @@ import { CompactBirdBatch } from '@/components/ui/CompactBirdBatch';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TasksTabProps {
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  selectedCategory: string;
-  onCategoryChange: (category: string) => void;
-  selectedDifficulty: string;
-  onDifficultyChange: (difficulty: string) => void;
-  selectedStatus: string;
-  onStatusChange: (status: string) => void;
-  taskCounts: {
-    available: number;
-    in_progress: number;
-    completed: number;
-    total: number;
-  };
-  onClearFilters: () => void;
-  handleCategorySelect: (categoryId: string) => void;
-  setActiveTab: (tab: string) => void;
-  userStats: { tasksCompleted: number };
-  userTasks: any[];
+  userStats?: { tasksCompleted: number };
+  userTasks?: any[];
+  loadUserData?: () => void;
 }
 
 export const TasksTab: React.FC<TasksTabProps> = ({
-  searchQuery,
-  onSearchChange,
-  selectedCategory,
-  onCategoryChange,
-  selectedDifficulty,
-  onDifficultyChange,
-  selectedStatus,
-  onStatusChange,
-  taskCounts,
-  onClearFilters,
-  handleCategorySelect,
-  setActiveTab,
-  userStats,
-  userTasks,
+  userStats = { tasksCompleted: 0 },
+  userTasks = [],
 }) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  
+  // Local state for filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  
+  const taskCounts = {
+    available: 0,
+    in_progress: 0,
+    completed: userStats.tasksCompleted,
+    total: userStats.tasksCompleted
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('');
+    setSelectedDifficulty('');
+    setSelectedStatus('');
+  };
 
   if (isMobile) {
     return (
@@ -55,15 +47,15 @@ export const TasksTab: React.FC<TasksTabProps> = ({
         {/* Mobile-optimized layout */}
         <TaskFilter
           searchQuery={searchQuery}
-          onSearchChange={onSearchChange}
+          onSearchChange={setSearchQuery}
           selectedCategory={selectedCategory}
-          onCategoryChange={onCategoryChange}
+          onCategoryChange={setSelectedCategory}
           selectedDifficulty={selectedDifficulty}
-          onDifficultyChange={onDifficultyChange}
+          onDifficultyChange={setSelectedDifficulty}
           selectedStatus={selectedStatus}
-          onStatusChange={onStatusChange}
+          onStatusChange={setSelectedStatus}
           taskCounts={taskCounts}
-          onClearFilters={onClearFilters}
+          onClearFilters={handleClearFilters}
         />
         
         {/* Fallback categories if loading fails */}
@@ -120,11 +112,11 @@ export const TasksTab: React.FC<TasksTabProps> = ({
             <Target className="h-3 w-3 mr-1" />
             Tasks
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setActiveTab('rewards')} className="text-xs">
+          <Button size="sm" variant="outline" className="text-xs">
             <Gift className="h-3 w-3 mr-1" />
             Rewards
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setActiveTab('wallet')} className="text-xs">
+          <Button size="sm" variant="outline" className="text-xs">
             <Wallet className="h-3 w-3 mr-1" />
             Wallet
           </Button>
@@ -133,23 +125,23 @@ export const TasksTab: React.FC<TasksTabProps> = ({
     );
   }
 
-  // Desktop layout remains the same
+  // Desktop layout
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
       <div className="lg:col-span-3 space-y-4">
         <TaskFilter
           searchQuery={searchQuery}
-          onSearchChange={onSearchChange}
+          onSearchChange={setSearchQuery}
           selectedCategory={selectedCategory}
-          onCategoryChange={onCategoryChange}
+          onCategoryChange={setSelectedCategory}
           selectedDifficulty={selectedDifficulty}
-          onDifficultyChange={onDifficultyChange}
+          onDifficultyChange={setSelectedDifficulty}
           selectedStatus={selectedStatus}
-          onStatusChange={onStatusChange}
+          onStatusChange={setSelectedStatus}
           taskCounts={taskCounts}
-          onClearFilters={onClearFilters}
+          onClearFilters={handleClearFilters}
         />
-        {/* Fallback for desktop categories */}
+        
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4">
             <div className="grid grid-cols-3 gap-2">
@@ -160,6 +152,7 @@ export const TasksTab: React.FC<TasksTabProps> = ({
           </CardContent>
         </Card>
       </div>
+      
       <div className="space-y-4">
         {/* Quick Actions */}
         <Card className="border-0 shadow-sm">
@@ -171,18 +164,18 @@ export const TasksTab: React.FC<TasksTabProps> = ({
               <Target className="h-4 w-4 mr-2" />
               Browse Tasks
             </Button>
-            <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setActiveTab('rewards')}>
+            <Button variant="outline" size="sm" className="w-full justify-start">
               <Gift className="h-4 w-4 mr-2" />
               View Rewards
             </Button>
-            <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setActiveTab('wallet')}>
+            <Button variant="outline" size="sm" className="w-full justify-start">
               <Wallet className="h-4 w-4 mr-2" />
               Wallet
             </Button>
           </CardContent>
         </Card>
 
-        {/* Getting Started */}
+        {/* Progress Card */}
         <Card className="border-0 shadow-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">

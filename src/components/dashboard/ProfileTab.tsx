@@ -1,105 +1,40 @@
 
 import React from 'react';
-import { ProfileForm } from '@/components/profile/ProfileForm';
-import { ProfileStats } from '@/components/profile/ProfileStats';
-import { ProfileBirdDisplay } from '@/components/profile/ProfileBirdDisplay';
-import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { User, Edit, Settings } from 'lucide-react';
 
-interface ProfileTabProps {
-  userProfile: any;
-  userStats: any;
-  totalPointsEarned: number;
-  onProfileUpdate: () => void;
-}
-
-export const ProfileTab: React.FC<ProfileTabProps> = ({
-  userProfile,
-  userStats,
-  totalPointsEarned,
-  onProfileUpdate
-}) => {
-  const { user } = useAuth();
-
-  if (!user) return null;
-
-  // Create user object that matches ProfileStats and ProfileForm interfaces
-  const userForComponents = {
-    id: user.id,
-    name: userProfile?.name || user.email || 'User',
-    email: user.email || '',
-    bio: userProfile?.bio || '',
-    avatar: userProfile?.profile_picture_url || '',
-    level: userStats.level || 1,
-    points: userStats.points || 0,
-    tasksCompleted: userStats.tasksCompleted || 0,
-    currentStreak: userStats.currentStreak || 0,
-    longestStreak: userProfile?.longest_streak || 0,
-    joinDate: userProfile?.created_at || new Date().toISOString(),
-    totalPointsEarned: totalPointsEarned,
-    averageTaskRating: userProfile?.average_task_rating || 0,
-    favoriteCategory: userProfile?.favorite_category || '',
-    completionRate: userProfile?.completion_rate || 0,
-    followers_count: userProfile?.followers_count || 0,
-    following_count: userProfile?.following_count || 0,
-    active_referrals_count: userProfile?.active_referrals_count || 0,
-    total_referrals_count: userProfile?.total_referrals_count || 0,
-  };
-
+export const ProfileTab: React.FC = () => {
   return (
     <div className="space-y-6">
-      {/* Profile Stats and Edit Profile */}
-      <Tabs defaultValue="stats" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="stats">Profile Stats</TabsTrigger>
-          <TabsTrigger value="edit">Edit Profile</TabsTrigger>
-          <TabsTrigger value="photo">Profile Photo</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="stats">
-          <ProfileStats 
-            user={userForComponents}
-          />
-        </TabsContent>
-        
-        <TabsContent value="edit">
-          <Card>
-            <CardHeader>
-              <CardTitle>Edit Profile</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ProfileForm 
-                user={userForComponents}
-                editData={{
-                  name: userForComponents.name,
-                  bio: userForComponents.bio
-                }}
-                isEditing={true}
-                bioCharCount={userForComponents.bio.length}
-                maxChars={90}
-                onNameChange={() => {}}
-                onBioChange={() => {}}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="photo">
-          <ProfilePictureUpload
-            userProfile={userProfile}
-            onProfileUpdate={onProfileUpdate}
-          />
-        </TabsContent>
-      </Tabs>
-
-      {/* Bird Badge Display */}
-      <ProfileBirdDisplay 
-        userId={user.id}
-        activeReferrals={userProfile?.active_referrals_count || 0}
-        totalReferrals={userProfile?.total_referrals_count || 0}
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Profile Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-center">
+            <div className="w-20 h-20 bg-muted rounded-full mx-auto mb-4 flex items-center justify-center">
+              <User className="h-10 w-10 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold">Your Profile</h3>
+            <p className="text-muted-foreground">Manage your account settings and preferences</p>
+          </div>
+          
+          <div className="flex gap-2 justify-center">
+            <Button variant="outline" size="sm">
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Profile
+            </Button>
+            <Button variant="outline" size="sm">
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

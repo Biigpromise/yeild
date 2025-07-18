@@ -1,23 +1,25 @@
 
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TasksTab } from "@/components/tabs/TasksTab";
-import { ProfileTab } from "@/components/tabs/ProfileTab";
-import { WalletTab } from "@/components/tabs/WalletTab";
-import { ReferralsTab } from "@/components/tabs/ReferralsTab";
-import { CommunityTab } from "@/components/tabs/CommunityTab";
-import { SupportTab } from "@/components/tabs/SupportTab";
-import { LeaderboardTab } from "@/components/tabs/LeaderboardTab";
+import { TasksTab } from "@/components/dashboard/TasksTab";
+import { ProfileTab } from "@/components/dashboard/ProfileTab";
+import { WalletTab } from "@/components/dashboard/WalletTab";
+import { ReferralsTab } from "@/components/dashboard/ReferralsTab";
+import { CommunityTab } from "@/components/dashboard/CommunityTab";
+import { SupportTab } from "@/components/dashboard/SupportTab";
+import { LeaderboardTab } from "@/components/dashboard/LeaderboardTab";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { BirdStatusDisplay } from "@/components/bird/BirdStatusDisplay";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useAuth } from "@/contexts/AuthContext";
 import { useExperienceLevel } from '@/hooks/useExperienceLevel';
+import { useDashboard } from '@/hooks/useDashboard';
 
 const Dashboard: React.FC = () => {
     const { user, signOut } = useAuth();
     const { showOnboarding, userType, completeOnboarding } = useOnboarding();
+    const dashboardData = useDashboard();
     
     // Mock user stats for experience level calculation
     const { isFeatureUnlocked } = useExperienceLevel(0, 0, 0);
@@ -66,7 +68,7 @@ const Dashboard: React.FC = () => {
                 </TabsList>
                 
                 <TabsContent value="tasks" className="mt-6">
-                    <TasksTab />
+                    <TasksTab {...dashboardData} />
                 </TabsContent>
                 <TabsContent value="profile" className="mt-6">
                     <ProfileTab />

@@ -1,57 +1,59 @@
 
 import React from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { supportService, SupportTicket } from '@/services/supportService';
-import { SupportTicketForm } from './SupportTicketForm';
-import { SupportTicketList } from './SupportTicketList';
-import { LoadingState } from '@/components/ui/loading-state';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { HelpCircle, MessageSquare, FileText, Mail } from 'lucide-react';
 
-export const SupportTab = () => {
-  const queryClient = useQueryClient();
-
-  const { data: tickets, isLoading, refetch } = useQuery<SupportTicket[]>({
-    queryKey: ['supportTickets'],
-    queryFn: supportService.getUserTickets,
-  });
-
-  const handleTicketCreated = () => {
-    refetch();
-  };
-
+export const SupportTab: React.FC = () => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-1">
-        <Card>
-          <CardHeader>
-            <CardTitle>Submit a Ticket</CardTitle>
-            <CardDescription>
-              Having an issue? Let us know and we'll get back to you.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SupportTicketForm onTicketCreated={handleTicketCreated} />
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="lg:col-span-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Tickets</CardTitle>
-            <CardDescription>
-              Here's a list of your past and current support tickets.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <LoadingState text="Loading your tickets..." />
-            ) : (
-              <SupportTicketList tickets={tickets || []} />
-            )}
-          </CardContent>
-        </Card>
-      </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <HelpCircle className="h-5 w-5" />
+            Support & Help
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <MessageSquare className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+                <h4 className="font-medium mb-2">Live Chat</h4>
+                <p className="text-sm text-muted-foreground mb-3">Get instant help from our support team</p>
+                <Button size="sm" className="w-full">Start Chat</Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4 text-center">
+                <FileText className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                <h4 className="font-medium mb-2">FAQ</h4>
+                <p className="text-sm text-muted-foreground mb-3">Find answers to common questions</p>
+                <Button variant="outline" size="sm" className="w-full">View FAQ</Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4 text-center">
+                <Mail className="h-8 w-8 mx-auto mb-2 text-purple-500" />
+                <h4 className="font-medium mb-2">Email Support</h4>
+                <p className="text-sm text-muted-foreground mb-3">Contact us via email</p>
+                <Button variant="outline" size="sm" className="w-full">Send Email</Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4 text-center">
+                <HelpCircle className="h-8 w-8 mx-auto mb-2 text-orange-500" />
+                <h4 className="font-medium mb-2">Tutorials</h4>
+                <p className="text-sm text-muted-foreground mb-3">Learn how to use YIELD</p>
+                <Button variant="outline" size="sm" className="w-full">Watch Tutorials</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
