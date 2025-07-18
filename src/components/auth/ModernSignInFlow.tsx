@@ -1,8 +1,8 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import yieldLogo from '@/assets/yield-logo.png';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -37,7 +37,8 @@ const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, o
         toast.error(error.message);
       }
     } catch (error: any) {
-      toast.error(error.message);
+      console.error('Sign in error:', error);
+      toast.error(error.message || 'An error occurred during sign in');
     } finally {
       setIsLoading(false);
     }
@@ -51,7 +52,8 @@ const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, o
         toast.error(error.message);
       }
     } catch (error: any) {
-      toast.error(error.message);
+      console.error('Google sign in error:', error);
+      toast.error(error.message || 'An error occurred during Google sign in');
     } finally {
       setIsLoading(false);
     }
@@ -65,7 +67,7 @@ const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, o
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div className="flex items-center justify-center">
-          <img src={yieldLogo} alt="YIELD" className="h-8" />
+          <img src="/lovable-uploads/c0942c4f-38c3-4a43-9d01-3f429f5860ee.png" alt="YIELD" className="h-8" />
         </div>
         <div className="w-6"></div>
       </div>

@@ -31,7 +31,7 @@ const UserTypeSelection = () => {
             transition={{ duration: 0.6 }}
           >
             <img 
-              src="/lovable-uploads/54ccebd1-9d4c-452f-b0a9-0b9de0fcfebf.png" 
+              src="/lovable-uploads/c0942c4f-38c3-4a43-9d01-3f429f5860ee.png" 
               alt="YEILD Logo" 
               className="w-16 h-16 mx-auto mb-6 object-contain"
             />

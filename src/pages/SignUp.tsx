@@ -11,7 +11,7 @@ const SignUp = () => {
   const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
   const [selectedUserType, setSelectedUserType] = useState<'user' | 'brand' | null>(null);
-  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup');
+  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signin'); // Default to signin
 
   // Check for user type in URL params
   useEffect(() => {
@@ -48,25 +48,25 @@ const SignUp = () => {
       <UserTypeSelection
         onSelectUser={() => setSelectedUserType('user')}
         onSelectBrand={() => setSelectedUserType('brand')}
-        onSwitchToSignin={() => setAuthMode('signin')}
+        onSwitchToSignin={() => setAuthMode('signup')} // This actually switches to signup
       />
     );
   }
 
-  // Show signup or signin flow
-  if (authMode === 'signup') {
-    return (
-      <ProgressiveSignupFlow
-        userType={selectedUserType}
-        onBack={() => setSelectedUserType(null)}
-      />
-    );
-  } else {
+  // Show signin or signup flow
+  if (authMode === 'signin') {
     return (
       <ModernSignInFlow
         userType={selectedUserType}
         onBack={() => setSelectedUserType(null)}
         onSwitchToSignup={() => setAuthMode('signup')}
+      />
+    );
+  } else {
+    return (
+      <ProgressiveSignupFlow
+        userType={selectedUserType}
+        onBack={() => setSelectedUserType(null)}
       />
     );
   }

@@ -6,7 +6,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import yieldLogo from '@/assets/yield-logo.png';
 
 interface ProgressiveSignupFlowProps {
   userType: 'user' | 'brand';
@@ -51,73 +50,74 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
   const currentStepData = steps[currentStep - 1];
 
   const handleNext = async () => {
-    if (currentStep === 1) {
-      if (!data.name || !data.email || !data.dateOfBirth) {
-        toast.error('Please fill in all fields');
-        return;
-      }
+    console.log('handleNext called, current step:', currentStep);
+    console.log('Current data:', data);
+
+    try {
+      setIsLoading(true);
       
-      try {
-        setIsLoading(true);
-        // Prepare the redirect URL for users and brands differently
-        const redirectUrl = userType === 'brand' 
-          ? `${window.location.origin}/brand-dashboard`
-          : `${window.location.origin}/onboarding`;
-        
-        // For progressive signup, we'll directly complete the signup
-        const { error } = await signUp(
-          data.email, 
-          data.password || 'TempPass123!', // Use a temp password initially
-          data.name, 
-          userType,
-          {
-            date_of_birth: data.dateOfBirth,
-            username: data.username || data.name.toLowerCase().replace(/\s+/g, ''),
-            profile_picture_url: data.profilePicture
-          },
-          redirectUrl
-        );
-        
-        if (error) {
-          toast.error(error.message);
+      if (currentStep === 1) {
+        if (!data.name || !data.email || !data.dateOfBirth) {
+          toast.error('Please fill in all fields');
           return;
         }
         
+        // For brands, we'll complete signup immediately
         if (userType === 'brand') {
+          const redirectUrl = `${window.location.origin}/brand-dashboard`;
+          
+          const { error } = await signUp(
+            data.email, 
+            'TempPass123!', // Temporary password for brands
+            data.name, 
+            userType,
+            {
+              date_of_birth: data.dateOfBirth,
+              username: data.name.toLowerCase().replace(/\s+/g, ''),
+            },
+            redirectUrl
+          );
+          
+          if (error) {
+            console.error('Brand signup error:', error);
+            toast.error(error.message);
+            return;
+          }
+          
           toast.success('Account created! Please check your email for confirmation.');
+          return;
         } else {
-          setAwaitingVerification(true);
-          toast.success('Verification email sent! Please check your inbox.');
+          // For users, proceed to next step
           setCurrentStep(2);
         }
-      } catch (error: any) {
-        toast.error(error.message);
-      } finally {
-        setIsLoading(false);
+      } else if (currentStep === 2) {
+        if (!data.verificationCode || data.verificationCode.length !== 6) {
+          toast.error('Please enter the 6-digit verification code');
+          return;
+        }
+        setCurrentStep(3);
+      } else if (currentStep === 3) {
+        if (!data.password || data.password.length < 8) {
+          toast.error('Password must be at least 8 characters');
+          return;
+        }
+        setCurrentStep(4);
+      } else if (currentStep === 4) {
+        // Optional step, can skip
+        setCurrentStep(5);
+      } else if (currentStep === 5) {
+        if (!data.username) {
+          toast.error('Please enter a username');
+          return;
+        }
+        // Complete signup for users
+        await completeSignup();
       }
-    } else if (currentStep === 2) {
-      if (!data.verificationCode || data.verificationCode.length !== 6) {
-        toast.error('Please enter the 6-digit verification code');
-        return;
-      }
-      // For now, just proceed to next step
-      setCurrentStep(3);
-    } else if (currentStep === 3) {
-      if (!data.password || data.password.length < 8) {
-        toast.error('Password must be at least 8 characters');
-        return;
-      }
-      setCurrentStep(4);
-    } else if (currentStep === 4) {
-      // Optional step, can skip
-      setCurrentStep(5);
-    } else if (currentStep === 5) {
-      if (!data.username) {
-        toast.error('Please enter a username');
-        return;
-      }
-      // Complete signup
-      completeSignup();
+    } catch (error: any) {
+      console.error('handleNext error:', error);
+      toast.error(error.message || 'An error occurred');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -131,12 +131,8 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
 
   const completeSignup = async () => {
     try {
-      setIsLoading(true);
-      const redirectUrl = userType === 'brand' 
-        ? `${window.location.origin}/brand-dashboard`
-        : `${window.location.origin}/onboarding`;
+      const redirectUrl = `${window.location.origin}/onboarding`;
       
-      // Complete the signup with final data
       const { error } = await signUp(
         data.email,
         data.password,
@@ -151,19 +147,14 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
       );
       
       if (error) {
+        console.error('Complete signup error:', error);
         toast.error(error.message);
       } else {
-        if (userType === 'brand') {
-          toast.success('Account created! Please check your email for confirmation.');
-        } else {
-          toast.success('Account created successfully!');
-        }
-        // The auth system will handle redirect to onboarding/dashboard
+        toast.success('Account created successfully!');
       }
     } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setIsLoading(false);
+      console.error('Complete signup unexpected error:', error);
+      toast.error(error.message || 'An unexpected error occurred');
     }
   };
 
@@ -175,7 +166,8 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
         toast.error(error.message);
       }
     } catch (error: any) {
-      toast.error(error.message);
+      console.error('Google signup error:', error);
+      toast.error(error.message || 'An error occurred with Google signup');
     } finally {
       setIsLoading(false);
     }
@@ -252,6 +244,7 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
           </div>
         );
 
+      
       case 2:
         return (
           <div className="space-y-8">
@@ -405,7 +398,7 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div className="flex items-center justify-center">
-          <img src={yieldLogo} alt="YIELD" className="h-8" />
+          <img src="/lovable-uploads/c0942c4f-38c3-4a43-9d01-3f429f5860ee.png" alt="YIELD" className="h-8" />
         </div>
         <div className="w-6"></div>
       </div>
