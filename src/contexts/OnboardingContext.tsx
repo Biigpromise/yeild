@@ -6,6 +6,8 @@ interface OnboardingContextType {
   showOnboarding: boolean;
   userType: 'user' | 'brand';
   completeOnboarding: () => void;
+  skipOnboarding: () => void;
+  startOnboarding: () => void;
   setUserType: (type: 'user' | 'brand') => void;
 }
 
@@ -65,10 +67,25 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     }
   };
 
+  const skipOnboarding = () => {
+    console.log('OnboardingProvider: Skipping onboarding');
+    if (user) {
+      localStorage.setItem(`onboarding_${user.id}`, 'completed');
+      setShowOnboarding(false);
+    }
+  };
+
+  const startOnboarding = () => {
+    console.log('OnboardingProvider: Starting onboarding manually');
+    setShowOnboarding(true);
+  };
+
   const value = {
     showOnboarding,
     userType,
     completeOnboarding,
+    skipOnboarding,
+    startOnboarding,
     setUserType
   };
 

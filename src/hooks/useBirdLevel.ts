@@ -17,10 +17,15 @@ export interface BirdLevel {
   glow_effect: boolean;
 }
 
+export interface NextBirdLevel extends BirdLevel {
+  referrals_needed: number;
+  points_needed: number;
+}
+
 export const useBirdLevel = () => {
   const { user } = useAuth();
   const [currentBird, setCurrentBird] = useState<BirdLevel | null>(null);
-  const [nextBird, setNextBird] = useState<BirdLevel | null>(null);
+  const [nextBird, setNextBird] = useState<NextBirdLevel | null>(null);
   const [userStats, setUserStats] = useState({
     referrals: 0,
     points: 0,
@@ -64,7 +69,14 @@ export const useBirdLevel = () => {
             .rpc('get_next_bird_level', { user_id_param: user.id });
 
           if (nextBirdData && nextBirdData.length > 0) {
-            setNextBird(nextBirdData[0]);
+            // Transform the next bird data to match our interface
+            const nextBirdLevel: NextBirdLevel = {
+              ...nextBirdData[0],
+              benefits: nextBirdData[0].benefits || [],
+              animation_type: nextBirdData[0].animation_type || 'static',
+              glow_effect: nextBirdData[0].glow_effect || false
+            };
+            setNextBird(nextBirdLevel);
           }
         }
       } catch (error) {
