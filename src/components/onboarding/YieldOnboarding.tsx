@@ -2,8 +2,12 @@
 import React from 'react';
 import BirdJourneyOnboarding from './BirdJourneyOnboarding';
 
-const YieldOnboarding: React.FC = () => {
-  return <BirdJourneyOnboarding />;
+interface YieldOnboardingProps {
+  onComplete?: () => void;
+}
+
+const YieldOnboarding: React.FC<YieldOnboardingProps> = ({ onComplete }) => {
+  return <BirdJourneyOnboarding onComplete={onComplete} />;
 };
 
 export default YieldOnboarding;

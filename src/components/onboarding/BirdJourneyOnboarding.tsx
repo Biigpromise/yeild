@@ -1,287 +1,135 @@
 
-import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Sparkles, Target, Users, Zap, ArrowRight, X, Trophy, Crown, Star, Gem } from "lucide-react";
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { toast } from 'sonner';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { ChevronRight, Users, Target, Gift, Trophy } from 'lucide-react';
 
-const BirdJourneyOnboarding: React.FC = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [showReferralMessage, setShowReferralMessage] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+interface BirdJourneyOnboardingProps {
+  onComplete?: () => void;
+}
 
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const referralCode = searchParams.get('ref');
-    
-    if (referralCode) {
-      setShowReferralMessage(true);
-    }
-  }, [location]);
+const BirdJourneyOnboarding: React.FC<BirdJourneyOnboardingProps> = ({ onComplete }) => {
+  const [currentStep, setCurrentStep] = useState(0);
 
-  const slides = [
+  const steps = [
     {
-      icon: Sparkles,
-      title: "Welcome to YIELD",
-      subtitle: "Your Journey to Earning Begins",
-      description: "Join thousands of YEILDers earning rewards through tasks, challenges, and building their network.",
-      gradient: "from-yeild-yellow via-orange-500 to-red-500",
-      bird: "🕊️",
-      birdName: "New YEILDER",
-      birdDesc: "Every journey starts with a single step"
+      title: 'Welcome to YIELD!',
+      subtitle: 'Your Journey Begins',
+      description: 'Start as a humble Dove and evolve into legendary birds by completing tasks and referring friends.',
+      icon: '🕊️',
+      color: 'from-blue-500/20 to-purple-500/20'
     },
     {
-      icon: Target,
-      title: "Complete Tasks & Earn",
-      subtitle: "Turn Your Skills Into Rewards",
-      description: "Take on exciting challenges from top brands. Each completed task brings you points and helps you level up your bird status.",
-      gradient: "from-blue-500 via-purple-500 to-pink-500",
-      bird: "🐦",
-      birdName: "Active YEILDER",
-      birdDesc: "Complete 5 tasks to unlock this level",
-      progress: 20
+      title: 'Complete Tasks',
+      subtitle: 'Earn Points & Experience',
+      description: 'Take on various tasks to earn points. Each completed task brings you closer to your next bird evolution.',
+      icon: <Target className="w-12 h-12 text-blue-400" />,
+      color: 'from-green-500/20 to-blue-500/20'
     },
     {
-      icon: Users,
-      title: "Build Your Flock",
-      subtitle: "Referrals = More Rewards",
-      description: "Invite friends and family to join YIELD. Every person who joins through your link earns you bonus points and elevates your bird status.",
-      gradient: "from-green-500 via-teal-500 to-blue-500",
-      bird: "🦅",
-      birdName: "Hawk YEILDER",
-      birdDesc: "Refer 3+ friends to soar higher",
-      progress: 40
+      title: 'Refer Friends',
+      subtitle: 'Build Your Flock',
+      description: 'Invite friends to join YIELD. Active referrals help you unlock higher bird levels faster.',
+      icon: <Users className="w-12 h-12 text-purple-400" />,
+      color: 'from-purple-500/20 to-pink-500/20'
     },
     {
-      icon: Crown,
-      title: "Rise Through The Ranks",
-      subtitle: "From Dove to Phoenix",
-      description: "As you complete more tasks and grow your network, you'll unlock exclusive bird levels with amazing benefits.",
-      gradient: "from-purple-500 via-pink-500 to-red-500",
-      bird: "🦅",
-      birdName: "Eagle YEILDER",
-      birdDesc: "Premium tasks & leaderboard access",
-      progress: 60
+      title: 'Level Up Your Bird',
+      subtitle: 'Evolve & Unlock Rewards',
+      description: 'From Dove to Phoenix - each bird level unlocks better rewards and special abilities.',
+      icon: <Trophy className="w-12 h-12 text-yellow-400" />,
+      color: 'from-yellow-500/20 to-orange-500/20'
     },
     {
-      icon: Gem,
-      title: "Reach Elite Status",
-      subtitle: "The Phoenix Awaits",
-      description: "Top performers become Phoenix YEILDers - the ultimate status with exclusive rewards, early access, and VIP treatment.",
-      gradient: "from-red-500 via-orange-500 to-yellow-500",
-      bird: "🔥",
-      birdName: "Phoenix YEILDER",
-      birdDesc: "Elite status with exclusive rewards",
-      progress: 100,
-      isPhoenix: true
-    },
-    {
-      icon: Zap,
-      title: "Ready to Start?",
-      subtitle: "Your Bird Journey Begins Now",
-      description: "Complete your first task, refer a friend, and watch your bird status soar. The sky is the limit!",
-      gradient: "from-yeild-yellow via-green-500 to-blue-500",
-      bird: "🚀",
-      birdName: "Your Journey",
-      birdDesc: "Ready to take off?"
+      title: 'Ready to Soar?',
+      subtitle: 'Your Adventure Awaits',
+      description: 'You\'re all set! Start completing tasks, invite friends, and watch your YEILDER bird evolve.',
+      icon: '🚀',
+      color: 'from-orange-500/20 to-red-500/20'
     }
   ];
 
-  const currentSlideData = slides[currentSlide];
-  const Icon = currentSlideData.icon;
-
   const handleNext = () => {
-    if (currentSlide < slides.length - 1) {
-      setCurrentSlide(currentSlide + 1);
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
     } else {
-      navigate('/dashboard');
+      onComplete?.();
     }
   };
 
   const handleSkip = () => {
-    navigate('/dashboard');
+    onComplete?.();
   };
 
+  const currentStepData = steps[currentStep];
+
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-hidden relative">
-      {/* Referral Success Message */}
-      <AnimatePresence>
-        {showReferralMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -100 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -100 }}
-            className="fixed top-4 left-4 right-4 z-50 mx-auto max-w-md"
-          >
-            <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-4 rounded-lg shadow-lg flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Sparkles className="w-5 h-5" />
-                <div>
-                  <p className="font-semibold">🎉 Referral Bonus Applied!</p>
-                  <p className="text-sm opacity-90">You've joined through a friend's link</p>
-                </div>
-              </div>
-              <Button
-                onClick={() => setShowReferralMessage(false)}
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/20 p-1"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Animated background */}
-      <div className="absolute inset-0">
+    <div className="min-h-screen bg-yeild-black flex items-center justify-center p-6">
+      <div className="w-full max-w-2xl">
         <motion.div
-          key={currentSlide}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          className={`absolute inset-0 bg-gradient-to-br ${currentSlideData.gradient} opacity-10`}
-        />
-        <div className="absolute inset-0 bg-background/80" />
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 flex flex-col min-h-screen">
-        {/* Skip button */}
-        <div className="flex justify-end p-6">
-          <Button
-            onClick={handleSkip}
-            variant="ghost"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Skip Journey
-          </Button>
-        </div>
-
-        {/* Main content */}
-        <div className="flex-1 flex items-center justify-center px-6">
-          <div className="max-w-md w-full text-center">
-            <motion.div
-              key={currentSlide}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="space-y-8"
-            >
-              {/* Bird Display */}
+          key={currentStep}
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -50 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card className={`bg-gradient-to-br ${currentStepData.color} border-yeild-yellow/20 shadow-2xl`}>
+            <CardContent className="p-8 text-center">
+              {/* Progress indicators */}
               <div className="flex justify-center mb-8">
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ 
-                    duration: 0.8,
-                    type: "spring",
-                    stiffness: 200,
-                    damping: 15
-                  }}
-                  className={`relative w-32 h-32 rounded-full bg-gradient-to-br ${currentSlideData.gradient} flex items-center justify-center shadow-2xl ${currentSlideData.isPhoenix ? 'animate-pulse' : ''}`}
-                >
-                  <div className="text-6xl">{currentSlideData.bird}</div>
-                  {currentSlideData.isPhoenix && (
-                    <motion.div
-                      className="absolute inset-0 rounded-full bg-gradient-to-r from-red-500/20 via-orange-500/20 to-yellow-500/20"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    />
-                  )}
-                </motion.div>
+                {steps.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-3 h-3 rounded-full mx-1 transition-colors ${
+                      index <= currentStep ? 'bg-yeild-yellow' : 'bg-gray-600'
+                    }`}
+                  />
+                ))}
               </div>
 
-              {/* Bird Info Card */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.6 }}
-                className="bg-muted/50 rounded-2xl p-4 mb-6"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-bold text-lg">{currentSlideData.birdName}</h3>
-                  {currentSlideData.progress && (
-                    <div className="text-sm text-muted-foreground">
-                      {currentSlideData.progress}%
-                    </div>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">{currentSlideData.birdDesc}</p>
-                
-                {currentSlideData.progress && (
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <motion.div
-                      className={`h-2 rounded-full bg-gradient-to-r ${currentSlideData.gradient}`}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${currentSlideData.progress}%` }}
-                      transition={{ delay: 0.5, duration: 1 }}
-                    />
-                  </div>
+              {/* Icon */}
+              <div className="mb-6 flex justify-center">
+                {typeof currentStepData.icon === 'string' ? (
+                  <div className="text-6xl">{currentStepData.icon}</div>
+                ) : (
+                  currentStepData.icon
                 )}
-              </motion.div>
-
-              {/* Text content */}
-              <div className="space-y-4">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.6 }}
-                >
-                  <h1 className="text-4xl font-bold mb-2">{currentSlideData.title}</h1>
-                  <p className="text-xl text-primary font-semibold">{currentSlideData.subtitle}</p>
-                </motion.div>
-
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5, duration: 0.6 }}
-                  className="text-lg text-muted-foreground leading-relaxed"
-                >
-                  {currentSlideData.description}
-                </motion.p>
               </div>
-            </motion.div>
-          </div>
-        </div>
 
-        {/* Bottom section */}
-        <div className="p-6 space-y-6">
-          {/* Progress dots */}
-          <div className="flex justify-center space-x-2">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === currentSlide 
-                    ? 'bg-primary scale-125' 
-                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
-                }`}
-              />
-            ))}
-          </div>
+              {/* Content */}
+              <div className="space-y-4 mb-8">
+                <h1 className="text-4xl font-bold text-white">
+                  {currentStepData.title}
+                </h1>
+                <h2 className="text-xl text-yeild-yellow font-medium">
+                  {currentStepData.subtitle}
+                </h2>
+                <p className="text-gray-300 text-lg leading-relaxed max-w-lg mx-auto">
+                  {currentStepData.description}
+                </p>
+              </div>
 
-          {/* Action button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.6 }}
-          >
-            <Button
-              onClick={handleNext}
-              className={`w-full py-4 rounded-xl bg-gradient-to-r ${currentSlideData.gradient} hover:opacity-90 transition-all duration-300 text-white font-semibold text-lg shadow-lg hover:shadow-xl group`}
-            >
-              <span className="flex items-center justify-center gap-2">
-                {currentSlide === slides.length - 1 ? 'Start Your Journey' : 'Continue Journey'}
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </Button>
-          </motion.div>
-        </div>
+              {/* Actions */}
+              <div className="flex gap-4 justify-center">
+                <Button
+                  variant="outline"
+                  onClick={handleSkip}
+                  className="px-6 py-3 text-gray-300 border-gray-600 hover:bg-gray-800"
+                >
+                  Skip Tutorial
+                </Button>
+                <Button
+                  onClick={handleNext}
+                  className="px-8 py-3 bg-yeild-yellow text-black hover:bg-yeild-yellow/90 font-semibold flex items-center gap-2"
+                >
+                  {currentStep === steps.length - 1 ? 'Get Started' : 'Continue'}
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   );

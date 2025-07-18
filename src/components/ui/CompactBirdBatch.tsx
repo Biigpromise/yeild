@@ -1,5 +1,6 @@
 
-import React from "react";
+import React from 'react';
+import { Badge } from '@/components/ui/badge';
 
 interface CompactBirdBatchProps {
   count: number;
@@ -8,31 +9,31 @@ interface CompactBirdBatchProps {
 
 export const CompactBirdBatch: React.FC<CompactBirdBatchProps> = ({ 
   count, 
-  className = "" 
+  className = '' 
 }) => {
-  // Determine color based on count ranges
-  const getBirdColor = (index: number) => {
-    if (count >= 100) return "text-yellow-500"; // Gold birds for high achievers
-    if (count >= 50) return "text-blue-500";   // Blue birds for medium achievers
-    if (count >= 20) return "text-green-500";  // Green birds for active users
-    return "text-gray-400";                    // Gray birds for new users
+  const getBirdEmoji = (taskCount: number) => {
+    if (taskCount >= 100) return '🦅';
+    if (taskCount >= 50) return '🦜';
+    if (taskCount >= 20) return '🐦';
+    if (taskCount >= 5) return '🐤';
+    return '🐣';
   };
 
-  // Show maximum 5 birds in compact view
-  const birdsToShow = Math.min(Math.ceil(count / 10), 5);
-  
+  const getBirdLevel = (taskCount: number) => {
+    if (taskCount >= 100) return 'Eagle';
+    if (taskCount >= 50) return 'Parrot';
+    if (taskCount >= 20) return 'Robin';
+    if (taskCount >= 5) return 'Chick';
+    return 'Egg';
+  };
+
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
-      {Array.from({ length: birdsToShow }, (_, index) => (
-        <div key={index} className={`text-lg ${getBirdColor(index)}`}>
-          🐦
-        </div>
-      ))}
-      {count > 0 && (
-        <span className="text-xs text-gray-500 ml-1">
-          x{count}
-        </span>
-      )}
-    </div>
+    <Badge 
+      variant="outline" 
+      className={`flex items-center gap-1 px-2 py-1 ${className}`}
+    >
+      <span className="text-sm">{getBirdEmoji(count)}</span>
+      <span className="text-xs">{getBirdLevel(count)}</span>
+    </Badge>
   );
 };

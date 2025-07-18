@@ -39,6 +39,7 @@ export const BirdStatusDisplay: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
+      data-onboarding="bird-status"
     >
       <Card className="bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-green-900/20 border-purple-500/30 shadow-xl overflow-hidden">
         <CardContent className="p-6">
