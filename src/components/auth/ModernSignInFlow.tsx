@@ -1,26 +1,19 @@
+
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
+import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
 interface ModernSignInFlowProps {
   userType: 'user' | 'brand';
   onBack: () => void;
   onSwitchToSignup: () => void;
-  title?: string;
-  subtitle?: string;
 }
 
-const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ 
-  userType, 
-  onBack, 
-  onSwitchToSignup,
-  title,
-  subtitle
-}) => {
+const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, onSwitchToSignup }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -29,184 +22,159 @@ const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({
   });
 
   const { signIn, signInWithProvider } = useAuth();
-  const navigate = useNavigate();
 
-  const handleGoogleAuth = async () => {
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.email || !formData.password) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const { error } = await signIn(formData.email, formData.password);
+      if (error) {
+        toast.error(error.message);
+      }
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      toast.error(error.message || 'An error occurred during sign in');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
       const { error } = await signInWithProvider('google', userType);
       if (error) {
         toast.error(error.message);
       }
-      // The redirect will be handled by the auth context
     } catch (error: any) {
-      toast.error(error.message);
+      console.error('Google sign in error:', error);
+      toast.error(error.message || 'An error occurred during Google sign in');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.email || !formData.password) {
-      toast.error("Please fill in all fields");
-      return;
-    }
-
-    setIsLoading(true);
-    
-    try {
-      const { error } = await signIn(formData.email, formData.password);
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success("Welcome back!");
-        navigate('/dashboard');
-      }
-    } catch (error: any) {
-      toast.error("An unexpected error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
-    <div className="min-h-screen bg-yeild-black text-white flex">
-      {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-yeild-yellow/20 to-black items-center justify-center p-12">
-        <div className="text-center">
-          <img 
-            src="/lovable-uploads/54ccebd1-9d4c-452f-b0a9-0b9de0fcfebf.png" 
-            alt="YEILD Logo" 
-            className="w-32 h-32 mx-auto mb-8 object-contain"
-          />
-          <h1 className="text-5xl font-bold mb-6">Welcome back</h1>
-          <p className="text-gray-400 text-lg">Continue your journey and earn rewards</p>
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Header */}
+      <div className="flex items-center justify-between p-6">
+        <button onClick={onBack} className="text-foreground">
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+        <div className="flex items-center justify-center">
+          <img src="/lovable-uploads/c0942c4f-38c3-4a43-9d01-3f429f5860ee.png" alt="YIELD" className="h-8" />
         </div>
+        <div className="w-6"></div>
       </div>
 
-      {/* Right side - Sign In Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16">
-        <div className="max-w-md mx-auto w-full">
-          {/* Back button */}
-          <Button
-            onClick={onBack}
-            variant="ghost"
-            className="mb-8 p-2 text-white hover:bg-gray-800 rounded-full"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </Button>
-
-          {/* Logo for mobile */}
-          <div className="lg:hidden text-center mb-8">
-            <img 
-              src="/lovable-uploads/54ccebd1-9d4c-452f-b0a9-0b9de0fcfebf.png" 
-              alt="YEILD Logo" 
-              className="w-16 h-16 mx-auto mb-4 object-contain"
-            />
-            <h2 className="text-2xl font-bold">{title || "Welcome back"}</h2>
-            {subtitle && <p className="text-gray-400 mt-2">{subtitle}</p>}
+      {/* Content */}
+      <div className="px-6 pb-6 max-w-md mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Sign in to YIELD</h1>
+            <p className="text-muted-foreground">Welcome back!</p>
           </div>
 
-          <h1 className="text-3xl lg:text-4xl font-bold mb-8">
-            {title || `Sign in as ${userType === 'brand' ? 'Brand Partner' : 'User'}`}
-          </h1>
+          <div className="space-y-6">
+            {userType === 'user' && (
+              <>
+                <Button
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                  className="w-full bg-muted hover:bg-muted/80 text-foreground py-4 rounded-2xl flex items-center justify-center gap-3"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  Continue with Google
+                </Button>
+                
+                <div className="flex items-center justify-center">
+                  <div className="flex-1 h-px bg-border"></div>
+                  <span className="px-4 text-sm text-muted-foreground">or</span>
+                  <div className="flex-1 h-px bg-border"></div>
+                </div>
+              </>
+            )}
 
-          {subtitle && !title && (
-            <p className="text-gray-400 mb-8">
-              {userType === 'brand' 
-                ? 'Access your brand dashboard and manage campaigns' 
-                : 'Continue your journey and earn rewards'
-              }
-            </p>
-          )}
+            <form onSubmit={handleSignIn} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">Email</label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full py-4 px-4 bg-transparent border-b border-muted-foreground/30 rounded-none focus:border-primary focus:ring-0 text-lg"
+                  placeholder=""
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">Password</label>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full py-4 px-4 pr-12 bg-transparent border-b border-muted-foreground/30 rounded-none focus:border-primary focus:ring-0 text-lg"
+                    placeholder=""
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
 
-          {/* Google Sign In */}
-          <Button
-            onClick={handleGoogleAuth}
-            disabled={isLoading}
-            variant="outline"
-            className="w-full mb-6 py-6 text-lg font-medium border-gray-600 text-white hover:bg-gray-800 rounded-full flex items-center justify-center gap-3"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            Sign in with Google
-          </Button>
+              <div className="text-right">
+                <button type="button" className="text-sm text-primary">
+                  Forgot password?
+                </button>
+              </div>
 
-          {/* Divider */}
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-600"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-black text-gray-400">or</span>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-foreground hover:bg-foreground/90 text-background py-4 rounded-full text-lg font-semibold"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+                    Signing in...
+                  </div>
+                ) : (
+                  'Sign in'
+                )}
+              </Button>
+            </form>
+
+            <div className="text-center">
+              <p className="text-muted-foreground">
+                Don't have an account?{' '}
+                <button onClick={onSwitchToSignup} className="text-primary font-medium">
+                  Sign up
+                </button>
+              </p>
             </div>
           </div>
-
-          {/* Email Form */}
-          <form onSubmit={handleEmailAuth} className="space-y-4">
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                type="email"
-                placeholder="Email address"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                className="w-full bg-black border-gray-600 text-white pl-10 py-6 text-lg rounded-lg focus:border-yeild-yellow focus:ring-yeild-yellow"
-              />
-            </div>
-            
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                value={formData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
-                className="w-full bg-black border-gray-600 text-white pl-10 pr-10 py-6 text-lg rounded-lg focus:border-yeild-yellow focus:ring-yeild-yellow"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-6 text-lg font-bold rounded-full mt-6"
-            >
-              {isLoading ? "Please wait..." : "Sign in"}
-            </Button>
-          </form>
-
-          {/* Switch to signup - hide for admin login */}
-          {!title && (
-            <div className="text-center mt-8">
-              <span className="text-gray-400">
-                Don't have an account?{" "}
-              </span>
-              <button
-                onClick={onSwitchToSignup}
-                className="text-yeild-yellow hover:text-yeild-yellow/80 font-medium"
-              >
-                Sign up
-              </button>
-            </div>
-          )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );
