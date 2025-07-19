@@ -92,20 +92,14 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({ open, on
 
   const mutation = useMutation({
     mutationFn: (data: CampaignFormData) => {
-        // Ensure all required fields are present and properly typed
-        const campaignData: CreateCampaignPayload = {
-            title: data.title,
-            description: data.description,
-            category: data.category,
-            difficulty: data.difficulty,
-            estimated_time: data.estimated_time,
+        const campaignData = {
+            ...data,
             expires_at: data.expires_at?.toISOString(),
         };
-        
         if (isEditMode) {
             return taskService.updateCampaign(campaign!.id, campaignData);
         }
-        return taskService.createCampaign(campaignData);
+        return taskService.createCampaign(campaignData as CreateCampaignPayload);
     },
     onSuccess: () => {
         onCampaignSaved();

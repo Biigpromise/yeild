@@ -1,24 +1,25 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { taskSubmissionService } from "./tasks/taskSubmissionService";
+import { adminTaskService } from "./tasks/adminTaskService";
+import { taskQueries } from "./tasks/taskQueries";
 
 export interface Task {
   id: string;
   title: string;
   description: string;
-  category: string;
   points: number;
-  estimated_time: string;
+  category: string;
   difficulty: string;
-  task_type: string;
-  brand_name: string;
+  estimated_time?: string;
+  brand_name?: string;
   brand_logo_url?: string;
+  expires_at?: string;
   status: string;
   created_at: string;
-  expires_at?: string;
-  social_media_links?: Record<string, string> | null;
   brand_user_id?: string;
-  category_id?: string;
+  social_media_links?: Record<string, string> | null;
 }
 
 export interface TaskCategory {
@@ -30,213 +31,138 @@ export interface TaskCategory {
   created_at?: string;
 }
 
-export interface TaskSubmission {
-  id: string;
-  task_id: string;
-  user_id: string;
-  evidence: string;
-  status: string;
-  submitted_at: string;
-  reviewed_at?: string;
-  admin_notes?: string;
-}
-
 export interface CreateCampaignPayload {
   title: string;
   description: string;
+  points?: number;
   category: string;
   difficulty: string;
   estimated_time?: string;
   expires_at?: string;
 }
 
+// Helper function to safely transform social_media_links
+const transformSocialMediaLinks = (links: any): Record<string, string> | null => {
+  if (!links) return null;
+  if (typeof links === 'string') {
+    try {
+      return JSON.parse(links);
+    } catch {
+      return null;
+    }
+  }
+  if (typeof links === 'object') {
+    return links as Record<string, string>;
+  }
+  return null;
+};
+
+// Helper function to transform database task to Task interface
+const transformTask = (dbTask: any): Task => ({
+  ...dbTask,
+  social_media_links: transformSocialMediaLinks(dbTask.social_media_links)
+});
+
 export const taskService = {
+  // Get all active tasks for users
   async getTasks(): Promise<Task[]> {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('status', 'active')
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    
-    // Fix the social_media_links type issue
-    return (data || []).map(task => ({
-      ...task,
-      social_media_links: task.social_media_links as Record<string, string> | null
-    }));
+    const tasks = await taskQueries.getTasks();
+    return tasks.map(transformTask);
   },
 
+  // Get task categories
   async getCategories(): Promise<TaskCategory[]> {
-    const { data, error } = await supabase
-      .from('task_categories')
-      .select('*')
-      .order('name');
-
-    if (error) throw error;
-    return data || [];
+    return await taskQueries.getCategories();
   },
 
-  async getUserSubmissions(): Promise<TaskSubmission[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return [];
-
-    const { data, error } = await supabase
-      .from('task_submissions')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('submitted_at', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
+  // Submit a task
+  async submitTask(taskId: string, evidence: string, timeSpent?: number): Promise<boolean> {
+    return await taskSubmissionService.submitTask(taskId, evidence, timeSpent);
   },
 
-  async getUserTasks() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return [];
-
-    const { data, error } = await supabase
-      .from('user_tasks')
-      .select(`
-        *,
-        tasks (
-          title,
-          points
-        )
-      `)
-      .eq('user_id', user.id)
-      .order('completed_at', { ascending: false })
-      .limit(10);
-
-    if (error) throw error;
-    return data || [];
+  // Check if user has submitted a task
+  async hasUserSubmittedTask(taskId: string): Promise<boolean> {
+    return await taskSubmissionService.hasUserSubmittedTask(taskId);
   },
 
-  async submitTask(taskId: string, evidence: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
+  // Get user's task submissions
+  async getUserSubmissions(): Promise<any[]> {
+    try {
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) return [];
 
-    const { error } = await supabase
-      .from('task_submissions')
-      .insert({
-        task_id: taskId,
-        user_id: user.id,
-        evidence,
-        status: 'pending'
-      });
-
-    if (error) throw error;
-  },
-
-  async createCampaign(campaignData: CreateCampaignPayload): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { error } = await supabase
-      .from('tasks')
-      .insert({
-        ...campaignData,
-        brand_user_id: user.id,
-        status: 'active',
-        task_type: 'campaign',
-        brand_name: 'Brand User'
-      });
-
-    if (error) throw error;
-    toast.success('Campaign created successfully!');
-  },
-
-  async updateCampaign(taskId: string, campaignData: CreateCampaignPayload): Promise<void> {
-    const { error } = await supabase
-      .from('tasks')
-      .update(campaignData)
-      .eq('id', taskId);
-
-    if (error) throw error;
-    toast.success('Campaign updated successfully!');
-  },
-
-  admin: {
-    async getAllTasks(): Promise<Task[]> {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return (data || []).map(task => ({
-        ...task,
-        social_media_links: task.social_media_links as Record<string, string> | null
-      }));
-    },
-
-    async getAllSubmissions(): Promise<TaskSubmission[]> {
       const { data, error } = await supabase
         .from('task_submissions')
-        .select('*')
+        .select(`
+          *,
+          tasks(title, points, category)
+        `)
+        .eq('user_id', user.id)
         .order('submitted_at', { ascending: false });
 
       if (error) throw error;
       return data || [];
-    },
-
-    async createTask(taskData: any): Promise<boolean> {
-      try {
-        const { error } = await supabase
-          .from('tasks')
-          .insert(taskData);
-
-        if (error) {
-          console.error('Task creation error:', error);
-          toast.error('Failed to create task: ' + error.message);
-          return false;
-        }
-
-        toast.success('Task created successfully!');
-        return true;
-      } catch (error: any) {
-        console.error('Task creation error:', error);
-        toast.error('Failed to create task');
-        return false;
-      }
-    },
-
-    async deleteTask(taskId: string): Promise<boolean> {
-      try {
-        const { error } = await supabase
-          .from('tasks')
-          .delete()
-          .eq('id', taskId);
-
-        if (error) {
-          console.error('Task deletion error:', error);
-          toast.error('Failed to delete task');
-          return false;
-        }
-
-        return true;
-      } catch (error: any) {
-        console.error('Task deletion error:', error);
-        toast.error('Failed to delete task');
-        return false;
-      }
-    },
-
-    async updateSubmissionStatus(
-      submissionId: string, 
-      status: 'approved' | 'rejected', 
-      notes?: string
-    ): Promise<void> {
-      const { error } = await supabase
-        .from('task_submissions')
-        .update({
-          status,
-          admin_notes: notes,
-          reviewed_at: new Date().toISOString()
-        })
-        .eq('id', submissionId);
-
-      if (error) throw error;
+    } catch (error) {
+      console.error('Error fetching user submissions:', error);
+      return [];
     }
+  },
+
+  // Get user's completed tasks
+  async getUserTasks(): Promise<any[]> {
+    return await taskQueries.getUserTasks();
+  },
+
+  // Admin functions
+  admin: adminTaskService,
+
+  // Brand functions
+  async createCampaign(campaignData: CreateCampaignPayload): Promise<Task | null> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("You must be logged in to create a campaign.");
+      return null;
+    }
+
+    const campaignToInsert = {
+      ...campaignData,
+      points: campaignData.points ?? 0,
+      brand_user_id: user.id,
+      brand_name: user.user_metadata?.company_name,
+      status: 'active'
+    };
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert(campaignToInsert)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating campaign:", error);
+      toast.error(`Failed to create campaign: ${error.message}`);
+      return null;
+    }
+
+    toast.success("Campaign created successfully!");
+    return transformTask(data);
+  },
+
+  async updateCampaign(campaignId: string, campaignData: Partial<Task>): Promise<Task | null> {
+    const { data, error } = await supabase
+      .from('tasks')
+      .update(campaignData)
+      .eq('id', campaignId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating campaign:", error);
+      toast.error(`Failed to update campaign: ${error.message}`);
+      return null;
+    }
+
+    toast.success("Campaign updated successfully!");
+    return transformTask(data);
   }
 };
