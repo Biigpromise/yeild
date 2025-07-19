@@ -1,14 +1,15 @@
-import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, CheckCircle, FileImage, FileVideo } from "lucide-react";
-import { toast } from "sonner";
-import { taskService, Task } from "@/services/taskService";
-import { taskSubmissionService } from "@/services/tasks/taskSubmissionService";
-import { useTaskSubmissionPersistence } from "@/hooks/useTaskSubmissionPersistence";
+
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Upload, Camera, Link as LinkIcon } from 'lucide-react';
+import { Task } from '@/services/taskService';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface TaskSubmissionModalProps {
   task: Task | null;
@@ -23,219 +24,133 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
   onClose,
   onSubmitted
 }) => {
-  const [evidence, setEvidence] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [validationError, setValidationError] = useState("");
+  const { user } = useAuth();
+  const [evidence, setEvidence] = useState('');
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
-  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  // NEW: Persist form draft (evidence text + preview)
-  const { clearDraft } = useTaskSubmissionPersistence(
-    task ? task.id : null,
-    evidence,
-    setEvidence,
-    evidenceFile,
-    setEvidenceFile,
-    filePreview,
-    setFilePreview,
-    isOpen // Only enable persistence when modal is open
-  );
-
-  const validateEvidence = (text: string): boolean => {
-    if (!text.trim() && !evidenceFile) {
-      setValidationError("Evidence is required (text or file).");
-      return false;
-    }
-    if (text.trim() && text.trim().length < 10) {
-      setValidationError("Please provide more detailed evidence (at least 10 characters)");
-      return false;
-    }
-    setValidationError("");
-    return true;
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    // Check file type: Accept only images and videos
-    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
-      toast.error("Only image and video files are allowed.");
-      setEvidenceFile(null);
-      setFilePreview(null);
-      return;
-    }
-    if (file.size > 15 * 1024 * 1024) {
-      toast.error("File should be less than 15MB.");
-      setEvidenceFile(null);
-      setFilePreview(null);
-      return;
-    }
-    setEvidenceFile(file);
-
-    // Show file preview
-    if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
-      const reader = new FileReader();
-      reader.onload = (ev: ProgressEvent<FileReader>) => {
-        setFilePreview(ev.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setFilePreview(null);
+    if (file) {
+      setEvidenceFile(file);
     }
   };
 
   const handleSubmit = async () => {
-    if (!task) {
-      toast.error("No task selected");
+    if (!task || !user) return;
+
+    if (!evidence.trim() && !evidenceFile) {
+      toast.error('Please provide evidence of task completion');
       return;
     }
 
-    if (!validateEvidence(evidence)) {
-      return;
-    }
-
-    setIsSubmitting(true);
+    setSubmitting(true);
 
     try {
-      if (!evidence.trim() && !evidenceFile) {
-        setValidationError("Please provide text or file evidence.");
-        setIsSubmitting(false);
-        return;
-      }
-      const success = await taskSubmissionService.submitTask(
-        task.id,
-        evidence.trim(),
-        undefined,
-        evidenceFile || undefined
-      );
-      if (success) {
-        setEvidence("");
-        setValidationError("");
-        setEvidenceFile(null);
-        setFilePreview(null);
-        clearDraft();    // Clear persisted draft
-        onSubmitted();
-        onClose();
-      }
-    } catch (error) {
-      console.error("Submission error in modal:", error);
-      toast.error("Failed to submit task. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+      let evidenceUrl = evidence;
 
-  const handleClose = () => {
-    setEvidence("");
-    setValidationError("");
-    setEvidenceFile(null);
-    setFilePreview(null);
-    clearDraft();      // Clear persisted draft
-    onClose();
+      // Upload file if provided
+      if (evidenceFile) {
+        const fileExt = evidenceFile.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `${user.id}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('task-evidence')
+          .upload(filePath, evidenceFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage
+          .from('task-evidence')
+          .getPublicUrl(filePath);
+
+        evidenceUrl = `${evidence}\n\nFile: ${data.publicUrl}`;
+      }
+
+      // Submit task evidence
+      const { error } = await supabase
+        .from('task_submissions')
+        .insert({
+          task_id: task.id,
+          user_id: user.id,
+          evidence: evidenceUrl,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      toast.success('Task submitted successfully! Your submission is under review.');
+      onSubmitted();
+      onClose();
+      setEvidence('');
+      setEvidenceFile(null);
+    } catch (error) {
+      console.error('Error submitting task:', error);
+      toast.error('Failed to submit task. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!task) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            Submit Task
-            <Badge variant="outline" className="text-xs">
-              {task.difficulty}
-            </Badge>
-          </DialogTitle>
+          <DialogTitle>Submit Task Evidence</DialogTitle>
         </DialogHeader>
+        
         <div className="space-y-4">
           <div>
-            <Label className="text-sm font-medium">Task</Label>
-            <p className="text-sm font-semibold mt-1">{task.title}</p>
-            <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
-          </div>
-
-          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium text-green-800">Reward</span>
+            <h4 className="font-medium mb-2">{task.title}</h4>
+            <p className="text-sm text-muted-foreground mb-4">{task.description}</p>
+            <div className="bg-primary/10 p-3 rounded-lg">
+              <p className="text-sm font-medium text-primary">Reward: {task.points} points</p>
             </div>
-            <span className="text-sm font-bold text-green-600">{task.points} points</span>
           </div>
 
-          <div>
-            <Label htmlFor="evidence" className="text-sm font-medium">
-              Evidence of Completion *
-            </Label>
+          <div className="space-y-3">
+            <Label htmlFor="evidence">Describe what you completed *</Label>
             <Textarea
               id="evidence"
-              placeholder="Please provide proof of task completion (URL, screenshot description, detailed explanation, etc.)"
+              placeholder="Describe how you completed the task, include links, screenshots references, etc."
               value={evidence}
-              onChange={(e) => {
-                setEvidence(e.target.value);
-                if (validationError) {
-                  validateEvidence(e.target.value);
-                }
-              }}
+              onChange={(e) => setEvidence(e.target.value)}
               rows={4}
-              className={`mt-1 ${validationError ? 'border-red-500' : ''}`}
-              disabled={isSubmitting}
             />
-            <div className="mt-2">
-              <input
-                id="evidence-file"
-                type="file"
-                accept="image/*,video/*"
-                onChange={handleFileChange}
-                disabled={isSubmitting}
-                className="block"
-              />
-              {evidenceFile && (
-                <div className="mt-2 flex items-center gap-2">
-                  {evidenceFile.type.startsWith("image/") && filePreview && (
-                    <img src={filePreview} alt="Preview" className="h-16 w-16 object-cover rounded-md border" />
-                  )}
-                  {evidenceFile.type.startsWith("video/") && filePreview && (
-                    <video width="80" height="60" controls className="rounded-md border">
-                      <source src={filePreview} type={evidenceFile.type} />
-                      Your browser does not support the video tag.
-                    </video>
-                  )}
-                  <span className="text-xs">{evidenceFile.name}</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-red-500"
-                    onClick={() => {
-                      setEvidenceFile(null);
-                      setFilePreview(null);
-                    }}
-                    disabled={isSubmitting}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              )}
-            </div>
-            {validationError && (
-              <div className="flex items-center gap-1 mt-1 text-red-600">
-                <AlertTriangle className="h-3 w-3" />
-                <p className="text-xs">{validationError}</p>
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground mt-1">
-              Provide clear details or upload a screenshot/video to prove you completed this task.
-            </p>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
+          <div className="space-y-3">
+            <Label>Upload Evidence (optional)</Label>
+            <div className="border-2 border-dashed rounded-lg p-4 text-center">
+              <Input
+                type="file"
+                accept="image/*,video/*,.pdf,.doc,.docx"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
+              />
+              <Label htmlFor="file-upload" className="cursor-pointer">
+                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  {evidenceFile ? evidenceFile.name : 'Click to upload screenshot, video, or document'}
+                </p>
+              </Label>
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Button variant="outline" onClick={onClose} className="flex-1">
               Cancel
             </Button>
             <Button 
               onClick={handleSubmit} 
-              disabled={isSubmitting || (!!validationError)}
+              disabled={submitting || (!evidence.trim() && !evidenceFile)}
+              className="flex-1"
             >
-              {isSubmitting ? "Submitting..." : "Submit Task"}
+              {submitting ? 'Submitting...' : 'Submit Task'}
             </Button>
           </div>
         </div>

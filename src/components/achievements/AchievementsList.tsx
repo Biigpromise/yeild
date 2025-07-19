@@ -1,109 +1,120 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { rewardsService, Achievement, UserAchievement } from "@/services/rewardsService";
-import { toast } from "sonner";
-import { Trophy, Award, Medal, Star, Coins, Target } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Trophy, Award, Crown, Star, Gem, Lock } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+
+interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  requirement_type: string;
+  requirement_value: number;
+  points_reward: number;
+  badge_icon: string;
+  badge_color: string;
+  is_active: boolean;
+}
+
+interface UserAchievement {
+  id: string;
+  achievement_id: string;
+  unlocked_at: string;
+}
 
 interface AchievementsListProps {
-  userStats?: {
-    tasksCompleted?: number;
-    points?: number;
+  userStats: {
+    points: number;
+    tasksCompleted: number;
   };
 }
 
-export const AchievementsList = ({ userStats }: AchievementsListProps) => {
+export const AchievementsList: React.FC<AchievementsListProps> = ({ userStats }) => {
+  const { user } = useAuth();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [userAchievements, setUserAchievements] = useState<UserAchievement[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Provide safe defaults for userStats
-  const safeUserStats = {
-    tasksCompleted: userStats?.tasksCompleted || 0,
-    points: userStats?.points || 0
+  useEffect(() => {
+    if (user) {
+      fetchAchievements();
+      fetchUserAchievements();
+    }
+  }, [user]);
+
+  const fetchAchievements = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('achievements')
+        .select('*')
+        .eq('is_active', true)
+        .order('requirement_value');
+
+      if (error) throw error;
+      setAchievements(data || []);
+    } catch (error) {
+      console.error('Error fetching achievements:', error);
+      toast.error('Failed to load achievements');
+    }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const fetchUserAchievements = async () => {
+    if (!user) return;
 
-  const loadData = async () => {
     try {
-      setLoading(true);
-      const [achievementsData, userAchievementsData] = await Promise.all([
-        rewardsService.getAchievements(),
-        rewardsService.getUserAchievements()
-      ]);
-      setAchievements(achievementsData);
-      setUserAchievements(userAchievementsData);
+      const { data, error } = await supabase
+        .from('user_achievements')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      setUserAchievements(data || []);
     } catch (error) {
-      console.error("Error loading achievements:", error);
-      toast.error("Failed to load achievements");
+      console.error('Error fetching user achievements:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const getAchievementIcon = (icon: string) => {
-    switch (icon) {
-      case 'trophy':
-        return <Trophy className="h-6 w-6" />;
-      case 'award':
-        return <Award className="h-6 w-6" />;
-      case 'medal':
-        return <Medal className="h-6 w-6" />;
-      case 'star':
-        return <Star className="h-6 w-6" />;
-      case 'coins':
-        return <Coins className="h-6 w-6" />;
-      case 'badge':
-        return <Target className="h-6 w-6" />;
-      default:
-        return <Trophy className="h-6 w-6" />;
+  const getIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'Trophy': return Trophy;
+      case 'Award': return Award;
+      case 'Crown': return Crown;
+      case 'Star': return Star;
+      case 'Gem': return Gem;
+      default: return Trophy;
     }
   };
 
   const calculateProgress = (achievement: Achievement) => {
-    const earned = userAchievements.some(ua => ua.achievement_id === achievement.id);
-    if (earned) return 100;
-
     let currentValue = 0;
-    switch (achievement.requirement_type) {
-      case 'tasks_completed':
-        currentValue = safeUserStats.tasksCompleted;
-        break;
-      case 'points_earned':
-        currentValue = safeUserStats.points;
-        break;
+    
+    if (achievement.requirement_type === 'tasks_completed') {
+      currentValue = userStats.tasksCompleted;
+    } else if (achievement.requirement_type === 'points_earned') {
+      currentValue = userStats.points;
     }
 
     return Math.min((currentValue / achievement.requirement_value) * 100, 100);
   };
 
-  const getAchievementTypeColor = (type: string) => {
-    switch (type) {
-      case 'milestone':
-        return 'bg-blue-100 text-blue-800';
-      case 'streak':
-        return 'bg-green-100 text-green-800';
-      case 'special':
-        return 'bg-purple-100 text-purple-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const isUnlocked = (achievementId: string) => {
+    return userAchievements.some(ua => ua.achievement_id === achievementId);
   };
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[...Array(4)].map((_, i) => (
+      <div className="space-y-4">
+        {[...Array(5)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
-              <div className="h-6 bg-gray-200 rounded mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-2 bg-gray-200 rounded"></div>
+              <div className="h-6 bg-gray-200 rounded mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
             </CardContent>
           </Card>
         ))}
@@ -111,86 +122,132 @@ export const AchievementsList = ({ userStats }: AchievementsListProps) => {
     );
   }
 
-  const earnedAchievementIds = userAchievements.map(ua => ua.achievement_id);
+  const unlockedAchievements = achievements.filter(a => isUnlocked(a.id));
+  const lockedAchievements = achievements.filter(a => !isUnlocked(a.id));
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Achievements</h2>
-        <p className="text-muted-foreground">Track your progress and unlock rewards</p>
-      </div>
+      {/* Achievement Summary */}
+      <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-yellow-600" />
+            Achievement Progress
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-600">{unlockedAchievements.length}</div>
+              <div className="text-sm text-muted-foreground">Unlocked</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-600">{achievements.length}</div>
+              <div className="text-sm text-muted-foreground">Total</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {achievements.map((achievement) => {
-          const isEarned = earnedAchievementIds.includes(achievement.id);
-          const progress = calculateProgress(achievement);
-          
-          return (
-            <Card key={achievement.id} className={`${isEarned ? 'border-green-200 bg-green-50' : ''}`}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${isEarned ? 'bg-green-100' : 'bg-gray-100'}`} 
-                         style={{ color: achievement.badge_color }}>
-                      {getAchievementIcon(achievement.badge_icon)}
+      {/* Unlocked Achievements */}
+      {unlockedAchievements.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Unlocked Achievements</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {unlockedAchievements.map((achievement) => {
+              const IconComponent = getIcon(achievement.badge_icon);
+              
+              return (
+                <Card key={achievement.id} className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div 
+                        className="p-2 rounded-full"
+                        style={{ backgroundColor: `${achievement.badge_color}20`, color: achievement.badge_color }}
+                      >
+                        <IconComponent className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-green-800">{achievement.title}</h4>
+                        <p className="text-sm text-green-600 mb-2">{achievement.description}</p>
+                        <Badge className="bg-green-100 text-green-800">
+                          +{achievement.points_reward} points
+                        </Badge>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{achievement.title}</CardTitle>
-                      <Badge className={getAchievementTypeColor(achievement.achievement_type)}>
-                        {achievement.achievement_type}
-                      </Badge>
-                    </div>
-                  </div>
-                  {isEarned && (
-                    <Badge className="bg-green-100 text-green-800">
-                      Earned!
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">{achievement.description}</p>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Progress</span>
-                    <span className="font-medium">
-                      {Math.round(progress)}%
-                    </span>
-                  </div>
-                  <Progress value={progress} className="h-2" />
-                  
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>
-                      {achievement.requirement_type === 'tasks_completed' ? 'Tasks completed' : 'Points earned'}
-                    </span>
-                    <span>
-                      {achievement.requirement_type === 'tasks_completed' 
-                        ? `${Math.min(safeUserStats.tasksCompleted, achievement.requirement_value)}/${achievement.requirement_value}`
-                        : `${Math.min(safeUserStats.points, achievement.requirement_value)}/${achievement.requirement_value}`
-                      }
-                    </span>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-                {achievement.points_reward > 0 && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Coins className="h-4 w-4 text-yellow-600" />
-                    <span className="text-yellow-800 font-medium">+{achievement.points_reward} points</span>
+      {/* Locked Achievements */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Available Achievements</h3>
+        <div className="space-y-4">
+          {lockedAchievements.map((achievement) => {
+            const IconComponent = getIcon(achievement.badge_icon);
+            const progress = calculateProgress(achievement);
+            const isCompleted = progress >= 100;
+            
+            return (
+              <Card key={achievement.id} className={isCompleted ? 'border-yellow-200 bg-yellow-50' : ''}>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div 
+                      className={`p-2 rounded-full ${isCompleted ? 'animate-pulse' : 'opacity-50'}`}
+                      style={{ backgroundColor: `${achievement.badge_color}20`, color: achievement.badge_color }}
+                    >
+                      {isCompleted ? <IconComponent className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold">{achievement.title}</h4>
+                        <Badge variant="outline">
+                          +{achievement.points_reward} points
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">{achievement.description}</p>
+                      
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Progress</span>
+                          <span>
+                            {achievement.requirement_type === 'tasks_completed' 
+                              ? `${userStats.tasksCompleted}/${achievement.requirement_value} tasks`
+                              : `${userStats.points}/${achievement.requirement_value} points`
+                            }
+                          </span>
+                        </div>
+                        <Progress value={progress} className="h-2" />
+                      </div>
+
+                      {isCompleted && (
+                        <div className="mt-2 text-sm font-medium text-yellow-600">
+                          🎉 Ready to unlock! Complete another task to claim this achievement.
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
       {achievements.length === 0 && (
-        <div className="text-center py-12">
-          <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No achievements available</h3>
-          <p className="text-gray-500">Complete tasks to unlock achievements!</p>
-        </div>
+        <Card>
+          <CardContent className="p-8 text-center">
+            <Trophy className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
+            <h3 className="font-semibold mb-2">No achievements available</h3>
+            <p className="text-muted-foreground">
+              Achievements will appear here once they're added by administrators.
+            </p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
