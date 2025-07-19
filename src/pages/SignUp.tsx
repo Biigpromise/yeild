@@ -11,12 +11,18 @@ const SignUp = () => {
   const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
   const [selectedUserType, setSelectedUserType] = useState<'user' | 'brand' | null>(null);
-  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signin'); // Default to signin
+  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signin');
+  const [isAdminLogin, setIsAdminLogin] = useState(false);
 
-  // Check for user type in URL params
+  // Check for admin login and user type in URL params
   useEffect(() => {
+    const isAdmin = searchParams.get('admin') === 'true';
     const userType = searchParams.get('type') as 'user' | 'brand';
-    if (userType && ['user', 'brand'].includes(userType)) {
+    
+    if (isAdmin) {
+      setIsAdminLogin(true);
+      setAuthMode('signin');
+    } else if (userType && ['user', 'brand'].includes(userType)) {
       setSelectedUserType(userType);
     }
   }, [searchParams]);
@@ -24,9 +30,13 @@ const SignUp = () => {
   // Handle redirect after auth state is determined
   useEffect(() => {
     if (!loading && user) {
-      navigate("/dashboard");
+      if (isAdminLogin) {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, isAdminLogin]);
 
   // Show loading while auth state is being determined
   if (loading) {
@@ -42,13 +52,26 @@ const SignUp = () => {
     return null;
   }
 
+  // Show admin login form
+  if (isAdminLogin) {
+    return (
+      <ModernSignInFlow
+        userType="user"
+        onBack={() => navigate("/")}
+        onSwitchToSignup={() => navigate("/auth")}
+        title="Admin Login"
+        subtitle="Sign in with your admin credentials"
+      />
+    );
+  }
+
   // Show user type selection if no type is selected
   if (!selectedUserType) {
     return (
       <UserTypeSelection
         onSelectUser={() => setSelectedUserType('user')}
         onSelectBrand={() => setSelectedUserType('brand')}
-        onSwitchToSignin={() => setAuthMode('signup')} // This actually switches to signup
+        onSwitchToSignin={() => setAuthMode('signup')}
       />
     );
   }

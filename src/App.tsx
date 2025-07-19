@@ -10,7 +10,10 @@ import SignUp from "./pages/SignUp";
 import UserTypeSelection from "./pages/UserTypeSelection";
 import Dashboard from "./pages/Dashboard";
 import BrandDashboard from "./pages/BrandDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import Onboarding from "./pages/Onboarding";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -26,9 +29,30 @@ function App() {
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<SignUp />} />
                 <Route path="/user-type" element={<UserTypeSelection />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/brand-dashboard" element={<BrandDashboard />} />
-                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/brand-dashboard" element={
+                  <ProtectedRoute>
+                    <RoleProtectedRoute requiredRole="brand">
+                      <BrandDashboard />
+                    </RoleProtectedRoute>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <RoleProtectedRoute requiredRole="admin">
+                      <AdminDashboard />
+                    </RoleProtectedRoute>
+                  </ProtectedRoute>
+                } />
+                <Route path="/onboarding" element={
+                  <ProtectedRoute>
+                    <Onboarding />
+                  </ProtectedRoute>
+                } />
               </Routes>
             </OnboardingProvider>
           </AuthProvider>
