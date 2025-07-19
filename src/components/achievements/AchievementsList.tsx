@@ -72,7 +72,15 @@ export const AchievementsList: React.FC<AchievementsListProps> = ({ userStats })
         .eq('user_id', user.id);
 
       if (error) throw error;
-      setUserAchievements(data || []);
+      
+      // Map the data to match our interface (earned_at -> unlocked_at)
+      const mappedData = (data || []).map(item => ({
+        id: item.id,
+        achievement_id: item.achievement_id,
+        unlocked_at: item.earned_at || item.unlocked_at
+      }));
+      
+      setUserAchievements(mappedData);
     } catch (error) {
       console.error('Error fetching user achievements:', error);
     } finally {

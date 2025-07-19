@@ -78,8 +78,9 @@ const Dashboard = () => {
         </div>
         <MobileTabNavigation 
           activeTab={activeTab} 
-          onTabChange={setActiveTab} 
-          userStats={userStats}
+          onTabChange={setActiveTab}
+          tasksCompleted={userStats.tasksCompleted}
+          referralsCount={userStats.referrals}
         />
       </div>
     );
@@ -93,7 +94,8 @@ const Dashboard = () => {
             <DesktopTabNavigation 
               activeTab={activeTab} 
               onTabChange={setActiveTab}
-              userStats={userStats}
+              tasksCompleted={userStats.tasksCompleted}
+              referralsCount={userStats.referrals}
             />
           </div>
           <div className="col-span-9">

@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export interface Task {
   id: string;
@@ -40,6 +41,15 @@ export interface TaskSubmission {
   admin_notes?: string;
 }
 
+export interface CreateCampaignPayload {
+  title: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  estimated_time?: string;
+  expires_at?: string;
+}
+
 export const taskService = {
   async getTasks(): Promise<Task[]> {
     const { data, error } = await supabase
@@ -49,7 +59,12 @@ export const taskService = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    // Fix the social_media_links type issue
+    return (data || []).map(task => ({
+      ...task,
+      social_media_links: task.social_media_links as Record<string, string> | null
+    }));
   },
 
   async getCategories(): Promise<TaskCategory[]> {
@@ -111,5 +126,117 @@ export const taskService = {
       });
 
     if (error) throw error;
+  },
+
+  async createCampaign(campaignData: CreateCampaignPayload): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('tasks')
+      .insert({
+        ...campaignData,
+        brand_user_id: user.id,
+        status: 'active',
+        task_type: 'campaign',
+        brand_name: 'Brand User'
+      });
+
+    if (error) throw error;
+    toast.success('Campaign created successfully!');
+  },
+
+  async updateCampaign(taskId: string, campaignData: CreateCampaignPayload): Promise<void> {
+    const { error } = await supabase
+      .from('tasks')
+      .update(campaignData)
+      .eq('id', taskId);
+
+    if (error) throw error;
+    toast.success('Campaign updated successfully!');
+  },
+
+  admin: {
+    async getAllTasks(): Promise<Task[]> {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map(task => ({
+        ...task,
+        social_media_links: task.social_media_links as Record<string, string> | null
+      }));
+    },
+
+    async getAllSubmissions(): Promise<TaskSubmission[]> {
+      const { data, error } = await supabase
+        .from('task_submissions')
+        .select('*')
+        .order('submitted_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+
+    async createTask(taskData: any): Promise<boolean> {
+      try {
+        const { error } = await supabase
+          .from('tasks')
+          .insert(taskData);
+
+        if (error) {
+          console.error('Task creation error:', error);
+          toast.error('Failed to create task: ' + error.message);
+          return false;
+        }
+
+        toast.success('Task created successfully!');
+        return true;
+      } catch (error: any) {
+        console.error('Task creation error:', error);
+        toast.error('Failed to create task');
+        return false;
+      }
+    },
+
+    async deleteTask(taskId: string): Promise<boolean> {
+      try {
+        const { error } = await supabase
+          .from('tasks')
+          .delete()
+          .eq('id', taskId);
+
+        if (error) {
+          console.error('Task deletion error:', error);
+          toast.error('Failed to delete task');
+          return false;
+        }
+
+        return true;
+      } catch (error: any) {
+        console.error('Task deletion error:', error);
+        toast.error('Failed to delete task');
+        return false;
+      }
+    },
+
+    async updateSubmissionStatus(
+      submissionId: string, 
+      status: 'approved' | 'rejected', 
+      notes?: string
+    ): Promise<void> {
+      const { error } = await supabase
+        .from('task_submissions')
+        .update({
+          status,
+          admin_notes: notes,
+          reviewed_at: new Date().toISOString()
+        })
+        .eq('id', submissionId);
+
+      if (error) throw error;
+    }
   }
 };
