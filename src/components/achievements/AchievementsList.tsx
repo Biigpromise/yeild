@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -73,11 +72,11 @@ export const AchievementsList: React.FC<AchievementsListProps> = ({ userStats })
 
       if (error) throw error;
       
-      // Map the data to match our interface (earned_at -> unlocked_at)
-      const mappedData = (data || []).map(item => ({
+      // Map the database response to our interface
+      const mappedData: UserAchievement[] = (data || []).map(item => ({
         id: item.id,
         achievement_id: item.achievement_id,
-        unlocked_at: item.earned_at || item.unlocked_at
+        unlocked_at: item.earned_at // Map earned_at from DB to unlocked_at for our interface
       }));
       
       setUserAchievements(mappedData);
