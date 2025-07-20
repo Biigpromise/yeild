@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import BrandDashboard from "./pages/BrandDashboard";
 import Onboarding from "./pages/Onboarding";
 import Admin from "./pages/Admin";
+import { CampaignDetails } from "./pages/CampaignDetails";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,6 +48,7 @@ function App() {
                     <Route path="/brand-dashboard" element={<BrandDashboard />} />
                     <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/admin" element={<Admin />} />
+                    <Route path="/campaigns/:id" element={<CampaignDetails />} />
                   </Routes>
                   <Toaster />
                 </OnboardingProvider>
