@@ -35,7 +35,7 @@ class PaymentMethodsService {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as UserPaymentMethod[];
     } catch (error) {
       console.error('Error fetching payment methods:', error);
       toast.error('Failed to load payment methods');
@@ -66,7 +66,7 @@ class PaymentMethodsService {
       if (error) throw error;
 
       toast.success('Payment method added successfully');
-      return newMethod;
+      return newMethod as UserPaymentMethod;
     } catch (error: any) {
       console.error('Error adding payment method:', error);
       if (error.code === '23505') {
