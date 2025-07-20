@@ -120,8 +120,18 @@ export const FlutterwavePayment: React.FC<FlutterwavePaymentProps> = ({
       return;
     }
 
+    if (formData.accountNumber.length !== 10) {
+      toast.error('Account number must be 10 digits');
+      return;
+    }
+
     setVerifyingAccount(true);
     try {
+      console.log('Verifying account:', {
+        bankCode: formData.bankCode,
+        accountNumber: formData.accountNumber
+      });
+
       const accountName = await paymentMethodsService.verifyAccountName(
         formData.bankCode,
         formData.accountNumber
@@ -133,10 +143,11 @@ export const FlutterwavePayment: React.FC<FlutterwavePaymentProps> = ({
         updateDetails(updatedData);
         toast.success('Account verified successfully');
       } else {
-        toast.error('Could not verify account. Please check details.');
+        toast.error('Could not verify account. Please check your bank and account number.');
       }
     } catch (error) {
-      toast.error('Account verification failed');
+      console.error('Account verification failed:', error);
+      toast.error('Account verification failed. Please try again.');
     } finally {
       setVerifyingAccount(false);
     }

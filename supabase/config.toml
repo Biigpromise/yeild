@@ -3,10 +3,20 @@ project_id = "stehjqdbncykevpokcvj"
 
 [auth]
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used in emails.
-site_url = "https://yeildsocials.com"
+site_url = "https://yourdomain.com"
 enabled = true
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://yeildsocials.com/auth", "https://yeildsocials.com/brand-dashboard", "https://yeildsocials.com/dashboard", "https://yeildsocials.com/onboarding"]
+additional_redirect_urls = [
+  "https://yourdomain.com/auth", 
+  "https://yourdomain.com/brand-dashboard", 
+  "https://yourdomain.com/dashboard", 
+  "https://yourdomain.com/onboarding",
+  "https://yeildsocials.com",
+  "https://yeildsocials.com/auth",
+  "https://yeildsocials.com/brand-dashboard",
+  "https://yeildsocials.com/dashboard",
+  "https://yeildsocials.com/onboarding"
+]
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
@@ -48,3 +58,6 @@ verify_jwt = false
 
 [functions.send-user-notification]
 verify_jwt = true
+
+[functions.verify-bank-account]
+verify_jwt = false

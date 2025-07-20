@@ -2,55 +2,48 @@
 export interface NigerianBank {
   name: string;
   code: string;
-  type: 'traditional' | 'digital' | 'microfinance';
+  type: 'traditional' | 'digital';
+  flutterwaveCode?: string; // Flutterwave-specific code
 }
 
 export const nigerianBanks: NigerianBank[] = [
-  // Digital Banks (Popular for quick transfers)
-  { name: "OPay", code: "999992", type: "digital" },
-  { name: "Moniepoint", code: "50515", type: "digital" },
-  { name: "Kuda Bank", code: "50211", type: "digital" },
-  { name: "Palmpay", code: "999991", type: "digital" },
-  { name: "Carbon", code: "565", type: "digital" },
+  // Digital Banks (Faster processing)
+  { name: 'OPay', code: '999992', type: 'digital', flutterwaveCode: '999992' },
+  { name: 'Moniepoint', code: '50515', type: 'digital', flutterwaveCode: '50515' },
+  { name: 'PalmPay', code: '999991', type: 'digital', flutterwaveCode: '999991' },
+  { name: 'Kuda Bank', code: '50211', type: 'digital', flutterwaveCode: '50211' },
+  { name: 'Rubies Bank', code: '125', type: 'digital', flutterwaveCode: '125' },
   
   // Traditional Banks
-  { name: "Access Bank", code: "044", type: "traditional" },
-  { name: "Guaranty Trust Bank", code: "058", type: "traditional" },
-  { name: "First Bank of Nigeria", code: "011", type: "traditional" },
-  { name: "United Bank For Africa", code: "033", type: "traditional" },
-  { name: "Zenith Bank", code: "057", type: "traditional" },
-  { name: "Fidelity Bank", code: "070", type: "traditional" },
-  { name: "First City Monument Bank", code: "214", type: "traditional" },
-  { name: "Sterling Bank", code: "232", type: "traditional" },
-  { name: "Union Bank of Nigeria", code: "032", type: "traditional" },
-  { name: "Wema Bank", code: "035", type: "traditional" },
-  { name: "Polaris Bank", code: "076", type: "traditional" },
-  { name: "Keystone Bank", code: "082", type: "traditional" },
-  { name: "Ecobank Nigeria", code: "050", type: "traditional" },
-  { name: "Heritage Bank", code: "030", type: "traditional" },
-  { name: "Stanbic IBTC Bank", code: "221", type: "traditional" },
-  { name: "Standard Chartered Bank", code: "068", type: "traditional" },
-  { name: "Unity Bank", code: "215", type: "traditional" },
-  { name: "Providus Bank", code: "101", type: "traditional" },
-  
-  // Microfinance Banks
-  { name: "VFD Microfinance Bank", code: "566", type: "microfinance" },
-  { name: "Rubies Bank", code: "125", type: "microfinance" },
-  { name: "Sparkle Microfinance Bank", code: "51310", type: "microfinance" }
+  { name: 'Access Bank', code: '044', type: 'traditional', flutterwaveCode: '044' },
+  { name: 'Guaranty Trust Bank', code: '058', type: 'traditional', flutterwaveCode: '058' },
+  { name: 'First Bank of Nigeria', code: '011', type: 'traditional', flutterwaveCode: '011' },
+  { name: 'United Bank for Africa', code: '033', type: 'traditional', flutterwaveCode: '033' },
+  { name: 'Zenith Bank', code: '057', type: 'traditional', flutterwaveCode: '057' },
+  { name: 'Fidelity Bank', code: '070', type: 'traditional', flutterwaveCode: '070' },
+  { name: 'Sterling Bank', code: '232', type: 'traditional', flutterwaveCode: '232' },
+  { name: 'Wema Bank', code: '035', type: 'traditional', flutterwaveCode: '035' },
+  { name: 'First City Monument Bank', code: '214', type: 'traditional', flutterwaveCode: '214' },
+  { name: 'Union Bank of Nigeria', code: '032', type: 'traditional', flutterwaveCode: '032' },
+  { name: 'Ecobank Nigeria', code: '050', type: 'traditional', flutterwaveCode: '050' },
+  { name: 'Heritage Bank', code: '030', type: 'traditional', flutterwaveCode: '030' },
+  { name: 'Keystone Bank', code: '082', type: 'traditional', flutterwaveCode: '082' },
+  { name: 'Polaris Bank', code: '076', type: 'traditional', flutterwaveCode: '076' },
+  { name: 'Stanbic IBTC Bank', code: '221', type: 'traditional', flutterwaveCode: '221' },
+  { name: 'Standard Chartered Bank', code: '068', type: 'traditional', flutterwaveCode: '068' },
+  { name: 'Citibank Nigeria', code: '023', type: 'traditional', flutterwaveCode: '023' },
 ];
 
 export const getBankByCode = (code: string): NigerianBank | undefined => {
   return nigerianBanks.find(bank => bank.code === code);
 };
 
-export const getBanksByType = (type: 'traditional' | 'digital' | 'microfinance'): NigerianBank[] => {
-  return nigerianBanks.filter(bank => bank.type === type);
+export const getFlutterwaveCode = (bankCode: string): string => {
+  const bank = getBankByCode(bankCode);
+  return bank?.flutterwaveCode || bankCode;
 };
 
-export const searchBanks = (query: string): NigerianBank[] => {
-  const lowercaseQuery = query.toLowerCase();
-  return nigerianBanks.filter(bank => 
-    bank.name.toLowerCase().includes(lowercaseQuery) ||
-    bank.code.includes(query)
-  );
+export const getBankName = (code: string): string => {
+  const bank = getBankByCode(code);
+  return bank?.name || 'Unknown Bank';
 };

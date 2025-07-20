@@ -1,6 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getFlutterwaveCode } from "./nigerianBanksService";
 
 export interface UserPaymentMethod {
   id: string;
@@ -141,11 +141,16 @@ class PaymentMethodsService {
 
   async verifyAccountName(bankCode: string, accountNumber: string): Promise<string | null> {
     try {
+      // Use Flutterwave-specific bank code
+      const flutterwaveCode = getFlutterwaveCode(bankCode);
+      
+      console.log('Verifying account with Flutterwave code:', flutterwaveCode);
+      
       // Call Flutterwave account verification endpoint
       const { data, error } = await supabase.functions.invoke('verify-bank-account', {
         body: {
           account_number: accountNumber,
-          account_bank: bankCode
+          account_bank: flutterwaveCode // Use the correct Flutterwave code
         }
       });
 
