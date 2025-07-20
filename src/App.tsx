@@ -11,6 +11,7 @@ import UserTypeSelection from "./pages/UserTypeSelection";
 import Dashboard from "./pages/Dashboard";
 import BrandDashboard from "./pages/BrandDashboard";
 import Onboarding from "./pages/Onboarding";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/brand-dashboard" element={<BrandDashboard />} />
                 <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/admin" element={<Admin />} />
               </Routes>
             </OnboardingProvider>
           </AuthProvider>

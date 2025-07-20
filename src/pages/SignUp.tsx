@@ -24,7 +24,12 @@ const SignUp = () => {
   // Handle redirect after auth state is determined
   useEffect(() => {
     if (!loading && user) {
-      navigate("/dashboard");
+      // Check if user is admin and redirect accordingly
+      if (user.email === 'yeildsocials@gmail.com') {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     }
   }, [user, loading, navigate]);
 
@@ -45,22 +50,11 @@ const SignUp = () => {
   // Show user type selection if no type is selected
   if (!selectedUserType) {
     return (
-      <div>
-        <UserTypeSelection
-          onSelectUser={() => setSelectedUserType('user')}
-          onSelectBrand={() => setSelectedUserType('brand')}
-          onSwitchToSignin={() => setAuthMode('signup')} // This actually switches to signup
-        />
-        {/* Admin signin link */}
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2">
-          <button
-            onClick={() => navigate('/admin')}
-            className="text-sm text-muted-foreground hover:text-primary transition-colors underline"
-          >
-            Admin Sign In
-          </button>
-        </div>
-      </div>
+      <UserTypeSelection
+        onSelectUser={() => setSelectedUserType('user')}
+        onSelectBrand={() => setSelectedUserType('brand')}
+        onSwitchToSignin={() => setAuthMode('signin')} // Fixed: now correctly switches to signin
+      />
     );
   }
 
