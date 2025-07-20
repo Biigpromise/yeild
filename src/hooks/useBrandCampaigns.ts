@@ -39,7 +39,14 @@ export const useBrandCampaigns = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setCampaigns(data || []);
+      
+      // Type cast the data to ensure status field matches our interface
+      const typedData = (data || []).map(campaign => ({
+        ...campaign,
+        status: campaign.status as 'draft' | 'active' | 'paused' | 'completed' | 'cancelled'
+      }));
+      
+      setCampaigns(typedData);
     } catch (error: any) {
       toast.error('Failed to fetch campaigns: ' + error.message);
     } finally {
