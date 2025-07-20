@@ -68,7 +68,11 @@ const Dashboard: React.FC = () => {
                 </TabsList>
                 
                 <TabsContent value="tasks" className="mt-6">
-                    <TasksTab {...dashboardData} />
+                    <TasksTab 
+                        userStats={dashboardData.userStats} 
+                        userTasks={dashboardData.userTasks}
+                        loadUserData={dashboardData.loadUserData}
+                    />
                 </TabsContent>
                 <TabsContent value="profile" className="mt-6">
                     <ProfileTab />
