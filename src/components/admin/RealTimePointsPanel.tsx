@@ -57,13 +57,22 @@ export const RealTimePointsPanel = () => {
       // Get today's point transactions
       const { data: transactions, error: transError } = await supabase
         .from('point_transactions')
-        .select(`
-          *,
-          profiles!inner(name)
-        `)
+        .select('*')
         .gte('created_at', `${today}T00:00:00`)
         .lt('created_at', `${today}T23:59:59`)
         .order('created_at', { ascending: false });
+
+      // Get user profiles separately
+      let userProfiles = new Map();
+      if (transactions) {
+        const userIds = [...new Set(transactions.map(t => t.user_id))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .in('id', userIds);
+        
+        profiles?.forEach(p => userProfiles.set(p.id, p));
+      }
 
       if (transError) {
         console.error('Error loading transactions:', transError);
@@ -80,11 +89,12 @@ export const RealTimePointsPanel = () => {
       const userPoints = new Map<string, { points: number; tasks: number; name: string }>();
       transactions?.forEach(t => {
         if (t.transaction_type === 'task_completion') {
-          const existing = userPoints.get(t.user_id) || { points: 0, tasks: 0, name: t.profiles.name };
+          const userProfile = userProfiles.get(t.user_id);
+          const existing = userPoints.get(t.user_id) || { points: 0, tasks: 0, name: userProfile?.name || 'Unknown User' };
           userPoints.set(t.user_id, {
             points: existing.points + t.points,
             tasks: existing.tasks + 1,
-            name: t.profiles.name
+            name: userProfile?.name || 'Unknown User'
           });
         }
       });
@@ -100,14 +110,17 @@ export const RealTimePointsPanel = () => {
         .slice(0, 5);
 
       // Get recent transactions
-      const recentTransactions = transactions?.slice(0, 10).map(t => ({
-        id: t.id,
-        user_id: t.user_id,
-        points: t.points,
-        description: t.description || 'Point transaction',
-        created_at: t.created_at,
-        user_name: t.profiles.name
-      })) || [];
+      const recentTransactions = transactions?.slice(0, 10).map(t => {
+        const userProfile = userProfiles.get(t.user_id);
+        return {
+          id: t.id,
+          user_id: t.user_id,
+          points: t.points,
+          description: t.description || 'Point transaction',
+          created_at: t.created_at,
+          user_name: userProfile?.name || 'Unknown User'
+        };
+      }) || [];
 
       setStats({
         totalPointsAwarded,

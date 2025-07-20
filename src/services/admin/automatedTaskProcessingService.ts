@@ -257,7 +257,7 @@ export const automatedTaskProcessingService = {
   },
 
   // Check for tasks that need admin attention
-  async getFlagged: () => {
+  getFlagged: async () => {
     const { data, error } = await supabase
       .from('task_submissions')
       .select(`

@@ -260,9 +260,9 @@ export const BulkOperationsPanel = () => {
               {submissions.map((submission) => (
                 <div key={submission.id} className="p-4 border rounded-lg hover:bg-gray-50">
                   <div className="flex items-start gap-3">
-                    <Checkbox
-                      checked={selectedSubmissions.includes(submission.id)}
-                      onCheckedChange={(checked) => handleSelectSubmission(submission.id, checked)}
+                     <Checkbox
+                       checked={selectedSubmissions.includes(submission.id)}
+                       onCheckedChange={(checked) => handleSelectSubmission(submission.id, !!checked)}
                     />
                     
                     <div className="flex-1 space-y-2">
