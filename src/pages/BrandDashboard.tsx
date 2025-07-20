@@ -4,6 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BrandCampaignsTab } from "@/components/brand/BrandCampaignsTab";
 import { BrandAnalyticsTab } from "@/components/brand/BrandAnalyticsTab";
 import { BrandProfileTab } from "@/components/brand/BrandProfileTab";
+import { BrandBillingTab } from "@/components/brand/BrandBillingTab";
+import { BrandPerformanceTab } from "@/components/brand/BrandPerformanceTab";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useAuth } from "@/contexts/AuthContext";
@@ -44,16 +46,24 @@ const BrandDashboard: React.FC = () => {
             </header>
             
             <Tabs defaultValue="campaigns" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
+                    <TabsTrigger value="performance">Performance</TabsTrigger>
                     <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                    <TabsTrigger value="profile">Profile & Billing</TabsTrigger>
+                    <TabsTrigger value="billing">Billing</TabsTrigger>
+                    <TabsTrigger value="profile">Profile</TabsTrigger>
                 </TabsList>
                 <TabsContent value="campaigns" className="mt-6">
                     <BrandCampaignsTab />
                 </TabsContent>
+                <TabsContent value="performance" className="mt-6">
+                    <BrandPerformanceTab />
+                </TabsContent>
                 <TabsContent value="analytics" className="mt-6">
                     <BrandAnalyticsTab />
+                </TabsContent>
+                <TabsContent value="billing" className="mt-6">
+                    <BrandBillingTab />
                 </TabsContent>
                 <TabsContent value="profile" className="mt-6">
                     <BrandProfileTab />
