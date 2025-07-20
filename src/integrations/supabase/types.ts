@@ -2114,6 +2114,48 @@ export type Database = {
           },
         ]
       }
+      user_payment_methods: {
+        Row: {
+          account_name: string
+          account_number: string
+          bank_code: string
+          bank_name: string
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          is_verified: boolean | null
+          method_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          bank_code: string
+          bank_name: string
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          is_verified?: boolean | null
+          method_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          bank_code?: string
+          bank_name?: string
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          is_verified?: boolean | null
+          method_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_referrals: {
         Row: {
           activated_at: string | null
@@ -2344,6 +2386,7 @@ export type Database = {
           exchange_rate: number | null
           gift_card_type: string | null
           id: string
+          payment_method_id: string | null
           payout_details: Json
           payout_method: string
           processed_at: string | null
@@ -2361,6 +2404,7 @@ export type Database = {
           exchange_rate?: number | null
           gift_card_type?: string | null
           id?: string
+          payment_method_id?: string | null
           payout_details: Json
           payout_method: string
           processed_at?: string | null
@@ -2378,6 +2422,7 @@ export type Database = {
           exchange_rate?: number | null
           gift_card_type?: string | null
           id?: string
+          payment_method_id?: string | null
           payout_details?: Json
           payout_method?: string
           processed_at?: string | null
@@ -2387,7 +2432,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_requests_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "user_payment_methods"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       withdrawal_settings: {
         Row: {
