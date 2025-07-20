@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Building2, Mail, Lock, Globe, Users, Target, DollarSign, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Building2, Mail, Lock, Globe, Users, Target, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -31,6 +31,7 @@ interface ModernBrandSignupProps {
 const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [showExistingUserMessage, setShowExistingUserMessage] = useState(false);
   const [formData, setFormData] = useState<BrandSignupData>({
     email: '',
     password: '',
@@ -44,11 +45,15 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
     agreeTerms: false
   });
 
-  const { signUp } = useAuth();
+  const { signUp, signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleInputChange = (field: keyof BrandSignupData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear existing user message when user starts typing
+    if (field === 'email' || field === 'password') {
+      setShowExistingUserMessage(false);
+    }
   };
 
   const handleTaskTypeChange = (taskType: string, checked: boolean) => {
@@ -100,6 +105,31 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
     }
   };
 
+  const handleExistingUserSignIn = async () => {
+    if (!formData.email || !formData.password) {
+      toast.error("Please enter both email and password to sign in");
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const { error } = await signIn(formData.email, formData.password);
+      
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Successfully signed in!");
+        navigate('/brand-dashboard');
+      }
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      toast.error("An error occurred during sign in");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!validateStep(4)) return;
 
@@ -128,9 +158,11 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
       );
       
       if (error) {
-        if (error.message.includes('User already registered') || error.message.includes('already exists')) {
-          toast.error('An account with this email already exists. Please try signing in instead.');
-          navigate('/auth');
+        if (error.message.includes('User already registered') || 
+            error.message.includes('already exists') ||
+            error.code === 'user_already_exists') {
+          setShowExistingUserMessage(true);
+          setStep(1); // Go back to first step to show sign in option
         } else {
           toast.error(error.message);
         }
@@ -174,6 +206,35 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
               <h2 className="text-2xl font-bold text-white mb-2">Create Your Brand Account</h2>
               <p className="text-gray-400">Join YIELD and connect with our engaged community</p>
             </div>
+
+            {/* Show existing user message */}
+            {showExistingUserMessage && (
+              <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h3 className="text-blue-400 font-medium mb-2">Account Already Exists</h3>
+                    <p className="text-gray-300 text-sm mb-4">
+                      An account with this email already exists. You can sign in with your existing credentials below.
+                    </p>
+                    <Button
+                      onClick={handleExistingUserSignIn}
+                      disabled={isLoading}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Signing in...
+                        </div>
+                      ) : (
+                        'Sign In to Existing Account'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
             
             <div className="space-y-4">
               <div>
@@ -207,6 +268,20 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
                   className="bg-gray-900 border-gray-700 text-white"
                 />
               </div>
+
+              {showExistingUserMessage && (
+                <div className="text-center pt-4">
+                  <p className="text-gray-400 text-sm">
+                    Don't have an account?{' '}
+                    <button 
+                      onClick={() => navigate('/auth')}
+                      className="text-yeild-yellow hover:underline"
+                    >
+                      Try regular signup instead
+                    </button>
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -424,7 +499,7 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
 
           {/* Navigation */}
           <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-800">
-            {step > 1 ? (
+            {step > 1 && !showExistingUserMessage ? (
               <Button
                 type="button"
                 variant="outline"
@@ -438,14 +513,14 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
               <div></div>
             )}
 
-            {step < 4 ? (
+            {step < 4 && !showExistingUserMessage ? (
               <Button
                 onClick={handleNext}
                 className="bg-yeild-yellow text-black hover:bg-yeild-yellow/90 px-8"
               >
                 Continue
               </Button>
-            ) : (
+            ) : step === 4 && !showExistingUserMessage ? (
               <Button
                 onClick={handleSubmit}
                 disabled={isLoading}
@@ -460,7 +535,7 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
                   'Submit Application'
                 )}
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
