@@ -2320,8 +2320,20 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      log_security_event: {
+        Args: {
+          user_id_param: string
+          event_type: string
+          event_details?: Json
+        }
+        Returns: undefined
+      }
       redeem_reward: {
         Args: { p_user_id: string; p_reward_id: string }
+        Returns: string
+      }
+      sanitize_input: {
+        Args: { input_text: string }
         Returns: string
       }
       update_daily_task_analytics: {

@@ -2,10 +2,58 @@
 import { useState } from 'react';
 import { TaskValidator } from '@/services/tasks/taskValidation';
 import { RateLimiter } from '@/services/security/rateLimiter';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export const useSecureSubmission = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const submitTaskSubmission = async (
+    submissionData: {
+      task_id: string;
+      evidence_url: string;
+      description: string;
+      social_media_handle?: string | null;
+      status?: string;
+    }
+  ): Promise<{ success: boolean; error?: string }> => {
+    setIsSubmitting(true);
+    
+    try {
+      // Rate limiting check
+      const rateLimitKey = `task_submission`;
+      if (!RateLimiter.isAllowed(rateLimitKey, 5, 3600000)) { // 5 submissions per hour
+        return { success: false, error: 'Rate limit exceeded. Please try again later.' };
+      }
+
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        return { success: false, error: 'Authentication required' };
+      }
+
+      // Submit to task_submissions table
+      const { error: dbError } = await supabase
+        .from('task_submissions')
+        .insert({
+          ...submissionData,
+          user_id: user.id,
+          submitted_at: new Date().toISOString(),
+        });
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+        return { success: false, error: 'Database submission failed' };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Secure submission error:', error);
+      return { success: false, error: 'Submission failed' };
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const secureSubmit = async (
     evidence: string,
@@ -44,5 +92,5 @@ export const useSecureSubmission = () => {
     }
   };
 
-  return { secureSubmit, isSubmitting };
+  return { secureSubmit, submitTaskSubmission, isSubmitting };
 };

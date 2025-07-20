@@ -49,6 +49,19 @@ export class InputValidator {
       .trim();
   }
 
+  static sanitizeUrl(url: string): string {
+    // Basic URL sanitization
+    return url.trim().replace(/[<>"']/g, '');
+  }
+
+  static sanitizeText(text: string): string {
+    return this.sanitizeInput(text);
+  }
+
+  static isValidUrl(url: string): boolean {
+    return this.url(url);
+  }
+
   static maxLength(value: string, max: number, fieldName: string): boolean {
     if (value.length > max) {
       toast.error(`${fieldName} must be less than ${max} characters`);
