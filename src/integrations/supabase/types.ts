@@ -209,6 +209,54 @@ export type Database = {
         }
         Relationships: []
       }
+      campaigns: {
+        Row: {
+          brand_id: string
+          budget: number
+          created_at: string
+          description: string | null
+          end_date: string | null
+          funded_amount: number | null
+          id: string
+          requirements: Json | null
+          start_date: string | null
+          status: string
+          target_audience: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          brand_id: string
+          budget: number
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          funded_amount?: number | null
+          id?: string
+          requirements?: Json | null
+          start_date?: string | null
+          status?: string
+          target_audience?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          brand_id?: string
+          budget?: number
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          funded_amount?: number | null
+          id?: string
+          requirements?: Json | null
+          start_date?: string | null
+          status?: string
+          target_audience?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       colors: {
         Row: {
           blue: number | null
@@ -815,6 +863,129 @@ export type Database = {
           processing_fee_percent?: number
           processing_time_estimate?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      payment_transactions: {
+        Row: {
+          amount: number
+          amount_settled: number | null
+          campaign_id: string | null
+          created_at: string
+          currency: string
+          customer_email: string
+          customer_name: string
+          flutterwave_id: string | null
+          id: string
+          payment_method: string | null
+          payment_type: string
+          processor_response: Json | null
+          status: string
+          task_id: string | null
+          transaction_ref: string
+          updated_at: string
+          user_id: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          amount: number
+          amount_settled?: number | null
+          campaign_id?: string | null
+          created_at?: string
+          currency?: string
+          customer_email: string
+          customer_name: string
+          flutterwave_id?: string | null
+          id?: string
+          payment_method?: string | null
+          payment_type: string
+          processor_response?: Json | null
+          status?: string
+          task_id?: string | null
+          transaction_ref: string
+          updated_at?: string
+          user_id?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          amount?: number
+          amount_settled?: number | null
+          campaign_id?: string | null
+          created_at?: string
+          currency?: string
+          customer_email?: string
+          customer_name?: string
+          flutterwave_id?: string | null
+          id?: string
+          payment_method?: string | null
+          payment_type?: string
+          processor_response?: Json | null
+          status?: string
+          task_id?: string | null
+          transaction_ref?: string
+          updated_at?: string
+          user_id?: string | null
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
+      payout_transactions: {
+        Row: {
+          account_bank: string
+          account_number: string
+          amount: number
+          beneficiary_name: string
+          created_at: string
+          currency: string
+          fee: number | null
+          flutterwave_id: string | null
+          id: string
+          narration: string | null
+          reference: string
+          response_data: Json | null
+          status: string
+          task_id: string | null
+          updated_at: string
+          user_id: string | null
+          withdrawal_id: string | null
+        }
+        Insert: {
+          account_bank: string
+          account_number: string
+          amount: number
+          beneficiary_name: string
+          created_at?: string
+          currency?: string
+          fee?: number | null
+          flutterwave_id?: string | null
+          id?: string
+          narration?: string | null
+          reference: string
+          response_data?: Json | null
+          status?: string
+          task_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          withdrawal_id?: string | null
+        }
+        Update: {
+          account_bank?: string
+          account_number?: string
+          amount?: number
+          beneficiary_name?: string
+          created_at?: string
+          currency?: string
+          fee?: number | null
+          flutterwave_id?: string | null
+          id?: string
+          narration?: string | null
+          reference?: string
+          response_data?: Json | null
+          status?: string
+          task_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          withdrawal_id?: string | null
         }
         Relationships: []
       }
@@ -2220,6 +2391,10 @@ export type Database = {
       check_chat_posting_eligibility: {
         Args: { user_id_param: string }
         Returns: boolean
+      }
+      credit_user_account: {
+        Args: { user_id: string; amount: number; reference: string }
+        Returns: undefined
       }
       generate_referral_code: {
         Args: Record<PropertyKey, never>

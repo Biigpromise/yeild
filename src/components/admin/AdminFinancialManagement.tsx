@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WithdrawalProcessor } from "./financial/WithdrawalProcessor";
 import { PaymentMethodManager } from "./financial/PaymentMethodManager";
-import { FinancialAnalytics } from "./financial/FinancialAnalytics";
+import { PaymentDashboard, AdminPayoutManager } from "@/components/payments";
 import { 
   CreditCard, 
   BarChart3, 
@@ -23,21 +23,33 @@ export const AdminFinancialManagement = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="withdrawals" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
           <TabsTrigger value="withdrawals" className="flex items-center gap-2">
             <Wallet className="h-4 w-4" />
-            Withdrawal Processing
+            Withdrawals
           </TabsTrigger>
           <TabsTrigger value="payment-methods" className="flex items-center gap-2">
             <CreditCard className="h-4 w-4" />
             Payment Methods
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Financial Analytics
+          <TabsTrigger value="payments" className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Payments
+          </TabsTrigger>
+          <TabsTrigger value="payouts" className="flex items-center gap-2">
+            <Wallet className="h-4 w-4" />
+            Payouts
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="overview">
+          <PaymentDashboard />
+        </TabsContent>
 
         <TabsContent value="withdrawals">
           <WithdrawalProcessor />
@@ -47,8 +59,12 @@ export const AdminFinancialManagement = () => {
           <PaymentMethodManager />
         </TabsContent>
 
-        <TabsContent value="analytics">
-          <FinancialAnalytics />
+        <TabsContent value="payments">
+          <PaymentDashboard />
+        </TabsContent>
+
+        <TabsContent value="payouts">
+          <AdminPayoutManager />
         </TabsContent>
       </Tabs>
     </div>
