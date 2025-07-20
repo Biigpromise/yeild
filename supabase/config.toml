@@ -6,7 +6,7 @@ project_id = "stehjqdbncykevpokcvj"
 site_url = "https://yeildsocials.com"
 enabled = true
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://lovable.dev", "https://yeildsocials.com/auth", "https://yeildsocials.com/brand-dashboard", "https://yeildsocials.com/dashboard", "https://yeildsocials.com/onboarding"]
+additional_redirect_urls = ["https://yeildsocials.com/auth", "https://yeildsocials.com/brand-dashboard", "https://yeildsocials.com/dashboard", "https://yeildsocials.com/onboarding"]
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
@@ -15,6 +15,11 @@ enable_signup = true
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
 enable_confirmations = true
+
+[auth.security]
+# Enable additional security features for production
+refresh_token_rotation_enabled = true
+security_update_password_require_reauthentication = true
 
 [api]
 enabled = true
