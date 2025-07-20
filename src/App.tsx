@@ -17,6 +17,7 @@ import BrandDashboard from "./pages/BrandDashboard";
 import Onboarding from "./pages/Onboarding";
 import Admin from "./pages/Admin";
 import Welcome from "./pages/Welcome";
+import Tasks from "./pages/Tasks";
 import { CampaignDetails } from "./pages/CampaignDetails";
 
 const queryClient = new QueryClient({
@@ -55,6 +56,7 @@ function App() {
                     <Route path="/brand-dashboard" element={<BrandDashboard />} />
                     <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/admin" element={<Admin />} />
+                    <Route path="/tasks" element={<Tasks />} />
                     <Route path="/campaigns/:id" element={<CampaignDetails />} />
                   </Routes>
                   <Toaster />

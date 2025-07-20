@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import TaskFilter from '@/components/TaskFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Target, Gift, Wallet } from 'lucide-react';
+import { Target, Gift, Wallet, ArrowRight } from 'lucide-react';
 import { CompactBirdBatch } from '@/components/ui/CompactBirdBatch';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -43,27 +43,20 @@ export const TasksTab: React.FC<TasksTabProps> = ({
 
   if (isMobile) {
     return (
-      <div className="space-y-3">
-        {/* Mobile-optimized layout */}
-        <TaskFilter
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          selectedDifficulty={selectedDifficulty}
-          onDifficultyChange={setSelectedDifficulty}
-          selectedStatus={selectedStatus}
-          onStatusChange={setSelectedStatus}
-          taskCounts={taskCounts}
-          onClearFilters={handleClearFilters}
-        />
-        
-        {/* Fallback categories if loading fails */}
+      <div className="space-y-4">
+        {/* Mobile quick start */}
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4">
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" onClick={() => navigate('/tasks')}>Browse All</Button>
-              <Button variant="outline" size="sm" onClick={() => navigate('/tasks')}>Get Started</Button>
+            <div className="text-center">
+              <Target className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+              <h4 className="font-medium mb-2">Ready to earn?</h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                Browse and complete tasks to earn points!
+              </p>
+              <Button onClick={() => navigate('/tasks')} className="w-full">
+                <ArrowRight className="h-4 w-4 mr-2" />
+                Browse Tasks
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -78,16 +71,9 @@ export const TasksTab: React.FC<TasksTabProps> = ({
           </CardHeader>
           <CardContent className="pt-0">
             {userStats.tasksCompleted === 0 ? (
-              <div className="text-center py-3">
-                <Target className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-                <h4 className="font-medium mb-1 text-sm">Ready to earn?</h4>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Complete your first task to start earning!
-                </p>
-                <Button size="sm" onClick={() => navigate('/tasks')} className="w-full">
-                  Get Started
-                </Button>
-              </div>
+              <p className="text-sm text-muted-foreground text-center">
+                Complete your first task to start earning!
+              </p>
             ) : (
               <div className="space-y-2">
                 {userTasks.slice(0, 2).map((task) => (
@@ -105,50 +91,26 @@ export const TasksTab: React.FC<TasksTabProps> = ({
             )}
           </CardContent>
         </Card>
-
-        {/* Mobile quick actions - horizontal layout */}
-        <div className="grid grid-cols-3 gap-2">
-          <Button size="sm" variant="outline" onClick={() => navigate('/tasks')} className="text-xs">
-            <Target className="h-3 w-3 mr-1" />
-            Tasks
-          </Button>
-          <Button size="sm" variant="outline" className="text-xs">
-            <Gift className="h-3 w-3 mr-1" />
-            Rewards
-          </Button>
-          <Button size="sm" variant="outline" className="text-xs">
-            <Wallet className="h-3 w-3 mr-1" />
-            Wallet
-          </Button>
-        </div>
       </div>
     );
   }
 
-  // Desktop layout
+  // Desktop layout - simplified
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-      <div className="lg:col-span-3 space-y-4">
-        <TaskFilter
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          selectedDifficulty={selectedDifficulty}
-          onDifficultyChange={setSelectedDifficulty}
-          selectedStatus={selectedStatus}
-          onStatusChange={setSelectedStatus}
-          taskCounts={taskCounts}
-          onClearFilters={handleClearFilters}
-        />
-        
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 space-y-4">
+        {/* Main CTA */}
         <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-3 gap-2">
-              <Button variant="outline" size="sm" onClick={() => navigate('/tasks')}>Browse All Tasks</Button>
-              <Button variant="outline" size="sm" onClick={() => navigate('/tasks')}>Get Started</Button>
-              <Button variant="outline" size="sm" onClick={() => navigate('/tasks')}>View Featured</Button>
-            </div>
+          <CardContent className="p-6 text-center">
+            <Target className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+            <h3 className="text-xl font-bold mb-2">Start Earning Today</h3>
+            <p className="text-muted-foreground mb-4">
+              Browse available tasks and start earning points for completing them.
+            </p>
+            <Button onClick={() => navigate('/tasks')} size="lg" className="px-8">
+              <ArrowRight className="h-5 w-5 mr-2" />
+              Browse All Tasks
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -186,12 +148,10 @@ export const TasksTab: React.FC<TasksTabProps> = ({
           <CardContent className="space-y-3 pt-0">
             {userStats.tasksCompleted === 0 ? (
               <div className="text-center p-4">
-                <Target className="h-12 w-12 mx-auto mb-3 text-blue-500" />
-                <h4 className="font-medium mb-2">Ready to earn?</h4>
-                <p className="text-xs text-muted-foreground mb-3">
+                <p className="text-sm text-muted-foreground mb-3">
                   Complete your first task to start earning points!
                 </p>
-                <Button size="sm" onClick={() => navigate('/tasks')} className="w-full">
+                <Button size="sm" onClick={() => navigate('/tasks')} variant="outline">
                   Get Started
                 </Button>
               </div>
