@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WithdrawalProcessor } from "./financial/WithdrawalProcessor";
 import { PaymentMethodManager } from "./financial/PaymentMethodManager";
-import { PaymentDashboard, AdminPayoutManager } from "@/components/payments";
+import { PaymentDashboard, AdminPayoutManager, PaymentTester } from "@/components/payments";
 import { 
   CreditCard, 
   BarChart3, 
@@ -24,7 +24,7 @@ export const AdminFinancialManagement = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Overview
@@ -44,6 +44,10 @@ export const AdminFinancialManagement = () => {
           <TabsTrigger value="payouts" className="flex items-center gap-2">
             <Wallet className="h-4 w-4" />
             Payouts
+          </TabsTrigger>
+          <TabsTrigger value="test" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Test
           </TabsTrigger>
         </TabsList>
 
@@ -65,6 +69,10 @@ export const AdminFinancialManagement = () => {
 
         <TabsContent value="payouts">
           <AdminPayoutManager />
+        </TabsContent>
+
+        <TabsContent value="test">
+          <PaymentTester />
         </TabsContent>
       </Tabs>
     </div>
