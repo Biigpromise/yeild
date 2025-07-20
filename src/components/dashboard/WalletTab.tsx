@@ -8,6 +8,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import { WithdrawalButton } from '@/components/wallet/WithdrawalButton';
+import { PaymentMethodsButton } from '@/components/wallet/PaymentMethodsButton';
 
 interface WalletData {
   balance: number;
@@ -165,14 +167,8 @@ export const WalletTab: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-2 gap-4">
-            <Button className="w-full">
-              <ArrowUpRight className="h-4 w-4 mr-2" />
-              Withdraw
-            </Button>
-            <Button variant="outline" className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
-              Payment Methods
-            </Button>
+            <WithdrawalButton userPoints={walletData.balance} />
+            <PaymentMethodsButton />
           </div>
         </CardContent>
       </Card>
