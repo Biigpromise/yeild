@@ -17,8 +17,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       if (loading) return;
       
       if (!user) {
-        console.log("User not authenticated, redirecting to user type selection");
-        navigate("/user-type");
+        console.log("User not authenticated, redirecting to auth");
+        navigate("/auth");
         return;
       }
 

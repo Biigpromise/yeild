@@ -12,12 +12,12 @@ export const Hero = () => {
     if (user) {
       navigate("/dashboard");
     } else {
-      navigate("/signup");
+      navigate("/auth");
     }
   };
 
   const handleLoginClick = () => {
-    navigate("/login");
+    navigate("/auth");
   };
   
   return (
