@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -9,7 +10,7 @@ const BrandSignupForm = () => {
   const navigate = useNavigate();
 
   // Redirect to the new brand signup flow
-  React.useEffect(() => {
+  useEffect(() => {
     toast.info("Redirecting to improved brand signup...");
     navigate('/auth?type=brand', { replace: true });
   }, [navigate]);
