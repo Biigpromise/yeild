@@ -45,11 +45,22 @@ const SignUp = () => {
   // Show user type selection if no type is selected
   if (!selectedUserType) {
     return (
-      <UserTypeSelection
-        onSelectUser={() => setSelectedUserType('user')}
-        onSelectBrand={() => setSelectedUserType('brand')}
-        onSwitchToSignin={() => setAuthMode('signup')} // This actually switches to signup
-      />
+      <div>
+        <UserTypeSelection
+          onSelectUser={() => setSelectedUserType('user')}
+          onSelectBrand={() => setSelectedUserType('brand')}
+          onSwitchToSignin={() => setAuthMode('signup')} // This actually switches to signup
+        />
+        {/* Admin signin link */}
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2">
+          <button
+            onClick={() => navigate('/admin')}
+            className="text-sm text-muted-foreground hover:text-primary transition-colors underline"
+          >
+            Admin Sign In
+          </button>
+        </div>
+      </div>
     );
   }
 
