@@ -33,17 +33,22 @@ export const useSecureSubmission = () => {
       }
 
       // Submit to task_submissions table
-      const { error: dbError } = await supabase
+      const { data, error: dbError } = await supabase
         .from('task_submissions')
         .insert({
-          ...submissionData,
           user_id: user.id,
+          task_id: submissionData.task_id,
+          evidence: submissionData.description,
+          evidence_file_url: submissionData.evidence_url,
+          social_media_handle: submissionData.social_media_handle,
+          status: submissionData.status || 'pending',
           submitted_at: new Date().toISOString(),
-        });
+        })
+        .select();
 
       if (dbError) {
         console.error('Database error:', dbError);
-        return { success: false, error: 'Database submission failed' };
+        return { success: false, error: `Database error: ${dbError.message}` };
       }
 
       return { success: true };
