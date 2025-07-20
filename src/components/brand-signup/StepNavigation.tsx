@@ -28,21 +28,14 @@ export async function handleNextStep({ form, onNextStep }: StepNavigationProps) 
   console.log("Form values:", formValues);
 
   try {
-    // Check uniqueness
+    // Check company name uniqueness only
     const companyExists = await checkFieldUniqueness("companyName", formValues.companyName);
-    const emailExists = await checkFieldUniqueness("email", formValues.email);
     
-    console.log("Company exists:", companyExists, "Email exists:", emailExists);
+    console.log("Company exists:", companyExists);
 
     if (companyExists) {
       form.setError("companyName", { type: "manual", message: "A company with this name already exists." });
       toast.error("A company with this name already exists");
-      return;
-    }
-    
-    if (emailExists) {
-      form.setError("email", { type: "manual", message: "This email is already registered." });
-      toast.error("This email is already registered");
       return;
     }
 
