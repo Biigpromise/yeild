@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -46,37 +45,33 @@ const ForgotPassword = () => {
   };
 
   const handleBackToLogin = () => {
-    navigate("/login");
+    navigate("/auth");
   };
 
   if (emailSent) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-yeild-black relative">
-        {/* Yellow accent graphics */}
-        <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-yeild-yellow opacity-10 blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-1/4 h-1/4 bg-yeild-yellow opacity-10 blur-3xl"></div>
-        
+      <div className="min-h-screen flex items-center justify-center bg-background relative">
         <div className="w-full max-w-md p-6">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-yeild-yellow rounded-full flex items-center justify-center">
-                <Mail className="w-8 h-8 text-yeild-black" />
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
+                <Mail className="w-8 h-8 text-primary-foreground" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Check Your Email</h1>
-            <p className="text-gray-400">
-              We've sent a password reset link to <span className="text-yeild-yellow">{email}</span>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Check Your Email</h1>
+            <p className="text-muted-foreground">
+              We've sent a password reset link to <span className="text-primary">{email}</span>
             </p>
           </div>
 
           <div className="space-y-4">
-            <p className="text-sm text-gray-400 text-center">
+            <p className="text-sm text-muted-foreground text-center">
               Didn't receive the email? Check your spam folder or try again with a different email address.
             </p>
             
             <Button 
               variant="outline" 
-              className="w-full border-gray-700 hover:bg-gray-800"
+              className="w-full"
               onClick={() => setEmailSent(false)}
             >
               Try Again
@@ -85,7 +80,7 @@ const ForgotPassword = () => {
             <div className="text-center">
               <Button
                 variant="ghost"
-                className="text-yeild-yellow hover:underline text-sm"
+                className="text-primary hover:underline text-sm"
                 onClick={handleBackToLogin}
               >
                 Back to Login
@@ -98,15 +93,11 @@ const ForgotPassword = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-yeild-black relative">
-      {/* Yellow accent graphics */}
-      <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-yeild-yellow opacity-10 blur-3xl"></div>
-      <div className="absolute bottom-0 right-0 w-1/4 h-1/4 bg-yeild-yellow opacity-10 blur-3xl"></div>
-      
+    <div className="min-h-screen flex items-center justify-center bg-background relative">
       <div className="w-full max-w-md p-6">
         <Button 
           variant="ghost" 
-          className="mb-6 text-gray-400 hover:text-white" 
+          className="mb-6 text-muted-foreground hover:text-foreground" 
           onClick={handleBackToLogin}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -115,31 +106,31 @@ const ForgotPassword = () => {
         
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <span className="text-yeild-yellow text-3xl font-bold">YEILD</span>
+            <span className="text-primary text-3xl font-bold">YEILD</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">Reset Your Password</h1>
-          <p className="text-gray-400 mt-2">
+          <h1 className="text-2xl font-bold text-foreground">Reset Your Password</h1>
+          <p className="text-muted-foreground mt-2">
             Enter your email address and we'll send you a link to reset your password
           </p>
         </div>
         
         <form onSubmit={handleResetPassword} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-white">Email Address</Label>
+            <Label htmlFor="email" className="text-foreground">Email Address</Label>
             <Input
               id="email"
               type="email"
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="yeild-input"
+              className="w-full"
               required
             />
           </div>
           
           <Button 
             type="submit" 
-            className="w-full yeild-btn-primary mt-6" 
+            className="w-full mt-6" 
             disabled={isLoading}
           >
             {isLoading ? "Sending..." : "Send Reset Link"}
@@ -147,11 +138,11 @@ const ForgotPassword = () => {
         </form>
         
         <div className="mt-6 text-center">
-          <p className="text-gray-400">
+          <p className="text-muted-foreground">
             Remember your password?{" "}
             <Button
               variant="ghost"
-              className="text-yeild-yellow hover:underline p-0 h-auto"
+              className="text-primary hover:underline p-0 h-auto"
               onClick={handleBackToLogin}
             >
               Sign in

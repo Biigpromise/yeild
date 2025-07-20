@@ -10,6 +10,8 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import BrandDashboard from "./pages/BrandDashboard";
 import Onboarding from "./pages/Onboarding";
@@ -47,6 +49,8 @@ function App() {
                     <Route path="/auth" element={<SignUp />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignUp />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/brand-dashboard" element={<BrandDashboard />} />
                     <Route path="/onboarding" element={<Onboarding />} />

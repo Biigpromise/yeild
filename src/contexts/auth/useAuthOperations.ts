@@ -29,10 +29,13 @@ export const useAuthOperations = () => {
       
       console.log("Using redirect URL:", redirectUrl);
 
+      // For brand signup, include company-specific data
       const signUpData = {
         ...(name ? { name } : {}),
         ...(userType ? { user_type: userType } : {}),
         ...(refCode ? { referral_code: refCode } : {}),
+        // For brands, also include company name
+        ...(userType === 'brand' && name ? { company_name: name } : {}),
         ...additionalData
       };
       
@@ -138,6 +141,11 @@ export const useAuthOperations = () => {
       if (error) {
         console.error("Sign out error:", error);
         toast.error("Failed to sign out properly");
+      } else {
+        console.log("Sign out successful");
+        toast.success("Signed out successfully");
+        // Force redirect to home page
+        window.location.href = '/';
       }
     } catch (error) {
       console.error("Sign out unexpected error:", error);
