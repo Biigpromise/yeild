@@ -170,6 +170,8 @@ export type Database = {
           company_name: string
           company_size: string
           created_at: string
+          email_confirmed: boolean | null
+          email_confirmed_at: string | null
           goals: string
           id: string
           industry: string
@@ -184,6 +186,8 @@ export type Database = {
           company_name: string
           company_size: string
           created_at?: string
+          email_confirmed?: boolean | null
+          email_confirmed_at?: string | null
           goals: string
           id?: string
           industry: string
@@ -198,6 +202,8 @@ export type Database = {
           company_name?: string
           company_size?: string
           created_at?: string
+          email_confirmed?: boolean | null
+          email_confirmed_at?: string | null
           goals?: string
           id?: string
           industry?: string
@@ -206,6 +212,84 @@ export type Database = {
           updated_at?: string
           user_id?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      brand_campaigns: {
+        Row: {
+          brand_id: string | null
+          budget: number
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          funded_amount: number | null
+          id: string
+          requirements: Json | null
+          start_date: string | null
+          status: string | null
+          target_audience: Json | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          brand_id?: string | null
+          budget: number
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          funded_amount?: number | null
+          id?: string
+          requirements?: Json | null
+          start_date?: string | null
+          status?: string | null
+          target_audience?: Json | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          brand_id?: string | null
+          budget?: number
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          funded_amount?: number | null
+          id?: string
+          requirements?: Json | null
+          start_date?: string | null
+          status?: string | null
+          target_audience?: Json | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      brand_payment_methods: {
+        Row: {
+          brand_id: string | null
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          metadata: Json | null
+          payment_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          brand_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          metadata?: Json | null
+          payment_type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          brand_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          metadata?: Json | null
+          payment_type?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

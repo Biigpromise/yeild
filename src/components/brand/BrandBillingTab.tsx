@@ -1,251 +1,184 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, Download, TrendingUp, DollarSign, Calendar, Star } from "lucide-react";
+import { CreditCard, Download, TrendingUp, Calendar, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { LoadingState } from "@/components/ui/loading-state";
+
+interface PaymentTransaction {
+  id: string;
+  amount: number;
+  status: string;
+  created_at: string;
+  campaign_id?: string;
+  flutterwave_id?: string;
+}
 
 export const BrandBillingTab: React.FC = () => {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+  const { user } = useAuth();
+  const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const plans = [
-    {
-      name: "Starter",
-      price: { monthly: 99, annual: 990 },
-      description: "Perfect for small businesses starting their journey",
-      features: [
-        "Up to 5 campaigns",
-        "Basic analytics",
-        "Email support",
-        "50 user engagements/month"
-      ],
-      popular: false
-    },
-    {
-      name: "Growth",
-      price: { monthly: 299, annual: 2990 },
-      description: "Ideal for growing brands seeking more exposure",
-      features: [
-        "Unlimited campaigns",
-        "Advanced analytics",
-        "Priority support",
-        "500 user engagements/month",
-        "Custom brand page",
-        "Performance insights"
-      ],
-      popular: true
-    },
-    {
-      name: "Enterprise",
-      price: { monthly: 599, annual: 5990 },
-      description: "For large brands with high-volume needs",
-      features: [
-        "Everything in Growth",
-        "Dedicated account manager",
-        "White-label solutions",
-        "Unlimited engagements",
-        "Custom integrations",
-        "Priority campaign placement"
-      ],
-      popular: false
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('payment_transactions')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+        setTransactions(data || []);
+      } catch (error: any) {
+        toast.error('Failed to fetch payment history: ' + error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, [user]);
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'successful':
+      case 'completed': 
+        return 'bg-green-100 text-green-800';
+      case 'pending': 
+        return 'bg-yellow-100 text-yellow-800';
+      case 'failed':
+      case 'cancelled': 
+        return 'bg-red-100 text-red-800';
+      default: 
+        return 'bg-gray-100 text-gray-800';
     }
-  ];
-
-  const currentPlan = plans[1]; // Growth plan as current
-  const usageStats = {
-    campaignsUsed: 8,
-    campaignsLimit: "Unlimited",
-    engagementsUsed: 347,
-    engagementsLimit: 500,
-    billingPeriod: "March 1 - March 31, 2024"
   };
 
-  const recentInvoices = [
-    { date: "March 1, 2024", amount: 299, status: "Paid", period: "March 2024" },
-    { date: "February 1, 2024", amount: 299, status: "Paid", period: "February 2024" },
-    { date: "January 1, 2024", amount: 299, status: "Paid", period: "January 2024" },
-  ];
+  if (loading) {
+    return <LoadingState text="Loading billing information..." />;
+  }
 
   return (
     <div className="space-y-6">
-      {/* Current Plan & Usage */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Star className="w-5 h-5 text-yellow-500" />
-              Current Plan
-            </CardTitle>
-            <CardDescription>Your active subscription details</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold">{currentPlan.name}</div>
-                <div className="text-gray-600">{currentPlan.description}</div>
-              </div>
-              <Badge className="bg-green-100 text-green-800">Active</Badge>
-            </div>
-            <div className="text-3xl font-bold text-green-600">
-              ${currentPlan.price.monthly}<span className="text-lg text-gray-500">/month</span>
-            </div>
-            <div className="space-y-2">
-              <div className="text-sm text-gray-600">Next billing: April 1, 2024</div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Update Payment
-                </Button>
-                <Button variant="outline" size="sm">
-                  Change Plan
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-blue-500" />
-              Usage This Month
-            </CardTitle>
-            <CardDescription>{usageStats.billingPeriod}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span>Campaigns</span>
-                <span>{usageStats.campaignsUsed} / {usageStats.campaignsLimit}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full" 
-                  style={{ width: usageStats.campaignsLimit === "Unlimited" ? "60%" : "80%" }}
-                ></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span>User Engagements</span>
-                <span>{usageStats.engagementsUsed} / {usageStats.engagementsLimit}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-green-600 h-2 rounded-full" 
-                  style={{ width: `${(usageStats.engagementsUsed / usageStats.engagementsLimit) * 100}%` }}
-                ></div>
-              </div>
-            </div>
-            <div className="text-xs text-gray-500">
-              {usageStats.engagementsLimit - usageStats.engagementsUsed} engagements remaining
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Available Plans */}
+      {/* Payment Overview */}
       <Card>
         <CardHeader>
-          <CardTitle>Available Plans</CardTitle>
-          <CardDescription>Upgrade or downgrade your subscription anytime</CardDescription>
-          <div className="flex items-center gap-4 mt-4">
-            <Button
-              variant={billingCycle === 'monthly' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setBillingCycle('monthly')}
-            >
-              Monthly
-            </Button>
-            <Button
-              variant={billingCycle === 'annual' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setBillingCycle('annual')}
-            >
-              Annual (Save 17%)
-            </Button>
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-blue-500" />
+            Payment Overview
+          </CardTitle>
+          <CardDescription>Your campaign funding and payment history</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-3 gap-6">
-            {plans.map((plan, index) => (
-              <Card key={index} className={`relative ${plan.popular ? 'border-blue-500 shadow-lg' : ''}`}>
-                {plan.popular && (
-                  <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-blue-500">
-                    Most Popular
-                  </Badge>
-                )}
-                <CardHeader>
-                  <CardTitle>{plan.name}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
-                  <div className="text-3xl font-bold">
-                    ${plan.price[billingCycle]}
-                    <span className="text-lg text-gray-500">
-                      /{billingCycle === 'monthly' ? 'mo' : 'yr'}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 mb-6">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center text-sm">
-                        <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button 
-                    className="w-full" 
-                    variant={plan.name === currentPlan.name ? 'outline' : 'default'}
-                    disabled={plan.name === currentPlan.name}
-                  >
-                    {plan.name === currentPlan.name ? 'Current Plan' : 'Select Plan'}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">
+                ${transactions.filter(t => t.status === 'successful').reduce((sum, t) => sum + t.amount, 0).toFixed(2)}
+              </div>
+              <div className="text-sm text-blue-700">Total Funded</div>
+            </div>
+            <div className="text-center p-4 bg-yellow-50 rounded-lg">
+              <div className="text-2xl font-bold text-yellow-600">
+                ${transactions.filter(t => t.status === 'pending').reduce((sum, t) => sum + t.amount, 0).toFixed(2)}
+              </div>
+              <div className="text-sm text-yellow-700">Pending</div>
+            </div>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">
+                {transactions.filter(t => t.status === 'successful').length}
+              </div>
+              <div className="text-sm text-green-700">Successful Payments</div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Billing History */}
+      {/* How It Works */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Campaign Funding</CardTitle>
+          <CardDescription>How to fund your campaigns</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">1</div>
+              <div>
+                <h4 className="font-medium">Create Campaign</h4>
+                <p className="text-sm text-gray-600">Set up your campaign with a minimum budget of $10</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">2</div>
+              <div>
+                <h4 className="font-medium">Add Funding</h4>
+                <p className="text-sm text-gray-600">Use Flutterwave to securely fund your campaigns</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">3</div>
+              <div>
+                <h4 className="font-medium">Campaign Goes Live</h4>
+                <p className="text-sm text-gray-600">Once funded, your campaign becomes active and visible to users</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Payment History */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="w-5 h-5" />
-            Billing History
+            Payment History
           </CardTitle>
-          <CardDescription>Your recent invoices and payments</CardDescription>
+          <CardDescription>Your recent payment transactions</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {recentInvoices.map((invoice, index) => (
-              <div key={index}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">{invoice.period}</div>
-                    <div className="text-sm text-gray-500">{invoice.date}</div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="font-medium">${invoice.amount}</div>
-                      <Badge 
-                        variant={invoice.status === 'Paid' ? 'default' : 'secondary'}
-                        className={invoice.status === 'Paid' ? 'bg-green-100 text-green-800' : ''}
-                      >
-                        {invoice.status}
-                      </Badge>
+          {transactions.length > 0 ? (
+            <div className="space-y-4">
+              {transactions.map((transaction, index) => (
+                <div key={transaction.id}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">Campaign Funding</div>
+                      <div className="text-sm text-gray-500">
+                        {new Date(transaction.created_at).toLocaleDateString()} at {new Date(transaction.created_at).toLocaleTimeString()}
+                      </div>
+                      {transaction.flutterwave_id && (
+                        <div className="text-xs text-gray-400">ID: {transaction.flutterwave_id}</div>
+                      )}
                     </div>
-                    <Button variant="outline" size="sm">
-                      <Download className="w-4 h-4 mr-2" />
-                      PDF
-                    </Button>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <div className="font-medium">${transaction.amount.toFixed(2)}</div>
+                        <Badge className={getStatusColor(transaction.status)}>
+                          {transaction.status}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
+                  {index < transactions.length - 1 && <Separator className="mt-4" />}
                 </div>
-                {index < recentInvoices.length - 1 && <Separator className="mt-4" />}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">No payments yet</h3>
+              <p className="text-gray-600 mb-4">Start by creating a campaign and adding funding to see your payment history here.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
