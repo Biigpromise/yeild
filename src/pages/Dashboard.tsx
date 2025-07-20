@@ -8,6 +8,7 @@ import { ReferralsTab } from "@/components/dashboard/ReferralsTab";
 import { CommunityTab } from "@/components/dashboard/CommunityTab";
 import { SupportTab } from "@/components/dashboard/SupportTab";
 import { LeaderboardTab } from "@/components/dashboard/LeaderboardTab";
+import { ChatTab } from "@/components/dashboard/ChatTab";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { BirdStatusDisplay } from "@/components/bird/BirdStatusDisplay";
@@ -57,11 +58,12 @@ const Dashboard: React.FC = () => {
             </div>
             
             <Tabs defaultValue="tasks" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-7">
+                <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8">
                     <TabsTrigger value="tasks">Tasks</TabsTrigger>
                     <TabsTrigger value="profile">Profile</TabsTrigger>
                     <TabsTrigger value="wallet">Wallet</TabsTrigger>
                     <TabsTrigger value="referrals">Referrals</TabsTrigger>
+                    <TabsTrigger value="chat">Chat</TabsTrigger>
                     <TabsTrigger value="community">Community</TabsTrigger>
                     <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
                     <TabsTrigger value="support">Support</TabsTrigger>
@@ -82,6 +84,9 @@ const Dashboard: React.FC = () => {
                 </TabsContent>
                 <TabsContent value="referrals" className="mt-6">
                     <ReferralsTab />
+                </TabsContent>
+                <TabsContent value="chat" className="mt-6">
+                    <ChatTab />
                 </TabsContent>
                 <TabsContent value="community" className="mt-6">
                     <CommunityTab />
