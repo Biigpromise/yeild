@@ -25,7 +25,7 @@ interface WithdrawalFormProps {
 export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: WithdrawalFormProps) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("bank_transfer");
+  const [paymentMethod, setPaymentMethod] = useState("flutterwave");
   const [amount, setAmount] = useState("");
   const [payoutDetails, setPayoutDetails] = useState<any>({});
 
@@ -48,12 +48,7 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
     if (!user || !paymentMethod) return;
 
     // Validation based on payment method
-    if (paymentMethod === 'gift_card') {
-      if (!payoutDetails.giftCardId) {
-        toast.error("Please select a gift card");
-        return;
-      }
-    } else if (paymentMethod === 'yield_wallet') {
+    if (paymentMethod === 'yield_wallet') {
       if (withdrawalAmount < 100) {
         toast.error("Minimum transfer to yield wallet is 100 points");
         return;
@@ -117,44 +112,7 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
       }
 
       // For other payment methods, create withdrawal request
-      if (paymentMethod === 'bank_transfer') {
-        const nigerianBanks = [
-          { name: "Access Bank", code: "044" },
-          { name: "Diamond Bank", code: "063" },
-          { name: "Ecobank Nigeria", code: "050" },
-          { name: "Fidelity Bank", code: "070" },
-          { name: "First Bank of Nigeria", code: "011" },
-          { name: "First City Monument Bank", code: "214" },
-          { name: "Guaranty Trust Bank", code: "058" },
-          { name: "Heritage Bank", code: "030" },
-          { name: "Keystone Bank", code: "082" },
-          { name: "Polaris Bank", code: "076" },
-          { name: "Providus Bank", code: "101" },
-          { name: "Stanbic IBTC Bank", code: "221" },
-          { name: "Standard Chartered Bank", code: "068" },
-          { name: "Sterling Bank", code: "232" },
-          { name: "Union Bank of Nigeria", code: "032" },
-          { name: "United Bank For Africa", code: "033" },
-          { name: "Unity Bank", code: "215" },
-          { name: "Wema Bank", code: "035" },
-          { name: "Zenith Bank", code: "057" }
-        ];
-        const selectedBank = nigerianBanks.find(bank => bank.code === payoutDetails.bankCode);
-        details = { 
-          accountNumber: payoutDetails.accountNumber,
-          bankCode: payoutDetails.bankCode,
-          bankName: selectedBank?.name,
-          accountName: payoutDetails.accountName,
-          notes: payoutDetails.notes
-        };
-      } else if (paymentMethod === 'gift_card') {
-        finalAmount = payoutDetails.amount; // Use the gift card points requirement
-        details = {
-          giftCardId: payoutDetails.giftCardId,
-          giftCardProvider: payoutDetails.giftCardProvider,
-          giftCardDenomination: payoutDetails.giftCardDenomination
-        };
-      } else if (paymentMethod === 'flutterwave') {
+      if (paymentMethod === 'flutterwave') {
         details = {
           accountNumber: payoutDetails.accountNumber,
           bankCode: payoutDetails.bankCode,
@@ -205,39 +163,16 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Tabs value={paymentMethod} onValueChange={setPaymentMethod}>
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="bank_transfer" className="flex items-center gap-1">
-                <CreditCard className="h-4 w-4" />
-                Bank
-              </TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="flutterwave" className="flex items-center gap-1">
                 <CreditCard className="h-4 w-4" />
                 Flutterwave
-              </TabsTrigger>
-              <TabsTrigger value="crypto" className="flex items-center gap-1">
-                <Bitcoin className="h-4 w-4" />
-                Crypto
-              </TabsTrigger>
-              <TabsTrigger value="gift_card" className="flex items-center gap-1">
-                <Gift className="h-4 w-4" />
-                Gift Cards
               </TabsTrigger>
               <TabsTrigger value="yield_wallet" className="flex items-center gap-1">
                 <Wallet className="h-4 w-4" />
                 Yield Wallet
               </TabsTrigger>
             </TabsList>
-
-            <TabsContent value="bank_transfer">
-              <BankTransferForm
-                amount={amount}
-                setAmount={setAmount}
-                payoutDetails={payoutDetails}
-                setPayoutDetails={setPayoutDetails}
-                minWithdrawal={minWithdrawal}
-                maxWithdrawal={maxWithdrawal}
-              />
-            </TabsContent>
 
             <TabsContent value="flutterwave">
               <FlutterwavePayment
@@ -261,36 +196,21 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
                   />
                 </div>
               )}
-            </TabsContent>
-
-            <TabsContent value="crypto" className="space-y-4">
-              <CryptoPayment 
-                onDetailsChange={setPayoutDetails} 
-                details={payoutDetails}
-              />
-              {payoutDetails.cryptoType && (
-                <div className="space-y-2">
-                  <Label htmlFor="crypto-amount">Withdrawal Amount (Points)</Label>
-                  <input
-                    id="crypto-amount"
-                    type="number"
-                    placeholder={`Min: ${minWithdrawal.toLocaleString()}`}
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    min={minWithdrawal}
-                    max={maxWithdrawal}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                  />
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">Supported Nigerian Banks</h4>
+                <div className="grid grid-cols-2 gap-1 text-sm text-blue-700">
+                  <span>• Access Bank</span>
+                  <span>• GTB</span>
+                  <span>• First Bank</span>
+                  <span>• UBA</span>
+                  <span>• Zenith Bank</span>
+                  <span>• Fidelity Bank</span>
+                  <span>• Sterling Bank</span>
+                  <span>• Wema Bank</span>
+                  <span>• FCMB</span>
+                  <span>• Union Bank</span>
                 </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="gift_card">
-              <GiftCardPayment 
-                onDetailsChange={setPayoutDetails} 
-                details={payoutDetails}
-                userPoints={userPoints}
-              />
+              </div>
             </TabsContent>
 
             <TabsContent value="yield_wallet">
@@ -307,8 +227,8 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
             processingFee={processingFee}
           />
 
-          {/* Notes for all methods except gift cards */}
-          {paymentMethod !== 'gift_card' && (
+          {/* Notes for withdrawal methods */}
+          {paymentMethod === 'flutterwave' && (
             <div className="space-y-2">
               <Label htmlFor="notes">Additional Notes (Optional)</Label>
               <Textarea
@@ -335,7 +255,6 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
           >
             {loading ? "Processing..." : 
              paymentMethod === 'yield_wallet' ? "Transfer to Yield Wallet" : 
-             paymentMethod === 'gift_card' ? "Redeem Gift Card" : 
              "Submit Withdrawal Request"}
           </Button>
         </form>

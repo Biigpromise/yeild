@@ -45,7 +45,6 @@ export const LeaderboardUserItem: React.FC<LeaderboardUserItemProps> = ({
         <div>
           <div className="flex items-center gap-2">
             <p className="font-medium">{user.name}</p>
-            <ProfileBirdBadge userId={user.id} size="sm" />
           </div>
           <p className="text-sm text-muted-foreground">
             Level {user.level} • {showPoints ? `${user.tasks_completed} tasks completed` : `${user.points.toLocaleString()} points`}

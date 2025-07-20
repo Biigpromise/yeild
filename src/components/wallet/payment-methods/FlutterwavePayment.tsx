@@ -48,6 +48,28 @@ const SUPPORTED_COUNTRIES = [
   { code: 'US', name: 'United States' }
 ];
 
+const NIGERIAN_BANKS = [
+  { name: "Access Bank", code: "044" },
+  { name: "Diamond Bank", code: "063" },
+  { name: "Ecobank Nigeria", code: "050" },
+  { name: "Fidelity Bank", code: "070" },
+  { name: "First Bank of Nigeria", code: "011" },
+  { name: "First City Monument Bank", code: "214" },
+  { name: "Guaranty Trust Bank", code: "058" },
+  { name: "Heritage Bank", code: "030" },
+  { name: "Keystone Bank", code: "082" },
+  { name: "Polaris Bank", code: "076" },
+  { name: "Providus Bank", code: "101" },
+  { name: "Stanbic IBTC Bank", code: "221" },
+  { name: "Standard Chartered Bank", code: "068" },
+  { name: "Sterling Bank", code: "232" },
+  { name: "Union Bank of Nigeria", code: "032" },
+  { name: "United Bank For Africa", code: "033" },
+  { name: "Unity Bank", code: "215" },
+  { name: "Wema Bank", code: "035" },
+  { name: "Zenith Bank", code: "057" }
+];
+
 export const FlutterwavePayment = ({ 
   onDetailsChange, 
   details, 
@@ -246,14 +268,19 @@ export const FlutterwavePayment = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bankCode">Bank Code</Label>
-            <Input
-              id="bankCode"
-              type="text"
-              placeholder="Enter bank code (e.g., 044 for Access Bank)"
-              value={formData.bankCode}
-              onChange={(e) => handleInputChange('bankCode', e.target.value)}
-            />
+            <Label htmlFor="bankCode">Bank</Label>
+            <Select value={formData.bankCode} onValueChange={(value) => handleInputChange('bankCode', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select your bank" />
+              </SelectTrigger>
+              <SelectContent>
+                {NIGERIAN_BANKS.map((bank) => (
+                  <SelectItem key={bank.code} value={bank.code}>
+                    {bank.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
