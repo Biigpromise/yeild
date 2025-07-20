@@ -5,13 +5,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import ProgressiveSignupFlow from "@/components/auth/ProgressiveSignupFlow";
 import ModernSignInFlow from "@/components/auth/ModernSignInFlow";
 import UserTypeSelection from "@/components/auth/UserTypeSelection";
+import ModernBrandSignup from "@/components/auth/ModernBrandSignup";
 
 const SignUp = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
   const [selectedUserType, setSelectedUserType] = useState<'user' | 'brand' | null>(null);
-  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signin'); // Default to signin
+  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signin');
 
   // Check for user type in URL params
   useEffect(() => {
@@ -53,18 +54,27 @@ const SignUp = () => {
       <UserTypeSelection
         onSelectUser={() => setSelectedUserType('user')}
         onSelectBrand={() => setSelectedUserType('brand')}
-        onSwitchToSignin={() => setAuthMode('signin')} // Fixed: now correctly switches to signin
+        onSwitchToSignin={() => setAuthMode('signin')}
       />
     );
   }
 
-  // Show signin or signup flow
+  // Show signin flow
   if (authMode === 'signin') {
     return (
       <ModernSignInFlow
         userType={selectedUserType}
         onBack={() => setSelectedUserType(null)}
         onSwitchToSignup={() => setAuthMode('signup')}
+      />
+    );
+  }
+
+  // Show signup flow - use ModernBrandSignup for brands
+  if (selectedUserType === 'brand') {
+    return (
+      <ModernBrandSignup
+        onBack={() => setSelectedUserType(null)}
       />
     );
   } else {
