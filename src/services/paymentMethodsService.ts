@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getFlutterwaveCode } from "./nigerianBanksService";
@@ -141,28 +142,53 @@ class PaymentMethodsService {
 
   async verifyAccountName(bankCode: string, accountNumber: string): Promise<string | null> {
     try {
+      // Clean the account number - remove any spaces or special characters
+      const cleanAccountNumber = accountNumber.replace(/\D/g, '');
+      
+      // Validate account number length
+      if (cleanAccountNumber.length !== 10) {
+        toast.error('Account number must be exactly 10 digits');
+        return null;
+      }
+
       // Use Flutterwave-specific bank code
       const flutterwaveCode = getFlutterwaveCode(bankCode);
       
-      console.log('Verifying account with Flutterwave code:', flutterwaveCode);
+      console.log('Verifying account:', {
+        originalBankCode: bankCode,
+        flutterwaveCode,
+        accountNumber: cleanAccountNumber
+      });
       
       // Call Flutterwave account verification endpoint
       const { data, error } = await supabase.functions.invoke('verify-bank-account', {
         body: {
-          account_number: accountNumber,
-          account_bank: flutterwaveCode // Use the correct Flutterwave code
+          account_number: cleanAccountNumber,
+          account_bank: flutterwaveCode
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Verification function error:', error);
+        toast.error('Account verification failed. Please try again.');
+        return null;
+      }
+
+      console.log('Verification response:', data);
 
       if (data?.status === 'success' && data?.data?.account_name) {
         return data.data.account_name;
+      } else if (data?.status === 'error') {
+        const errorMsg = data.message || 'Could not verify account details';
+        toast.error(errorMsg);
+        return null;
       }
 
+      toast.error('Could not verify account. Please check your details and try again.');
       return null;
     } catch (error) {
       console.error('Error verifying account:', error);
+      toast.error('Account verification failed. Please check your internet connection and try again.');
       return null;
     }
   }
