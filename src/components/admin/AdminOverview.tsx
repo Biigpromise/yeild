@@ -9,6 +9,7 @@ import { AdminTaskOverview } from "./AdminTaskOverview";
 import { AdminPlatformStats } from "./AdminPlatformStats";
 import { BirdLevelManagementDialog } from "./BirdLevelManagementDialog";
 import { EnhancedUserManagementSystem } from "./enhanced/EnhancedUserManagementSystem";
+import { SecurityMonitoring } from "./SecurityMonitoring";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bird, Crown, AlertTriangle, Shield, Users } from "lucide-react";
