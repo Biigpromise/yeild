@@ -68,14 +68,20 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
           return;
         }
         
-        // For brands, complete signup immediately
+        // For brands, we need a password too - let's ask for it
         if (userType === 'brand') {
+          if (!data.password) {
+            // If no password set, move to password step
+            setCurrentStep(3);
+            return;
+          }
+          
           console.log('Processing brand signup...');
           const redirectUrl = `${window.location.origin}/brand-dashboard`;
           
           const { error } = await signUp(
             data.email, 
-            'TempPass123!', // Temporary password for brands
+            data.password,
             data.name, 
             userType,
             {
@@ -88,8 +94,10 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
           
           if (error) {
             console.error('Brand signup error:', error);
-            if (error.message.includes('User already registered')) {
+            if (error.message.includes('User already registered') || error.message.includes('already exists')) {
               toast.error('An account with this email already exists. Please try signing in instead.');
+              // Redirect to sign in
+              navigate('/auth');
             } else {
               toast.error(error.message);
             }
@@ -115,17 +123,13 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
           toast.error('Password must be at least 8 characters');
           return;
         }
-        setCurrentStep(4);
-      } else if (currentStep === 4) {
-        // Optional step, can skip
-        setCurrentStep(5);
-      } else if (currentStep === 5) {
-        if (!data.username) {
-          toast.error('Please enter a username');
-          return;
+        // For brands, complete signup after password step
+        if (userType === 'brand') {
+          await completeBrandSignup();
+        } else {
+          // For users, continue to next step
+          setCurrentStep(4);
         }
-        // Complete signup for users
-        await completeUserSignup();
       }
     } catch (error: any) {
       console.error('handleNext error:', error);
@@ -169,6 +173,41 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
       }
     } catch (error: any) {
       console.error('Complete signup unexpected error:', error);
+      toast.error(error.message || 'An unexpected error occurred');
+    }
+  };
+
+  const completeBrandSignup = async () => {
+    try {
+      const redirectUrl = `${window.location.origin}/brand-dashboard`;
+      
+      const { error } = await signUp(
+        data.email,
+        data.password,
+        data.name,
+        userType,
+        {
+          date_of_birth: data.dateOfBirth,
+          username: data.name.toLowerCase().replace(/\s+/g, ''),
+          company_name: data.name
+        },
+        redirectUrl
+      );
+      
+      if (error) {
+        console.error('Complete brand signup error:', error);
+        if (error.message.includes('User already registered') || error.message.includes('already exists')) {
+          toast.error('An account with this email already exists. Please try signing in instead.');
+          navigate('/auth');
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        toast.success('Brand account created successfully! Please check your email for confirmation.');
+        navigate('/brand-dashboard');
+      }
+    } catch (error: any) {
+      console.error('Complete brand signup unexpected error:', error);
       toast.error(error.message || 'An unexpected error occurred');
     }
   };
