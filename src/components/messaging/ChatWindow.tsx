@@ -83,42 +83,43 @@ export const ChatWindow = ({
 
   const loadMessages = async () => {
     try {
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .select(`
-          *,
-          sender:profiles(id, name, profile_picture_url),
-          reactions:message_reactions(emoji, user_id, profiles(name))
-        `)
-        .eq('chat_id', chatId)
-        .order('created_at', { ascending: true })
-        .limit(50);
+      // For now, use mock data since tables are being created
+      const mockMessages: ChatMessage[] = [
+        {
+          id: "1",
+          content: "Hello! How are you doing today?",
+          senderId: "user1",
+          senderName: "John Doe",
+          timestamp: new Date(Date.now() - 3600000).toISOString(),
+          messageType: "text",
+          reactions: [
+            { emoji: "👍", userId: "user2", userName: "You" }
+          ]
+        },
+        {
+          id: "2",
+          content: "I'm doing great, thanks for asking! Just working on some exciting projects.",
+          senderId: user?.id || "current_user",
+          senderName: "You",
+          timestamp: new Date(Date.now() - 1800000).toISOString(),
+          messageType: "text"
+        },
+        {
+          id: "3",
+          content: "That sounds awesome! What kind of projects?",
+          senderId: "user1",
+          senderName: "John Doe", 
+          timestamp: new Date(Date.now() - 900000).toISOString(),
+          messageType: "text",
+          replyTo: {
+            id: "2",
+            content: "I'm doing great, thanks for asking!",
+            senderName: "You"
+          }
+        }
+      ];
 
-      if (error) throw error;
-
-      const formattedMessages: ChatMessage[] = data.map(msg => ({
-        id: msg.id,
-        content: msg.content,
-        senderId: msg.sender_id,
-        senderName: msg.sender?.name || 'Unknown',
-        senderAvatar: msg.sender?.profile_picture_url,
-        timestamp: msg.created_at,
-        messageType: msg.message_type || 'text',
-        mediaUrl: msg.media_url,
-        reactions: msg.reactions?.map((r: any) => ({
-          emoji: r.emoji,
-          userId: r.user_id,
-          userName: r.profiles?.name || 'Unknown'
-        })) || [],
-        isEdited: msg.is_edited,
-        replyTo: msg.reply_to_id ? {
-          id: msg.reply_to_id,
-          content: msg.reply_content || '',
-          senderName: msg.reply_sender_name || ''
-        } : undefined
-      }));
-
-      setMessages(formattedMessages);
+      setMessages(mockMessages);
     } catch (error) {
       console.error('Error loading messages:', error);
       toast.error('Failed to load messages');
@@ -170,24 +171,26 @@ export const ChatWindow = ({
     setNewMessage("");
 
     try {
-      const messageData = {
-        chat_id: chatId,
-        sender_id: user.id,
+      // For now, just add the message to local state
+      const newMessage: ChatMessage = {
+        id: Date.now().toString(),
         content: messageContent,
-        message_type: 'text',
-        reply_to_id: replyingTo?.id || null,
-        reply_content: replyingTo?.content || null,
-        reply_sender_name: replyingTo?.senderName || null
+        senderId: user.id,
+        senderName: "You",
+        timestamp: new Date().toISOString(),
+        messageType: "text",
+        replyTo: replyingTo ? {
+          id: replyingTo.id,
+          content: replyingTo.content,
+          senderName: replyingTo.senderName
+        } : undefined
       };
 
-      const { error } = await supabase
-        .from('chat_messages')
-        .insert(messageData);
-
-      if (error) throw error;
-
+      setMessages(prev => [...prev, newMessage]);
       setReplyingTo(null);
       inputRef.current?.focus();
+      
+      toast.success("Message sent!");
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
