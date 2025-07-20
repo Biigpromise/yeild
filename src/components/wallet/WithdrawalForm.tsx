@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { CryptoPayment } from "./payment-methods/CryptoPayment";
 import { GiftCardPayment } from "./payment-methods/GiftCardPayment";
 import { YieldWalletPayment } from "./payment-methods/YieldWalletPayment";
+import { FlutterwavePayment } from "./payment-methods/FlutterwavePayment";
 import { BankTransferForm } from "./forms/BankTransferForm";
 import { AmountBreakdown } from "./forms/AmountBreakdown";
 import { WithdrawalValidation, useWithdrawalValidation } from "./forms/WithdrawalValidation";
@@ -153,6 +154,17 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
           giftCardProvider: payoutDetails.giftCardProvider,
           giftCardDenomination: payoutDetails.giftCardDenomination
         };
+      } else if (paymentMethod === 'flutterwave') {
+        details = {
+          accountNumber: payoutDetails.accountNumber,
+          bankCode: payoutDetails.bankCode,
+          accountName: payoutDetails.accountName,
+          phoneNumber: payoutDetails.phoneNumber,
+          currency: payoutDetails.currency,
+          country: payoutDetails.country,
+          processingFee: payoutDetails.processingFee,
+          netAmount: payoutDetails.netAmount
+        };
       }
 
       const { error } = await supabase
@@ -193,10 +205,14 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Tabs value={paymentMethod} onValueChange={setPaymentMethod}>
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="bank_transfer" className="flex items-center gap-1">
                 <CreditCard className="h-4 w-4" />
                 Bank
+              </TabsTrigger>
+              <TabsTrigger value="flutterwave" className="flex items-center gap-1">
+                <CreditCard className="h-4 w-4" />
+                Flutterwave
               </TabsTrigger>
               <TabsTrigger value="crypto" className="flex items-center gap-1">
                 <Bitcoin className="h-4 w-4" />
@@ -221,6 +237,30 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
                 minWithdrawal={minWithdrawal}
                 maxWithdrawal={maxWithdrawal}
               />
+            </TabsContent>
+
+            <TabsContent value="flutterwave">
+              <FlutterwavePayment
+                onDetailsChange={setPayoutDetails}
+                details={payoutDetails}
+                userPoints={userPoints}
+                amount={amount}
+              />
+              {paymentMethod === 'flutterwave' && (
+                <div className="space-y-2 mt-4">
+                  <Label htmlFor="flutterwave-amount">Withdrawal Amount (Points)</Label>
+                  <input
+                    id="flutterwave-amount"
+                    type="number"
+                    placeholder={`Min: ${minWithdrawal.toLocaleString()}`}
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    min={minWithdrawal}
+                    max={maxWithdrawal}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                  />
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="crypto" className="space-y-4">
