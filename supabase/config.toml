@@ -34,6 +34,8 @@ enable_confirmations = true
 # Enable additional security features for production
 refresh_token_rotation_enabled = true
 security_update_password_require_reauthentication = true
+# Increase session timeout for better user experience
+session_timeout = 86400
 
 [api]
 enabled = true

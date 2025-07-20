@@ -29,47 +29,55 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     let mounted = true;
 
-    // Get initial session first
+    // Set up auth state listener FIRST to catch all events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!mounted) return;
+        
+        console.log("Auth state changed:", event, session?.user?.email);
+        
+        // Update state synchronously to prevent race conditions
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Only set loading to false after we've processed the auth change
+        setLoading(false);
+
+        // Handle specific auth events
+        if (event === 'SIGNED_OUT') {
+          console.log("User signed out - clearing session");
+          // Clear any cached data or redirect if needed
+        } else if (event === 'SIGNED_IN') {
+          console.log("User signed in:", session?.user?.email);
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log("Token refreshed for user:", session?.user?.email);
+        } else if (event === 'INITIAL_SESSION') {
+          console.log("Initial session loaded:", session?.user?.email);
+        }
+      }
+    );
+
+    // THEN get initial session - this will trigger the auth state change listener
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           console.error("Error getting initial session:", error);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
         }
         
-        if (mounted) {
-          console.log("Initial session check:", session?.user?.email);
-          setSession(session);
-          setUser(session?.user ?? null);
-        }
+        // Don't set state here - let the auth state change listener handle it
+        console.log("Initial session retrieved:", session?.user?.email);
       } catch (error) {
         console.error("Unexpected error getting session:", error);
-      } finally {
         if (mounted) {
           setLoading(false);
         }
       }
     };
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-        
-        console.log("Auth state changed:", event, session?.user?.email);
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        // Handle auth events
-        if (event === 'SIGNED_OUT') {
-          console.log("User signed out");
-        } else if (event === 'SIGNED_IN') {
-          console.log("User signed in:", session?.user?.email);
-        } else if (event === 'TOKEN_REFRESHED') {
-          console.log("Token refreshed");
-        }
-      }
-    );
 
     // Get initial session
     getInitialSession();

@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "./contexts/AuthContext";
+import { SessionRecovery } from "./components/auth/SessionRecovery";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import Index from "./pages/Index";
@@ -59,6 +60,7 @@ function App() {
                     <Route path="/tasks" element={<Tasks />} />
                     <Route path="/campaigns/:id" element={<CampaignDetails />} />
                   </Routes>
+                  <SessionRecovery />
                   <Toaster />
                 </OnboardingProvider>
               </AuthProvider>
