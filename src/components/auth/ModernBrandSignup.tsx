@@ -168,7 +168,7 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
         }
       } else {
         toast.success("Brand application submitted successfully! Please check your email to verify your account.");
-        navigate('/brand-dashboard');
+        // Don't navigate immediately - let email confirmation guard handle it
       }
     } catch (error: any) {
       console.error('Brand signup error:', error);
@@ -274,10 +274,13 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
                   <p className="text-gray-400 text-sm">
                     Don't have an account?{' '}
                     <button 
-                      onClick={() => navigate('/auth')}
+                      onClick={() => {
+                        setShowExistingUserMessage(false);
+                        setFormData(prev => ({ ...prev, email: '', password: '' }));
+                      }}
                       className="text-yeild-yellow hover:underline"
                     >
-                      Try regular signup instead
+                      Try with different email
                     </button>
                   </p>
                 </div>

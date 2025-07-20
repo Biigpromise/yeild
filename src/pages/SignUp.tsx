@@ -12,13 +12,15 @@ const SignUp = () => {
   const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
   const [selectedUserType, setSelectedUserType] = useState<'user' | 'brand' | null>(null);
-  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signin');
+  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup'); // Default to signup instead of signin
 
   // Check for user type in URL params
   useEffect(() => {
     const userType = searchParams.get('type') as 'user' | 'brand';
     if (userType && ['user', 'brand'].includes(userType)) {
       setSelectedUserType(userType);
+      // Force signup mode when type is specified
+      setAuthMode('signup');
     }
   }, [searchParams]);
 
@@ -29,6 +31,7 @@ const SignUp = () => {
       if (user.email === 'yeildsocials@gmail.com') {
         navigate("/admin");
       } else {
+        // Check user roles to determine proper dashboard
         navigate("/dashboard");
       }
     }
@@ -70,7 +73,7 @@ const SignUp = () => {
     );
   }
 
-  // Show signup flow - use ModernBrandSignup for brands
+  // Show signup flow - use ModernBrandSignup for brands, ProgressiveSignupFlow for users
   if (selectedUserType === 'brand') {
     return (
       <ModernBrandSignup
