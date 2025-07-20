@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,9 @@ import { useAdminTaskManagement } from "./hooks/useAdminTaskManagement";
 import { getStatusColor, getDifficultyColor } from "./utils/taskColorUtils";
 import { TaskEditDialog } from "./enhanced/TaskEditDialog";
 import { TaskCategoryManager } from "./enhanced/TaskCategoryManager";
+import { AutomatedProcessingPanel } from "./AutomatedProcessingPanel";
+import { BulkOperationsPanel } from "./BulkOperationsPanel";
+import { RealTimePointsPanel } from "./RealTimePointsPanel";
 
 export const TaskManagement = () => {
   const {
@@ -94,6 +96,9 @@ export const TaskManagement = () => {
               </Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="automation">Auto Processing</TabsTrigger>
+          <TabsTrigger value="bulk">Bulk Operations</TabsTrigger>
+          <TabsTrigger value="realtime">Real-time Points</TabsTrigger>
           <TabsTrigger value="create">Create Task</TabsTrigger>
           <TabsTrigger value="categories">Manage Categories</TabsTrigger>
         </TabsList>
@@ -137,6 +142,18 @@ export const TaskManagement = () => {
             submissions={submissions}
             onUpdate={handleSubmissionUpdate}
           />
+        </TabsContent>
+
+        <TabsContent value="automation" className="flex-1 overflow-y-auto">
+          <AutomatedProcessingPanel />
+        </TabsContent>
+
+        <TabsContent value="bulk" className="flex-1 overflow-y-auto">
+          <BulkOperationsPanel />
+        </TabsContent>
+
+        <TabsContent value="realtime" className="flex-1 overflow-y-auto">
+          <RealTimePointsPanel />
         </TabsContent>
 
         <TabsContent value="create" className="flex-1 overflow-hidden">
