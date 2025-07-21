@@ -60,14 +60,14 @@ const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, o
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <div className="flex items-center justify-between p-6">
-        <button onClick={onBack} className="text-foreground">
+        <button onClick={onBack} className="text-white">
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div className="flex items-center justify-center">
-          <img src="/lovable-uploads/c0942c4f-38c3-4a43-9d01-3f429f5860ee.png" alt="YIELD" className="h-8" />
+          <span className="text-yeild-yellow text-2xl font-bold">YEILD</span>
         </div>
         <div className="w-6"></div>
       </div>
@@ -80,8 +80,8 @@ const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, o
           transition={{ duration: 0.3 }}
         >
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Sign in to YIELD</h1>
-            <p className="text-muted-foreground">Welcome back!</p>
+            <h1 className="text-3xl font-bold mb-2 text-white">Sign in to <span className="text-yeild-yellow">YEILD</span></h1>
+            <p className="text-gray-400">Welcome back!</p>
           </div>
 
           <div className="space-y-6">
@@ -90,7 +90,7 @@ const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, o
                 <Button
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
-                  className="w-full bg-muted hover:bg-muted/80 text-foreground py-4 rounded-2xl flex items-center justify-center gap-3"
+                  className="w-full bg-gray-800 hover:bg-gray-700 text-white py-4 rounded-2xl flex items-center justify-center gap-3 border border-gray-600"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -102,41 +102,41 @@ const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, o
                 </Button>
                 
                 <div className="flex items-center justify-center">
-                  <div className="flex-1 h-px bg-border"></div>
-                  <span className="px-4 text-sm text-muted-foreground">or</span>
-                  <div className="flex-1 h-px bg-border"></div>
+                  <div className="flex-1 h-px bg-gray-600"></div>
+                  <span className="px-4 text-sm text-gray-400">or</span>
+                  <div className="flex-1 h-px bg-gray-600"></div>
                 </div>
               </>
             )}
 
             <form onSubmit={handleSignIn} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">Email</label>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
                 <Input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full py-4 px-4 bg-transparent border-b border-muted-foreground/30 rounded-none focus:border-primary focus:ring-0 text-lg"
+                  className="w-full py-4 px-4 bg-black border-b border-gray-600 rounded-none focus:border-yeild-yellow focus:ring-0 text-lg text-white"
                   placeholder=""
                   required
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-2">Password</label>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Password</label>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full py-4 px-4 pr-12 bg-transparent border-b border-muted-foreground/30 rounded-none focus:border-primary focus:ring-0 text-lg"
+                    className="w-full py-4 px-4 pr-12 bg-black border-b border-gray-600 rounded-none focus:border-yeild-yellow focus:ring-0 text-lg text-white"
                     placeholder=""
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -146,7 +146,7 @@ const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, o
               <div className="text-right">
                 <button 
                   type="button" 
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-yeild-yellow hover:underline"
                   onClick={() => window.location.href = '/forgot-password'}
                 >
                   Forgot password?
@@ -156,11 +156,11 @@ const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, o
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-foreground hover:bg-foreground/90 text-background py-4 rounded-full text-lg font-semibold"
+                className="w-full bg-yeild-yellow hover:bg-yeild-yellow/90 text-black py-4 rounded-full text-lg font-semibold"
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                     Signing in...
                   </div>
                 ) : (
@@ -170,9 +170,9 @@ const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, o
             </form>
 
             <div className="text-center">
-              <p className="text-muted-foreground">
+              <p className="text-gray-400">
                 Don't have an account?{' '}
-                <button onClick={onSwitchToSignup} className="text-primary font-medium">
+                <button onClick={onSwitchToSignup} className="text-yeild-yellow font-medium hover:underline">
                   Sign up
                 </button>
               </p>
