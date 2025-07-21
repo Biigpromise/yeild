@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { LoadingFallback } from '@/components/ui/loading-fallback';
 import { referralService } from '@/services/referralService';
 import { toast } from 'sonner';
+import { generateReferralLink, APP_CONFIG } from "@/config/app";
 
 export const EnhancedReferralsTab: React.FC = () => {
   const { user } = useAuth();
@@ -61,9 +61,9 @@ export const EnhancedReferralsTab: React.FC = () => {
     if (!user?.id) return;
     
     try {
-      const referralLink = `${window.location.origin}/signup?ref=${user.id}`;
+      const referralLink = generateReferralLink(user.id);
       await navigator.clipboard.writeText(referralLink);
-      toast.success('Referral link copied to clipboard!');
+      toast.success('Professional referral link copied!');
     } catch (error) {
       toast.error('Failed to copy referral link');
     }
@@ -153,7 +153,7 @@ export const EnhancedReferralsTab: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Your Referral Link</span>
+              <span>Your Professional Referral Link</span>
               <Button
                 variant="outline"
                 size="sm"
@@ -168,11 +168,17 @@ export const EnhancedReferralsTab: React.FC = () => {
             <div className="space-y-4">
               <div className="p-4 bg-muted rounded-lg">
                 <code className="text-sm break-all">
-                  {window.location.origin}/signup?ref={user?.id}
+                  {generateReferralLink(user?.id || '')}
                 </code>
               </div>
+              <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                <div className="text-sm text-green-800">
+                  <p><strong>✓ Professional Domain:</strong> {APP_CONFIG.getAppDomain()}</p>
+                  <p className="text-xs mt-1">No more unprofessional URLs - your referral links now use your custom domain!</p>
+                </div>
+              </div>
               <Button onClick={copyReferralLink} className="w-full">
-                Copy Referral Link
+                Copy Professional Referral Link
               </Button>
             </div>
           </CardContent>

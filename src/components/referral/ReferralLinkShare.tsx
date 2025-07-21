@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Copy, Share2, Check, QrCode, MessageCircle, Mail } from "lucide-react";
 import { toast } from "sonner";
-import { generateReferralLink } from "@/config/app";
+import { generateReferralLink, APP_CONFIG } from "@/config/app";
 
 interface ReferralLinkShareProps {
   referralCode: string;
@@ -22,7 +22,7 @@ export const ReferralLinkShare: React.FC<ReferralLinkShareProps> = ({
     try {
       await navigator.clipboard.writeText(referralLink);
       setCopied(true);
-      toast.success("Referral link copied to clipboard!");
+      toast.success("Professional referral link copied!");
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       toast.error("Failed to copy link");
@@ -69,7 +69,7 @@ export const ReferralLinkShare: React.FC<ReferralLinkShareProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Share2 className="h-5 w-5" />
-          Share Your Referral Link
+          Share Your Professional Referral Link
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -86,6 +86,14 @@ export const ReferralLinkShare: React.FC<ReferralLinkShareProps> = ({
           >
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           </Button>
+        </div>
+
+        {/* Domain Info */}
+        <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+          <div className="text-sm text-green-800">
+            <p><strong>✓ Professional Domain:</strong> {APP_CONFIG.getAppDomain()}</p>
+            <p className="text-xs mt-1 opacity-75">Your referral links now use your professional domain</p>
+          </div>
         </div>
 
         {/* Quick Share Buttons */}
@@ -105,7 +113,10 @@ export const ReferralLinkShare: React.FC<ReferralLinkShareProps> = ({
           <p className="text-sm font-medium text-gray-700">Share on:</p>
           <div className="grid grid-cols-2 gap-2">
             <Button
-              onClick={shareViaWhatsApp}
+              onClick={() => {
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
+                window.open(whatsappUrl, '_blank');
+              }}
               variant="outline"
               size="sm"
               className="flex items-center gap-2"
@@ -114,7 +125,12 @@ export const ReferralLinkShare: React.FC<ReferralLinkShareProps> = ({
               WhatsApp
             </Button>
             <Button
-              onClick={shareViaEmail}
+              onClick={() => {
+                const subject = encodeURIComponent('Join YIELD - Referral Invitation');
+                const body = encodeURIComponent(`Hi there!\n\nI'd love to invite you to join YIELD, where you can earn rewards for completing tasks.\n\nUse my referral code: ${referralCode}\nOr click this link: ${referralLink}\n\nLet's start earning together!`);
+                const emailUrl = `mailto:?subject=${subject}&body=${body}`;
+                window.open(emailUrl);
+              }}
               variant="outline"
               size="sm"
               className="flex items-center gap-2"
@@ -123,7 +139,11 @@ export const ReferralLinkShare: React.FC<ReferralLinkShareProps> = ({
               Email
             </Button>
             <Button
-              onClick={shareViaTwitter}
+              onClick={() => {
+                const twitterText = encodeURIComponent(`Join me on YIELD and start earning rewards! Use my referral code: ${referralCode}`);
+                const twitterUrl = `https://twitter.com/intent/tweet?text=${twitterText}&url=${encodeURIComponent(referralLink)}`;
+                window.open(twitterUrl, '_blank');
+              }}
               variant="outline"
               size="sm"
               className="flex items-center gap-2"
@@ -149,7 +169,7 @@ export const ReferralLinkShare: React.FC<ReferralLinkShareProps> = ({
         <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
           <div className="text-sm text-blue-800 space-y-1">
             <p><strong>Your referral code:</strong> <span className="font-mono">{referralCode}</span></p>
-            <p>Share this link with friends to earn rewards when they join and become active!</p>
+            <p>Share this professional link with friends to earn rewards when they join and become active!</p>
           </div>
         </div>
       </CardContent>

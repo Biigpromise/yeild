@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,7 @@ import { BirdProgression } from "./BirdProgression";
 import { BirdLevelNotification } from "./BirdLevelNotification";
 import { ProfileBirdBadge } from "./ProfileBirdBadge";
 import { supabase } from "@/integrations/supabase/client";
-import { generateReferralLink } from "@/config/app";
+import { generateReferralLink, APP_CONFIG } from "@/config/app";
 
 export const EnhancedReferralSystem = () => {
   const [referralCode, setReferralCode] = useState<string>("");
@@ -79,7 +78,7 @@ export const EnhancedReferralSystem = () => {
       return;
     }
     navigator.clipboard.writeText(referralLink);
-    toast.success("Referral link copied to clipboard!");
+    toast.success("Professional referral link copied!");
   };
 
   const shareReferralLink = () => {
@@ -194,7 +193,7 @@ export const EnhancedReferralSystem = () => {
       {/* Referral Link Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Share Your Referral Link</CardTitle>
+          <CardTitle>Share Your Professional Referral Link</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {referralCode ? (
@@ -212,8 +211,14 @@ export const EnhancedReferralSystem = () => {
                   <Share2 className="h-4 w-4" />
                 </Button>
               </div>
+              <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                <div className="text-sm text-green-800">
+                  <p><strong>✓ Professional Domain:</strong> {APP_CONFIG.getAppDomain()}</p>
+                  <p className="text-xs mt-1">Your referral links now use your professional domain for better trust and click-through rates!</p>
+                </div>
+              </div>
               <p className="text-sm text-muted-foreground">
-                Share this link and build your way to the <strong>Phoenix badge</strong> with points and referrals!
+                Share this professional link and build your way to the <strong>Phoenix badge</strong> with points and referrals!
               </p>
             </>
           ) : (
