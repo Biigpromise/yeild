@@ -7,7 +7,7 @@ site_url = "https://yeildsocials.com"
 enabled = true
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
 additional_redirect_urls = [
-  "https://yeildsocials.com/auth", 
+  "https://yeildsocials.com/auth/callback", 
   "https://yeildsocials.com/brand-dashboard", 
   "https://yeildsocials.com/dashboard", 
   "https://yeildsocials.com/onboarding",
@@ -16,7 +16,7 @@ additional_redirect_urls = [
   "https://yeildsocials.com/reset-password",
   "https://yeildsocials.com/update-password",
   "https://601caf62-c867-4152-87f9-fa5869c55de0.lovableproject.com",
-  "https://601caf62-c867-4152-87f9-fa5869c55de0.lovableproject.com/auth",
+  "https://601caf62-c867-4152-87f9-fa5869c55de0.lovableproject.com/auth/callback",
   "https://601caf62-c867-4152-87f9-fa5869c55de0.lovableproject.com/brand-dashboard",
   "https://601caf62-c867-4152-87f9-fa5869c55de0.lovableproject.com/dashboard",
   "https://601caf62-c867-4152-87f9-fa5869c55de0.lovableproject.com/onboarding"

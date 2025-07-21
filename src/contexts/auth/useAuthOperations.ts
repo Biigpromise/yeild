@@ -1,3 +1,4 @@
+
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -161,9 +162,8 @@ export const useAuthOperations = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref');
       
-      // Use the current origin for the redirect URL
-      const currentOrigin = window.location.origin;
-      const redirectUrl = `${currentOrigin}/auth/callback`;
+      // Use HTTPS for production domain
+      const redirectUrl = `https://yeildsocials.com/auth/callback`;
       
       const queryParams: Record<string, string> = {
         user_type: userType || 'user',
@@ -177,7 +177,6 @@ export const useAuthOperations = () => {
       
       console.log('OAuth redirect URL:', redirectUrl);
       console.log('OAuth query params:', queryParams);
-      console.log('Current origin:', currentOrigin);
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -196,6 +195,8 @@ export const useAuthOperations = () => {
           toast.error('Google sign-in access denied. Please check your Google OAuth configuration.');
         } else if (error.message.includes('redirect')) {
           toast.error('Redirect URL mismatch. Please update your Google OAuth settings.');
+        } else if (error.message.includes('invalid_client')) {
+          toast.error('Google OAuth client configuration error. Please check your Google Cloud Console settings.');
         } else {
           const friendlyMessage = handleAuthError(error, `${provider} sign in`);
           toast.error(friendlyMessage);
