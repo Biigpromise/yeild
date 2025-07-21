@@ -25,6 +25,26 @@ export const EmailConfirmationGuard: React.FC<EmailConfirmationGuardProps> = ({ 
 
       try {
         console.log('Checking email confirmation for user:', user.id);
+        
+        // Check localStorage for skip preference first
+        const skipKey = `email_confirmation_skipped_${user.id}`;
+        const hasSkipped = localStorage.getItem(skipKey) === 'true';
+        
+        if (hasSkipped) {
+          console.log('User has previously skipped email confirmation');
+          setEmailConfirmed(true);
+          setLoading(false);
+          return;
+        }
+
+        // Check if email is confirmed by Supabase auth
+        if (user.email_confirmed_at) {
+          console.log('Email confirmed by Supabase auth');
+          setEmailConfirmed(true);
+          setLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase
           .from('brand_applications')
           .select('email_confirmed')
@@ -103,16 +123,23 @@ export const EmailConfirmationGuard: React.FC<EmailConfirmationGuardProps> = ({ 
     try {
       console.log('User going back from email confirmation');
       await signOut();
-      navigate('/signup');
+      navigate('/auth');
     } catch (error) {
       console.error('Error signing out:', error);
-      navigate('/signup');
+      navigate('/auth');
     }
   };
 
   const handleSkipForNow = () => {
+    if (!user) return;
+    
     console.log('User skipping email confirmation');
-    // Allow user to proceed without email confirmation for now
+    
+    // Store skip preference in localStorage
+    const skipKey = `email_confirmation_skipped_${user.id}`;
+    localStorage.setItem(skipKey, 'true');
+    
+    // Allow user to proceed without email confirmation
     setEmailConfirmed(true);
     toast.info('You can confirm your email later from your profile settings.');
   };
@@ -129,53 +156,53 @@ export const EmailConfirmationGuard: React.FC<EmailConfirmationGuardProps> = ({ 
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yeild-yellow"></div>
       </div>
     );
   }
 
   if (!emailConfirmed) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-black p-4">
+        <Card className="w-full max-w-md bg-gray-900 border-gray-700">
           <CardHeader className="text-center">
             <div className="flex items-center justify-between mb-4">
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={handleGoBack}
-                className="p-2"
+                className="p-2 text-white hover:bg-gray-800"
               >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
-              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                <Mail className="w-8 h-8 text-blue-600" />
+              <div className="mx-auto w-16 h-16 bg-blue-900 rounded-full flex items-center justify-center">
+                <Mail className="w-8 h-8 text-blue-400" />
               </div>
               <div className="w-8"></div>
             </div>
-            <CardTitle className="text-xl">Confirm Your Email</CardTitle>
+            <CardTitle className="text-xl text-white">Confirm Your Email</CardTitle>
           </CardHeader>
           <CardContent className="text-center space-y-4">
-            <p className="text-gray-600">
-              We've sent a confirmation email to <strong>{user?.email}</strong>. 
+            <p className="text-gray-300">
+              We've sent a confirmation email to <strong className="text-yeild-yellow">{user?.email}</strong>. 
               Please check your inbox and click the confirmation link to access your brand dashboard.
             </p>
             
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+            <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-lg p-3 mb-4">
               <div className="flex items-center">
-                <AlertCircle className="w-4 h-4 text-yellow-600 mr-2" />
-                <p className="text-sm text-yellow-800">
+                <AlertCircle className="w-4 h-4 text-yellow-500 mr-2" />
+                <p className="text-sm text-yellow-200">
                   Don't see the email? Check your spam folder or try resending.
                 </p>
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Button 
                 onClick={handleResendConfirmation} 
                 disabled={resending}
-                className="w-full"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               >
                 {resending ? (
                   <>
@@ -190,7 +217,7 @@ export const EmailConfirmationGuard: React.FC<EmailConfirmationGuardProps> = ({ 
               <Button 
                 variant="outline"
                 onClick={handleTryAgain}
-                className="w-full"
+                className="w-full border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
               >
                 Already Confirmed? Try Again
               </Button>
@@ -198,7 +225,7 @@ export const EmailConfirmationGuard: React.FC<EmailConfirmationGuardProps> = ({ 
               <Button 
                 variant="outline"
                 onClick={handleSkipForNow}
-                className="w-full"
+                className="w-full border-yeild-yellow text-yeild-yellow hover:bg-yeild-yellow/10"
               >
                 Skip for Now
               </Button>

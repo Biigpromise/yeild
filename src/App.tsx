@@ -34,6 +34,8 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/signup" element={<Navigate to="/auth" replace />} />
+                <Route path="/login" element={<Navigate to="/auth?mode=signin" replace />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/brand-dashboard" element={<BrandDashboard />} />
                 <Route path="/campaigns/create" element={<CreateCampaign />} />
