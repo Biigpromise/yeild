@@ -1,12 +1,13 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthOperations } from './auth/useAuthOperations';
 import { analytics } from '@/services/analytics';
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string, name?: string, userType?: string, additionalData?: Record<string, any>, emailRedirectTo?: string) => Promise<{ user: User | null; error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -29,6 +30,7 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   
   const authOperations = useAuthOperations();
@@ -37,6 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Get initial session
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
       if (session?.user) {
         setUser(session.user);
         // Set user properties in analytics
@@ -57,6 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
         
+        setSession(session);
         if (session?.user) {
           setUser(session.user);
           const userType = session.user.user_metadata?.user_type || 'user';
@@ -65,9 +69,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (event === 'SIGNED_IN') {
             const loginMethod = session.user.app_metadata?.provider || 'email';
             analytics.trackLogin(session.user.id, userType, loginMethod as 'email' | 'google');
-          } else if (event === 'SIGNED_UP') {
-            const signupMethod = session.user.app_metadata?.provider || 'email';
-            analytics.trackSignup(session.user.id, userType, signupMethod as 'email' | 'google');
+            // Also track signup for new users (first time sign in)
+            if (session.user.created_at && new Date(session.user.created_at).getTime() > Date.now() - 60000) {
+              const signupMethod = session.user.app_metadata?.provider || 'email';
+              analytics.trackSignup(session.user.id, userType, signupMethod as 'email' | 'google');
+            }
           }
           
           // Set user properties
@@ -95,6 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value = {
     user,
+    session,
     loading,
     ...authOperations
   };
