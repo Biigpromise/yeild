@@ -6,6 +6,7 @@ import ProgressiveSignupFlow from "@/components/auth/ProgressiveSignupFlow";
 import ModernSignInFlow from "@/components/auth/ModernSignInFlow";
 import UserTypeSelection from "@/components/auth/UserTypeSelection";
 import ModernBrandSignup from "@/components/auth/ModernBrandSignup";
+import { toast } from "sonner";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -13,6 +14,18 @@ const SignUp = () => {
   const [searchParams] = useSearchParams();
   const [selectedUserType, setSelectedUserType] = useState<'user' | 'brand' | null>(null);
   const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup');
+
+  // Check for referral code and show notification
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      console.log('Referral code detected in URL:', refCode);
+      toast.success(`You're signing up with referral code: ${refCode}`, {
+        description: "Complete your signup to activate the referral bonus!",
+        duration: 5000,
+      });
+    }
+  }, [searchParams]);
 
   // Check for user type in URL params
   useEffect(() => {

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TasksTab } from "@/components/dashboard/TasksTab";
@@ -16,11 +15,15 @@ import { useOnboarding } from "@/hooks/useOnboarding";
 import { useAuth } from "@/contexts/AuthContext";
 import { useExperienceLevel } from '@/hooks/useExperienceLevel';
 import { useDashboard } from '@/hooks/useDashboard';
+import { useReferralMonitoring } from '@/hooks/useReferralMonitoring';
 
 const Dashboard: React.FC = () => {
     const { user, signOut } = useAuth();
     const { showOnboarding, userType, completeOnboarding } = useOnboarding();
     const dashboardData = useDashboard();
+    
+    // Monitor referral activation
+    useReferralMonitoring();
     
     // Mock user stats for experience level calculation
     const { isFeatureUnlocked } = useExperienceLevel(0, 0, 0);

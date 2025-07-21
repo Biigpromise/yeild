@@ -4,8 +4,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { userService } from "@/services/userService";
 import { fraudDetectionService } from "@/services/fraudDetectionService";
+import { referralService } from "@/services/referralService";
 import { useSignupFraudDetection } from "@/hooks/useSignupFraudDetection";
 
 export const useSignUp = () => {
@@ -39,7 +39,6 @@ export const useSignUp = () => {
     const refCode = searchParams.get('ref');
     if (refCode) {
       setReferralCode(refCode);
-      toast.info("You're signing up with a referral code!");
       console.log('Referral code detected:', refCode);
     }
   }, [location]);
@@ -79,31 +78,33 @@ export const useSignUp = () => {
           toast.error(error.message || "Sign up failed");
         }
       } else {
-        console.log('Signup successful, handling referral code...');
+        console.log('Signup successful, processing referral...');
         
-        // Handle referral code if present
-        if (referralCode) {
-          console.log('Processing referral code:', referralCode);
-          const currentUser = await supabase.auth.getUser();
-          if (currentUser.data.user) {
-            console.log('User found, applying referral:', currentUser.data.user.id);
-            const success = await userService.handleReferralSignup(referralCode, currentUser.data.user.id);
-            if (success) {
-              toast.success("Referral bonus applied!");
-              console.log('Referral bonus applied successfully');
+        // Get the current user
+        const { data: currentUser } = await supabase.auth.getUser();
+        
+        if (currentUser.user) {
+          // Process referral code if present
+          if (referralCode) {
+            console.log('Processing referral code:', referralCode);
+            const referralResult = await referralService.processReferralSignup(
+              referralCode, 
+              currentUser.user.id
+            );
+            
+            if (referralResult.success) {
+              toast.success(`Welcome! ${referralResult.message}`, {
+                description: "Complete tasks to activate your referral bonus!",
+              });
+              console.log('Referral processed successfully');
             } else {
-              console.log('Referral bonus application failed');
+              toast.warning(`Referral code issue: ${referralResult.message}`);
+              console.log('Referral processing failed:', referralResult.message);
             }
-          } else {
-            console.log('No user found for referral application');
           }
-        }
-        
-        // Store fraud detection data - this will now be handled by useSignupFraudDetection hook
-        // but we'll also store it immediately for better coverage
-        const currentUser = await supabase.auth.getUser();
-        if (currentUser.data.user) {
-          await fraudDetectionService.storeSignupData(currentUser.data.user.id);
+          
+          // Store fraud detection data
+          await fraudDetectionService.storeSignupData(currentUser.user.id);
         }
         
         setAwaitingConfirmation(true);
