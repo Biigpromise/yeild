@@ -478,19 +478,19 @@ export const userService = {
             views_count: item.view_count || 0,
             user: profiles && profiles !== null && typeof profiles === 'object' && 'id' in profiles ? {
               id: profiles.id,
-              name: profiles.name,
-              email: profiles.email,
-              profile_picture_url: profiles.profile_picture_url,
+              name: profiles.name || '',
+              email: profiles.email || '',
+              profile_picture_url: profiles.profile_picture_url || undefined,
               bio: profiles.bio || undefined,
-              followers_count: profiles.followers_count,
-              following_count: profiles.following_count,
-              points: profiles.points,
-              level: String(profiles.level),
-              active_referrals_count: profiles.active_referrals_count,
-              total_referrals_count: profiles.total_referrals_count,
-              tasks_completed: profiles.tasks_completed,
-              created_at: profiles.created_at,
-              updated_at: profiles.updated_at
+              followers_count: profiles.followers_count || 0,
+              following_count: profiles.following_count || 0,
+              points: profiles.points || 0,
+              level: String(profiles.level || 1),
+              active_referrals_count: profiles.active_referrals_count || 0,
+              total_referrals_count: profiles.total_referrals_count || 0,
+              tasks_completed: profiles.tasks_completed || 0,
+              created_at: profiles.created_at || '',
+              updated_at: profiles.updated_at || ''
             } : undefined
           };
         });
