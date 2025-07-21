@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,24 +46,35 @@ const BrandDashboard = () => {
       if (!user) return;
 
       try {
-        const { data, error } = await supabase
-          .from('brands')
-          .select('campaigns, tasks, submissions')
-          .eq('user_id', user.id)
-          .single();
+        // Fetch campaign count for this brand
+        const { data: campaignsData, error: campaignsError } = await supabase
+          .from('brand_campaigns')
+          .select('id')
+          .eq('brand_id', user.id);
 
-        if (error) {
-          console.error('Error fetching brand stats:', error);
-        } else {
-          setBrandStats(data || { campaigns: 0, tasks: 0, submissions: 0 });
+        if (campaignsError) {
+          console.error('Error fetching campaigns:', campaignsError);
+          return;
         }
+
+        const campaignCount = campaignsData?.length || 0;
+
+        // For now, set tasks and submissions to 0 as we don't have those tables yet
+        // These can be updated when the actual task system is implemented
+        setBrandStats({ 
+          campaigns: campaignCount, 
+          tasks: 0, 
+          submissions: 0 
+        });
       } catch (error) {
         console.error('Unexpected error fetching brand stats:', error);
       }
     };
 
-    fetchBrandStats();
-  }, [user]);
+    if (user && emailConfirmed) {
+      fetchBrandStats();
+    }
+  }, [user, emailConfirmed]);
 
   if (loading || checkingEmailStatus) {
     return (
