@@ -106,25 +106,25 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
             </div>
             <div>
               <h2 className="text-2xl font-bold text-yeild-yellow mb-2">Welcome to YIELD</h2>
-              <p className="text-muted-foreground">
+              <p className="text-white/80">
                 Join thousands of brands leveraging user-generated content to grow their business.
               </p>
             </div>
             <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="p-4 bg-yeild-yellow/10 rounded-lg">
+              <div className="p-4 bg-white/5 rounded-lg border border-white/10">
                 <Users className="h-8 w-8 text-yeild-yellow mx-auto mb-2" />
-                <p className="text-sm font-medium">10,000+</p>
-                <p className="text-xs text-muted-foreground">Active Users</p>
+                <p className="text-sm font-medium text-white">10,000+</p>
+                <p className="text-xs text-white/60">Active Users</p>
               </div>
-              <div className="p-4 bg-yeild-yellow/10 rounded-lg">
+              <div className="p-4 bg-white/5 rounded-lg border border-white/10">
                 <Target className="h-8 w-8 text-yeild-yellow mx-auto mb-2" />
-                <p className="text-sm font-medium">95%</p>
-                <p className="text-xs text-muted-foreground">Task Success Rate</p>
+                <p className="text-sm font-medium text-white">95%</p>
+                <p className="text-xs text-white/60">Task Success Rate</p>
               </div>
-              <div className="p-4 bg-yeild-yellow/10 rounded-lg">
+              <div className="p-4 bg-white/5 rounded-lg border border-white/10">
                 <Building2 className="h-8 w-8 text-yeild-yellow mx-auto mb-2" />
-                <p className="text-sm font-medium">500+</p>
-                <p className="text-xs text-muted-foreground">Partner Brands</p>
+                <p className="text-sm font-medium text-white">500+</p>
+                <p className="text-xs text-white/60">Partner Brands</p>
               </div>
             </div>
           </div>
@@ -135,39 +135,39 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
           <div className="space-y-6">
             <div className="text-center mb-6">
               <Globe className="h-12 w-12 text-yeild-yellow mx-auto mb-4" />
-              <h2 className="text-xl font-bold">Company Information</h2>
+              <h2 className="text-xl font-bold text-white">Company Information</h2>
             </div>
             
             <div className="space-y-4">
               <div>
-                <Label htmlFor="companyName">Company Name *</Label>
+                <Label htmlFor="companyName" className="text-white">Company Name *</Label>
                 <Input
                   id="companyName"
                   value={formData.companyName}
                   onChange={(e) => handleInputChange('companyName', e.target.value)}
                   placeholder="Enter your company name"
-                  className="border-yeild-yellow/20 focus:border-yeild-yellow"
+                  className="bg-white/5 border-white/20 text-white placeholder:text-white/60 focus:border-yeild-yellow"
                 />
               </div>
               
               <div>
-                <Label htmlFor="website">Website</Label>
+                <Label htmlFor="website" className="text-white">Website</Label>
                 <Input
                   id="website"
                   value={formData.website}
                   onChange={(e) => handleInputChange('website', e.target.value)}
                   placeholder="https://yourcompany.com"
-                  className="border-yeild-yellow/20 focus:border-yeild-yellow"
+                  className="bg-white/5 border-white/20 text-white placeholder:text-white/60 focus:border-yeild-yellow"
                 />
               </div>
               
               <div>
-                <Label htmlFor="industry">Industry</Label>
+                <Label htmlFor="industry" className="text-white">Industry</Label>
                 <Select value={formData.industry} onValueChange={(value) => handleInputChange('industry', value)}>
-                  <SelectTrigger className="border-yeild-yellow/20 focus:border-yeild-yellow">
+                  <SelectTrigger className="bg-white/5 border-white/20 text-white focus:border-yeild-yellow">
                     <SelectValue placeholder="Select your industry" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-black border-white/20">
                     <SelectItem value="technology">Technology</SelectItem>
                     <SelectItem value="retail">Retail</SelectItem>
                     <SelectItem value="healthcare">Healthcare</SelectItem>
@@ -180,12 +180,12 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
               </div>
               
               <div>
-                <Label htmlFor="companySize">Company Size</Label>
+                <Label htmlFor="companySize" className="text-white">Company Size</Label>
                 <Select value={formData.companySize} onValueChange={(value) => handleInputChange('companySize', value)}>
-                  <SelectTrigger className="border-yeild-yellow/20 focus:border-yeild-yellow">
+                  <SelectTrigger className="bg-white/5 border-white/20 text-white focus:border-yeild-yellow">
                     <SelectValue placeholder="Select company size" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-black border-white/20">
                     <SelectItem value="1-10">1-10 employees</SelectItem>
                     <SelectItem value="11-50">11-50 employees</SelectItem>
                     <SelectItem value="51-200">51-200 employees</SelectItem>
@@ -203,11 +203,11 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
           <div className="space-y-6">
             <div className="text-center mb-6">
               <Target className="h-12 w-12 text-yeild-yellow mx-auto mb-4" />
-              <h2 className="text-xl font-bold">Campaign Preferences</h2>
+              <h2 className="text-xl font-bold text-white">Campaign Preferences</h2>
             </div>
             
             <div>
-              <Label className="text-base font-medium mb-4 block">
+              <Label className="text-base font-medium mb-4 block text-white">
                 What type of campaigns do you want to run? (Select all that apply)
               </Label>
               
@@ -227,9 +227,9 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
                       id={taskType}
                       checked={formData.taskTypes.includes(taskType)}
                       onCheckedChange={(checked) => handleTaskTypeChange(taskType, checked as boolean)}
-                      className="border-yeild-yellow data-[state=checked]:bg-yeild-yellow data-[state=checked]:border-yeild-yellow"
+                      className="border-white/20 data-[state=checked]:bg-yeild-yellow data-[state=checked]:border-yeild-yellow"
                     />
-                    <Label htmlFor={taskType} className="text-sm">{taskType}</Label>
+                    <Label htmlFor={taskType} className="text-sm text-white">{taskType}</Label>
                   </div>
                 ))}
               </div>
@@ -242,17 +242,17 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
           <div className="space-y-6">
             <div className="text-center mb-6">
               <DollarSign className="h-12 w-12 text-yeild-yellow mx-auto mb-4" />
-              <h2 className="text-xl font-bold">Budget & Goals</h2>
+              <h2 className="text-xl font-bold text-white">Budget & Goals</h2>
             </div>
             
             <div className="space-y-4">
               <div>
-                <Label htmlFor="budget">Monthly Budget Range</Label>
+                <Label htmlFor="budget" className="text-white">Monthly Budget Range</Label>
                 <Select value={formData.budget} onValueChange={(value) => handleInputChange('budget', value)}>
-                  <SelectTrigger className="border-yeild-yellow/20 focus:border-yeild-yellow">
+                  <SelectTrigger className="bg-white/5 border-white/20 text-white focus:border-yeild-yellow">
                     <SelectValue placeholder="Select your budget range" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-black border-white/20">
                     <SelectItem value="under-1000">Under $1,000</SelectItem>
                     <SelectItem value="1000-5000">$1,000 - $5,000</SelectItem>
                     <SelectItem value="5000-10000">$5,000 - $10,000</SelectItem>
@@ -263,13 +263,13 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
               </div>
               
               <div>
-                <Label htmlFor="goals">Campaign Goals</Label>
+                <Label htmlFor="goals" className="text-white">Campaign Goals</Label>
                 <Textarea
                   id="goals"
                   value={formData.goals}
                   onChange={(e) => handleInputChange('goals', e.target.value)}
                   placeholder="What do you hope to achieve with your campaigns?"
-                  className="border-yeild-yellow/20 focus:border-yeild-yellow min-h-[100px]"
+                  className="bg-white/5 border-white/20 text-white placeholder:text-white/60 focus:border-yeild-yellow min-h-[100px]"
                 />
               </div>
             </div>
@@ -284,13 +284,13 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
             </div>
             <div>
               <h2 className="text-2xl font-bold text-yeild-yellow mb-2">All Set!</h2>
-              <p className="text-muted-foreground">
+              <p className="text-white/80">
                 Your brand account is ready. You can now start creating campaigns and connecting with users.
               </p>
             </div>
-            <div className="bg-yeild-yellow/10 p-4 rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                <strong>Next Steps:</strong> Explore the dashboard, create your first campaign, and start engaging with our community of users.
+            <div className="bg-white/5 p-4 rounded-lg border border-white/10">
+              <p className="text-sm text-white/80">
+                <strong className="text-yeild-yellow">Next Steps:</strong> Explore the dashboard, create your first campaign, and start engaging with our community of users.
               </p>
             </div>
           </div>
@@ -302,22 +302,22 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yeild-black via-yeild-black to-gray-900 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl bg-white/95 backdrop-blur-sm border-yeild-yellow/20">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl bg-black border border-white/20">
         <CardHeader className="text-center pb-2">
           <div className="flex justify-center mb-4">
             <div className="text-3xl font-bold text-yeild-yellow">YIELD</div>
           </div>
           <Progress 
             value={(currentStep / steps.length) * 100} 
-            className="mb-4"
+            className="mb-4 bg-white/10"
           />
           <div className="flex justify-center space-x-2 mb-4">
             {steps.map((step, index) => (
               <div
                 key={step.id}
                 className={`w-3 h-3 rounded-full ${
-                  index + 1 <= currentStep ? 'bg-yeild-yellow' : 'bg-gray-200'
+                  index + 1 <= currentStep ? 'bg-yeild-yellow' : 'bg-white/20'
                 }`}
               />
             ))}
@@ -342,14 +342,14 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
               variant="outline"
               onClick={handlePrevious}
               disabled={currentStep === 1}
-              className="border-yeild-yellow/20 text-yeild-yellow hover:bg-yeild-yellow/10"
+              className="border-white/20 text-white hover:bg-white/10 disabled:opacity-30"
             >
               Previous
             </Button>
             
             <Button
               onClick={handleNext}
-              className="bg-yeild-yellow hover:bg-yeild-yellow/90 text-yeild-black"
+              className="bg-yeild-yellow hover:bg-yeild-yellow/90 text-black"
             >
               {currentStep === steps.length ? 'Complete Setup' : 'Next'}
               <ArrowRight className="ml-2 h-4 w-4" />

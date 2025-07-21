@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -24,8 +25,8 @@ const ProgressiveOnboarding = () => {
             <CheckCircle className="w-16 h-16 text-black" />
           </motion.div>
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold">Account Created Successfully!</h3>
-            <p className="text-gray-400 text-lg">
+            <h3 className="text-2xl font-bold text-white">Account Created Successfully!</h3>
+            <p className="text-white/60 text-lg">
               You're now part of the YEILD community. Let's show you how to start earning.
             </p>
           </div>
@@ -49,14 +50,14 @@ const ProgressiveOnboarding = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.2 }}
-              className={`flex items-center space-x-4 p-4 rounded-xl ${step.completed ? 'bg-green-900/30 border border-green-500' : 'bg-gray-900'}`}
+              className={`flex items-center space-x-4 p-4 rounded-xl ${step.completed ? 'bg-green-500/20 border border-green-500' : 'bg-white/5 border border-white/10'}`}
             >
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${step.completed ? 'bg-green-500' : 'bg-yeild-yellow'}`}>
                 <step.icon className={`w-6 h-6 ${step.completed ? 'text-white' : 'text-black'}`} />
               </div>
               <div className="flex-1">
-                <h4 className="font-bold text-lg">{step.title}</h4>
-                <p className="text-gray-400">{step.desc}</p>
+                <h4 className="font-bold text-lg text-white">{step.title}</h4>
+                <p className="text-white/60">{step.desc}</p>
               </div>
               {step.completed && <CheckCircle className="w-6 h-6 text-green-500" />}
             </motion.div>
@@ -71,10 +72,10 @@ const ProgressiveOnboarding = () => {
       content: (
         <div className="space-y-8">
           <div className="text-center">
-            <h3 className="text-2xl font-bold mb-4">
+            <h3 className="text-2xl font-bold mb-4 text-white">
               The More You Refer, The Higher You <span className="text-yeild-yellow">Fly</span>
             </h3>
-            <p className="text-gray-400">Build your network and unlock exclusive benefits</p>
+            <p className="text-white/60">Build your network and unlock exclusive benefits</p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -82,7 +83,6 @@ const ProgressiveOnboarding = () => {
               { name: "Dove", referrals: 5, color: "text-gray-400", bgColor: "bg-gray-100" },
               { name: "Hawk", referrals: 20, color: "text-blue-400", bgColor: "bg-blue-100" },
               { name: "Eagle", referrals: 100, color: "text-green-400", bgColor: "bg-green-100" },
-              { name: "Falcon", referrals: 500, color: "text-purple-400", bgColor: "bg-purple-100" },
               { name: "Phoenix", referrals: 1000, color: "text-yeild-yellow", bgColor: "bg-yellow-100" }
             ].slice(0, 4).map((bird, index) => (
               <motion.div
@@ -96,13 +96,13 @@ const ProgressiveOnboarding = () => {
                   <Trophy className={`w-8 h-8 ${bird.color}`} />
                 </div>
                 <h4 className={`font-bold ${bird.color}`}>{bird.name}</h4>
-                <p className="text-gray-400 text-sm">{bird.referrals}+</p>
+                <p className="text-white/60 text-sm">{bird.referrals}+</p>
               </motion.div>
             ))}
           </div>
           
-          <div className="bg-gradient-to-r from-yeild-yellow/20 to-yellow-600/20 p-4 rounded-xl border border-yeild-yellow/30">
-            <p className="text-center text-sm">
+          <div className="bg-yeild-yellow/20 p-4 rounded-xl border border-yeild-yellow/30">
+            <p className="text-center text-sm text-white">
               <span className="font-bold text-yeild-yellow">Pro Tip:</span> Share your referral code with friends to start climbing the ranks!
             </p>
           </div>
@@ -127,10 +127,10 @@ const ProgressiveOnboarding = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.2 }}
-                className="text-center p-4 bg-gray-900 rounded-xl"
+                className="text-center p-4 bg-white/5 rounded-xl border border-white/10"
               >
                 <div className="text-2xl md:text-3xl font-bold text-yeild-yellow">{stat.number}</div>
-                <div className="text-gray-400 text-sm">{stat.label}</div>
+                <div className="text-white/60 text-sm">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -146,17 +146,17 @@ const ProgressiveOnboarding = () => {
                 initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 + index * 0.2 }}
-                className="bg-gray-900 p-4 rounded-xl flex items-center space-x-4"
+                className="bg-white/5 p-4 rounded-xl flex items-center space-x-4 border border-white/10"
               >
                 <div className="w-12 h-12 bg-gradient-to-br from-yeild-yellow to-yellow-600 rounded-full flex items-center justify-center">
                   <Users className="w-6 h-6 text-black" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-1">
-                    <span className="font-bold">{testimonial.name}</span>
+                    <span className="font-bold text-white">{testimonial.name}</span>
                     <span className="text-yeild-yellow font-bold">{testimonial.earnings}</span>
                   </div>
-                  <p className="text-gray-400 text-sm">"{testimonial.quote}"</p>
+                  <p className="text-white/60 text-sm">"{testimonial.quote}"</p>
                 </div>
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
@@ -190,7 +190,7 @@ const ProgressiveOnboarding = () => {
   };
 
   return (
-    <div className="min-h-screen bg-yeild-black text-white flex flex-col">
+    <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-6">
         <div className="text-center flex-1">
@@ -198,7 +198,7 @@ const ProgressiveOnboarding = () => {
         </div>
         <button 
           onClick={handleSkip}
-          className="text-gray-400 hover:text-white text-sm"
+          className="text-white/60 hover:text-white text-sm"
         >
           Skip
         </button>
@@ -211,7 +211,7 @@ const ProgressiveOnboarding = () => {
             <div
               key={index}
               className={`h-2 rounded-full flex-1 transition-colors ${
-                index <= currentSlide ? 'bg-yeild-yellow' : 'bg-gray-700'
+                index <= currentSlide ? 'bg-yeild-yellow' : 'bg-white/20'
               }`}
             />
           ))}
@@ -230,10 +230,10 @@ const ProgressiveOnboarding = () => {
             className="h-full"
           >
             <div className="text-center mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold mb-2 text-white">
                 {slides[currentSlide].title}
               </h1>
-              <p className="text-gray-400 text-lg">
+              <p className="text-white/60 text-lg">
                 {slides[currentSlide].subtitle}
               </p>
             </div>
@@ -252,13 +252,13 @@ const ProgressiveOnboarding = () => {
             onClick={handlePrev}
             disabled={currentSlide === 0}
             variant="outline"
-            className="border-gray-600 text-white hover:bg-gray-800 disabled:opacity-30"
+            className="border-white/20 text-white hover:bg-white/10 disabled:opacity-30"
           >
             <ChevronLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
 
-          <div className="text-gray-400 text-sm">
+          <div className="text-white/60 text-sm">
             {currentSlide + 1} of {slides.length}
           </div>
 
