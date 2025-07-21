@@ -486,24 +486,41 @@ export const userService = {
           
           // Improved type guard with proper null checks
           if (profiles && typeof profiles === 'object' && profiles !== null && 'id' in profiles) {
+            const validProfile = profiles as { 
+              id: string; 
+              name: string; 
+              email: string; 
+              profile_picture_url?: string; 
+              bio?: string; 
+              followers_count: number; 
+              following_count: number; 
+              points: number; 
+              level: number; 
+              active_referrals_count: number; 
+              total_referrals_count: number; 
+              tasks_completed: number; 
+              created_at: string; 
+              updated_at: string; 
+            };
+            
             return {
               ...item,
               views_count: item.view_count || 0,
               user: {
-                id: profiles.id,
-                name: profiles.name || '',
-                email: profiles.email || '',
-                profile_picture_url: profiles.profile_picture_url || undefined,
-                bio: profiles.bio || undefined,
-                followers_count: profiles.followers_count || 0,
-                following_count: profiles.following_count || 0,
-                points: profiles.points || 0,
-                level: String(profiles.level || 1),
-                active_referrals_count: profiles.active_referrals_count || 0,
-                total_referrals_count: profiles.total_referrals_count || 0,
-                tasks_completed: profiles.tasks_completed || 0,
-                created_at: profiles.created_at || '',
-                updated_at: profiles.updated_at || ''
+                id: validProfile.id,
+                name: validProfile.name || '',
+                email: validProfile.email || '',
+                profile_picture_url: validProfile.profile_picture_url || undefined,
+                bio: validProfile.bio || undefined,
+                followers_count: validProfile.followers_count || 0,
+                following_count: validProfile.following_count || 0,
+                points: validProfile.points || 0,
+                level: String(validProfile.level || 1),
+                active_referrals_count: validProfile.active_referrals_count || 0,
+                total_referrals_count: validProfile.total_referrals_count || 0,
+                tasks_completed: validProfile.tasks_completed || 0,
+                created_at: validProfile.created_at || '',
+                updated_at: validProfile.updated_at || ''
               }
             };
           }
