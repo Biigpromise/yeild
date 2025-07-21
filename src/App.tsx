@@ -1,74 +1,53 @@
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider } from "next-themes";
-import { AuthProvider } from "./contexts/AuthContext";
-import { SessionRecovery } from "./components/auth/SessionRecovery";
-import { OnboardingProvider } from "./contexts/OnboardingContext";
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import SignUp from "./pages/SignUp";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
-import BrandDashboard from "./pages/BrandDashboard";
-import Onboarding from "./pages/Onboarding";
-import Admin from "./pages/Admin";
-import Welcome from "./pages/Welcome";
-import Tasks from "./pages/Tasks";
-import { CampaignDetails } from "./pages/CampaignDetails";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from './contexts/AuthContext';
+import { Toaster } from '@/components/ui/sonner';
+import Auth from './pages/Auth';
+import Dashboard from './pages/Dashboard';
+import AnalyticsSetup from './pages/AnalyticsSetup';
+import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { SEOHead } from './components/seo/SEOHead';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: (failureCount, error: any) => {
-        // Don't retry on auth errors
-        if (error?.status === 401 || error?.status === 403) {
-          return false;
-        }
-        return failureCount < 3;
-      },
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <ErrorBoundary>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <TooltipProvider>
-          <QueryClientProvider client={queryClient}>
-            <Router>
-              <AuthProvider>
-                <OnboardingProvider>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/welcome" element={<Welcome />} />
-                    <Route path="/auth" element={<SignUp />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<SignUp />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/brand-dashboard" element={<BrandDashboard />} />
-                    <Route path="/onboarding" element={<Onboarding />} />
-                    <Route path="/admin" element={<Admin />} />
-                    <Route path="/tasks" element={<Tasks />} />
-                    <Route path="/campaigns/:id" element={<CampaignDetails />} />
-                  </Routes>
-                  <SessionRecovery />
-                  <Toaster />
-                </OnboardingProvider>
-              </AuthProvider>
-            </Router>
-          </QueryClientProvider>
-        </TooltipProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Router>
+          <div className="min-h-screen bg-background">
+            <SEOHead />
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route 
+                path="/" 
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/analytics-setup" 
+                element={<AnalyticsSetup />}
+              />
+              <Route 
+                path="/analytics-dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <AnalyticsDashboard />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+            <Toaster />
+          </div>
+        </Router>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
