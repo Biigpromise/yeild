@@ -29,21 +29,39 @@ const Dashboard: React.FC = () => {
     // Mock user stats for experience level calculation
     const { isFeatureUnlocked } = useExperienceLevel(0, 0, 0);
     
-    // Get user's display name with fallbacks
+    // Get user's display name with enhanced fallbacks and debugging
     const getUserDisplayName = () => {
-        if (dashboardData.userProfile?.name) {
-            return dashboardData.userProfile.name;
+        console.log('Getting user display name. User data:', {
+            profile_name: dashboardData.userProfile?.name,
+            meta_full_name: user?.user_metadata?.full_name,
+            meta_name: user?.user_metadata?.name,
+            email: user?.email
+        });
+
+        // Priority order for name display
+        if (dashboardData.userProfile?.name?.trim()) {
+            return dashboardData.userProfile.name.trim();
         }
-        if (user?.user_metadata?.full_name) {
-            return user.user_metadata.full_name;
+        if (user?.user_metadata?.full_name?.trim()) {
+            return user.user_metadata.full_name.trim();
         }
-        if (user?.user_metadata?.name) {
-            return user.user_metadata.name;
+        if (user?.user_metadata?.name?.trim()) {
+            return user.user_metadata.name.trim();
         }
         if (user?.email) {
-            return user.email.split('@')[0];
+            // Extract name from email before @ symbol and capitalize
+            const emailName = user.email.split('@')[0];
+            return emailName.charAt(0).toUpperCase() + emailName.slice(1);
         }
         return 'YEILDer';
+    };
+
+    // Get greeting message based on time of day
+    const getGreetingMessage = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good morning';
+        if (hour < 17) return 'Good afternoon';
+        return 'Good evening';
     };
     
     // Show onboarding if needed
@@ -59,20 +77,34 @@ const Dashboard: React.FC = () => {
     return (
         <div className="w-full max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <div className="flex items-center gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-yeild-yellow">YIELD Dashboard</h1>
-                        <p className="text-muted-foreground mt-1">Welcome back, {getUserDisplayName()}!</p>
+                <div className="flex-1">
+                    <h1 className="text-3xl font-bold text-yeild-yellow mb-2">YIELD Dashboard</h1>
+                    <div className="space-y-1">
+                        <p className="text-xl font-medium text-white">
+                            {getGreetingMessage()}, {getUserDisplayName()}! 👋
+                        </p>
+                        <p className="text-muted-foreground">
+                            Ready to earn some rewards today?
+                        </p>
                         {referralStats.activeReferrals > 0 && (
-                            <p className="text-sm text-green-600 mt-1">
-                                {referralStats.activeReferrals} active referral{referralStats.activeReferrals !== 1 ? 's' : ''} earning you rewards!
+                            <p className="text-sm text-green-400">
+                                🔥 {referralStats.activeReferrals} active referral{referralStats.activeReferrals !== 1 ? 's' : ''} earning you rewards!
                             </p>
+                        )}
+                        {dashboardData.userStats && (
+                            <div className="flex items-center gap-4 text-sm text-gray-400 mt-2">
+                                <span>Level {dashboardData.userStats.level || 1}</span>
+                                <span>•</span>
+                                <span>{dashboardData.userStats.points || 0} points</span>
+                                <span>•</span>
+                                <span>{dashboardData.userStats.tasks_completed || 0} tasks completed</span>
+                            </div>
                         )}
                     </div>
                 </div>
                 <button 
                     onClick={signOut}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1 rounded hover:bg-gray-800"
                 >
                     Sign Out
                 </button>

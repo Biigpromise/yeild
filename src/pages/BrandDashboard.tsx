@@ -11,7 +11,7 @@ import { EmailConfirmationGuard } from "@/components/brand/EmailConfirmationGuar
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LifeBuoy, LogOut } from "lucide-react";
+import { LifeBuoy, LogOut, Building } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const BrandDashboard: React.FC = () => {
@@ -19,18 +19,34 @@ const BrandDashboard: React.FC = () => {
     const navigate = useNavigate();
     const { showOnboarding, userType, completeOnboarding } = useOnboarding();
     
-    // Get brand display name with fallbacks
+    // Get brand display name with enhanced fallbacks
     const getBrandDisplayName = () => {
-        if (user?.user_metadata?.company_name) {
-            return user.user_metadata.company_name;
+        console.log('Getting brand display name. User data:', {
+            company_name: user?.user_metadata?.company_name,
+            name: user?.user_metadata?.name,
+            email: user?.email
+        });
+
+        if (user?.user_metadata?.company_name?.trim()) {
+            return user.user_metadata.company_name.trim();
         }
-        if (user?.user_metadata?.name) {
-            return user.user_metadata.name;
+        if (user?.user_metadata?.name?.trim()) {
+            return user.user_metadata.name.trim();
         }
         if (user?.email) {
-            return user.email.split('@')[0];
+            // Extract name from email and format as company name
+            const emailName = user.email.split('@')[0];
+            return emailName.charAt(0).toUpperCase() + emailName.slice(1) + ' Company';
         }
         return 'Brand Partner';
+    };
+
+    // Get greeting message based on time of day
+    const getGreetingMessage = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good morning';
+        if (hour < 17) return 'Good afternoon';
+        return 'Good evening';
     };
     
     // Show onboarding if needed
@@ -46,10 +62,30 @@ const BrandDashboard: React.FC = () => {
     return (
         <EmailConfirmationGuard>
             <div className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-                <header className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-yeild-yellow">Brand Dashboard</h1>
-                        <p className="text-muted-foreground mt-1">Welcome back, {getBrandDisplayName()}</p>
+                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                    <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                            <Building className="w-8 h-8 text-yeild-yellow" />
+                            <h1 className="text-3xl font-bold text-yeild-yellow">Brand Dashboard</h1>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-xl font-medium text-white">
+                                {getGreetingMessage()}, {getBrandDisplayName()}! 🚀
+                            </p>
+                            <p className="text-muted-foreground">
+                                Manage your campaigns and track performance
+                            </p>
+                            <div className="flex items-center gap-2 text-sm text-gray-400 mt-2">
+                                <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                                <span>Brand Account Active</span>
+                                {user?.email_confirmed_at && (
+                                    <>
+                                        <span>•</span>
+                                        <span className="text-green-400">Email Verified</span>
+                                    </>
+                                )}
+                            </div>
+                        </div>
                     </div>
                     <div className="flex items-center gap-2">
                         <Button onClick={() => navigate('/support')} variant="outline" size="sm">

@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, RefreshCw, ArrowLeft } from "lucide-react";
+import { Mail, RefreshCw, ArrowLeft, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -24,6 +24,7 @@ export const EmailConfirmationGuard: React.FC<EmailConfirmationGuardProps> = ({ 
       if (!user) return;
 
       try {
+        console.log('Checking email confirmation for user:', user.id);
         const { data, error } = await supabase
           .from('brand_applications')
           .select('email_confirmed')
@@ -35,6 +36,7 @@ export const EmailConfirmationGuard: React.FC<EmailConfirmationGuardProps> = ({ 
           // If no brand application exists, create one for existing brand users
           if (error.code === 'PGRST116') {
             try {
+              console.log('Creating brand application for existing user');
               await supabase
                 .from('brand_applications')
                 .insert({
@@ -84,11 +86,13 @@ export const EmailConfirmationGuard: React.FC<EmailConfirmationGuardProps> = ({ 
       });
 
       if (error) {
+        console.error('Error sending confirmation email:', error);
         toast.error('Failed to resend confirmation email');
       } else {
         toast.success('Confirmation email sent! Please check your inbox.');
       }
     } catch (error) {
+      console.error('Error resending confirmation:', error);
       toast.error('An error occurred while resending the email');
     } finally {
       setResending(false);
@@ -97,6 +101,7 @@ export const EmailConfirmationGuard: React.FC<EmailConfirmationGuardProps> = ({ 
 
   const handleGoBack = async () => {
     try {
+      console.log('User going back from email confirmation');
       await signOut();
       navigate('/signup');
     } catch (error) {
@@ -106,9 +111,20 @@ export const EmailConfirmationGuard: React.FC<EmailConfirmationGuardProps> = ({ 
   };
 
   const handleSkipForNow = () => {
+    console.log('User skipping email confirmation');
     // Allow user to proceed without email confirmation for now
     setEmailConfirmed(true);
     toast.info('You can confirm your email later from your profile settings.');
+  };
+
+  const handleTryAgain = () => {
+    console.log('User trying email confirmation check again');
+    setLoading(true);
+    setEmailConfirmed(null);
+    // Trigger the useEffect to check again
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   if (loading) {
@@ -145,6 +161,16 @@ export const EmailConfirmationGuard: React.FC<EmailConfirmationGuardProps> = ({ 
               We've sent a confirmation email to <strong>{user?.email}</strong>. 
               Please check your inbox and click the confirmation link to access your brand dashboard.
             </p>
+            
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+              <div className="flex items-center">
+                <AlertCircle className="w-4 h-4 text-yellow-600 mr-2" />
+                <p className="text-sm text-yellow-800">
+                  Don't see the email? Check your spam folder or try resending.
+                </p>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Button 
                 onClick={handleResendConfirmation} 
@@ -163,14 +189,22 @@ export const EmailConfirmationGuard: React.FC<EmailConfirmationGuardProps> = ({ 
               
               <Button 
                 variant="outline"
+                onClick={handleTryAgain}
+                className="w-full"
+              >
+                Already Confirmed? Try Again
+              </Button>
+              
+              <Button 
+                variant="outline"
                 onClick={handleSkipForNow}
                 className="w-full"
               >
                 Skip for Now
               </Button>
               
-              <p className="text-sm text-gray-500">
-                Didn't receive the email? Check your spam folder or click resend.
+              <p className="text-sm text-gray-500 mt-4">
+                Having trouble? Contact support or try signing in again.
               </p>
             </div>
           </CardContent>
