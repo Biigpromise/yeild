@@ -97,7 +97,7 @@ const Dashboard: React.FC = () => {
                                 <span>•</span>
                                 <span>{dashboardData.userStats.points || 0} points</span>
                                 <span>•</span>
-                                <span>{dashboardData.userStats.tasks_completed || 0} tasks completed</span>
+                                <span>{dashboardData.userStats.tasksCompleted || 0} tasks completed</span>
                             </div>
                         )}
                     </div>
