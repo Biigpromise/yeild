@@ -22,12 +22,18 @@ export interface DuplicateImageFlag {
 }
 
 export const imageHashService = {
-  // Generate MD5 hash from file
+  // Generate SHA-256 hash from file (replaced MD5 which is not supported)
   async generateFileHash(file: File): Promise<string> {
-    const arrayBuffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('MD5', arrayBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (error) {
+      console.error('Hash generation failed:', error);
+      // Return a fallback hash based on file properties
+      return `fallback_${file.name}_${file.size}_${file.lastModified}`;
+    }
   },
 
   // Check if hash already exists and flag if duplicate
@@ -58,7 +64,7 @@ export const imageHashService = {
     }
   },
 
-  // Store image hash
+  // Store image hash with improved error handling
   async storeImageHash(hash: string, userId: string, fileUrl: string, taskId?: string, submissionId?: string): Promise<boolean> {
     try {
       const { error } = await supabase

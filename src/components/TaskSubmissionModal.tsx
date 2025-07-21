@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, CheckCircle, FileImage, FileVideo } from "lucide-react";
+import { AlertTriangle, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { taskService, Task } from "@/services/taskService";
 import { taskSubmissionService } from "@/services/tasks/taskSubmissionService";
@@ -130,7 +130,6 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
         setEvidenceFile(null);
         setFilePreview(null);
         clearDraft();
-        toast.success("Task submitted successfully! It will be reviewed shortly.");
         onSubmitted();
         onClose();
       } else {
