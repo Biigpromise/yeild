@@ -71,6 +71,7 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
 
   const handleTaskSubmitted = () => {
     loadData(); // Reload data to update submission status
+    toast.success("Task submitted successfully!");
   };
 
   const isTaskSubmitted = (taskId: string) => {
@@ -92,14 +93,11 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
     );
   }
 
-  // Remove all static/demo/mock task cards from here
-  // Only show real tasks fetched from the backend in the main task section
-
   return (
     <>
       <div className="space-y-8">
-        {/* Category Overview */}
-        {categories.length > 0 ? (
+        {/* Category Overview - Only show if categories exist */}
+        {categories.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {categories.map((category) => {
               const IconComponent = iconMap[category.icon as keyof typeof iconMap] || FileText;
@@ -141,16 +139,6 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
               );
             })}
           </div>
-        ) : (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <Target className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
-              <h3 className="font-semibold mb-2">No categories available yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Task categories will appear here once they're created by administrators.
-              </p>
-            </CardContent>
-          </Card>
         )}
 
         {/* Available Tasks */}
@@ -162,7 +150,7 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
             </Badge>
           </div>
 
-          {/* If there are no real tasks, show a message - NEVER show static task cards */}
+          {/* Show only real tasks from database */}
           {tasks.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
@@ -202,4 +190,3 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
 };
 
 export default TaskCategories;
-

@@ -72,7 +72,7 @@ const Dashboard: React.FC = () => {
                 <TabsContent value="tasks" className="mt-6">
                     <TasksTab 
                         userStats={dashboardData.userStats} 
-                        userTasks={dashboardData.userTasks}
+                        userTasks={dashboardData.userTasks || []}
                         loadUserData={dashboardData.loadUserData}
                     />
                 </TabsContent>

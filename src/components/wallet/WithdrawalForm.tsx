@@ -45,7 +45,10 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !paymentMethod) return;
+    if (!user || !paymentMethod) {
+      toast.error("Please login and select a payment method");
+      return;
+    }
 
     // Validation based on payment method
     if (paymentMethod === 'yield_wallet') {
@@ -55,6 +58,11 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
       }
     } else if (withdrawalAmount < minWithdrawal) {
       toast.error(`Minimum withdrawal is ${minWithdrawal.toLocaleString()} points`);
+      return;
+    }
+
+    if (withdrawalAmount > userPoints) {
+      toast.error("Insufficient points for withdrawal");
       return;
     }
 
@@ -77,7 +85,10 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
           .select()
           .single();
 
-        if (walletError) throw walletError;
+        if (walletError) {
+          console.error('Wallet error:', walletError);
+          throw new Error('Failed to create yield wallet');
+        }
 
         // Update wallet balance
         const { error: updateError } = await supabase
@@ -88,10 +99,13 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
           })
           .eq('id', wallet.id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('Update error:', updateError);
+          throw new Error('Failed to update wallet balance');
+        }
 
         // Record transaction
-        await supabase
+        const { error: transactionError } = await supabase
           .from('yield_wallet_transactions')
           .insert({
             wallet_id: wallet.id,
@@ -100,32 +114,48 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
             description: 'Transfer from main balance'
           });
 
+        if (transactionError) {
+          console.error('Transaction error:', transactionError);
+          // Don't throw here as the main transfer succeeded
+        }
+
         // Update user points
-        await supabase
+        const { error: pointsError } = await supabase
           .from('profiles')
           .update({ points: userPoints - withdrawalAmount })
           .eq('id', user.id);
+
+        if (pointsError) {
+          console.error('Points error:', pointsError);
+          throw new Error('Failed to update user points');
+        }
 
         toast.success("Points transferred to yield wallet successfully!");
         onWithdrawalSubmitted();
         return;
       }
 
-      // For other payment methods, create withdrawal request
+      // For other payment methods, validate required fields
       if (paymentMethod === 'flutterwave') {
+        if (!payoutDetails.accountNumber || !payoutDetails.bankCode || !payoutDetails.accountName) {
+          toast.error("Please fill in all required bank details");
+          return;
+        }
+        
         details = {
           accountNumber: payoutDetails.accountNumber,
           bankCode: payoutDetails.bankCode,
           accountName: payoutDetails.accountName,
           phoneNumber: payoutDetails.phoneNumber,
-          currency: payoutDetails.currency,
-          country: payoutDetails.country,
+          currency: payoutDetails.currency || 'NGN',
+          country: payoutDetails.country || 'NG',
           processingFee: payoutDetails.processingFee,
           netAmount: payoutDetails.netAmount
         };
       }
 
-      const { error } = await supabase
+      // Create withdrawal request
+      const { error: withdrawalError } = await supabase
         .from('withdrawal_requests')
         .insert({
           user_id: user.id,
@@ -137,7 +167,10 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
           gift_card_type: paymentMethod === 'gift_card' ? payoutDetails.giftCardProvider : null
         });
 
-      if (error) throw error;
+      if (withdrawalError) {
+        console.error('Withdrawal error:', withdrawalError);
+        throw new Error('Failed to create withdrawal request');
+      }
 
       toast.success("Withdrawal request submitted successfully!");
       setAmount("");
@@ -146,7 +179,7 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
       
     } catch (error) {
       console.error('Error submitting withdrawal:', error);
-      toast.error("Failed to submit withdrawal request");
+      toast.error(error instanceof Error ? error.message : "Failed to submit withdrawal request");
     } finally {
       setLoading(false);
     }

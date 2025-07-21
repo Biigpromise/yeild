@@ -64,7 +64,7 @@ export const useAuthOperations = () => {
         }
       }
 
-      // Send verification email manually to ensure it's sent
+      // Always send verification email - both for regular users and brands
       if (data.user && !data.user.email_confirmed_at) {
         try {
           console.log('Sending verification email to:', email);
@@ -86,7 +86,7 @@ export const useAuthOperations = () => {
         }
       }
 
-      console.log("Signup successful");
+      console.log("Signup successful - email confirmation required");
       return { user: data.user, error: null };
     } catch (error) {
       console.error("Signup unexpected error:", error);
@@ -112,6 +112,13 @@ export const useAuthOperations = () => {
       if (error) {
         const friendlyMessage = handleAuthError(error, 'sign in');
         return { error: { ...error, message: friendlyMessage } };
+      }
+
+      // Check if email is confirmed
+      if (data.user && !data.user.email_confirmed_at) {
+        // Sign out the user immediately
+        await supabase.auth.signOut();
+        return { error: { message: "Please check your email and confirm your account before signing in." } };
       }
 
       console.log("AuthContext: Sign in successful");
