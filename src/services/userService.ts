@@ -484,7 +484,7 @@ export const userService = {
           const profiles = item.profiles;
           
           // Enhanced type guard with strict null checks
-          if (profiles && typeof profiles === 'object' && 'id' in profiles && profiles.id !== null) {
+          if (profiles && typeof profiles === 'object' && 'id' in profiles && profiles !== null && profiles.id !== null) {
             const validProfile = profiles as { 
               id: string; 
               name: string; 
