@@ -65,7 +65,7 @@ export async function verifyBankAccount(
         accountNumber,
         bankCode,
         bankName,
-        error: data.message || 'Could not verify account'
+        error: data.error || 'Could not verify account'
       };
     }
   } catch (error) {

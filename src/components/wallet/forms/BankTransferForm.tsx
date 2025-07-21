@@ -3,6 +3,7 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { NIGERIAN_BANKS, getBanksByType } from "@/services/bankService";
 
 interface BankTransferFormProps {
   amount: string;
@@ -13,28 +14,6 @@ interface BankTransferFormProps {
   maxWithdrawal: number;
 }
 
-const nigerianBanks = [
-  { name: "Access Bank", code: "044" },
-  { name: "Diamond Bank", code: "063" },
-  { name: "Ecobank Nigeria", code: "050" },
-  { name: "Fidelity Bank", code: "070" },
-  { name: "First Bank of Nigeria", code: "011" },
-  { name: "First City Monument Bank", code: "214" },
-  { name: "Guaranty Trust Bank", code: "058" },
-  { name: "Heritage Bank", code: "030" },
-  { name: "Keystone Bank", code: "082" },
-  { name: "Polaris Bank", code: "076" },
-  { name: "Providus Bank", code: "101" },
-  { name: "Stanbic IBTC Bank", code: "221" },
-  { name: "Standard Chartered Bank", code: "068" },
-  { name: "Sterling Bank", code: "232" },
-  { name: "Union Bank of Nigeria", code: "032" },
-  { name: "United Bank For Africa", code: "033" },
-  { name: "Unity Bank", code: "215" },
-  { name: "Wema Bank", code: "035" },
-  { name: "Zenith Bank", code: "057" }
-];
-
 export const BankTransferForm = ({
   amount,
   setAmount,
@@ -43,6 +22,10 @@ export const BankTransferForm = ({
   minWithdrawal,
   maxWithdrawal
 }: BankTransferFormProps) => {
+  const traditionalBanks = getBanksByType('traditional');
+  const microfinanceBanks = getBanksByType('microfinance');
+  const fintechBanks = getBanksByType('fintech');
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -61,16 +44,44 @@ export const BankTransferForm = ({
       <div className="space-y-3">
         <div>
           <Label htmlFor="bank">Bank</Label>
-          <Select value={payoutDetails.bankCode} onValueChange={(value) => setPayoutDetails({...payoutDetails, bankCode: value})}>
+          <Select value={payoutDetails.bankCode} onValueChange={(value) => {
+            const bank = NIGERIAN_BANKS.find(b => b.code === value);
+            setPayoutDetails({
+              ...payoutDetails, 
+              bankCode: value,
+              bankName: bank?.name || ''
+            });
+          }}>
             <SelectTrigger>
               <SelectValue placeholder="Select your bank" />
             </SelectTrigger>
             <SelectContent>
-              {nigerianBanks.map((bank) => (
-                <SelectItem key={bank.code} value={bank.code}>
-                  {bank.name}
-                </SelectItem>
-              ))}
+              <div className="p-2">
+                <div className="font-medium text-sm mb-2">Traditional Banks</div>
+                {traditionalBanks.map((bank) => (
+                  <SelectItem key={bank.code} value={bank.code}>
+                    {bank.name}
+                  </SelectItem>
+                ))}
+              </div>
+              
+              <div className="p-2">
+                <div className="font-medium text-sm mb-2">Microfinance Banks</div>
+                {microfinanceBanks.map((bank) => (
+                  <SelectItem key={bank.code} value={bank.code}>
+                    {bank.name}
+                  </SelectItem>
+                ))}
+              </div>
+
+              <div className="p-2">
+                <div className="font-medium text-sm mb-2">Fintech Banks</div>
+                {fintechBanks.map((bank) => (
+                  <SelectItem key={bank.code} value={bank.code}>
+                    {bank.name}
+                  </SelectItem>
+                ))}
+              </div>
             </SelectContent>
           </Select>
         </div>
