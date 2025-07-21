@@ -33,7 +33,7 @@ interface UserProfile {
   level: number;
   tasks_completed: number;
   created_at: string;
-  social_media_links: string[] | Record<string, any> | null;
+  social_media_links: string[] | null;
   followers_count: number;
   following_count: number;
 }
@@ -122,7 +122,7 @@ const Profile = () => {
         .update({
           name: editedProfile.name,
           bio: editedProfile.bio,
-          social_media_links: editedProfile.social_media_links,
+          social_media_links: editedProfile.social_media_links || null,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
