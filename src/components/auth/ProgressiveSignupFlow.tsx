@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -132,7 +131,9 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
         console.error('Complete signup error:', error);
         if (error.message.includes('User already registered') || error.message.includes('already exists')) {
           toast.error('An account with this email already exists. Please try signing in instead.');
-          navigate('/auth');
+          if (onSwitchToSignin) {
+            onSwitchToSignin();
+          }
         } else {
           toast.error(error.message);
         }
@@ -149,13 +150,20 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
   const handleGoogleSignup = async () => {
     try {
       setIsLoading(true);
+      console.log('Attempting Google sign-in for user type:', userType);
+      
       const { error } = await signInWithProvider('google', 'user');
+      
       if (error) {
-        toast.error(error.message);
+        console.error('Google sign-in error:', error);
+        toast.error(error.message || 'Google sign-in failed');
+      } else {
+        console.log('Google sign-in initiated successfully');
+        // The redirect will be handled by the OAuth callback
       }
     } catch (error: any) {
-      console.error('Google signup error:', error);
-      toast.error(error.message || 'An error occurred with Google signup');
+      console.error('Google signup unexpected error:', error);
+      toast.error(error.message || 'An error occurred with Google sign-in');
     } finally {
       setIsLoading(false);
     }
@@ -183,7 +191,7 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Continue with Google
+              {isLoading ? 'Signing in...' : 'Continue with Google'}
             </Button>
             
             <div className="flex items-center justify-center">

@@ -166,13 +166,16 @@ export const useAuthOperations = () => {
       
       const queryParams: Record<string, string> = {
         user_type: userType || 'user',
-        next: '/auth/progressive'
+        next: userType === 'brand' ? '/brand-signup' : '/auth/progressive'
       };
       
       // Include referral code if present
       if (refCode) {
         queryParams.ref = refCode;
       }
+      
+      console.log('OAuth redirect URL:', redirectUrl);
+      console.log('OAuth query params:', queryParams);
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -183,10 +186,12 @@ export const useAuthOperations = () => {
       });
       
       if (error) {
+        console.error('OAuth sign in error:', error);
         const friendlyMessage = handleAuthError(error, `${provider} sign in`);
         return { error: { ...error, message: friendlyMessage } };
       }
       
+      console.log('OAuth sign in initiated successfully');
       return { error: null };
     } catch (error) {
       console.error("AuthContext: Provider sign in unexpected error:", error);
