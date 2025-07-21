@@ -50,29 +50,60 @@ const Dashboard = () => {
       if (!user) return;
 
       try {
-        const { data, error } = await supabase
-          .from('task_submissions')
-          .select('tasks(title), points_earned, completed_at')
+        // First try to get from user_tasks table
+        const { data: userTasksData, error: userTasksError } = await supabase
+          .from('user_tasks')
+          .select(`
+            *,
+            tasks(title, points, category, brand_name)
+          `)
           .eq('user_id', user.id)
+          .eq('status', 'completed')
           .order('completed_at', { ascending: false })
           .limit(5);
 
-        if (error) {
-          console.error('Error fetching user tasks:', error);
-          toast.error('Failed to load user tasks');
+        if (userTasksError) {
+          console.error('Error fetching user tasks:', userTasksError);
+          
+          // Fallback to task_submissions table
+          const { data: submissionsData, error: submissionsError } = await supabase
+            .from('task_submissions')
+            .select(`
+              id,
+              task_id,
+              submitted_at as completed_at,
+              tasks(title, points, category, brand_name)
+            `)
+            .eq('user_id', user.id)
+            .eq('status', 'approved')
+            .order('submitted_at', { ascending: false })
+            .limit(5);
+
+          if (submissionsError) {
+            console.error('Error fetching task submissions:', submissionsError);
+            setUserTasks([]);
+          } else {
+            // Transform the data to match expected format
+            const transformedData = submissionsData?.map(task => ({
+              id: task.id,
+              tasks: task.tasks,
+              points_earned: task.tasks?.points || 0,
+              completed_at: task.completed_at
+            })) || [];
+            setUserTasks(transformedData);
+          }
         } else {
-          setUserTasks(data || []);
+          setUserTasks(userTasksData || []);
         }
       } catch (error) {
         console.error('Unexpected error:', error);
-        toast.error('An unexpected error occurred');
+        setUserTasks([]);
       }
     };
 
     fetchUserTasks();
   }, [user]);
 
-  // Check email confirmation status
   useEffect(() => {
     const checkEmailConfirmation = async () => {
       if (!user) {
@@ -80,7 +111,6 @@ const Dashboard = () => {
         return;
       }
 
-      // Check if email is confirmed in auth.users
       const { data: authUser, error } = await supabase.auth.getUser();
       
       if (error) {
@@ -100,7 +130,6 @@ const Dashboard = () => {
     }
   }, [user, loading]);
 
-  // Show loading while checking email status
   if (loading || checkingEmailStatus) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -109,23 +138,19 @@ const Dashboard = () => {
     );
   }
 
-  // Redirect to login if not authenticated
   if (!user) {
     navigate("/auth");
     return null;
   }
 
-  // Show email confirmation required if email not confirmed
   if (emailConfirmed === false) {
     return <EmailConfirmationRequired email={user.email || ''} userType="user" />;
   }
 
-  // Mobile layout
   if (isMobile) {
     return (
       <div className="min-h-screen bg-background p-4">
         <div className="space-y-4">
-          {/* Mobile quick start */}
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4">
               <div className="text-center">
@@ -142,7 +167,6 @@ const Dashboard = () => {
             </CardContent>
           </Card>
           
-          {/* Mobile progress card */}
           <Card className="border-0 shadow-sm">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
@@ -157,11 +181,11 @@ const Dashboard = () => {
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {userTasks.slice(0, 2).map((task) => (
-                    <div key={task.id} className="text-sm">
+                  {userTasks.slice(0, 2).map((task, index) => (
+                    <div key={task.id || index} className="text-sm">
                       <div className="flex justify-between items-center">
                         <span className="truncate text-xs">{task.tasks?.title || 'Task completed'}</span>
-                        <span className="text-muted-foreground text-xs">+{task.points_earned || 0} pts</span>
+                        <span className="text-muted-foreground text-xs">+{task.points_earned || task.tasks?.points || 0} pts</span>
                       </div>
                     </div>
                   ))}
@@ -177,13 +201,11 @@ const Dashboard = () => {
     );
   }
 
-  // Desktop layout
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
-            {/* Main CTA */}
             <Card className="border-0 shadow-sm">
               <CardContent className="p-6 text-center">
                 <Target className="h-12 w-12 mx-auto mb-4 text-blue-500" />
@@ -200,7 +222,6 @@ const Dashboard = () => {
           </div>
           
           <div className="space-y-4">
-            {/* Quick Actions */}
             <Card className="border-0 shadow-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Quick Actions</CardTitle>
@@ -221,7 +242,6 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Progress Card */}
             <Card className="border-0 shadow-sm">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
@@ -241,11 +261,11 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {userTasks.slice(0, 3).map((task) => (
-                      <div key={task.id} className="text-sm">
+                    {userTasks.slice(0, 3).map((task, index) => (
+                      <div key={task.id || index} className="text-sm">
                         <div className="flex justify-between items-center">
                           <span className="truncate">{task.tasks?.title || 'Task completed'}</span>
-                          <span className="text-muted-foreground">+{task.points_earned || 0} pts</span>
+                          <span className="text-muted-foreground">+{task.points_earned || task.tasks?.points || 0} pts</span>
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {task.completed_at ? new Date(task.completed_at).toLocaleDateString() : 'Recently'}

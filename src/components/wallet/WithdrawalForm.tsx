@@ -45,9 +45,12 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !paymentMethod) return;
+    if (!user || !paymentMethod) {
+      toast.error("Please log in and select a payment method");
+      return;
+    }
 
-    // Validation based on payment method
+    // Enhanced validation
     if (paymentMethod === 'yield_wallet') {
       if (withdrawalAmount < 100) {
         toast.error("Minimum transfer to yield wallet is 100 points");
@@ -58,74 +61,140 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
       return;
     }
 
+    if (withdrawalAmount > userPoints) {
+      toast.error("Insufficient points for this withdrawal");
+      return;
+    }
+
     setLoading(true);
     try {
       let details = payoutDetails;
       let finalAmount = withdrawalAmount;
 
+      console.log('Processing withdrawal:', { paymentMethod, withdrawalAmount, userPoints });
+
       // Handle yield wallet transfers differently
       if (paymentMethod === 'yield_wallet') {
-        // Create/update yield wallet
-        const { data: wallet, error: walletError } = await supabase
+        // Check if user has a yield wallet
+        const { data: existingWallet, error: walletCheckError } = await supabase
           .from('yield_wallets')
-          .upsert({
-            user_id: user.id,
-            balance: 0,
-            total_earned: 0,
-            total_spent: 0
-          }, { onConflict: 'user_id' })
-          .select()
-          .single();
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-        if (walletError) throw walletError;
+        if (walletCheckError) {
+          console.error('Error checking wallet:', walletCheckError);
+          throw walletCheckError;
+        }
 
-        // Update wallet balance
-        const { error: updateError } = await supabase
-          .from('yield_wallets')
-          .update({ 
-            balance: (wallet.balance || 0) + withdrawalAmount,
-            total_earned: (wallet.total_earned || 0) + withdrawalAmount
-          })
-          .eq('id', wallet.id);
+        // Create or update yield wallet
+        if (existingWallet) {
+          // Update existing wallet
+          const { error: updateError } = await supabase
+            .from('yield_wallets')
+            .update({ 
+              balance: (existingWallet.balance || 0) + withdrawalAmount,
+              total_earned: (existingWallet.total_earned || 0) + withdrawalAmount,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingWallet.id);
 
-        if (updateError) throw updateError;
+          if (updateError) {
+            console.error('Error updating wallet:', updateError);
+            throw updateError;
+          }
 
-        // Record transaction
-        await supabase
-          .from('yield_wallet_transactions')
-          .insert({
-            wallet_id: wallet.id,
-            transaction_type: 'deposit',
-            amount: withdrawalAmount,
-            description: 'Transfer from main balance'
-          });
+          // Record transaction
+          const { error: transactionError } = await supabase
+            .from('yield_wallet_transactions')
+            .insert({
+              wallet_id: existingWallet.id,
+              transaction_type: 'deposit',
+              amount: withdrawalAmount,
+              description: 'Transfer from main balance'
+            });
+
+          if (transactionError) {
+            console.error('Error recording transaction:', transactionError);
+            // Don't throw here as the main transfer succeeded
+          }
+        } else {
+          // Create new wallet
+          const { data: newWallet, error: createError } = await supabase
+            .from('yield_wallets')
+            .insert({
+              user_id: user.id,
+              balance: withdrawalAmount,
+              total_earned: withdrawalAmount,
+              total_spent: 0
+            })
+            .select()
+            .single();
+
+          if (createError) {
+            console.error('Error creating wallet:', createError);
+            throw createError;
+          }
+
+          // Record transaction for new wallet
+          const { error: transactionError } = await supabase
+            .from('yield_wallet_transactions')
+            .insert({
+              wallet_id: newWallet.id,
+              transaction_type: 'deposit',
+              amount: withdrawalAmount,
+              description: 'Transfer from main balance'
+            });
+
+          if (transactionError) {
+            console.error('Error recording transaction:', transactionError);
+            // Don't throw here as the main transfer succeeded
+          }
+        }
 
         // Update user points
-        await supabase
+        const { error: pointsError } = await supabase
           .from('profiles')
-          .update({ points: userPoints - withdrawalAmount })
+          .update({ 
+            points: userPoints - withdrawalAmount,
+            updated_at: new Date().toISOString()
+          })
           .eq('id', user.id);
 
+        if (pointsError) {
+          console.error('Error updating user points:', pointsError);
+          throw pointsError;
+        }
+
         toast.success("Points transferred to yield wallet successfully!");
+        setAmount("");
+        setPayoutDetails({});
         onWithdrawalSubmitted();
         return;
       }
 
       // For other payment methods, create withdrawal request
       if (paymentMethod === 'flutterwave') {
+        if (!payoutDetails.accountNumber || !payoutDetails.bankCode || !payoutDetails.accountName) {
+          toast.error("Please fill in all required bank details");
+          return;
+        }
+
         details = {
           accountNumber: payoutDetails.accountNumber,
           bankCode: payoutDetails.bankCode,
           accountName: payoutDetails.accountName,
           phoneNumber: payoutDetails.phoneNumber,
-          currency: payoutDetails.currency,
-          country: payoutDetails.country,
+          currency: payoutDetails.currency || 'NGN',
+          country: payoutDetails.country || 'NG',
           processingFee: payoutDetails.processingFee,
           netAmount: payoutDetails.netAmount
         };
       }
 
-      const { error } = await supabase
+      console.log('Creating withdrawal request:', { details, finalAmount });
+
+      const { error: withdrawalError } = await supabase
         .from('withdrawal_requests')
         .insert({
           user_id: user.id,
@@ -134,19 +203,23 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
           payout_details: details,
           recipient_address: payoutDetails.walletAddress,
           exchange_rate: paymentMethod === 'crypto' ? 1 : null,
-          gift_card_type: paymentMethod === 'gift_card' ? payoutDetails.giftCardProvider : null
+          gift_card_type: paymentMethod === 'gift_card' ? payoutDetails.giftCardProvider : null,
+          status: 'pending'
         });
 
-      if (error) throw error;
+      if (withdrawalError) {
+        console.error('Error creating withdrawal request:', withdrawalError);
+        throw withdrawalError;
+      }
 
       toast.success("Withdrawal request submitted successfully!");
       setAmount("");
       setPayoutDetails({});
       onWithdrawalSubmitted();
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting withdrawal:', error);
-      toast.error("Failed to submit withdrawal request");
+      toast.error(`Failed to submit withdrawal request: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -227,7 +300,6 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
             processingFee={processingFee}
           />
 
-          {/* Notes for withdrawal methods */}
           {paymentMethod === 'flutterwave' && (
             <div className="space-y-2">
               <Label htmlFor="notes">Additional Notes (Optional)</Label>
