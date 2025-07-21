@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
@@ -18,7 +19,6 @@ import Admin from "./pages/Admin";
 import Welcome from "./pages/Welcome";
 import Tasks from "./pages/Tasks";
 import { CampaignDetails } from "./pages/CampaignDetails";
-import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,7 +48,6 @@ function App() {
                     <Route path="/" element={<Index />} />
                     <Route path="/welcome" element={<Welcome />} />
                     <Route path="/auth" element={<SignUp />} />
-                    <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />

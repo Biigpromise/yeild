@@ -12,17 +12,6 @@ export const taskSubmissionService = {
         return false;
       }
 
-      // Validate inputs
-      if (!evidence.trim() && !evidenceFile) {
-        toast.error("Please provide evidence of task completion");
-        return false;
-      }
-
-      if (evidence.trim().length < 10) {
-        toast.error("Please provide more detailed evidence (at least 10 characters)");
-        return false;
-      }
-
       // Check if user already submitted this task
       const { data: existingSubmission } = await supabase
         .from('task_submissions')

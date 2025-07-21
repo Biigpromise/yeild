@@ -1,44 +1,95 @@
-
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Handle the OAuth callback
-        const { data, error } = await supabase.auth.getSession();
+        // Get the session after OAuth callback
+        const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Auth callback error:', error);
-          navigate('/auth?error=oauth_failed');
+          navigate('/auth?error=callback_failed');
           return;
         }
 
-        if (data.session) {
-          const userType = searchParams.get('user_type') || 'user';
-          const next = searchParams.get('next');
-          
-          // Redirect based on user type and next parameter
-          if (next) {
-            navigate(next);
-          } else if (userType === 'brand') {
-            navigate('/brand-dashboard');
-          } else {
-            navigate('/dashboard');
-          }
-        } else {
+        if (!session) {
+          console.log('No session found, redirecting to auth');
           navigate('/auth');
+          return;
         }
+
+        // Get user type and next path from query params
+        const userType = searchParams.get('user_type') || 'user';
+        const next = searchParams.get('next');
+
+        console.log('OAuth callback successful, user type:', userType);
+
+        // Check if user has completed onboarding
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        // Check user roles
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id);
+
+        const userRoles = roleData?.map(r => r.role) || [];
+        console.log('User roles after OAuth:', userRoles);
+
+        // Check for admin access
+        if (session.user.email === 'yeildsocials@gmail.com' || userRoles.includes('admin')) {
+          navigate('/admin');
+          return;
+        }
+
+        // Check for brand role
+        if (userRoles.includes('brand')) {
+          navigate('/brand-dashboard');
+          return;
+        }
+
+        // If it's a brand signup, redirect to brand application
+        if (userType === 'brand') {
+          navigate('/brand-signup');
+          return;
+        }
+
+        // Check for referral code and handle it
+        const refCode = searchParams.get('ref');
+        if (refCode && profile) {
+          try {
+            await supabase.rpc('handle_referral_signup', {
+              new_user_id: session.user.id,
+              referral_code_param: refCode
+            });
+            console.log('Referral code processed:', refCode);
+          } catch (error) {
+            console.error('Error processing referral:', error);
+          }
+        }
+
+        // If user has no profile or incomplete profile, go to progressive auth
+        if (!profile || !profile.name) {
+          navigate('/auth/progressive?step=1');
+          return;
+        }
+
+        // User is complete, redirect to dashboard
+        navigate('/dashboard');
       } catch (error) {
         console.error('Unexpected error in auth callback:', error);
-        navigate('/auth?error=callback_failed');
+        navigate('/auth?error=unexpected');
       }
     };
 
@@ -48,8 +99,8 @@ const AuthCallback = () => {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-        <p>Completing sign in...</p>
+        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+        <p className="text-muted-foreground">Completing sign in...</p>
       </div>
     </div>
   );

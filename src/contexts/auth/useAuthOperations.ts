@@ -162,12 +162,12 @@ export const useAuthOperations = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref');
       
-      // Use the actual domain instead of localhost
+      // Always redirect to OAuth callback handler
       const redirectUrl = `${window.location.origin}/auth/callback`;
       
       const queryParams: Record<string, string> = {
         user_type: userType || 'user',
-        next: userType === 'brand' ? '/brand-dashboard' : '/dashboard'
+        next: '/auth/progressive'
       };
       
       // Include referral code if present

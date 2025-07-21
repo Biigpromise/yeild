@@ -36,9 +36,6 @@ export const ReferralsTab: React.FC = () => {
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Use our custom domain for referral links
-  const baseUrl = 'https://yeildhive.com';
-
   useEffect(() => {
     if (user) {
       loadReferralData();
@@ -98,23 +95,9 @@ export const ReferralsTab: React.FC = () => {
   };
 
   const shareReferralLink = () => {
-    const referralLink = `${baseUrl}/signup?ref=${referralData.referral_code}`;
+    const referralLink = `${window.location.origin}/signup?ref=${referralData.referral_code}`;
     navigator.clipboard.writeText(referralLink);
     toast.success('Referral link copied to clipboard!');
-  };
-
-  const shareMessage = `🚀 Join YEILD and start earning points for completing simple tasks! 
-
-Use my referral code: ${referralData.referral_code}
-
-Sign up here: ${baseUrl}/signup?ref=${referralData.referral_code}
-
-💰 Earn points, complete tasks, and get rewarded!`;
-
-  const shareToWhatsApp = () => {
-    const encodedMessage = encodeURIComponent(shareMessage);
-    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
   };
 
   if (loading) {
@@ -154,7 +137,7 @@ Sign up here: ${baseUrl}/signup?ref=${referralData.referral_code}
           <div className="space-y-3">
             <label className="text-sm font-medium">Your Referral Code</label>
             <div className="flex gap-2">
-              <div className="flex-1 p-3 bg-muted rounded-md font-mono text-center font-bold">
+              <div className="flex-1 p-3 bg-muted rounded-md font-mono text-center">
                 {referralData.referral_code}
               </div>
               <Button onClick={copyReferralCode} variant="outline" size="icon">
@@ -163,28 +146,15 @@ Sign up here: ${baseUrl}/signup?ref=${referralData.referral_code}
             </div>
           </div>
 
-          {/* Referral Link Section */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium">Your Referral Link</label>
-            <div className="flex gap-2">
-              <div className="flex-1 p-3 bg-muted rounded-md font-mono text-sm break-all">
-                {baseUrl}/signup?ref={referralData.referral_code}
-              </div>
-              <Button onClick={shareReferralLink} variant="outline" size="icon">
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
           {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-4">
-            <Button onClick={shareToWhatsApp} className="bg-green-600 hover:bg-green-700">
+            <Button onClick={shareReferralLink}>
               <Share className="h-4 w-4 mr-2" />
-              Share on WhatsApp
+              Share Link
             </Button>
-            <Button onClick={shareReferralLink} variant="outline">
-              <Share className="h-4 w-4 mr-2" />
-              Copy Link
+            <Button variant="outline">
+              <Gift className="h-4 w-4 mr-2" />
+              Rewards
             </Button>
           </div>
         </CardContent>

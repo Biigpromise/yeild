@@ -1,161 +1,79 @@
 
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BrandCampaignsTab } from "@/components/brand/BrandCampaignsTab";
+import { BrandAnalyticsTab } from "@/components/brand/BrandAnalyticsTab";
+import { BrandProfileTab } from "@/components/brand/BrandProfileTab";
+import { BrandBillingTab } from "@/components/brand/BrandBillingTab";
+import { BrandPerformanceTab } from "@/components/brand/BrandPerformanceTab";
+import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
+import { EmailConfirmationGuard } from "@/components/brand/EmailConfirmationGuard";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { EmailConfirmationRequired } from "@/components/auth/EmailConfirmationRequired";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PieChart } from 'lucide-react';
+import { LifeBuoy, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const BrandDashboard = () => {
-  const navigate = useNavigate();
-  const { user, loading } = useAuth();
-  const [emailConfirmed, setEmailConfirmed] = useState<boolean | null>(null);
-  const [checkingEmailStatus, setCheckingEmailStatus] = useState(true);
-  const [brandStats, setBrandStats] = useState({ campaigns: 0, tasks: 0, submissions: 0 });
-
-  useEffect(() => {
-    const checkEmailConfirmation = async () => {
-      if (!user) {
-        setCheckingEmailStatus(false);
-        return;
-      }
-
-      const { data: authUser, error } = await supabase.auth.getUser();
-      
-      if (error) {
-        console.error('Error checking user:', error);
-        setEmailConfirmed(false);
-      } else if (authUser.user?.email_confirmed_at) {
-        setEmailConfirmed(true);
-      } else {
-        setEmailConfirmed(false);
-      }
-      
-      setCheckingEmailStatus(false);
-    };
-
-    if (!loading) {
-      checkEmailConfirmation();
+const BrandDashboard: React.FC = () => {
+    const { user, signOut } = useAuth();
+    const navigate = useNavigate();
+    const { showOnboarding, userType, completeOnboarding } = useOnboarding();
+    
+    // Show onboarding if needed
+    if (showOnboarding) {
+        return (
+            <OnboardingFlow 
+                userType={userType} 
+                onComplete={completeOnboarding}
+            />
+        );
     }
-  }, [user, loading]);
-
-  useEffect(() => {
-    const fetchBrandStats = async () => {
-      if (!user) return;
-
-      try {
-        // Fetch campaign count for this brand
-        const { data: campaignsData, error: campaignsError } = await supabase
-          .from('brand_campaigns')
-          .select('id')
-          .eq('brand_id', user.id);
-
-        if (campaignsError) {
-          console.error('Error fetching campaigns:', campaignsError);
-          return;
-        }
-
-        const campaignCount = campaignsData?.length || 0;
-
-        // For now, set tasks and submissions to 0 as we don't have those tables yet
-        // These can be updated when the actual task system is implemented
-        setBrandStats({ 
-          campaigns: campaignCount, 
-          tasks: 0, 
-          submissions: 0 
-        });
-      } catch (error) {
-        console.error('Unexpected error fetching brand stats:', error);
-      }
-    };
-
-    if (user && emailConfirmed) {
-      fetchBrandStats();
-    }
-  }, [user, emailConfirmed]);
-
-  if (loading || checkingEmailStatus) {
+    
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+        <EmailConfirmationGuard>
+            <div className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+                <header className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
+                    <div>
+                        <h1 className="text-3xl font-bold text-yeild-yellow">Brand Dashboard</h1>
+                        <p className="text-muted-foreground mt-1">Welcome back, {user?.user_metadata.company_name || 'Brand Partner'}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button onClick={() => navigate('/support')} variant="outline" size="sm">
+                            <LifeBuoy className="mr-2 h-4 w-4" /> Support
+                        </Button>
+                        <Button onClick={signOut} variant="outline" size="sm">
+                            <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                        </Button>
+                    </div>
+                </header>
+                
+                <Tabs defaultValue="campaigns" className="w-full">
+                    <TabsList className="grid w-full grid-cols-5">
+                        <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
+                        <TabsTrigger value="performance">Performance</TabsTrigger>
+                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                        <TabsTrigger value="billing">Billing</TabsTrigger>
+                        <TabsTrigger value="profile">Profile</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="campaigns" className="mt-6">
+                        <BrandCampaignsTab />
+                    </TabsContent>
+                    <TabsContent value="performance" className="mt-6">
+                        <BrandPerformanceTab />
+                    </TabsContent>
+                    <TabsContent value="analytics" className="mt-6">
+                        <BrandAnalyticsTab />
+                    </TabsContent>
+                    <TabsContent value="billing" className="mt-6">
+                        <BrandBillingTab />
+                    </TabsContent>
+                    <TabsContent value="profile" className="mt-6">
+                        <BrandProfileTab />
+                    </TabsContent>
+                </Tabs>
+            </div>
+        </EmailConfirmationGuard>
     );
-  }
-
-  if (!user) {
-    navigate("/auth");
-    return null;
-  }
-
-  if (emailConfirmed === false) {
-    return <EmailConfirmationRequired email={user.email || ''} userType="brand" />;
-  }
-
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Brand Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome, {user.user_metadata?.company_name || 'Brand User'}!
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Campaigns
-              </CardTitle>
-              <PieChart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{brandStats.campaigns}</div>
-              <p className="text-sm text-muted-foreground">
-                Active and past campaigns
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Tasks
-              </CardTitle>
-              <PieChart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{brandStats.tasks}</div>
-              <p className="text-sm text-muted-foreground">
-                Tasks created for campaigns
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Submissions
-              </CardTitle>
-              <PieChart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{brandStats.submissions}</div>
-              <p className="text-sm text-muted-foreground">
-                Submissions received from users
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="mt-8">
-          <Button onClick={() => navigate('/campaigns/new')}>Create New Campaign</Button>
-        </div>
-      </div>
-    </div>
-  );
-};
+}
 
 export default BrandDashboard;

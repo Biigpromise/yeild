@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -78,74 +79,90 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(6)].map((_, i) => (
+          <Card key={i} className="animate-pulse">
+            <CardContent className="p-6">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
 
+  // Remove all static/demo/mock task cards from here
+  // Only show real tasks fetched from the backend in the main task section
+
   return (
     <>
       <div className="space-y-8">
-        {/* Only show category overview if there are categories with tasks */}
-        {categories.length > 0 && tasks.length > 0 && (
+        {/* Category Overview */}
+        {categories.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            {categories
-              .filter(category => {
-                // Only show categories that have tasks
-                const categoryTasks = tasks.filter(task => task.category === category.name);
-                return categoryTasks.length > 0;
-              })
-              .map((category) => {
-                const IconComponent = iconMap[category.icon as keyof typeof iconMap] || FileText;
-                const categoryTasks = tasks.filter(task => task.category === category.name);
+            {categories.map((category) => {
+              const IconComponent = iconMap[category.icon as keyof typeof iconMap] || FileText;
+              const categoryTasks = tasks.filter(task => task.category === category.name);
 
-                return (
-                  <Card 
-                    key={category.id} 
-                    className="cursor-pointer hover:shadow-lg transition-shadow"
-                    onClick={() => onCategorySelect?.(category.name)}
-                  >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg bg-gray-100 ${category.color}`}>
-                          <IconComponent className="h-5 w-5" />
-                        </div>
-                        <div className="flex-1">
-                          <CardTitle className="text-sm font-medium">{category.name}</CardTitle>
-                        </div>
+              return (
+                <Card 
+                  key={category.id} 
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => onCategorySelect?.(category.name)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg bg-gray-100 ${category.color}`}>
+                        <IconComponent className="h-5 w-5" />
                       </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                        {category.description}
-                      </p>
-                      <div className="flex justify-between items-center">
-                        <Badge variant="outline" className="text-xs">
-                          {categoryTasks.length} tasks
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          ~{Math.round(categoryTasks.reduce((sum, t) => sum + t.points, 0) / categoryTasks.length)} pts avg
-                        </span>
+                      <div className="flex-1">
+                        <CardTitle className="text-sm font-medium">{category.name}</CardTitle>
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                      {category.description}
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <Badge variant="outline" className="text-xs">
+                        {categoryTasks.length} tasks
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {categoryTasks.length > 0 
+                          ? `~${Math.round(categoryTasks.reduce((sum, t) => sum + t.points, 0) / categoryTasks.length)} pts avg`
+                          : "No tasks"
+                        }
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
+        ) : (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Target className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
+              <h3 className="font-semibold mb-2">No categories available yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Task categories will appear here once they're created by administrators.
+              </p>
+            </CardContent>
+          </Card>
         )}
 
         {/* Available Tasks */}
         <div>
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-bold">Available Tasks</h3>
-            {tasks.length > 0 && (
-              <Badge variant="outline" className="text-sm">
-                {tasks.length} tasks available
-              </Badge>
-            )}
+            <Badge variant="outline" className="text-sm">
+              {tasks.length} tasks available
+            </Badge>
           </div>
 
+          {/* If there are no real tasks, show a message - NEVER show static task cards */}
           {tasks.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
@@ -185,3 +202,4 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
 };
 
 export default TaskCategories;
+
