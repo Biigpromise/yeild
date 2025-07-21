@@ -170,8 +170,6 @@ export type Database = {
           company_name: string
           company_size: string
           created_at: string
-          email_confirmed: boolean | null
-          email_confirmed_at: string | null
           goals: string
           id: string
           industry: string
@@ -186,8 +184,6 @@ export type Database = {
           company_name: string
           company_size: string
           created_at?: string
-          email_confirmed?: boolean | null
-          email_confirmed_at?: string | null
           goals: string
           id?: string
           industry: string
@@ -202,8 +198,6 @@ export type Database = {
           company_name?: string
           company_size?: string
           created_at?: string
-          email_confirmed?: boolean | null
-          email_confirmed_at?: string | null
           goals?: string
           id?: string
           industry?: string
@@ -212,168 +206,6 @@ export type Database = {
           updated_at?: string
           user_id?: string
           website?: string | null
-        }
-        Relationships: []
-      }
-      brand_campaigns: {
-        Row: {
-          brand_id: string | null
-          budget: number
-          created_at: string | null
-          description: string | null
-          end_date: string | null
-          funded_amount: number | null
-          id: string
-          requirements: Json | null
-          start_date: string | null
-          status: string | null
-          target_audience: Json | null
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          brand_id?: string | null
-          budget: number
-          created_at?: string | null
-          description?: string | null
-          end_date?: string | null
-          funded_amount?: number | null
-          id?: string
-          requirements?: Json | null
-          start_date?: string | null
-          status?: string | null
-          target_audience?: Json | null
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          brand_id?: string | null
-          budget?: number
-          created_at?: string | null
-          description?: string | null
-          end_date?: string | null
-          funded_amount?: number | null
-          id?: string
-          requirements?: Json | null
-          start_date?: string | null
-          status?: string | null
-          target_audience?: Json | null
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      brand_payment_methods: {
-        Row: {
-          brand_id: string | null
-          created_at: string | null
-          id: string
-          is_default: boolean | null
-          metadata: Json | null
-          payment_type: string
-          updated_at: string | null
-        }
-        Insert: {
-          brand_id?: string | null
-          created_at?: string | null
-          id?: string
-          is_default?: boolean | null
-          metadata?: Json | null
-          payment_type?: string
-          updated_at?: string | null
-        }
-        Update: {
-          brand_id?: string | null
-          created_at?: string | null
-          id?: string
-          is_default?: boolean | null
-          metadata?: Json | null
-          payment_type?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      brand_profiles: {
-        Row: {
-          company_name: string
-          created_at: string
-          description: string | null
-          id: string
-          industry: string | null
-          logo_url: string | null
-          updated_at: string
-          user_id: string
-          website: string | null
-        }
-        Insert: {
-          company_name: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          industry?: string | null
-          logo_url?: string | null
-          updated_at?: string
-          user_id: string
-          website?: string | null
-        }
-        Update: {
-          company_name?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          industry?: string | null
-          logo_url?: string | null
-          updated_at?: string
-          user_id?: string
-          website?: string | null
-        }
-        Relationships: []
-      }
-      campaigns: {
-        Row: {
-          brand_id: string
-          budget: number
-          created_at: string
-          description: string | null
-          end_date: string | null
-          funded_amount: number | null
-          id: string
-          requirements: Json | null
-          start_date: string | null
-          status: string
-          target_audience: Json | null
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          brand_id: string
-          budget: number
-          created_at?: string
-          description?: string | null
-          end_date?: string | null
-          funded_amount?: number | null
-          id?: string
-          requirements?: Json | null
-          start_date?: string | null
-          status?: string
-          target_audience?: Json | null
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          brand_id?: string
-          budget?: number
-          created_at?: string
-          description?: string | null
-          end_date?: string | null
-          funded_amount?: number | null
-          id?: string
-          requirements?: Json | null
-          start_date?: string | null
-          status?: string
-          target_audience?: Json | null
-          title?: string
-          updated_at?: string
         }
         Relationships: []
       }
@@ -983,129 +815,6 @@ export type Database = {
           processing_fee_percent?: number
           processing_time_estimate?: string | null
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      payment_transactions: {
-        Row: {
-          amount: number
-          amount_settled: number | null
-          campaign_id: string | null
-          created_at: string
-          currency: string
-          customer_email: string
-          customer_name: string
-          flutterwave_id: string | null
-          id: string
-          payment_method: string | null
-          payment_type: string
-          processor_response: Json | null
-          status: string
-          task_id: string | null
-          transaction_ref: string
-          updated_at: string
-          user_id: string | null
-          verified_at: string | null
-        }
-        Insert: {
-          amount: number
-          amount_settled?: number | null
-          campaign_id?: string | null
-          created_at?: string
-          currency?: string
-          customer_email: string
-          customer_name: string
-          flutterwave_id?: string | null
-          id?: string
-          payment_method?: string | null
-          payment_type: string
-          processor_response?: Json | null
-          status?: string
-          task_id?: string | null
-          transaction_ref: string
-          updated_at?: string
-          user_id?: string | null
-          verified_at?: string | null
-        }
-        Update: {
-          amount?: number
-          amount_settled?: number | null
-          campaign_id?: string | null
-          created_at?: string
-          currency?: string
-          customer_email?: string
-          customer_name?: string
-          flutterwave_id?: string | null
-          id?: string
-          payment_method?: string | null
-          payment_type?: string
-          processor_response?: Json | null
-          status?: string
-          task_id?: string | null
-          transaction_ref?: string
-          updated_at?: string
-          user_id?: string | null
-          verified_at?: string | null
-        }
-        Relationships: []
-      }
-      payout_transactions: {
-        Row: {
-          account_bank: string
-          account_number: string
-          amount: number
-          beneficiary_name: string
-          created_at: string
-          currency: string
-          fee: number | null
-          flutterwave_id: string | null
-          id: string
-          narration: string | null
-          reference: string
-          response_data: Json | null
-          status: string
-          task_id: string | null
-          updated_at: string
-          user_id: string | null
-          withdrawal_id: string | null
-        }
-        Insert: {
-          account_bank: string
-          account_number: string
-          amount: number
-          beneficiary_name: string
-          created_at?: string
-          currency?: string
-          fee?: number | null
-          flutterwave_id?: string | null
-          id?: string
-          narration?: string | null
-          reference: string
-          response_data?: Json | null
-          status?: string
-          task_id?: string | null
-          updated_at?: string
-          user_id?: string | null
-          withdrawal_id?: string | null
-        }
-        Update: {
-          account_bank?: string
-          account_number?: string
-          amount?: number
-          beneficiary_name?: string
-          created_at?: string
-          currency?: string
-          fee?: number | null
-          flutterwave_id?: string | null
-          id?: string
-          narration?: string | null
-          reference?: string
-          response_data?: Json | null
-          status?: string
-          task_id?: string | null
-          updated_at?: string
-          user_id?: string | null
-          withdrawal_id?: string | null
         }
         Relationships: []
       }
@@ -2114,48 +1823,6 @@ export type Database = {
           },
         ]
       }
-      user_payment_methods: {
-        Row: {
-          account_name: string
-          account_number: string
-          bank_code: string
-          bank_name: string
-          created_at: string | null
-          id: string
-          is_default: boolean | null
-          is_verified: boolean | null
-          method_type: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          account_name: string
-          account_number: string
-          bank_code: string
-          bank_name: string
-          created_at?: string | null
-          id?: string
-          is_default?: boolean | null
-          is_verified?: boolean | null
-          method_type: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          account_name?: string
-          account_number?: string
-          bank_code?: string
-          bank_name?: string
-          created_at?: string | null
-          id?: string
-          is_default?: boolean | null
-          is_verified?: boolean | null
-          method_type?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       user_referrals: {
         Row: {
           activated_at: string | null
@@ -2386,7 +2053,6 @@ export type Database = {
           exchange_rate: number | null
           gift_card_type: string | null
           id: string
-          payment_method_id: string | null
           payout_details: Json
           payout_method: string
           processed_at: string | null
@@ -2404,7 +2070,6 @@ export type Database = {
           exchange_rate?: number | null
           gift_card_type?: string | null
           id?: string
-          payment_method_id?: string | null
           payout_details: Json
           payout_method: string
           processed_at?: string | null
@@ -2422,7 +2087,6 @@ export type Database = {
           exchange_rate?: number | null
           gift_card_type?: string | null
           id?: string
-          payment_method_id?: string | null
           payout_details?: Json
           payout_method?: string
           processed_at?: string | null
@@ -2432,15 +2096,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "withdrawal_requests_payment_method_id_fkey"
-            columns: ["payment_method_id"]
-            isOneToOne: false
-            referencedRelation: "user_payment_methods"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       withdrawal_settings: {
         Row: {
@@ -2565,10 +2221,6 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: boolean
       }
-      credit_user_account: {
-        Args: { user_id: string; amount: number; reference: string }
-        Returns: undefined
-      }
       generate_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2668,20 +2320,8 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
-      log_security_event: {
-        Args: {
-          user_id_param: string
-          event_type: string
-          event_details?: Json
-        }
-        Returns: undefined
-      }
       redeem_reward: {
         Args: { p_user_id: string; p_reward_id: string }
-        Returns: string
-      }
-      sanitize_input: {
-        Args: { input_text: string }
         Returns: string
       }
       update_daily_task_analytics: {

@@ -1,13 +1,13 @@
 
 import React from 'react';
-import BrandOnboardingExperience from './BrandOnboardingExperience';
+import YieldOnboarding from './YieldOnboarding';
 
 interface BrandOnboardingProps {
   onComplete: () => void;
 }
 
 const BrandOnboarding: React.FC<BrandOnboardingProps> = ({ onComplete }) => {
-  return <BrandOnboardingExperience onComplete={onComplete} />;
+  return <YieldOnboarding onComplete={onComplete} />;
 };
 
 export default BrandOnboarding;

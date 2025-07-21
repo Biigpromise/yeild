@@ -5,35 +5,26 @@ import { useAuth } from "@/contexts/AuthContext";
 import ProgressiveSignupFlow from "@/components/auth/ProgressiveSignupFlow";
 import ModernSignInFlow from "@/components/auth/ModernSignInFlow";
 import UserTypeSelection from "@/components/auth/UserTypeSelection";
-import ModernBrandSignup from "@/components/auth/ModernBrandSignup";
 
 const SignUp = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
   const [selectedUserType, setSelectedUserType] = useState<'user' | 'brand' | null>(null);
-  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup'); // Default to signup instead of signin
+  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signin'); // Default to signin
 
   // Check for user type in URL params
   useEffect(() => {
     const userType = searchParams.get('type') as 'user' | 'brand';
     if (userType && ['user', 'brand'].includes(userType)) {
       setSelectedUserType(userType);
-      // Force signup mode when type is specified
-      setAuthMode('signup');
     }
   }, [searchParams]);
 
   // Handle redirect after auth state is determined
   useEffect(() => {
     if (!loading && user) {
-      // Check if user is admin and redirect accordingly
-      if (user.email === 'yeildsocials@gmail.com') {
-        navigate("/admin");
-      } else {
-        // Check user roles to determine proper dashboard
-        navigate("/dashboard");
-      }
+      navigate("/dashboard");
     }
   }, [user, loading, navigate]);
 
@@ -57,12 +48,12 @@ const SignUp = () => {
       <UserTypeSelection
         onSelectUser={() => setSelectedUserType('user')}
         onSelectBrand={() => setSelectedUserType('brand')}
-        onSwitchToSignin={() => setAuthMode('signin')}
+        onSwitchToSignin={() => setAuthMode('signup')} // This actually switches to signup
       />
     );
   }
 
-  // Show signin flow
+  // Show signin or signup flow
   if (authMode === 'signin') {
     return (
       <ModernSignInFlow
@@ -71,21 +62,11 @@ const SignUp = () => {
         onSwitchToSignup={() => setAuthMode('signup')}
       />
     );
-  }
-
-  // Show signup flow - use ModernBrandSignup for brands, ProgressiveSignupFlow for users
-  if (selectedUserType === 'brand') {
-    return (
-      <ModernBrandSignup
-        onBack={() => setSelectedUserType(null)}
-      />
-    );
   } else {
     return (
       <ProgressiveSignupFlow
         userType={selectedUserType}
         onBack={() => setSelectedUserType(null)}
-        onSwitchToSignin={() => setAuthMode('signin')}
       />
     );
   }

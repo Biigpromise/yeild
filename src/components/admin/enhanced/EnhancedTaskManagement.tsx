@@ -16,7 +16,7 @@ import { TaskPerformanceAnalytics } from "./TaskPerformanceAnalytics";
 import { TaskFilterBar } from "../TaskFilterBar";
 import { TaskOverviewStats } from "../TaskOverviewStats";
 import { Plus, RefreshCw, Edit, Trash2, Copy, ExternalLink } from "lucide-react";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export const EnhancedTaskManagement = () => {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -402,7 +402,18 @@ export const EnhancedTaskManagement = () => {
         </TabsContent>
 
         <TabsContent value="create" className="space-y-6">
-          <ErrorBoundary>
+          <ErrorBoundary
+            fallback={
+              <Card className="w-full max-w-4xl mx-auto">
+                <CardContent className="p-6 text-center">
+                  <div className="text-red-500 mb-4">
+                    <h3 className="text-lg font-semibold">Unable to Load Create Task Form</h3>
+                    <p>There was an issue loading the task creation form. Please try refreshing the page.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            }
+          >
             <div className="w-full">
               <TaskCreationForm 
                 onTaskCreated={loadData}

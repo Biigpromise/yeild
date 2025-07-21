@@ -1,5 +1,6 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,56 +15,59 @@ interface NotificationRequest {
   userIds?: string[];
 }
 
-serve(async (req) => {
-  console.log('Listening on http://localhost:9999/');
-  
-  // Handle CORS preflight requests
+const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const request: NotificationRequest = await req.json();
-    console.log('Sending notification:', request);
-
-    // Create Supabase client with service role key for admin operations
-    const supabaseAdmin = createClient(
+    const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    let targetUsers: string[] = [];
+    const { title, content, type, targetAudience, userIds }: NotificationRequest = await req.json();
 
-    if (request.targetAudience === "all") {
+    console.log("Sending notification:", { title, content, type, targetAudience });
+
+    let notifications = [];
+
+    if (targetAudience === "all") {
       // Get all user IDs
-      const { data: users, error: usersError } = await supabaseAdmin
-        .from('profiles')
-        .select('id');
+      const { data: users, error: usersError } = await supabaseClient
+        .from("profiles")
+        .select("id");
 
-      if (usersError) throw usersError;
-      targetUsers = users?.map(user => user.id) || [];
-    } else if (request.targetAudience === "specific" && request.userIds) {
-      targetUsers = request.userIds;
+      if (usersError) {
+        throw new Error(`Failed to fetch users: ${usersError.message}`);
+      }
+
+      notifications = users.map(user => ({
+        user_id: user.id,
+        title,
+        content,
+        type,
+        is_read: false
+      }));
+    } else if (userIds && userIds.length > 0) {
+      notifications = userIds.map(userId => ({
+        user_id: userId,
+        title,
+        content,
+        type,
+        is_read: false
+      }));
+    } else {
+      throw new Error("Invalid target audience or user IDs");
     }
 
-    console.log(`Sending notification to ${targetUsers.length} users`);
+    // Insert notifications
+    const { data, error } = await supabaseClient
+      .from("notifications")
+      .insert(notifications);
 
-    // Insert notifications for each target user
-    const notifications = targetUsers.map(userId => ({
-      user_id: userId,
-      title: request.title,
-      content: request.content,
-      type: request.type,
-      created_at: new Date().toISOString()
-    }));
-
-    if (notifications.length > 0) {
-      const { error: notificationError } = await supabaseAdmin
-        .from('notifications')
-        .insert(notifications);
-
-      if (notificationError) throw notificationError;
+    if (error) {
+      throw new Error(`Failed to insert notifications: ${error.message}`);
     }
 
     console.log(`Successfully sent ${notifications.length} notifications`);
@@ -71,22 +75,23 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Sent to ${notifications.length} users`,
-        count: notifications.length 
+        message: `Sent ${notifications.length} notifications` 
       }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
-  } catch (error) {
-    console.error("Error in send-user-notification:", error);
+  } catch (error: any) {
+    console.error("Error sending notifications:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   }
-});
+};
+
+serve(handler);

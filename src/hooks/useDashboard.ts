@@ -12,11 +12,9 @@ export const useDashboard = () => {
     points: 0,
     level: 1,
     tasksCompleted: 0,
-    tasks_completed: 0, // Add snake_case version for backward compatibility
     currentStreak: 0,
     rank: 0,
     referrals: 0,
-    active_referrals_count: 0, // Add this property
     followers: 0,
     following: 0
   });
@@ -54,8 +52,6 @@ export const useDashboard = () => {
             points: profile.points || 0,
             level: profile.level || 1,
             tasksCompleted: profile.tasks_completed || 0,
-            tasks_completed: profile.tasks_completed || 0,
-            active_referrals_count: profile.active_referrals_count || 0,
             followers: profile.followers_count || 0,
             following: profile.following_count || 0,
           }));

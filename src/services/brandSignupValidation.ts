@@ -17,10 +17,16 @@ export async function checkFieldUniqueness(field: 'companyName' | 'email', value
       return data && data.length > 0;
     }
     if (field === "email") {
-      // For email uniqueness, we'll let Supabase handle the validation during signup
-      // since we can't directly query auth.users and profiles might not exist yet
-      // This will be caught by the signUp method with proper error handling
-      return false;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", value)
+        .limit(1);
+      if (error) {
+        console.warn("Error checking email uniqueness", error);
+        return false;
+      }
+      return data && data.length > 0;
     }
   } catch (error) {
     console.warn(`Error checking ${field} uniqueness:`, error);

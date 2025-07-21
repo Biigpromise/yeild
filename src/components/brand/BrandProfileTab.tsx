@@ -100,37 +100,18 @@ export const BrandProfileTab: React.FC = () => {
         </CardContent>
       </Card>
       
-        <Card>
-          <CardHeader>
-            <CardTitle>Brand Verification</CardTitle>
-            <CardDescription>Verify your brand for premium features and higher trust.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">✓</div>
-                  <div>
-                    <div className="font-medium">Brand Verified</div>
-                    <div className="text-sm text-gray-600">Your brand is verified and trusted by our community</div>
-                  </div>
-                </div>
-                <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">Active</div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 pt-4">
-                <div className="text-center p-3 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">4.9</div>
-                  <div className="text-sm text-gray-600">Brand Rating</div>
-                </div>
-                <div className="text-center p-3 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">94%</div>
-                  <div className="text-sm text-gray-600">Trust Score</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Billing</CardTitle>
+          <CardDescription>Manage your subscription and payment methods.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <h3 className="text-lg font-medium mb-2">Billing Management Coming Soon</h3>
+            <p className="text-muted-foreground">Features to manage your billing are under development.</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

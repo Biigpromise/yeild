@@ -24,7 +24,11 @@ export function useFormSubmission({ onSubmissionComplete, clearDraft }: FormSubm
         setIsLoading(false);
         return;
       }
-      
+      if (await checkFieldUniqueness("email", data.email)) {
+        toast.error("This email is already registered.");
+        setIsLoading(false);
+        return;
+      }
       const applicationData = {
         companyName: data.companyName,
         website: data.website,
@@ -35,8 +39,6 @@ export function useFormSubmission({ onSubmissionComplete, clearDraft }: FormSubm
         goals: data.goals,
       };
 
-      // The signUp function in useAuthOperations already handles sending the brand confirmation email
-      // so we don't need to send it again here - it will only be sent once during signup
       const { error: signUpError } = await signUp(
         data.email,
         data.password,
@@ -51,9 +53,19 @@ export function useFormSubmission({ onSubmissionComplete, clearDraft }: FormSubm
         return;
       }
 
-      // Save submitted company and email for potential resend (though resend should be rare)
+      // Always save submitted company and email for resend
       onSubmissionComplete(data.email, data.companyName);
-      toast.success("Application submitted! Please check your email to confirm your account.");
+
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-brand-confirmation-email', {
+          body: { email: data.email, companyName: data.companyName },
+        });
+        if (emailError) throw emailError;
+        toast.success("Application submitted! Please check your email to confirm your account.");
+      } catch (error) {
+        console.error("Error sending confirmation email:", error);
+        toast.warning("Your application was submitted, but we had an issue sending the confirmation email. Please contact support if you don't receive it.");
+      }
       clearDraft();
     } catch (error) {
       console.error("An unexpected error occurred during signup:", error);

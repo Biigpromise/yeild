@@ -1,4 +1,3 @@
-
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -30,13 +29,10 @@ export const useAuthOperations = () => {
       
       console.log("Using redirect URL:", redirectUrl);
 
-      // For brand signup, include company-specific data
       const signUpData = {
         ...(name ? { name } : {}),
         ...(userType ? { user_type: userType } : {}),
         ...(refCode ? { referral_code: refCode } : {}),
-        // For brands, also include company name
-        ...(userType === 'brand' && name ? { company_name: name } : {}),
         ...additionalData
       };
       
@@ -142,11 +138,6 @@ export const useAuthOperations = () => {
       if (error) {
         console.error("Sign out error:", error);
         toast.error("Failed to sign out properly");
-      } else {
-        console.log("Sign out successful");
-        toast.success("Signed out successfully");
-        // Force redirect to home page
-        window.location.href = '/';
       }
     } catch (error) {
       console.error("Sign out unexpected error:", error);
@@ -162,12 +153,12 @@ export const useAuthOperations = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref');
       
-      // Use HTTPS for production domain
-      const redirectUrl = `https://yeildsocials.com/auth/callback`;
+      // Always redirect to OAuth callback handler
+      const redirectUrl = `${window.location.origin}/auth/callback`;
       
       const queryParams: Record<string, string> = {
         user_type: userType || 'user',
-        next: userType === 'brand' ? '/brand-signup' : '/auth/progressive'
+        next: '/auth/progressive'
       };
       
       // Include referral code if present
@@ -175,42 +166,24 @@ export const useAuthOperations = () => {
         queryParams.ref = refCode;
       }
       
-      console.log('OAuth redirect URL:', redirectUrl);
-      console.log('OAuth query params:', queryParams);
-      
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: redirectUrl,
-          queryParams,
-          skipBrowserRedirect: false
+          queryParams
         }
       });
       
       if (error) {
-        console.error('OAuth sign in error:', error);
-        
-        // Provide specific error messages for OAuth issues
-        if (error.message.includes('403') || error.message.includes('access')) {
-          toast.error('Google sign-in access denied. Please check your Google OAuth configuration.');
-        } else if (error.message.includes('redirect')) {
-          toast.error('Redirect URL mismatch. Please update your Google OAuth settings.');
-        } else if (error.message.includes('invalid_client')) {
-          toast.error('Google OAuth client configuration error. Please check your Google Cloud Console settings.');
-        } else {
-          const friendlyMessage = handleAuthError(error, `${provider} sign in`);
-          toast.error(friendlyMessage);
-        }
-        
-        return { error };
+        const friendlyMessage = handleAuthError(error, `${provider} sign in`);
+        return { error: { ...error, message: friendlyMessage } };
       }
       
-      console.log('OAuth sign in initiated successfully');
       return { error: null };
     } catch (error) {
       console.error("AuthContext: Provider sign in unexpected error:", error);
-      toast.error('An unexpected error occurred with Google sign-in. Please try again.');
-      return { error: { message: 'An unexpected error occurred with Google sign-in' } };
+      const friendlyMessage = handleAuthError(error, `${provider} sign in`);
+      return { error: { message: friendlyMessage } };
     }
   };
 

@@ -1,13 +1,13 @@
 
 import React from 'react';
-import ModernUserOnboarding from './ModernUserOnboarding';
+import YieldOnboarding from './YieldOnboarding';
 
 interface NewUserOnboardingProps {
   onComplete: () => void;
 }
 
 const NewUserOnboarding: React.FC<NewUserOnboardingProps> = ({ onComplete }) => {
-  return <ModernUserOnboarding onComplete={onComplete} />;
+  return <YieldOnboarding onComplete={onComplete} />;
 };
 
 export default NewUserOnboarding;

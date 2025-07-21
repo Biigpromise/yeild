@@ -1,75 +1,106 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-export interface NotificationData {
+interface NotificationData {
   title: string;
   content: string;
-  type: 'info' | 'success' | 'warning' | 'achievement';
-  userId: string;
+  type?: string;
+  announcementId?: string;
 }
 
 export const notificationService = {
-  // Send notification to user
-  async sendNotification(data: NotificationData): Promise<boolean> {
+  // Send notification to specific users
+  async sendNotificationToUsers(userIds: string[], notificationData: NotificationData) {
     try {
-      const { error } = await supabase.functions.invoke('send-user-notification', {
-        body: {
-          userId: data.userId,
-          title: data.title,
-          content: data.content,
-          type: data.type
-        }
-      });
+      const notifications = userIds.map(userId => ({
+        user_id: userId,
+        title: notificationData.title,
+        content: notificationData.content,
+        type: notificationData.type || 'info',
+        announcement_id: notificationData.announcementId || null
+      }));
 
-      if (error) {
-        console.error('Error sending notification:', error);
-        return false;
-      }
+      const { error } = await supabase
+        .from('notifications')
+        .insert(notifications);
 
+      if (error) throw error;
+
+      console.log(`Notifications sent to ${userIds.length} users`);
       return true;
     } catch (error) {
-      console.error('Error sending notification:', error);
+      console.error('Error sending notifications:', error);
       return false;
     }
   },
 
-  // Send task completion notification
-  async sendTaskCompletionNotification(userId: string, taskTitle: string, pointsEarned: number): Promise<boolean> {
-    return this.sendNotification({
-      userId,
-      title: 'Task Completed!',
-      content: `You completed "${taskTitle}" and earned ${pointsEarned} points!`,
-      type: 'success'
-    });
+  // Send notification to all users based on target audience
+  async sendBroadcastNotification(targetAudience: string, notificationData: NotificationData) {
+    try {
+      // Get users based on target audience
+      let userQuery = supabase.from('profiles').select('id');
+
+      switch (targetAudience) {
+        case 'active':
+          userQuery = userQuery.gte('last_active_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+          break;
+        case 'inactive':
+          userQuery = userQuery.lt('last_active_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString());
+          break;
+        case 'newUsers':
+          userQuery = userQuery.gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+          break;
+        default: // 'all'
+          break;
+      }
+
+      const { data: users, error: usersError } = await userQuery;
+      if (usersError) throw usersError;
+
+      if (!users || users.length === 0) {
+        console.log('No users found for target audience:', targetAudience);
+        return false;
+      }
+
+      const userIds = users.map(user => user.id);
+      return await this.sendNotificationToUsers(userIds, notificationData);
+    } catch (error) {
+      console.error('Error sending broadcast notification:', error);
+      return false;
+    }
   },
 
-  // Send achievement notification
-  async sendAchievementNotification(userId: string, achievementName: string, pointsEarned: number): Promise<boolean> {
-    return this.sendNotification({
-      userId,
-      title: 'Achievement Unlocked!',
-      content: `You unlocked "${achievementName}" and earned ${pointsEarned} points!`,
-      type: 'achievement'
-    });
+  // Get user notifications
+  async getUserNotifications(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      return [];
+    }
   },
 
-  // Send level up notification
-  async sendLevelUpNotification(userId: string, newLevel: number): Promise<boolean> {
-    return this.sendNotification({
-      userId,
-      title: 'Level Up!',
-      content: `Congratulations! You've reached level ${newLevel}!`,
-      type: 'achievement'
-    });
-  },
+  // Mark notification as read
+  async markAsRead(notificationId: string) {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId);
 
-  // Send task rejection notification
-  async sendTaskRejectionNotification(userId: string, taskTitle: string, reason: string): Promise<boolean> {
-    return this.sendNotification({
-      userId,
-      title: 'Task Submission Rejected',
-      content: `Your submission for "${taskTitle}" was rejected. Reason: ${reason}`,
-      type: 'warning'
-    });
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      return false;
+    }
   }
 };

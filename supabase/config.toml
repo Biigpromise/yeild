@@ -6,21 +6,7 @@ project_id = "stehjqdbncykevpokcvj"
 site_url = "https://yeildsocials.com"
 enabled = true
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = [
-  "https://yeildsocials.com/auth/callback", 
-  "https://yeildsocials.com/brand-dashboard", 
-  "https://yeildsocials.com/dashboard", 
-  "https://yeildsocials.com/onboarding",
-  "https://yeildsocials.com/admin",
-  "https://yeildsocials.com/verify",
-  "https://yeildsocials.com/reset-password",
-  "https://yeildsocials.com/update-password",
-  "https://601caf62-c867-4152-87f9-fa5869c55de0.lovableproject.com",
-  "https://601caf62-c867-4152-87f9-fa5869c55de0.lovableproject.com/auth/callback",
-  "https://601caf62-c867-4152-87f9-fa5869c55de0.lovableproject.com/brand-dashboard",
-  "https://601caf62-c867-4152-87f9-fa5869c55de0.lovableproject.com/dashboard",
-  "https://601caf62-c867-4152-87f9-fa5869c55de0.lovableproject.com/onboarding"
-]
+additional_redirect_urls = ["https://lovable.dev", "https://yeildsocials.com/auth", "https://yeildsocials.com/brand-dashboard", "https://yeildsocials.com/dashboard", "https://yeildsocials.com/onboarding"]
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
@@ -30,13 +16,6 @@ double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
 enable_confirmations = true
 
-[auth.security]
-# Enable additional security features for production
-refresh_token_rotation_enabled = true
-security_update_password_require_reauthentication = true
-# Increase session timeout for better user experience
-session_timeout = 86400
-
 [api]
 enabled = true
 port = 54321
@@ -44,26 +23,8 @@ schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
-[functions.payment-webhook]
-verify_jwt = false
-
-[functions.flutterwave-payment]
-verify_jwt = true
-
-[functions.flutterwave-verify]
-verify_jwt = true
-
-[functions.flutterwave-transfer]
-verify_jwt = true
-
 [functions.admin-operations]
 verify_jwt = true
 
 [functions.send-brand-confirmation-email]
-verify_jwt = false
-
-[functions.send-user-notification]
-verify_jwt = true
-
-[functions.verify-bank-account]
 verify_jwt = false

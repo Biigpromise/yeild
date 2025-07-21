@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,7 +20,7 @@ const formSchema = z
       productReviews: z.boolean().default(false),
       focusGroups: z.boolean().default(false),
     }).default({}),
-    budget: z.string().min(1, { message: "Please select a budget (minimum $10)." }),
+    budget: z.string().min(1, { message: "Please select a budget." }),
     goals: z.string().min(1, { message: "Please describe your campaign goals." }),
     agreeTerms: z.boolean(),
   })
@@ -58,7 +57,7 @@ export function useBrandSignupForm() {
         productReviews: false,
         focusGroups: false,
       },
-      budget: "$10-50", // Updated default minimum budget
+      budget: "",
       goals: "",
       agreeTerms: false,
     },

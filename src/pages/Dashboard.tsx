@@ -1,65 +1,98 @@
 
-import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAnalytics } from '@/hooks/useAnalytics';
-import { QuickSetup } from '@/components/navigation/QuickSetup';
+import React from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TasksTab } from "@/components/dashboard/TasksTab";
+import { ProfileTab } from "@/components/dashboard/ProfileTab";
+import { WalletTab } from "@/components/dashboard/WalletTab";
+import { ReferralsTab } from "@/components/dashboard/ReferralsTab";
+import { CommunityTab } from "@/components/dashboard/CommunityTab";
+import { SupportTab } from "@/components/dashboard/SupportTab";
+import { LeaderboardTab } from "@/components/dashboard/LeaderboardTab";
+import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
+import { OnboardingTutorial } from "@/components/OnboardingTutorial";
+import { BirdStatusDisplay } from "@/components/bird/BirdStatusDisplay";
+import { useOnboarding } from "@/hooks/useOnboarding";
+import { useAuth } from "@/contexts/AuthContext";
+import { useExperienceLevel } from '@/hooks/useExperienceLevel';
+import { useDashboard } from '@/hooks/useDashboard';
 
 const Dashboard: React.FC = () => {
-  const { user, signOut } = useAuth();
-  const analytics = useAnalytics();
-
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
-  const testAnalytics = () => {
-    analytics.trackSocialInteraction('like', 'test-post-123');
-    analytics.trackEarning(50, 'task_completion');
-  };
-
-  return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">YEILD Dashboard</h1>
-            <p className="text-muted-foreground">
-              Welcome back, {user?.user_metadata?.name || user?.email}!
-            </p>
-          </div>
-          <Button onClick={handleSignOut} variant="outline">
-            Sign Out
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Getting Started</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-muted-foreground">
-                  Your YEILD platform is ready! Complete the analytics setup to start tracking user engagement and platform performance.
-                </p>
-                <div className="flex gap-2">
-                  <Button onClick={testAnalytics} variant="outline">
-                    Test Analytics
-                  </Button>
+    const { user, signOut } = useAuth();
+    const { showOnboarding, userType, completeOnboarding } = useOnboarding();
+    const dashboardData = useDashboard();
+    
+    // Mock user stats for experience level calculation
+    const { isFeatureUnlocked } = useExperienceLevel(0, 0, 0);
+    
+    // Show onboarding if needed
+    if (showOnboarding) {
+        return (
+            <OnboardingFlow 
+                userType={userType} 
+                onComplete={completeOnboarding}
+            />
+        );
+    }
+    
+    return (
+        <div className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <div className="flex items-center gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-yeild-yellow">YIELD Dashboard</h1>
+                        <p className="text-muted-foreground mt-1">Welcome back, {user?.user_metadata.full_name || 'YEILDer'}!</p>
+                    </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <button 
+                    onClick={signOut}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                    Sign Out
+                </button>
+            </header>
 
-          <div>
-            <QuickSetup />
-          </div>
+            {/* Bird Status Display - Prominent placement */}
+            <div className="mb-8">
+                <BirdStatusDisplay />
+            </div>
+            
+            <Tabs defaultValue="tasks" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-7">
+                    <TabsTrigger value="tasks">Tasks</TabsTrigger>
+                    <TabsTrigger value="profile">Profile</TabsTrigger>
+                    <TabsTrigger value="wallet">Wallet</TabsTrigger>
+                    <TabsTrigger value="referrals">Referrals</TabsTrigger>
+                    <TabsTrigger value="community">Community</TabsTrigger>
+                    <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+                    <TabsTrigger value="support">Support</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="tasks" className="mt-6">
+                    <TasksTab {...dashboardData} />
+                </TabsContent>
+                <TabsContent value="profile" className="mt-6">
+                    <ProfileTab />
+                </TabsContent>
+                <TabsContent value="wallet" className="mt-6">
+                    <WalletTab />
+                </TabsContent>
+                <TabsContent value="referrals" className="mt-6">
+                    <ReferralsTab />
+                </TabsContent>
+                <TabsContent value="community" className="mt-6">
+                    <CommunityTab />
+                </TabsContent>
+                <TabsContent value="leaderboard" className="mt-6">
+                    <LeaderboardTab />
+                </TabsContent>
+                <TabsContent value="support" className="mt-6">
+                    <SupportTab />
+                </TabsContent>
+            </Tabs>
+            
+            <OnboardingTutorial />
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default Dashboard;

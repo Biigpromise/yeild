@@ -9,30 +9,15 @@ import { AdminTaskOverview } from "./AdminTaskOverview";
 import { AdminPlatformStats } from "./AdminPlatformStats";
 import { BirdLevelManagementDialog } from "./BirdLevelManagementDialog";
 import { EnhancedUserManagementSystem } from "./enhanced/EnhancedUserManagementSystem";
-import { SecurityMonitoring } from "./SecurityMonitoring";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bird, Crown, AlertTriangle, Shield, Users } from "lucide-react";
 import { integratedFraudDetectionService, FraudDetectionStats } from "@/services/integratedFraudDetectionService";
-import { supabase } from "@/integrations/supabase/client";
-
-interface BirdStats {
-  phoenixCount: number;
-  falconCount: number; 
-  eagleCount: number;
-  totalActiveReferrals: number;
-}
 
 export const AdminOverview = () => {
   const [fraudStats, setFraudStats] = useState<FraudDetectionStats | null>(null);
   const [birdManagementOpen, setBirdManagementOpen] = useState(false);
   const [showUserManagement, setShowUserManagement] = useState(false);
-  const [birdStats, setBirdStats] = useState<BirdStats>({
-    phoenixCount: 0,
-    falconCount: 0,
-    eagleCount: 0,
-    totalActiveReferrals: 0
-  });
 
   useEffect(() => {
     const loadFraudStats = async () => {
@@ -40,54 +25,11 @@ export const AdminOverview = () => {
       setFraudStats(stats);
     };
 
-    const loadBirdStats = async () => {
-      try {
-        // Get users with their active referrals count and points
-        const { data: profiles, error } = await supabase
-          .from('profiles')
-          .select('active_referrals_count, points');
-
-        if (error) throw error;
-
-        let phoenixCount = 0;
-        let falconCount = 0;
-        let eagleCount = 0;
-        let totalActiveReferrals = 0;
-
-        profiles?.forEach(profile => {
-          const referrals = profile.active_referrals_count || 0;
-          const points = profile.points || 0;
-          totalActiveReferrals += referrals;
-
-          // Determine bird level based on referrals and points
-          if (referrals >= 1000 && points >= 25000) {
-            phoenixCount++;
-          } else if (referrals >= 500 && points >= 12500) {
-            falconCount++;
-          } else if (referrals >= 100 && points >= 2500) {
-            eagleCount++;
-          }
-        });
-
-        setBirdStats({
-          phoenixCount,
-          falconCount,
-          eagleCount,
-          totalActiveReferrals
-        });
-      } catch (error) {
-        console.error('Error loading bird stats:', error);
-      }
-    };
-
     loadFraudStats();
-    loadBirdStats();
     
     // Check for new fraud alerts
     integratedFraudDetectionService.checkForNewFraudAlerts();
   }, []);
-
-  const { phoenixCount, falconCount, eagleCount, totalActiveReferrals } = birdStats;
 
   if (showUserManagement) {
     return (
@@ -186,19 +128,19 @@ export const AdminOverview = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{phoenixCount}</div>
+              <div className="text-2xl font-bold text-blue-600">0</div>
               <div className="text-sm text-blue-700">Phoenix Birds</div>
             </div>
             <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">{falconCount}</div>
+              <div className="text-2xl font-bold text-purple-600">0</div>
               <div className="text-sm text-purple-700">Falcon Birds</div>
             </div>
             <div className="text-center p-4 bg-amber-50 rounded-lg">
-              <div className="text-2xl font-bold text-amber-600">{eagleCount}</div>
+              <div className="text-2xl font-bold text-amber-600">0</div>
               <div className="text-sm text-amber-700">Eagle Birds</div>
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{totalActiveReferrals}</div>
+              <div className="text-2xl font-bold text-green-600">0</div>
               <div className="text-sm text-green-700">Active Referrals</div>
             </div>
           </div>

@@ -1,141 +1,91 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuthOperations } from './auth/useAuthOperations';
-import { analytics } from '@/services/analytics';
-
-interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  loading: boolean;
-  signUp: (email: string, password: string, name?: string, userType?: string, additionalData?: Record<string, any>, emailRedirectTo?: string) => Promise<{ user: User | null; error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-  signInWithProvider: (provider: 'google' | 'github' | 'twitter', userType?: string) => Promise<{ error: any }>;
-  resetPassword: (email: string) => Promise<{ error: any }>;
-  resendConfirmation: (email: string) => Promise<{ error: any }>;
-  verifyConfirmationCode: (code: string) => Promise<{ success: boolean; error?: string }>;
-}
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { User, Session } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
+import { AuthContextType } from "./auth/types";
+import { useAuthState } from "./auth/useAuthState";
+import { useAuthOperations } from "./auth/useAuthOperations";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const { user, session, loading, setUser, setSession, setLoading } = useAuthState();
   const authOperations = useAuthOperations();
 
   useEffect(() => {
-    // Get initial session with better error handling
+    console.log("AuthProvider: Setting up auth listeners");
+    
+    let mounted = true;
+
+    // Get initial session first
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
         if (error) {
-          console.error('Error getting initial session:', error);
-          // Don't throw, just set to null and continue
-          setSession(null);
-          setUser(null);
-        } else {
+          console.error("Error getting initial session:", error);
+        }
+        
+        if (mounted) {
+          console.log("Initial session check:", session?.user?.email);
           setSession(session);
-          if (session?.user) {
-            setUser(session.user);
-            // Set user properties in analytics safely
-            try {
-              const userType = session.user.user_metadata?.user_type || 'user';
-              analytics.setUserProperties(session.user.id, {
-                user_type: userType,
-                email: session.user.email,
-                created_at: session.user.created_at
-              });
-            } catch (analyticsError) {
-              console.warn('Analytics error (non-critical):', analyticsError);
-            }
-          }
+          setUser(session?.user ?? null);
         }
       } catch (error) {
-        console.error('Unexpected error getting session:', error);
-        setSession(null);
-        setUser(null);
+        console.error("Unexpected error getting session:", error);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
-    getInitialSession();
-
-    // Listen for auth changes with better error handling
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+        if (!mounted) return;
         
-        try {
-          setSession(session);
-          if (session?.user) {
-            setUser(session.user);
-            const userType = session.user.user_metadata?.user_type || 'user';
-            
-            // Track authentication events safely
-            try {
-              if (event === 'SIGNED_IN') {
-                const loginMethod = session.user.app_metadata?.provider || 'email';
-                analytics.trackLogin(session.user.id, userType, loginMethod as 'email' | 'google');
-                // Also track signup for new users (first time sign in)
-                if (session.user.created_at && new Date(session.user.created_at).getTime() > Date.now() - 60000) {
-                  const signupMethod = session.user.app_metadata?.provider || 'email';
-                  analytics.trackSignup(session.user.id, userType, signupMethod as 'email' | 'google');
-                }
-              }
-              
-              // Set user properties
-              analytics.setUserProperties(session.user.id, {
-                user_type: userType,
-                email: session.user.email,
-                created_at: session.user.created_at
-              });
-            } catch (analyticsError) {
-              console.warn('Analytics error (non-critical):', analyticsError);
-            }
-          } else {
-            // Track logout if user was previously signed in
-            if (user) {
-              try {
-                const userType = user.user_metadata?.user_type || 'user';
-                analytics.trackLogout(user.id, userType);
-              } catch (analyticsError) {
-                console.warn('Analytics error (non-critical):', analyticsError);
-              }
-            }
-            setUser(null);
-          }
-        } catch (error) {
-          console.error('Error in auth state change handler:', error);
-        } finally {
-          setLoading(false);
+        console.log("Auth state changed:", event, session?.user?.email);
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        // Handle auth events
+        if (event === 'SIGNED_OUT') {
+          console.log("User signed out");
+        } else if (event === 'SIGNED_IN') {
+          console.log("User signed in:", session?.user?.email);
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log("Token refreshed");
         }
       }
     );
 
+    // Get initial session
+    getInitialSession();
+
     return () => {
+      mounted = false;
+      console.log("AuthProvider: Cleaning up auth listeners");
       subscription.unsubscribe();
     };
-  }, [user]);
+  }, [setUser, setSession, setLoading]);
 
   const value = {
     user,
     session,
     loading,
-    ...authOperations
+    ...authOperations,
   };
 
   return (

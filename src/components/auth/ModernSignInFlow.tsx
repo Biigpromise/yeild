@@ -144,11 +144,7 @@ const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, o
               </div>
 
               <div className="text-right">
-                <button 
-                  type="button" 
-                  className="text-sm text-primary hover:underline"
-                  onClick={() => window.location.href = '/forgot-password'}
-                >
+                <button type="button" className="text-sm text-primary">
                   Forgot password?
                 </button>
               </div>
