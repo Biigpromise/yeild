@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'dark' | 'light' | 'system';
@@ -19,23 +20,37 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = React.useState<Theme>('dark');
-  const [effectiveTheme, setEffectiveTheme] = React.useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<Theme>('dark');
+  const [effectiveTheme, setEffectiveTheme] = useState<'dark' | 'light'>('dark');
 
-  React.useEffect(() => {
+  // Initialize theme from localStorage
+  useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme) {
+    if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
       setTheme(savedTheme);
     }
   }, []);
 
-  React.useEffect(() => {
+  // Update DOM and localStorage when theme changes
+  useEffect(() => {
     localStorage.setItem('theme', theme);
     
     let resolvedTheme: 'dark' | 'light' = 'dark';
     
     if (theme === 'system') {
-      resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      resolvedTheme = mediaQuery.matches ? 'dark' : 'light';
+      
+      // Listen for system theme changes
+      const handleChange = (e: MediaQueryListEvent) => {
+        setEffectiveTheme(e.matches ? 'dark' : 'light');
+        document.documentElement.classList.toggle('dark', e.matches);
+      };
+      
+      mediaQuery.addEventListener('change', handleChange);
+      
+      // Cleanup listener
+      return () => mediaQuery.removeEventListener('change', handleChange);
     } else {
       resolvedTheme = theme;
     }
