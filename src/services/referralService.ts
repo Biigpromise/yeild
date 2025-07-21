@@ -17,7 +17,7 @@ export const referralService = {
       // First, find the referrer by referral code
       const { data: referrer, error: referrerError } = await supabase
         .from('profiles')
-        .select('id, name, referral_code')
+        .select('id, name, referral_code, total_referrals_count')
         .eq('referral_code', referralCode)
         .maybeSingle();
 
@@ -75,11 +75,11 @@ export const referralService = {
         };
       }
 
-      // Update referrer's total referrals count
+      // Update referrer's total referrals count by incrementing it
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          total_referrals_count: supabase.raw('total_referrals_count + 1')
+          total_referrals_count: (referrer.total_referrals_count || 0) + 1
         })
         .eq('id', referrer.id);
 
@@ -171,12 +171,24 @@ export const referralService = {
         return;
       }
 
+      // Get current referrer points and active referrals count
+      const { data: referrer, error: referrerError } = await supabase
+        .from('profiles')
+        .select('points, active_referrals_count')
+        .eq('id', referrerId)
+        .single();
+
+      if (referrerError) {
+        console.error('Error getting referrer data:', referrerError);
+        return;
+      }
+
       // Award points to referrer
       const { error: pointsError } = await supabase
         .from('profiles')
         .update({
-          points: supabase.raw(`points + ${pointsToAward}`),
-          active_referrals_count: supabase.raw('active_referrals_count + 1')
+          points: (referrer.points || 0) + pointsToAward,
+          active_referrals_count: (referrer.active_referrals_count || 0) + 1
         })
         .eq('id', referrerId);
 
