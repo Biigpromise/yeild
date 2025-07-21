@@ -1,6 +1,6 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { BankAccountSelector } from "../BankAccountSelector";
 
 interface FlutterwavePaymentProps {
   onDetailsChange: (details: any) => void;
@@ -46,28 +47,6 @@ const SUPPORTED_COUNTRIES = [
   { code: 'RW', name: 'Rwanda' },
   { code: 'ZM', name: 'Zambia' },
   { code: 'US', name: 'United States' }
-];
-
-const NIGERIAN_BANKS = [
-  { name: "Access Bank", code: "044" },
-  { name: "Diamond Bank", code: "063" },
-  { name: "Ecobank Nigeria", code: "050" },
-  { name: "Fidelity Bank", code: "070" },
-  { name: "First Bank of Nigeria", code: "011" },
-  { name: "First City Monument Bank", code: "214" },
-  { name: "Guaranty Trust Bank", code: "058" },
-  { name: "Heritage Bank", code: "030" },
-  { name: "Keystone Bank", code: "082" },
-  { name: "Polaris Bank", code: "076" },
-  { name: "Providus Bank", code: "101" },
-  { name: "Stanbic IBTC Bank", code: "221" },
-  { name: "Standard Chartered Bank", code: "068" },
-  { name: "Sterling Bank", code: "232" },
-  { name: "Union Bank of Nigeria", code: "032" },
-  { name: "United Bank For Africa", code: "033" },
-  { name: "Unity Bank", code: "215" },
-  { name: "Wema Bank", code: "035" },
-  { name: "Zenith Bank", code: "057" }
 ];
 
 export const FlutterwavePayment = ({ 
@@ -140,6 +119,36 @@ export const FlutterwavePayment = ({
       toast.error('Failed to load payment configuration');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAccountSelect = (account: {
+    accountNumber: string;
+    bankCode: string;
+    bankName: string;
+    accountName: string;
+  }) => {
+    const newFormData = {
+      ...formData,
+      accountNumber: account.accountNumber,
+      bankCode: account.bankCode,
+      accountName: account.accountName,
+      bankName: account.bankName
+    };
+    setFormData(newFormData);
+    
+    // Update parent with new details
+    const withdrawalAmount = parseInt(amount) || 0;
+    if (config) {
+      const processingFee = (withdrawalAmount * config.processingFeePercent) / 100;
+      const netAmount = withdrawalAmount - processingFee;
+      
+      onDetailsChange({
+        ...newFormData,
+        amount: withdrawalAmount,
+        processingFee,
+        netAmount
+      });
     }
   };
 
@@ -257,44 +266,6 @@ export const FlutterwavePayment = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="accountNumber">Account Number</Label>
-            <Input
-              id="accountNumber"
-              type="text"
-              placeholder="Enter your account number"
-              value={formData.accountNumber}
-              onChange={(e) => handleInputChange('accountNumber', e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="bankCode">Bank</Label>
-            <Select value={formData.bankCode} onValueChange={(value) => handleInputChange('bankCode', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select your bank" />
-              </SelectTrigger>
-              <SelectContent>
-                {NIGERIAN_BANKS.map((bank) => (
-                  <SelectItem key={bank.code} value={bank.code}>
-                    {bank.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="accountName">Account Name</Label>
-            <Input
-              id="accountName"
-              type="text"
-              placeholder="Enter account holder name"
-              value={formData.accountName}
-              onChange={(e) => handleInputChange('accountName', e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="phoneNumber">Phone Number</Label>
             <Input
               id="phoneNumber"
@@ -306,6 +277,16 @@ export const FlutterwavePayment = ({
           </div>
         </CardContent>
       </Card>
+
+      <BankAccountSelector
+        onAccountSelect={handleAccountSelect}
+        selectedAccount={formData.accountNumber ? {
+          accountNumber: formData.accountNumber,
+          bankCode: formData.bankCode,
+          bankName: formData.bankName || '',
+          accountName: formData.accountName
+        } : undefined}
+      />
 
       {withdrawalAmount > 0 && (
         <Card>
@@ -336,7 +317,7 @@ export const FlutterwavePayment = ({
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Processing time: 1-3 business days. Ensure all details are correct as transfers cannot be reversed.
+          Processing time: 1-3 business days. All accounts are verified before processing to ensure security.
         </AlertDescription>
       </Alert>
 
@@ -344,7 +325,7 @@ export const FlutterwavePayment = ({
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Please fill in all required fields to proceed with the withdrawal.
+            Please fill in all required fields and verify your bank account to proceed.
           </AlertDescription>
         </Alert>
       )}
