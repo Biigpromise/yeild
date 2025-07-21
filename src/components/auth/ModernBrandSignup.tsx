@@ -316,32 +316,26 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
               <p className="text-gray-400">Join YIELD and connect with our engaged community</p>
             </div>
 
-            {/* Show existing user message */}
+            {/* Show simple existing user message without box */}
             {showExistingUserMessage && (
-              <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <h3 className="text-blue-400 font-medium mb-2">Account Already Exists</h3>
-                    <p className="text-gray-300 text-sm mb-4">
-                      An account with this email already exists. You can sign in with your existing credentials below.
-                    </p>
-                    <Button
-                      onClick={handleExistingUserSignIn}
-                      disabled={isLoading}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
-                    >
-                      {isLoading ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Signing in...
-                        </div>
-                      ) : (
-                        'Sign In to Existing Account'
-                      )}
-                    </Button>
-                  </div>
-                </div>
+              <div className="text-center mb-6">
+                <p className="text-gray-300 mb-4">
+                  An account with this email already exists. You can sign in with your existing credentials.
+                </p>
+                <Button
+                  onClick={handleExistingUserSignIn}
+                  disabled={isLoading}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Signing in...
+                    </div>
+                  ) : (
+                    'Sign In to Existing Account'
+                  )}
+                </Button>
               </div>
             )}
             
@@ -377,23 +371,6 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
                   className="bg-gray-900 border-gray-700 text-white"
                 />
               </div>
-
-              {showExistingUserMessage && (
-                <div className="text-center pt-4">
-                  <p className="text-gray-400 text-sm">
-                    Don't have an account?{' '}
-                    <button 
-                      onClick={() => {
-                        setShowExistingUserMessage(false);
-                        setFormData(prev => ({ ...prev, email: '', password: '' }));
-                      }}
-                      className="text-yeild-yellow hover:underline"
-                    >
-                      Try with different email
-                    </button>
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         );
@@ -534,7 +511,7 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
                 </label>
               </div>
               
-              <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-800">
+              <div className="bg-gray-900/50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-2 text-yeild-yellow">What happens next?</h3>
                 <ul className="text-sm text-gray-300 space-y-1">
                   <li>• Your application will be reviewed within 24-48 hours</li>
@@ -625,42 +602,45 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
               ) : (
                 <div></div>
               )}
-              
-              {step === 1 && !showExistingUserMessage && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowSignInMode(true)}
-                  className="border-gray-700 text-white hover:bg-gray-800"
-                >
-                  Already have an account? Sign In
-                </Button>
-              )}
             </div>
 
-            {step < 4 && !showExistingUserMessage ? (
-              <Button
-                onClick={handleNext}
-                className="bg-yeild-yellow text-black hover:bg-yeild-yellow/90 px-8"
-              >
-                Continue
-              </Button>
-            ) : step === 4 && !showExistingUserMessage ? (
-              <Button
-                onClick={handleSubmit}
-                disabled={isLoading}
-                className="bg-yeild-yellow text-black hover:bg-yeild-yellow/90 px-8"
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                    Submitting...
-                  </div>
-                ) : (
-                  'Submit Application'
-                )}
-              </Button>
-            ) : null}
+            <div className="flex items-center gap-4">
+              {step === 1 && !showExistingUserMessage && (
+                <p className="text-gray-400 text-sm">
+                  Already have an account?{' '}
+                  <button 
+                    onClick={() => setShowSignInMode(true)}
+                    className="text-yeild-yellow hover:underline"
+                  >
+                    Sign In
+                  </button>
+                </p>
+              )}
+
+              {step < 4 && !showExistingUserMessage ? (
+                <Button
+                  onClick={handleNext}
+                  className="bg-yeild-yellow text-black hover:bg-yeild-yellow/90 px-8"
+                >
+                  Continue
+                </Button>
+              ) : step === 4 && !showExistingUserMessage ? (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isLoading}
+                  className="bg-yeild-yellow text-black hover:bg-yeild-yellow/90 px-8"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                      Submitting...
+                    </div>
+                  ) : (
+                    'Submit Application'
+                  )}
+                </Button>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

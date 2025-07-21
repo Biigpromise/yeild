@@ -50,6 +50,7 @@ export const EmailConfirmationGuard: React.FC<EmailConfirmationGuardProps> = ({ 
     
     setResending(true);
     try {
+      // Only resend if really necessary - this should be rare since email is sent once during signup
       const { error } = await supabase.functions.invoke('send-brand-confirmation-email', {
         body: {
           email: user.email,
