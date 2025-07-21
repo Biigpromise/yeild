@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { referralService } from '@/services/referralService';
 import { toast } from 'sonner';
+import { useSearchParams } from 'react-router-dom';
 
 interface SignUpData {
   email: string;
@@ -23,6 +24,69 @@ interface SignUpData {
 
 export const useSignUp = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  const [signUpError, setSignUpError] = useState<string | null>(null);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  const handleResendConfirmation = async () => {
+    if (!email) return;
+    
+    setResendLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      
+      if (error) {
+        toast.error('Failed to resend confirmation email');
+      } else {
+        toast.success('Confirmation email sent successfully');
+      }
+    } catch (error) {
+      console.error('Error resending confirmation:', error);
+      toast.error('Failed to resend confirmation email');
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSignUpError(null);
+    
+    if (!agreeTerms) {
+      setSignUpError('Please agree to the terms and conditions');
+      return;
+    }
+
+    const referralCode = searchParams.get('ref');
+    
+    const signUpData: SignUpData = {
+      email,
+      password,
+      name,
+      userType: 'user',
+      referralCode: referralCode || undefined
+    };
+
+    const result = await signUp(signUpData);
+    
+    if (result.success) {
+      setAwaitingConfirmation(true);
+    } else {
+      setSignUpError(result.error);
+    }
+  };
 
   const signUp = async (data: SignUpData) => {
     setIsLoading(true);
@@ -43,7 +107,8 @@ export const useSignUp = () => {
         email: data.email,
         password: data.password,
         options: {
-          data: metadata
+          data: metadata,
+          emailRedirectTo: `${window.location.origin}/dashboard`
         }
       });
 
@@ -58,7 +123,7 @@ export const useSignUp = () => {
       // Handle referral signup if referral code is provided
       if (data.referralCode) {
         const result = await referralService.processReferralSignup(data.referralCode, authData.user.id);
-        if (result) {
+        if (result.success) {
           toast.success('Account created successfully! Referral bonus will be activated after completing your first task.');
         } else {
           toast.warning('Account created, but referral code may be invalid.');
@@ -77,5 +142,24 @@ export const useSignUp = () => {
     }
   };
 
-  return { signUp, isLoading };
+  return { 
+    signUp, 
+    isLoading,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    name,
+    setName,
+    agreeTerms,
+    setAgreeTerms,
+    showPassword,
+    setShowPassword,
+    handleSignUp,
+    awaitingConfirmation,
+    signUpError,
+    setAwaitingConfirmation,
+    handleResendConfirmation,
+    resendLoading
+  };
 };
