@@ -59,16 +59,20 @@ const BrandPayment = () => {
         }
       };
 
+      console.log('Initiating payment with payload:', paymentPayload);
+
       const { data: paymentResponse, error: paymentError } = await supabase.functions
         .invoke('flutterwave-payment', {
           body: paymentPayload
         });
 
+      console.log('Payment response:', paymentResponse, 'Error:', paymentError);
+
       if (paymentError) throw paymentError;
 
-      if (paymentResponse?.payment_link) {
+      if (paymentResponse?.data?.link) {
         toast.success('Redirecting to payment gateway...');
-        window.location.href = paymentResponse.payment_link;
+        window.location.href = paymentResponse.data.link;
       } else {
         throw new Error('Payment link not received');
       }
@@ -87,29 +91,29 @@ const BrandPayment = () => {
 
   return (
     <div className="min-h-screen bg-yeild-black">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 sm:mb-8">
           <Button
             variant="outline"
             onClick={() => navigate('/brand-dashboard')}
-            className="border-gray-600 text-white hover:bg-gray-800"
+            className="border-gray-600 text-white hover:bg-gray-800 w-full sm:w-auto"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-white">Fund Your Account</h1>
-            <p className="text-gray-300">Add funds to your YIELD brand account</p>
+          <div className="w-full sm:w-auto">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">Fund Your Account</h1>
+            <p className="text-gray-300 text-sm sm:text-base">Add funds to your YIELD brand account</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Form */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="xl:col-span-2 space-y-6">
             <Card className="border-gray-700 bg-gray-800">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
+                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
                   <DollarSign className="w-5 h-5" />
                   Payment Details
                 </CardTitle>
@@ -162,14 +166,14 @@ const BrandPayment = () => {
                 {/* Quick Amount Buttons */}
                 <div>
                   <Label className="text-white">Quick Select</Label>
-                  <div className="grid grid-cols-4 gap-2 mt-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
                     {[5000, 10000, 25000, 50000].map((quickAmount) => (
                       <Button
                         key={quickAmount}
                         variant="outline"
                         size="sm"
                         onClick={() => setFormData(prev => ({ ...prev, amount: quickAmount.toString() }))}
-                        className="border-gray-600 text-white hover:bg-gray-700"
+                        className="border-gray-600 text-white hover:bg-gray-700 text-xs sm:text-sm"
                       >
                         ₦{quickAmount.toLocaleString()}
                       </Button>
@@ -181,7 +185,7 @@ const BrandPayment = () => {
 
             <Card className="border-gray-700 bg-gray-800">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
+                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
                   <Info className="w-5 h-5" />
                   Important Information
                 </CardTitle>
@@ -203,7 +207,7 @@ const BrandPayment = () => {
             {amount > 0 && (
               <Card className="border-gray-700 bg-gray-800">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
+                  <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
                     <CreditCard className="w-5 h-5" />
                     Payment Summary
                   </CardTitle>
@@ -237,7 +241,7 @@ const BrandPayment = () => {
 
             <Card className="border-gray-700 bg-gray-800">
               <CardHeader>
-                <CardTitle className="text-white">Secure Payment</CardTitle>
+                <CardTitle className="text-white text-lg sm:text-xl">Secure Payment</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-center space-y-4">

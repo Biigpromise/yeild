@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Eye, Edit, DollarSign, Users, Calendar, TrendingUp } from "lucide-react";
+import { Plus, Eye, Edit, DollarSign, Users, Calendar, TrendingUp, AlertCircle } from "lucide-react";
 import { useBrandCampaigns } from "@/hooks/useBrandCampaigns";
 import { useNavigate } from "react-router-dom";
 import { CampaignFundingDialog } from "@/components/brand/CampaignFundingDialog";
@@ -65,9 +65,9 @@ export const BrandCampaignsTab: React.FC = () => {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-white">Your Campaigns</h2>
-          <Button className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-white">Your Campaigns</h2>
+          <Button className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Create Campaign
           </Button>
@@ -75,7 +75,7 @@ export const BrandCampaignsTab: React.FC = () => {
         <div className="grid gap-4">
           {[...Array(3)].map((_, i) => (
             <Card key={i} className="animate-pulse bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="h-6 bg-gray-700 rounded mb-4"></div>
                 <div className="h-4 bg-gray-700 rounded w-3/4"></div>
               </CardContent>
@@ -88,14 +88,14 @@ export const BrandCampaignsTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-white">Your Campaigns</h2>
-          <p className="text-gray-300">Create and manage your marketing campaigns</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="w-full sm:w-auto">
+          <h2 className="text-xl sm:text-2xl font-bold text-white">Your Campaigns</h2>
+          <p className="text-gray-300 text-sm sm:text-base">Create and manage your marketing campaigns</p>
         </div>
         <Button 
           onClick={() => navigate('/campaigns/create')}
-          className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark font-semibold"
+          className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark font-semibold w-full sm:w-auto"
         >
           <Plus className="mr-2 h-4 w-4" />
           Create Campaign
@@ -104,15 +104,15 @@ export const BrandCampaignsTab: React.FC = () => {
 
       {campaigns.length === 0 ? (
         <Card className="border-gray-700 bg-gray-800">
-          <CardContent className="p-12 text-center">
-            <TrendingUp className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">No campaigns yet</h3>
-            <p className="text-gray-400 mb-6">
+          <CardContent className="p-8 sm:p-12 text-center">
+            <TrendingUp className="w-12 h-12 sm:w-16 sm:h-16 text-gray-500 mx-auto mb-4" />
+            <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">No campaigns yet</h3>
+            <p className="text-gray-400 mb-6 text-sm sm:text-base">
               Start by creating your first campaign to reach our engaged community
             </p>
             <Button 
               onClick={() => navigate('/campaigns/create')}
-              className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark font-semibold"
+              className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark font-semibold w-full sm:w-auto"
             >
               <Plus className="mr-2 h-4 w-4" />
               Create Your First Campaign
@@ -120,16 +120,16 @@ export const BrandCampaignsTab: React.FC = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6">
+        <div className="grid gap-4 sm:gap-6">
           {campaigns.map((campaign) => (
             <Card key={campaign.id} className="border-gray-700 bg-gray-800 hover:shadow-md transition-shadow">
               <CardHeader className="pb-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-xl text-white mb-2">{campaign.title}</CardTitle>
-                    <p className="text-gray-400 text-sm">{campaign.description}</p>
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                  <div className="flex-1 w-full sm:w-auto">
+                    <CardTitle className="text-lg sm:text-xl text-white mb-2 break-words">{campaign.title}</CardTitle>
+                    <p className="text-gray-400 text-sm break-words">{campaign.description}</p>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                     <Badge className={getStatusColor(campaign.status)}>
                       {campaign.status}
                     </Badge>
@@ -143,24 +143,24 @@ export const BrandCampaignsTab: React.FC = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                   <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-gray-500" />
+                    <DollarSign className="w-4 h-4 text-gray-500 flex-shrink-0" />
                     <span className="text-sm text-gray-400">Budget:</span>
                     <span className="font-medium text-white">₦{campaign.budget?.toLocaleString()}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-gray-500" />
+                    <Users className="w-4 h-4 text-gray-500 flex-shrink-0" />
                     <span className="text-sm text-gray-400">Funded:</span>
                     <span className="font-medium text-white">₦{campaign.funded_amount?.toLocaleString() || 0}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
                     <span className="text-sm text-gray-400">Created:</span>
                     <span className="font-medium text-white">{new Date(campaign.created_at).toLocaleDateString()}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-gray-500" />
+                    <TrendingUp className="w-4 h-4 text-gray-500 flex-shrink-0" />
                     <span className="text-sm text-gray-400">Status:</span>
                     <span className="font-medium text-white">{campaign.admin_approval_status || 'pending'}</span>
                   </div>
@@ -168,19 +168,23 @@ export const BrandCampaignsTab: React.FC = () => {
 
                 {campaign.rejection_reason && (
                   <div className="mb-4 p-3 bg-red-900/20 border border-red-800 rounded-lg">
-                    <p className="text-red-400 text-sm">
-                      <strong>Rejection Reason:</strong> {campaign.rejection_reason}
-                    </p>
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-red-400 text-sm font-medium">Rejection Reason:</p>
+                        <p className="text-red-400 text-sm">{campaign.rejection_reason}</p>
+                      </div>
+                    </div>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center pt-4 border-t border-gray-700">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-gray-700">
+                  <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => navigate(`/campaigns/${campaign.id}`)}
-                      className="border-gray-600 text-white hover:bg-gray-700"
+                      className="border-gray-600 text-white hover:bg-gray-700 flex-1 sm:flex-none"
                     >
                       <Eye className="mr-2 h-4 w-4" />
                       View Details
@@ -190,7 +194,7 @@ export const BrandCampaignsTab: React.FC = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => navigate(`/campaigns/${campaign.id}/edit`)}
-                        className="border-gray-600 text-white hover:bg-gray-700"
+                        className="border-gray-600 text-white hover:bg-gray-700 flex-1 sm:flex-none"
                       >
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
@@ -201,7 +205,7 @@ export const BrandCampaignsTab: React.FC = () => {
                   {campaign.payment_status !== 'paid' && (
                     <Button
                       onClick={() => handleFundCampaign(campaign)}
-                      className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark font-semibold"
+                      className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark font-semibold w-full sm:w-auto"
                       size="sm"
                     >
                       <DollarSign className="mr-2 h-4 w-4" />

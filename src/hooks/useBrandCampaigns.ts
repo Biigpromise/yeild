@@ -33,18 +33,26 @@ export const useBrandCampaigns = () => {
   const fetchCampaigns = useCallback(async () => {
     if (!user) {
       setLoading(false);
+      setCampaigns([]);
       return;
     }
     
     setLoading(true);
     try {
+      console.log('Fetching campaigns for user:', user.id);
+      
       const { data, error } = await supabase
         .from('brand_campaigns')
         .select('*')
         .eq('brand_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching campaigns:', error);
+        throw error;
+      }
+      
+      console.log('Fetched campaigns:', data);
       
       // Type cast the data to ensure status fields match our interface
       const typedData = (data || []).map(campaign => ({
@@ -58,6 +66,7 @@ export const useBrandCampaigns = () => {
     } catch (error: any) {
       console.error('Error fetching campaigns:', error);
       toast.error('Failed to fetch campaigns: ' + error.message);
+      setCampaigns([]);
     } finally {
       setLoading(false);
     }
