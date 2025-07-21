@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TasksTab } from "@/components/dashboard/TasksTab";
@@ -22,8 +23,8 @@ const Dashboard: React.FC = () => {
     const { showOnboarding, userType, completeOnboarding } = useOnboarding();
     const dashboardData = useDashboard();
     
-    // Monitor referral activation
-    useReferralMonitoring();
+    // Monitor referral activation with enhanced monitoring
+    const { referralStats } = useReferralMonitoring();
     
     // Mock user stats for experience level calculation
     const { isFeatureUnlocked } = useExperienceLevel(0, 0, 0);
@@ -45,6 +46,11 @@ const Dashboard: React.FC = () => {
                     <div>
                         <h1 className="text-2xl font-bold text-yeild-yellow">YIELD Dashboard</h1>
                         <p className="text-muted-foreground mt-1">Welcome back, {user?.user_metadata.full_name || 'YEILDer'}!</p>
+                        {referralStats.activeReferrals > 0 && (
+                            <p className="text-sm text-green-600 mt-1">
+                                {referralStats.activeReferrals} active referral{referralStats.activeReferrals !== 1 ? 's' : ''} earning you rewards!
+                            </p>
+                        )}
                     </div>
                 </div>
                 <button 
@@ -65,7 +71,14 @@ const Dashboard: React.FC = () => {
                     <TabsTrigger value="tasks">Tasks</TabsTrigger>
                     <TabsTrigger value="profile">Profile</TabsTrigger>
                     <TabsTrigger value="wallet">Wallet</TabsTrigger>
-                    <TabsTrigger value="referrals">Referrals</TabsTrigger>
+                    <TabsTrigger value="referrals" className="relative">
+                        Referrals
+                        {referralStats.pendingReferrals > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                {referralStats.pendingReferrals}
+                            </span>
+                        )}
+                    </TabsTrigger>
                     <TabsTrigger value="chat">Messages</TabsTrigger>
                     <TabsTrigger value="community">Community</TabsTrigger>
                     <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
