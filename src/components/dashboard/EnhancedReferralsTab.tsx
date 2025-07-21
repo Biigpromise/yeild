@@ -23,7 +23,7 @@ export const EnhancedReferralsTab: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   // Use the fixed referral monitoring hook
-  const { isConnected, connectionError } = useReferralMonitoring(user?.id);
+  const { isConnected, connectionError } = useReferralMonitoring();
 
   const loadReferralStats = async () => {
     if (!user) return;

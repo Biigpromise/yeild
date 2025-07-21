@@ -41,7 +41,7 @@ export const EnhancedBankAccountSelector: React.FC = () => {
     if (!user) return;
     
     try {
-      await deleteBankAccount(user.id, accountId);
+      await deleteBankAccount(accountId);
       setAccounts(prev => prev.filter(acc => acc.id !== accountId));
       toast.success('Bank account removed successfully');
     } catch (error) {
@@ -149,8 +149,15 @@ export const EnhancedBankAccountSelector: React.FC = () => {
               <BankAccountSelector
                 onAccountSelect={handleAccountAdded}
                 selectedAccount={null}
-                onCancel={() => setShowAddForm(false)}
               />
+              <div className="mt-4 flex justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAddForm(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}

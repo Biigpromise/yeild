@@ -12,6 +12,8 @@ export const useReferralMonitoring = () => {
     activeReferrals: 0,
     pendingReferrals: 0
   });
+  const [isConnected, setIsConnected] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   
   const subscriptionRef = useRef<any>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -36,6 +38,7 @@ export const useReferralMonitoring = () => {
         await loadReferralStats();
       } catch (error) {
         console.error('Error checking referral activation:', error);
+        setConnectionError('Failed to check referral activation');
       }
     };
 
@@ -49,8 +52,10 @@ export const useReferralMonitoring = () => {
             pendingReferrals: stats.totalReferrals - stats.activeReferrals
           });
         }
+        setConnectionError(null);
       } catch (error) {
         console.error('Error loading referral stats:', error);
+        setConnectionError('Failed to load referral stats');
       }
     };
 
@@ -89,14 +94,20 @@ export const useReferralMonitoring = () => {
           .subscribe((status) => {
             if (status === 'SUBSCRIBED') {
               console.log('Referral monitoring subscription active');
+              setIsConnected(true);
+              setConnectionError(null);
             } else if (status === 'CHANNEL_ERROR') {
               console.error('Referral monitoring subscription error');
+              setIsConnected(false);
+              setConnectionError('Subscription error');
             }
           });
 
         subscriptionRef.current = channel;
       } catch (error) {
         console.error('Error setting up referral subscription:', error);
+        setConnectionError('Failed to setup subscription');
+        setIsConnected(false);
       }
     };
 
@@ -120,5 +131,5 @@ export const useReferralMonitoring = () => {
     };
   }, [user?.id]); // Only depend on user.id to avoid unnecessary re-subscriptions
 
-  return { referralStats };
+  return { referralStats, isConnected, connectionError };
 };
