@@ -69,14 +69,26 @@ const Profile = () => {
 
       if (error) throw error;
 
-      const profileData = {
-        ...data,
-        social_media_links: data.social_media_links || {}
-      } as UserProfile;
+      const profileData: UserProfile = {
+        id: data.id,
+        name: data.name || '',
+        email: data.email || '',
+        bio: data.bio || '',
+        profile_picture_url: data.profile_picture_url || '',
+        points: data.points || 0,
+        level: data.level || 1,
+        tasks_completed: data.tasks_completed || 0,
+        created_at: data.created_at || '',
+        location: data.location || '',
+        website: data.website || '',
+        social_media_links: data.social_media_links || {},
+        followers_count: data.followers_count || 0,
+        following_count: data.following_count || 0
+      };
 
       setProfile(profileData);
       setEditedProfile(profileData);
-      setBioCharCount(data.bio?.length || 0);
+      setBioCharCount(profileData.bio?.length || 0);
     } catch (error) {
       console.error('Error loading profile:', error);
       toast.error('Failed to load profile');
@@ -137,20 +149,25 @@ const Profile = () => {
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !user) return;
 
     setUploadingImage(true);
     try {
-      const imageUrl = await fileUploadService.uploadProfilePicture(file);
+      const result = await fileUploadService.uploadProfilePicture(file, user.id);
+      
+      if (!result) {
+        toast.error('Failed to upload profile picture');
+        return;
+      }
       
       const { error } = await supabase
         .from('profiles')
-        .update({ profile_picture_url: imageUrl })
-        .eq('id', user!.id);
+        .update({ profile_picture_url: result.url })
+        .eq('id', user.id);
 
       if (error) throw error;
 
-      setProfile(prev => ({ ...prev!, profile_picture_url: imageUrl }));
+      setProfile(prev => ({ ...prev!, profile_picture_url: result.url }));
       toast.success('Profile picture updated');
     } catch (error) {
       console.error('Error uploading image:', error);
