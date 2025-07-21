@@ -34,8 +34,6 @@ interface UserProfile {
   level: number;
   tasks_completed: number;
   created_at: string;
-  location: string;
-  website: string;
   social_media_links: Record<string, string> | null;
   followers_count: number;
   following_count: number;
@@ -79,8 +77,6 @@ const Profile = () => {
         level: data.level || 1,
         tasks_completed: data.tasks_completed || 0,
         created_at: data.created_at || '',
-        location: data.location || '',
-        website: data.website || '',
         social_media_links: data.social_media_links || {},
         followers_count: data.followers_count || 0,
         following_count: data.following_count || 0
@@ -127,8 +123,6 @@ const Profile = () => {
         .update({
           name: editedProfile.name,
           bio: editedProfile.bio,
-          location: editedProfile.location,
-          website: editedProfile.website,
           social_media_links: editedProfile.social_media_links,
           updated_at: new Date().toISOString()
         })
@@ -253,40 +247,6 @@ const Profile = () => {
                 <Mail className="h-4 w-4" />
                 <span>{profile.email}</span>
               </div>
-              
-              {(editing ? editedProfile.location : profile.location) && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  {editing ? (
-                    <Input
-                      value={editedProfile.location || ''}
-                      onChange={(e) => setEditedProfile(prev => ({ ...prev, location: e.target.value }))}
-                      placeholder="Location"
-                      className="h-auto p-0 border-none"
-                    />
-                  ) : (
-                    <span>{profile.location}</span>
-                  )}
-                </div>
-              )}
-              
-              {(editing ? editedProfile.website : profile.website) && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Globe className="h-4 w-4" />
-                  {editing ? (
-                    <Input
-                      value={editedProfile.website || ''}
-                      onChange={(e) => setEditedProfile(prev => ({ ...prev, website: e.target.value }))}
-                      placeholder="Website"
-                      className="h-auto p-0 border-none"
-                    />
-                  ) : (
-                    <a href={profile.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                      {profile.website}
-                    </a>
-                  )}
-                </div>
-              )}
               
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-4 w-4" />
