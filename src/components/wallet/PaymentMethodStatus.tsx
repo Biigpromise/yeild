@@ -1,126 +1,114 @@
 
-import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { 
-  CreditCard, 
-  Bitcoin, 
-  Gift, 
-  Wallet, 
-  CheckCircle, 
-  AlertCircle,
-  Plus
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, AlertCircle, Settings, CreditCard, Smartphone, Building2 } from 'lucide-react';
 
 interface PaymentMethodStatusProps {
   onSetupMethod: (method: string) => void;
 }
 
-export const PaymentMethodStatus = ({ onSetupMethod }: PaymentMethodStatusProps) => {
-  const { user } = useAuth();
-  const [methodsStatus, setMethodsStatus] = useState({
-    bank_transfer: false,
-    crypto: false,
-    gift_card: true, // Always available
-    yield_wallet: true // Always available
-  });
-
-  useEffect(() => {
-    checkPaymentMethods();
-  }, [user]);
-
-  const checkPaymentMethods = async () => {
-    if (!user) return;
-
-    try {
-      // Check if user has saved crypto addresses
-      const { data: cryptoData } = await supabase
-        .from('crypto_addresses')
-        .select('id')
-        .eq('user_id', user.id)
-        .limit(1);
-
-      setMethodsStatus(prev => ({
-        ...prev,
-        crypto: (cryptoData?.length || 0) > 0
-      }));
-    } catch (error) {
-      console.error('Error checking payment methods:', error);
-    }
-  };
-
-  const methods = [
+export const PaymentMethodStatus: React.FC<PaymentMethodStatusProps> = ({ onSetupMethod }) => {
+  const paymentMethods = [
     {
-      id: 'bank_transfer',
+      id: 'flutterwave',
       name: 'Bank Transfer',
-      icon: CreditCard,
-      color: 'blue',
-      setup: methodsStatus.bank_transfer
-    },
-    {
-      id: 'crypto',
-      name: 'Cryptocurrency',
-      icon: Bitcoin,
-      color: 'orange',
-      setup: methodsStatus.crypto
-    },
-    {
-      id: 'gift_card',
-      name: 'Gift Cards',
-      icon: Gift,
-      color: 'green',
-      setup: methodsStatus.gift_card
+      icon: <CreditCard className="h-5 w-5" />,
+      status: 'active',
+      description: 'Withdraw to Nigerian banks',
+      features: ['All major banks', 'Microfinance banks', 'Instant verification']
     },
     {
       id: 'yield_wallet',
       name: 'Yield Wallet',
-      icon: Wallet,
-      color: 'purple',
-      setup: methodsStatus.yield_wallet
+      icon: <Building2 className="h-5 w-5" />,
+      status: 'active',
+      description: 'Transfer to yield wallet',
+      features: ['No fees', 'Instant transfer', 'Earn yield']
+    },
+    {
+      id: 'crypto',
+      name: 'Cryptocurrency',
+      icon: <Smartphone className="h-5 w-5" />,
+      status: 'coming_soon',
+      description: 'Withdraw to crypto wallet',
+      features: ['Bitcoin', 'Ethereum', 'USDT']
     }
   ];
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Active
+          </Badge>
+        );
+      case 'coming_soon':
+        return (
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Coming Soon
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline" className="bg-gray-100 text-gray-800">
+            <Settings className="h-3 w-3 mr-1" />
+            Setup Required
+          </Badge>
+        );
+    }
+  };
+
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">Payment Methods</CardTitle>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Settings className="h-5 w-5" />
+          Payment Methods
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="grid grid-cols-2 gap-2">
-          {methods.map((method) => {
-            const Icon = method.icon;
-            return (
-              <div
-                key={method.id}
-                className="flex items-center justify-between p-2 border rounded-lg"
-              >
-                <div className="flex items-center gap-2">
-                  <Icon className={`h-4 w-4 text-${method.color}-500`} />
-                  <span className="text-sm font-medium">{method.name}</span>
+      <CardContent className="space-y-4">
+        {paymentMethods.map((method) => (
+          <Card key={method.id} className="border-l-4 border-l-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    {method.icon}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-medium">{method.name}</span>
+                      {getStatusBadge(method.status)}
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {method.description}
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {method.features.map((feature, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {feature}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                {method.setup ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onSetupMethod(method.id)}
-                    className="h-6 w-6 p-0"
-                  >
-                    <Plus className="h-3 w-3" />
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onSetupMethod(method.id)}
+                  disabled={method.status === 'coming_soon'}
+                >
+                  {method.status === 'active' ? 'Use' : 'Setup'}
+                </Button>
               </div>
-            );
-          })}
-        </div>
-        
-        <div className="text-xs text-muted-foreground">
-          {Object.values(methodsStatus).filter(Boolean).length} of {methods.length} methods configured
-        </div>
+            </CardContent>
+          </Card>
+        ))}
       </CardContent>
     </Card>
   );

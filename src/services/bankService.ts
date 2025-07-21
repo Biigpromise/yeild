@@ -3,64 +3,190 @@ export interface Bank {
   name: string;
   code: string;
   type: 'traditional' | 'microfinance' | 'fintech';
-  logo?: string;
+  active: boolean;
 }
 
 export const NIGERIAN_BANKS: Bank[] = [
   // Traditional Banks
-  { name: "Access Bank", code: "044", type: "traditional" },
-  { name: "Citibank Nigeria", code: "023", type: "traditional" },
-  { name: "Diamond Bank", code: "063", type: "traditional" },
-  { name: "Ecobank Nigeria", code: "050", type: "traditional" },
-  { name: "Fidelity Bank", code: "070", type: "traditional" },
-  { name: "First Bank of Nigeria", code: "011", type: "traditional" },
-  { name: "First City Monument Bank", code: "214", type: "traditional" },
-  { name: "Guaranty Trust Bank", code: "058", type: "traditional" },
-  { name: "Heritage Bank", code: "030", type: "traditional" },
-  { name: "Keystone Bank", code: "082", type: "traditional" },
-  { name: "Polaris Bank", code: "076", type: "traditional" },
-  { name: "Providus Bank", code: "101", type: "traditional" },
-  { name: "Stanbic IBTC Bank", code: "221", type: "traditional" },
-  { name: "Standard Chartered Bank", code: "068", type: "traditional" },
-  { name: "Sterling Bank", code: "232", type: "traditional" },
-  { name: "Union Bank of Nigeria", code: "032", type: "traditional" },
-  { name: "United Bank For Africa", code: "033", type: "traditional" },
-  { name: "Unity Bank", code: "215", type: "traditional" },
-  { name: "Wema Bank", code: "035", type: "traditional" },
-  { name: "Zenith Bank", code: "057", type: "traditional" },
+  { name: 'Access Bank', code: '044', type: 'traditional', active: true },
+  { name: 'Citibank Nigeria', code: '023', type: 'traditional', active: true },
+  { name: 'Ecobank Nigeria', code: '050', type: 'traditional', active: true },
+  { name: 'Fidelity Bank', code: '070', type: 'traditional', active: true },
+  { name: 'First Bank of Nigeria', code: '011', type: 'traditional', active: true },
+  { name: 'First City Monument Bank', code: '214', type: 'traditional', active: true },
+  { name: 'Guaranty Trust Bank', code: '058', type: 'traditional', active: true },
+  { name: 'Heritage Bank', code: '030', type: 'traditional', active: true },
+  { name: 'Keystone Bank', code: '082', type: 'traditional', active: true },
+  { name: 'Polaris Bank', code: '076', type: 'traditional', active: true },
+  { name: 'Stanbic IBTC Bank', code: '221', type: 'traditional', active: true },
+  { name: 'Standard Chartered Bank', code: '068', type: 'traditional', active: true },
+  { name: 'Sterling Bank', code: '232', type: 'traditional', active: true },
+  { name: 'Union Bank of Nigeria', code: '032', type: 'traditional', active: true },
+  { name: 'United Bank For Africa', code: '033', type: 'traditional', active: true },
+  { name: 'Unity Bank', code: '215', type: 'traditional', active: true },
+  { name: 'Wema Bank', code: '035', type: 'traditional', active: true },
+  { name: 'Zenith Bank', code: '057', type: 'traditional', active: true },
 
   // Microfinance Banks
-  { name: "Opay", code: "999992", type: "microfinance" },
-  { name: "Moniepoint", code: "50515", type: "microfinance" },
-  { name: "Palmpay", code: "999991", type: "microfinance" },
-  { name: "Kuda Bank", code: "50211", type: "microfinance" },
-  { name: "VFD Microfinance Bank", code: "566", type: "microfinance" },
-  { name: "Mintyn", code: "50548", type: "microfinance" },
-  { name: "Sparkle Microfinance Bank", code: "51310", type: "microfinance" },
-  { name: "Rubies MFB", code: "125", type: "microfinance" },
-  { name: "Hackman Microfinance Bank", code: "51251", type: "microfinance" },
-  { name: "NPF MicroFinance Bank", code: "552", type: "microfinance" },
+  { name: 'LAPO Microfinance Bank', code: '090177', type: 'microfinance', active: true },
+  { name: 'AB Microfinance Bank', code: '090270', type: 'microfinance', active: true },
+  { name: 'Accion Microfinance Bank', code: '090134', type: 'microfinance', active: true },
+  { name: 'Aella Microfinance Bank', code: '090316', type: 'microfinance', active: true },
+  { name: 'Akimbo Microfinance Bank', code: '090461', type: 'microfinance', active: true },
+  { name: 'Alat Microfinance Bank', code: '090259', type: 'microfinance', active: true },
+  { name: 'Aramoko Microfinance Bank', code: '090143', type: 'microfinance', active: true },
+  { name: 'Astrapolaris Microfinance Bank', code: '090172', type: 'microfinance', active: true },
+  { name: 'Bainescredit Microfinance Bank', code: '090188', type: 'microfinance', active: true },
+  { name: 'Bowen Microfinance Bank', code: '090148', type: 'microfinance', active: true },
+  { name: 'CEMCS Microfinance Bank', code: '090154', type: 'microfinance', active: true },
+  { name: 'Dot Microfinance Bank', code: '090470', type: 'microfinance', active: true },
+  { name: 'Eyowo Microfinance Bank', code: '090328', type: 'microfinance', active: true },
+  { name: 'Fairmoney Microfinance Bank', code: '090490', type: 'microfinance', active: true },
+  { name: 'Fint Microfinance Bank', code: '090505', type: 'microfinance', active: true },
+  { name: 'Firmus Microfinance Bank', code: '090166', type: 'microfinance', active: true },
+  { name: 'Fortis Microfinance Bank', code: '090365', type: 'microfinance', active: true },
+  { name: 'Hackman Microfinance Bank', code: '090147', type: 'microfinance', active: true },
+  { name: 'Ibile Microfinance Bank', code: '090318', type: 'microfinance', active: true },
+  { name: 'Ikoyi Osun Microfinance Bank', code: '090197', type: 'microfinance', active: true },
+  { name: 'Interland Microfinance Bank', code: '090386', type: 'microfinance', active: true },
+  { name: 'Kadpoly Microfinance Bank', code: '090320', type: 'microfinance', active: true },
+  { name: 'Kredi Money Microfinance Bank', code: '090380', type: 'microfinance', active: true },
+  { name: 'Lendvest Microfinance Bank', code: '090482', type: 'microfinance', active: true },
+  { name: 'Linkage Microfinance Bank', code: '090149', type: 'microfinance', active: true },
+  { name: 'Mainland Microfinance Bank', code: '090171', type: 'microfinance', active: true },
+  { name: 'Malachy Microfinance Bank', code: '090174', type: 'microfinance', active: true },
+  { name: 'Mint Microfinance Bank', code: '090281', type: 'microfinance', active: true },
+  { name: 'Moniepoint Microfinance Bank', code: '090405', type: 'microfinance', active: true },
+  { name: 'Mutual Benefits Microfinance Bank', code: '090190', type: 'microfinance', active: true },
+  { name: 'NPF Microfinance Bank', code: '090283', type: 'microfinance', active: true },
+  { name: 'Olabisi Onabanjo University Microfinance Bank', code: '090272', type: 'microfinance', active: true },
+  { name: 'Palmcredit Microfinance Bank', code: '090324', type: 'microfinance', active: true },
+  { name: 'Parallex Microfinance Bank', code: '090004', type: 'microfinance', active: true },
+  { name: 'Parkway Microfinance Bank', code: '090317', type: 'microfinance', active: true },
+  { name: 'Patrickgold Microfinance Bank', code: '090317', type: 'microfinance', active: true },
+  { name: 'Pecantrust Microfinance Bank', code: '090137', type: 'microfinance', active: true },
+  { name: 'Personal Trust Microfinance Bank', code: '090135', type: 'microfinance', active: true },
+  { name: 'Petra Microfinance Bank', code: '090165', type: 'microfinance', active: true },
+  { name: 'Polaris Microfinance Bank', code: '090175', type: 'microfinance', active: true },
+  { name: 'Putty Microfinance Bank', code: '090304', type: 'microfinance', active: true },
+  { name: 'Rand Microfinance Bank', code: '090175', type: 'microfinance', active: true },
+  { name: 'Renaissance Microfinance Bank', code: '090198', type: 'microfinance', active: true },
+  { name: 'Rephidim Microfinance Bank', code: '090322', type: 'microfinance', active: true },
+  { name: 'Richway Microfinance Bank', code: '090132', type: 'microfinance', active: true },
+  { name: 'Rockshield Microfinance Bank', code: '090434', type: 'microfinance', active: true },
+  { name: 'Seedvest Microfinance Bank', code: '090369', type: 'microfinance', active: true },
+  { name: 'Sparkle Microfinance Bank', code: '090325', type: 'microfinance', active: true },
+  { name: 'Stellas Microfinance Bank', code: '090262', type: 'microfinance', active: true },
+  { name: 'Uni-Abuja Microfinance Bank', code: '090331', type: 'microfinance', active: true },
+  { name: 'Unilag Microfinance Bank', code: '090264', type: 'microfinance', active: true },
+  { name: 'Uniuyo Microfinance Bank', code: '090338', type: 'microfinance', active: true },
+  { name: 'Uranus Microfinance Bank', code: '090338', type: 'microfinance', active: true },
+  { name: 'Verdant Microfinance Bank', code: '090150', type: 'microfinance', active: true },
+  { name: 'Xslnce Microfinance Bank', code: '090393', type: 'microfinance', active: true },
 
   // Fintech Banks
-  { name: "Carbon", code: "565", type: "fintech" },
-  { name: "Eyowo", code: "50126", type: "fintech" },
-  { name: "FairMoney Microfinance Bank", code: "51318", type: "fintech" },
-  { name: "Renmoney MFB", code: "50544", type: "fintech" },
-  { name: "Quickteller Paypoint", code: "999999", type: "fintech" },
+  { name: 'Kuda Bank', code: '090267', type: 'fintech', active: true },
+  { name: 'Opay', code: '100004', type: 'fintech', active: true },
+  { name: 'PalmPay', code: '100033', type: 'fintech', active: true },
+  { name: 'Rubies Bank', code: '090175', type: 'fintech', active: true },
+  { name: 'Carbon (formerly Paylater)', code: '090290', type: 'fintech', active: true },
+  { name: 'Raven Bank', code: '090442', type: 'fintech', active: true },
+  { name: 'Cowrywise', code: '090563', type: 'fintech', active: true },
+  { name: 'Alat by Wema', code: '090259', type: 'fintech', active: true },
+  { name: 'V Bank', code: '090110', type: 'fintech', active: true },
+  { name: 'Paga', code: '090291', type: 'fintech', active: true },
+  { name: 'Paystack Titan', code: '090327', type: 'fintech', active: true },
+  { name: 'Flutterwave Barter', code: '090326', type: 'fintech', active: true },
+  { name: 'Piggyvest', code: '090336', type: 'fintech', active: true },
+  { name: 'Zelle', code: '090321', type: 'fintech', active: true },
+  { name: 'Mintyn', code: '090440', type: 'fintech', active: true },
+  { name: 'Chipper Cash', code: '090385', type: 'fintech', active: true },
+  { name: 'Paycom', code: '090333', type: 'fintech', active: true },
+  { name: 'Coronation Merchant Bank', code: '090365', type: 'fintech', active: true },
+  { name: 'Taj Bank', code: '090560', type: 'fintech', active: true },
+  { name: 'Providus Bank', code: '101', type: 'fintech', active: true },
+  { name: 'Globus Bank', code: '103', type: 'fintech', active: true },
+  { name: 'Sparkle Bank', code: '104', type: 'fintech', active: true },
+  { name: 'Parallex Bank', code: '104', type: 'fintech', active: true },
+  { name: 'Titan Bank', code: '105', type: 'fintech', active: true },
+  { name: 'SunTrust Bank', code: '100', type: 'fintech', active: true },
+  { name: 'Lotus Bank', code: '102', type: 'fintech', active: true },
+  { name: 'Pruvit Bank', code: '106', type: 'fintech', active: true },
+  { name: 'Jaiz Bank', code: '301', type: 'fintech', active: true },
+  { name: 'Optimus Bank', code: '107', type: 'fintech', active: true },
+  { name: 'One Bank', code: '108', type: 'fintech', active: true },
+  { name: 'Rand Merchant Bank', code: '109', type: 'fintech', active: true },
+  { name: 'TitanTrust Bank', code: '110', type: 'fintech', active: true },
+  { name: 'Qua Iboe Bank', code: '111', type: 'fintech', active: true },
+  { name: 'Newedge Finance', code: '112', type: 'fintech', active: true },
+  { name: 'Innovectives Kesh', code: '113', type: 'fintech', active: true },
+  { name: 'Movenbank', code: '114', type: 'fintech', active: true },
+  { name: 'Corestep Microfinance Bank', code: '090365', type: 'fintech', active: true },
+  { name: 'Mutual Trust Bank', code: '090469', type: 'fintech', active: true },
+  { name: 'Amegy Bank', code: '090560', type: 'fintech', active: true },
+  { name: 'Pennywise Microfinance Bank', code: '090196', type: 'fintech', active: true },
+  { name: 'Payvest', code: '090560', type: 'fintech', active: true },
+  { name: 'Momo PSB', code: '090560', type: 'fintech', active: true },
+  { name: '9PSB', code: '120001', type: 'fintech', active: true },
+  { name: 'Hopepsb', code: '120002', type: 'fintech', active: true },
+  { name: 'Smartcash PSB', code: '120003', type: 'fintech', active: true },
+  { name: 'Moneymaster PSB', code: '120004', type: 'fintech', active: true },
+  { name: 'Eyowo', code: '090328', type: 'fintech', active: true },
+  { name: 'Sudo', code: '090560', type: 'fintech', active: true },
+  { name: 'Vbank', code: '090110', type: 'fintech', active: true },
+  { name: 'Brass', code: '090560', type: 'fintech', active: true },
+  { name: 'Gomoney', code: '090560', type: 'fintech', active: true },
+  { name: 'Mono', code: '090560', type: 'fintech', active: true },
+  { name: 'Okra', code: '090560', type: 'fintech', active: true },
+  { name: 'Wallets Africa', code: '090560', type: 'fintech', active: true },
+  { name: 'Paystack', code: '090327', type: 'fintech', active: true },
+  { name: 'Flutterwave', code: '090326', type: 'fintech', active: true },
+  { name: 'Interswitch', code: '090560', type: 'fintech', active: true },
+  { name: 'Verve', code: '090560', type: 'fintech', active: true },
+  { name: 'Mastercard', code: '090560', type: 'fintech', active: true },
+  { name: 'Visa', code: '090560', type: 'fintech', active: true },
+  { name: 'Etranzact', code: '090560', type: 'fintech', active: true },
+  { name: 'Remita', code: '090560', type: 'fintech', active: true },
+  { name: 'Quickteller', code: '090560', type: 'fintech', active: true },
+  { name: 'Paylater', code: '090290', type: 'fintech', active: true },
+  { name: 'Renmoney', code: '090560', type: 'fintech', active: true },
+  { name: 'Lending Point', code: '090560', type: 'fintech', active: true },
+  { name: 'Aella Credit', code: '090560', type: 'fintech', active: true },
+  { name: 'Branch', code: '090560', type: 'fintech', active: true },
+  { name: 'Creditville', code: '090560', type: 'fintech', active: true },
+  { name: 'Forticore', code: '090560', type: 'fintech', active: true },
+  { name: 'Lidya', code: '090560', type: 'fintech', active: true },
+  { name: 'Specta', code: '090560', type: 'fintech', active: true },
+  { name: 'Zenka', code: '090560', type: 'fintech', active: true },
+  { name: 'Zest', code: '090560', type: 'fintech', active: true },
+  { name: 'Zircon', code: '090560', type: 'fintech', active: true },
+  { name: 'Zuma', code: '090560', type: 'fintech', active: true },
+  { name: 'Zwift', code: '090560', type: 'fintech', active: true },
+  { name: 'Zed', code: '090560', type: 'fintech', active: true },
+  { name: 'Zap', code: '090560', type: 'fintech', active: true },
+  { name: 'Zara', code: '090560', type: 'fintech', active: true },
+  { name: 'Zeal', code: '090560', type: 'fintech', active: true },
+  { name: 'Zack', code: '090560', type: 'fintech', active: true },
 ];
 
-export const getBankByCode = (code: string): Bank | undefined => {
-  return NIGERIAN_BANKS.find(bank => bank.code === code);
-};
+export function getBanksByType(type: Bank['type']): Bank[] {
+  return NIGERIAN_BANKS.filter(bank => bank.type === type && bank.active);
+}
 
-export const getBanksByType = (type: Bank['type']): Bank[] => {
-  return NIGERIAN_BANKS.filter(bank => bank.type === type);
-};
-
-export const searchBanks = (query: string): Bank[] => {
-  const lowerQuery = query.toLowerCase();
+export function searchBanks(query: string): Bank[] {
   return NIGERIAN_BANKS.filter(bank => 
-    bank.name.toLowerCase().includes(lowerQuery) ||
-    bank.code.includes(query)
+    bank.active && bank.name.toLowerCase().includes(query.toLowerCase())
   );
-};
+}
+
+export function getBankByCode(code: string): Bank | undefined {
+  return NIGERIAN_BANKS.find(bank => bank.code === code && bank.active);
+}
+
+export function getBankByName(name: string): Bank | undefined {
+  return NIGERIAN_BANKS.find(bank => bank.name === name && bank.active);
+}
+
+export function getAllActiveBanks(): Bank[] {
+  return NIGERIAN_BANKS.filter(bank => bank.active);
+}

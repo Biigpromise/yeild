@@ -1,165 +1,101 @@
 
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  CreditCard, 
-  Bitcoin, 
-  Gift, 
-  Wallet,
-  ArrowRight,
-  CheckCircle,
-  AlertTriangle
-} from "lucide-react";
-import { currencyService } from "@/services/currencyService";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Zap, CreditCard, Building2, ArrowRight } from 'lucide-react';
 
 interface QuickWithdrawalActionsProps {
   userPoints: number;
   onStartWithdrawal: (method: string) => void;
 }
 
-export const QuickWithdrawalActions = ({ userPoints, onStartWithdrawal }: QuickWithdrawalActionsProps) => {
-  const withdrawalMethods = [
+export const QuickWithdrawalActions: React.FC<QuickWithdrawalActionsProps> = ({
+  userPoints,
+  onStartWithdrawal
+}) => {
+  const quickActions = [
     {
-      id: 'bank_transfer',
-      name: 'Bank Transfer',
-      icon: CreditCard,
+      id: 'flutterwave',
+      title: 'Quick Bank Transfer',
+      description: 'Withdraw to your Nigerian bank account',
+      icon: <CreditCard className="h-5 w-5" />,
       minAmount: 1000,
+      processingTime: '1-3 business days',
       fee: '5%',
-      color: 'blue',
-      description: 'To Naira account',
-      processingTime: '1-3 days'
-    },
-    {
-      id: 'crypto',
-      name: 'Crypto',
-      icon: Bitcoin,
-      minAmount: 1000,
-      fee: '3%',
-      color: 'orange',
-      description: 'BTC, ETH, USDT',
-      processingTime: '1-24 hours'
-    },
-    {
-      id: 'gift_card',
-      name: 'Gift Cards',
-      icon: Gift,
-      minAmount: 1000,
-      fee: '0%',
-      color: 'green',
-      description: 'Amazon, Apple, etc.',
-      processingTime: 'Instant'
+      color: 'bg-blue-50 border-blue-200'
     },
     {
       id: 'yield_wallet',
-      name: 'Yield Wallet',
-      icon: Wallet,
+      title: 'Instant Yield Transfer',
+      description: 'Transfer to your yield wallet instantly',
+      icon: <Building2 className="h-5 w-5" />,
       minAmount: 100,
-      fee: '0%',
-      color: 'purple',
-      description: 'Internal wallet',
-      processingTime: 'Instant'
+      processingTime: 'Instant',
+      fee: 'Free',
+      color: 'bg-green-50 border-green-200'
     }
   ];
 
-  const usdValue = currencyService.pointsToUSD(userPoints);
-
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center justify-between">
-          Quick Withdrawals
-          <Badge variant="outline" className="text-xs">
-            ${usdValue.toFixed(2)} available
-          </Badge>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Zap className="h-5 w-5" />
+          Quick Actions
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
-        {withdrawalMethods.map((method) => {
-          const Icon = method.icon;
-          const canWithdraw = userPoints >= method.minAmount;
-          const minUsdAmount = currencyService.pointsToUSD(method.minAmount);
-          
-          return (
-            <div
-              key={method.id}
-              className={`relative p-4 border rounded-lg transition-all ${
-                canWithdraw 
-                  ? 'hover:bg-muted/50 cursor-pointer border-green-200 bg-green-50/30' 
-                  : 'opacity-60 border-orange-200 bg-orange-50/30'
-              }`}
-              onClick={() => canWithdraw && onStartWithdrawal(method.id)}
-            >
-              {/* Readiness Indicator */}
-              <div className="absolute top-3 right-3">
-                {canWithdraw ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                ) : (
-                  <AlertTriangle className="h-4 w-4 text-orange-500" />
-                )}
-              </div>
-
-              <div className="flex items-center gap-3 pr-6">
-                <Icon className={`h-6 w-6 text-${method.color}-500`} />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-sm">{method.name}</span>
-                    <Badge variant="outline" className="text-xs">
-                      Fee: {method.fee}
-                    </Badge>
+      <CardContent className="space-y-4">
+        {quickActions.map((action) => (
+          <Card key={action.id} className={`border-l-4 ${action.color}`}>
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    {action.icon}
                   </div>
-                  <div className="text-xs text-muted-foreground mb-1">
-                    {method.description}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs text-muted-foreground">
-                      Min: {method.minAmount.toLocaleString()} pts (${minUsdAmount.toFixed(2)})
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {method.processingTime}
+                  <div className="flex-1">
+                    <h4 className="font-medium mb-1">{action.title}</h4>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {action.description}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        Min: {action.minAmount.toLocaleString()} pts
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {action.processingTime}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        Fee: {action.fee}
+                      </Badge>
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {canWithdraw && (
                 <Button
+                  variant="outline"
                   size="sm"
-                  className="w-full mt-3"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onStartWithdrawal(method.id);
-                  }}
+                  onClick={() => onStartWithdrawal(action.id)}
+                  disabled={userPoints < action.minAmount}
+                  className="shrink-0"
                 >
-                  Withdraw ${minUsdAmount.toFixed(2)}+
-                  <ArrowRight className="h-3 w-3 ml-1" />
+                  Start
+                  <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
-              )}
-
-              {!canWithdraw && (
-                <div className="mt-3 text-center">
-                  <div className="text-xs text-orange-600 font-medium">
-                    Need {(method.minAmount - userPoints).toLocaleString()} more points
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    ${(currencyService.pointsToUSD(method.minAmount - userPoints)).toFixed(2)} more needed
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
         
-        {userPoints < 100 && (
-          <div className="text-center py-4 border rounded-lg bg-muted/20">
-            <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-orange-500" />
-            <p className="text-sm font-medium text-orange-800">Complete more tasks to unlock withdrawals</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Minimum: 100 points (${currencyService.pointsToUSD(100).toFixed(2)})
-            </p>
+        <div className="p-4 bg-gray-50 rounded-lg">
+          <h4 className="font-medium mb-2">Your Balance</h4>
+          <div className="text-2xl font-bold text-primary">
+            {userPoints.toLocaleString()} Points
           </div>
-        )}
+          <p className="text-sm text-muted-foreground">
+            ≈ ${(userPoints / 1000).toFixed(2)} USD
+          </p>
+        </div>
       </CardContent>
     </Card>
   );

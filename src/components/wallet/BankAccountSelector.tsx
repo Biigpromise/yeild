@@ -70,12 +70,12 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
       
       // Auto-select default account if none is selected
       if (!selectedAccount && accounts.length > 0) {
-        const defaultAccount = accounts.find(acc => acc.isDefault) || accounts[0];
+        const defaultAccount = accounts.find(acc => acc.is_default) || accounts[0];
         onAccountSelect({
-          accountNumber: defaultAccount.accountNumber,
-          bankCode: defaultAccount.bankCode,
-          bankName: defaultAccount.bankName,
-          accountName: defaultAccount.accountName
+          accountNumber: defaultAccount.account_number,
+          bankCode: defaultAccount.bank_code,
+          bankName: defaultAccount.bank_name,
+          accountName: defaultAccount.account_name
         });
       }
     } catch (error) {
@@ -133,13 +133,13 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
 
     try {
       const savedAccount = await saveBankAccount({
-        userId: user.id,
-        accountName: verificationResult.accountName!,
-        accountNumber: verificationResult.accountNumber,
-        bankCode: verificationResult.bankCode,
-        bankName: verificationResult.bankName,
-        isDefault: savedAccounts.length === 0, // First account becomes default
-        isVerified: true
+        user_id: user.id,
+        account_name: verificationResult.accountName!,
+        account_number: verificationResult.accountNumber,
+        bank_code: verificationResult.bankCode,
+        bank_name: verificationResult.bankName,
+        is_default: savedAccounts.length === 0, // First account becomes default
+        is_verified: true
       });
 
       if (savedAccount) {
@@ -161,7 +161,7 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
       setSavedAccounts(prev => 
         prev.map(acc => ({
           ...acc,
-          isDefault: acc.id === accountId
+          is_default: acc.id === accountId
         }))
       );
     }
@@ -211,28 +211,28 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
               <div className="space-y-3">
                 {savedAccounts.map((account) => (
                   <Card key={account.id} className={`cursor-pointer transition-colors ${
-                    selectedAccount?.accountNumber === account.accountNumber ? 'ring-2 ring-primary' : ''
+                    selectedAccount?.accountNumber === account.account_number ? 'ring-2 ring-primary' : ''
                   }`}>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div 
                           className="flex-1"
                           onClick={() => onAccountSelect({
-                            accountNumber: account.accountNumber,
-                            bankCode: account.bankCode,
-                            bankName: account.bankName,
-                            accountName: account.accountName
+                            accountNumber: account.account_number,
+                            bankCode: account.bank_code,
+                            bankName: account.bank_name,
+                            accountName: account.account_name
                           })}
                         >
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="font-medium">{account.accountName}</span>
-                            {account.isDefault && (
+                            <span className="font-medium">{account.account_name}</span>
+                            {account.is_default && (
                               <Badge variant="secondary" className="text-xs">
                                 <Star className="h-3 w-3 mr-1" />
                                 Default
                               </Badge>
                             )}
-                            {account.isVerified && (
+                            {account.is_verified && (
                               <Badge variant="default" className="text-xs">
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 Verified
@@ -240,11 +240,11 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
                             )}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {account.bankName} • {account.accountNumber}
+                            {account.bank_name} • {account.account_number}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          {!account.isDefault && (
+                          {!account.is_default && (
                             <Button
                               variant="outline"
                               size="sm"

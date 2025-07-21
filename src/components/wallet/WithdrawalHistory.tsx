@@ -1,36 +1,28 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Clock, CheckCircle, XCircle, AlertCircle, DollarSign, Eye } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { formatDistanceToNow } from 'date-fns';
+import { Download, RefreshCw, AlertCircle, CheckCircle, Clock, X } from 'lucide-react';
 
 interface WithdrawalRequest {
   id: string;
   amount: number;
   payout_method: string;
-  payout_details: any;
   status: string;
-  requested_at: string;
-  processed_at?: string;
-  admin_notes?: string;
+  created_at: string;
+  payout_details: any;
+  updated_at: string;
 }
 
-export const WithdrawalHistory = () => {
+export const WithdrawalHistory: React.FC = () => {
   const { user } = useAuth();
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -39,21 +31,33 @@ export const WithdrawalHistory = () => {
   }, [user]);
 
   const loadWithdrawals = async () => {
+    if (!user) return;
+
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('withdrawal_requests')
         .select('*')
-        .eq('user_id', user?.id)
-        .order('requested_at', { ascending: false });
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading withdrawals:', error);
+        return;
+      }
+
       setWithdrawals(data || []);
     } catch (error) {
       console.error('Error loading withdrawals:', error);
-      toast.error("Failed to load withdrawal history");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadWithdrawals();
+    setRefreshing(false);
   };
 
   const getStatusIcon = (status: string) => {
@@ -61,13 +65,14 @@ export const WithdrawalHistory = () => {
       case 'pending':
         return <Clock className="h-4 w-4 text-yellow-500" />;
       case 'approved':
-        return <AlertCircle className="h-4 w-4 text-blue-500" />;
+      case 'processing':
+        return <RefreshCw className="h-4 w-4 text-blue-500" />;
       case 'completed':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'rejected':
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <X className="h-4 w-4 text-red-500" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-500" />;
+        return <AlertCircle className="h-4 w-4 text-gray-500" />;
     }
   };
 
@@ -76,6 +81,7 @@ export const WithdrawalHistory = () => {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
       case 'approved':
+      case 'processing':
         return 'bg-blue-100 text-blue-800';
       case 'completed':
         return 'bg-green-100 text-green-800';
@@ -88,39 +94,24 @@ export const WithdrawalHistory = () => {
 
   const formatPayoutMethod = (method: string) => {
     switch (method) {
-      case 'paypal':
-        return 'PayPal';
-      case 'bank_transfer':
+      case 'flutterwave':
         return 'Bank Transfer';
+      case 'yield_wallet':
+        return 'Yield Wallet';
       case 'crypto':
         return 'Cryptocurrency';
+      case 'gift_card':
+        return 'Gift Card';
       default:
         return method;
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   if (loading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Withdrawal History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="animate-pulse space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-200 rounded"></div>
-            ))}
-          </div>
+        <CardContent className="p-6 text-center">
+          <div className="text-muted-foreground">Loading withdrawal history...</div>
         </CardContent>
       </Card>
     );
@@ -129,132 +120,81 @@ export const WithdrawalHistory = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5" />
-          Withdrawal History
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Download className="h-5 w-5" />
+            Withdrawal History
+          </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {withdrawals.length === 0 ? (
           <div className="text-center py-8">
-            <DollarSign className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <p className="text-muted-foreground">No withdrawal requests yet</p>
-            <p className="text-sm text-muted-foreground">
-              Your withdrawal requests will appear here
-            </p>
+            <Download className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-muted-foreground">No withdrawal history</p>
+            <p className="text-sm text-muted-foreground">Your withdrawal requests will appear here</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {withdrawals.map((withdrawal, index) => (
-              <div key={withdrawal.id}>
-                <div className="flex items-center justify-between p-4 rounded-lg border">
-                  <div className="flex items-center gap-3">
-                    {getStatusIcon(withdrawal.status)}
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium">
-                          {withdrawal.amount.toLocaleString()} points
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          ≈ ${((withdrawal.amount * 0.95) / 100).toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">
-                          {formatPayoutMethod(withdrawal.payout_method)}
-                        </span>
+            {withdrawals.map((withdrawal) => (
+              <Card key={withdrawal.id} className="border-l-4 border-l-primary/20">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        {getStatusIcon(withdrawal.status)}
+                        <span className="font-medium">{withdrawal.amount.toLocaleString()} Points</span>
                         <Badge className={getStatusColor(withdrawal.status)}>
-                          {withdrawal.status}
+                          {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
                         </Badge>
                       </div>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className="text-sm text-muted-foreground mb-1">
-                      {formatDate(withdrawal.requested_at)}
-                    </div>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-1" />
-                          Details
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Withdrawal Request Details</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="text-sm font-medium">Amount</label>
-                              <p className="text-lg font-semibold">
-                                {withdrawal.amount.toLocaleString()} points
-                              </p>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium">Status</label>
-                              <Badge className={getStatusColor(withdrawal.status)}>
-                                {withdrawal.status}
-                              </Badge>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <label className="text-sm font-medium">Payout Method</label>
-                            <p>{formatPayoutMethod(withdrawal.payout_method)}</p>
-                          </div>
-
-                          <div>
-                            <label className="text-sm font-medium">Requested Date</label>
-                            <p>{formatDate(withdrawal.requested_at)}</p>
-                          </div>
-
-                          {withdrawal.processed_at && (
-                            <div>
-                              <label className="text-sm font-medium">Processed Date</label>
-                              <p>{formatDate(withdrawal.processed_at)}</p>
-                            </div>
-                          )}
-
-                          {withdrawal.admin_notes && (
-                            <div>
-                              <label className="text-sm font-medium">Admin Notes</label>
-                              <p className="text-sm bg-muted p-2 rounded">
-                                {withdrawal.admin_notes}
-                              </p>
-                            </div>
-                          )}
-
-                          <div>
-                            <label className="text-sm font-medium">Payout Details</label>
-                            <div className="text-sm bg-muted p-2 rounded space-y-1">
-                              {withdrawal.payout_method === 'paypal' && (
-                                <p><strong>Email:</strong> {withdrawal.payout_details.email}</p>
-                              )}
-                              {withdrawal.payout_method === 'bank_transfer' && (
-                                <>
-                                  <p><strong>Account:</strong> ***{withdrawal.payout_details.accountNumber?.slice(-4)}</p>
-                                  <p><strong>Routing:</strong> {withdrawal.payout_details.routingNumber}</p>
-                                </>
-                              )}
-                              {withdrawal.payout_method === 'crypto' && (
-                                <p><strong>Wallet:</strong> {withdrawal.payout_details.walletAddress?.slice(0, 8)}...{withdrawal.payout_details.walletAddress?.slice(-8)}</p>
-                              )}
-                              {withdrawal.payout_details.notes && (
-                                <p><strong>Notes:</strong> {withdrawal.payout_details.notes}</p>
-                              )}
-                            </div>
-                          </div>
+                      
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <div>Method: {formatPayoutMethod(withdrawal.payout_method)}</div>
+                        <div>
+                          Requested: {formatDistanceToNow(new Date(withdrawal.created_at), { addSuffix: true })}
                         </div>
-                      </DialogContent>
-                    </Dialog>
+                        
+                        {withdrawal.payout_method === 'flutterwave' && withdrawal.payout_details && (
+                          <div>
+                            Account: {withdrawal.payout_details.accountName} 
+                            ({withdrawal.payout_details.accountNumber})
+                          </div>
+                        )}
+                        
+                        {withdrawal.payout_method === 'yield_wallet' && (
+                          <div>Transferred to your Yield Wallet</div>
+                        )}
+                        
+                        {withdrawal.status === 'completed' && (
+                          <div className="text-green-600 font-medium">
+                            Completed: {formatDistanceToNow(new Date(withdrawal.updated_at), { addSuffix: true })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className="text-lg font-bold">
+                        {withdrawal.amount.toLocaleString()} pts
+                      </div>
+                      {withdrawal.payout_method === 'flutterwave' && withdrawal.payout_details?.processingFee && (
+                        <div className="text-sm text-muted-foreground">
+                          Fee: {withdrawal.payout_details.processingFee.toLocaleString()} pts
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                
-                {index < withdrawals.length - 1 && <Separator className="my-4" />}
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}

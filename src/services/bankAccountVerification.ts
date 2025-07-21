@@ -13,15 +13,15 @@ export interface BankAccountVerificationResult {
 
 export interface SavedBankAccount {
   id: string;
-  userId: string;
-  accountName: string;
-  accountNumber: string;
-  bankCode: string;
-  bankName: string;
-  isDefault: boolean;
-  isVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
+  user_id: string;
+  account_name: string;
+  account_number: string;
+  bank_code: string;
+  bank_name: string;
+  is_default: boolean;
+  is_verified: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export async function verifyBankAccount(
@@ -81,12 +81,20 @@ export async function verifyBankAccount(
 }
 
 export async function saveBankAccount(
-  accountData: Omit<SavedBankAccount, 'id' | 'createdAt' | 'updatedAt'>
+  accountData: Omit<SavedBankAccount, 'id' | 'created_at' | 'updated_at'>
 ): Promise<SavedBankAccount | null> {
   try {
     const { data, error } = await supabase
       .from('saved_bank_accounts')
-      .insert([accountData])
+      .insert([{
+        user_id: accountData.user_id,
+        account_name: accountData.account_name,
+        account_number: accountData.account_number,
+        bank_code: accountData.bank_code,
+        bank_name: accountData.bank_name,
+        is_default: accountData.is_default,
+        is_verified: accountData.is_verified
+      }])
       .select()
       .single();
 
