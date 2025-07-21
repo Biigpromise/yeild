@@ -236,6 +236,7 @@ export type Database = {
           target_audience: Json | null
           title: string
           updated_at: string | null
+          wallet_transaction_id: string | null
         }
         Insert: {
           admin_approval_status?: string | null
@@ -257,6 +258,7 @@ export type Database = {
           target_audience?: Json | null
           title: string
           updated_at?: string | null
+          wallet_transaction_id?: string | null
         }
         Update: {
           admin_approval_status?: string | null
@@ -278,6 +280,7 @@ export type Database = {
           target_audience?: Json | null
           title?: string
           updated_at?: string | null
+          wallet_transaction_id?: string | null
         }
         Relationships: [
           {
@@ -285,6 +288,13 @@ export type Database = {
             columns: ["payment_transaction_id"]
             isOneToOne: false
             referencedRelation: "payment_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brand_campaigns_wallet_transaction_id_fkey"
+            columns: ["wallet_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "brand_wallet_transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -352,6 +362,100 @@ export type Database = {
           updated_at?: string
           user_id?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      brand_wallet_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          brand_id: string
+          campaign_id: string | null
+          created_at: string
+          description: string
+          id: string
+          payment_transaction_id: string | null
+          reference_id: string | null
+          transaction_type: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          brand_id: string
+          campaign_id?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          payment_transaction_id?: string | null
+          reference_id?: string | null
+          transaction_type: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          brand_id?: string
+          campaign_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          payment_transaction_id?: string | null
+          reference_id?: string | null
+          transaction_type?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_wallet_transactions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "brand_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brand_wallet_transactions_payment_transaction_id_fkey"
+            columns: ["payment_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "payment_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brand_wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "brand_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_wallets: {
+        Row: {
+          balance: number
+          brand_id: string
+          created_at: string
+          id: string
+          total_deposited: number
+          total_spent: number
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          brand_id: string
+          created_at?: string
+          id?: string
+          total_deposited?: number
+          total_spent?: number
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          brand_id?: string
+          created_at?: string
+          id?: string
+          total_deposited?: number
+          total_spent?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2824,6 +2928,18 @@ export type Database = {
           event_details?: Json
         }
         Returns: undefined
+      }
+      process_wallet_transaction: {
+        Args: {
+          p_brand_id: string
+          p_transaction_type: string
+          p_amount: number
+          p_description: string
+          p_reference_id?: string
+          p_campaign_id?: string
+          p_payment_transaction_id?: string
+        }
+        Returns: string
       }
       redeem_reward: {
         Args: { p_user_id: string; p_reward_id: string }

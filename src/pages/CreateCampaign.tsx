@@ -1,21 +1,24 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, DollarSign } from 'lucide-react';
+import { ArrowLeft, DollarSign, Wallet, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { brandWalletService, type BrandWallet } from '@/services/brandWalletService';
+import { BrandWalletCard } from '@/components/brand/BrandWalletCard';
 
 const CreateCampaign = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [wallet, setWallet] = useState<BrandWallet | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -25,6 +28,18 @@ const CreateCampaign = () => {
     startDate: '',
     endDate: ''
   });
+
+  useEffect(() => {
+    if (user) {
+      loadWallet();
+    }
+  }, [user]);
+
+  const loadWallet = async () => {
+    if (!user) return;
+    const walletData = await brandWalletService.getWallet(user.id);
+    setWallet(walletData);
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -46,8 +61,16 @@ const CreateCampaign = () => {
     return true;
   };
 
-  const handleCreateAndPay = async () => {
-    if (!validateForm() || !user) return;
+  const handleCreateFromWallet = async () => {
+    if (!validateForm() || !user || !wallet) return;
+
+    const budgetAmount = parseFloat(formData.budget);
+    
+    // Check if wallet has sufficient balance
+    if (wallet.balance < budgetAmount) {
+      toast.error(`Insufficient wallet balance. You need ₦${budgetAmount.toLocaleString()} but only have ₦${wallet.balance.toLocaleString()}`);
+      return;
+    }
 
     setLoading(true);
 
@@ -59,9 +82,9 @@ const CreateCampaign = () => {
           brand_id: user.id,
           title: formData.title,
           description: formData.description,
-          budget: parseFloat(formData.budget),
-          status: 'draft',
-          payment_status: 'unpaid',
+          budget: budgetAmount,
+          status: 'active',
+          payment_status: 'paid',
           admin_approval_status: 'pending',
           start_date: formData.startDate || null,
           end_date: formData.endDate || null,
@@ -73,48 +96,34 @@ const CreateCampaign = () => {
 
       if (campaignError) throw campaignError;
 
-      // Initialize Flutterwave payment
-      const paymentPayload = {
-        amount: parseFloat(formData.budget),
-        currency: 'NGN',
-        email: user.email!,
-        phone_number: user.phone || '+2348000000000',
-        name: user.user_metadata?.company_name || user.email!,
-        title: `Campaign: ${formData.title}`,
-        description: `Fund campaign "${formData.title}" - Budget: ₦${parseFloat(formData.budget).toLocaleString()}`,
-        redirect_url: `${window.location.origin}/campaigns/${campaign.id}/payment-success`,
-        meta: {
-          user_id: user.id,
-          payment_type: 'campaign_funding',
-          campaign_id: campaign.id
-        }
-      };
+      // Process wallet transaction
+      const transactionId = await brandWalletService.processWalletTransaction(
+        user.id,
+        'campaign_charge',
+        budgetAmount,
+        `Campaign creation: ${formData.title}`,
+        undefined,
+        campaign.id
+      );
 
-      const { data: paymentResponse, error: paymentError } = await supabase.functions
-        .invoke('flutterwave-payment', {
-          body: paymentPayload
-        });
-
-      if (paymentError) throw paymentError;
-
-      if (paymentResponse?.payment_link) {
-        // Update campaign with payment reference
-        await supabase
-          .from('brand_campaigns')
-          .update({ 
-            payment_status: 'pending'
-          })
-          .eq('id', campaign.id);
-
-        // Redirect to Flutterwave payment page
-        window.location.href = paymentResponse.payment_link;
-      } else {
-        throw new Error('Payment link not received');
+      if (!transactionId) {
+        throw new Error('Failed to process wallet transaction');
       }
+
+      // Update campaign with wallet transaction reference
+      await supabase
+        .from('brand_campaigns')
+        .update({ 
+          wallet_transaction_id: transactionId
+        })
+        .eq('id', campaign.id);
+
+      toast.success('Campaign created successfully! It will be reviewed by our team.');
+      navigate('/brand-dashboard');
 
     } catch (error: any) {
       console.error('Campaign creation error:', error);
-      toast.error('Failed to create campaign. Please try again.');
+      toast.error(error.message || 'Failed to create campaign. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -179,6 +188,21 @@ const CreateCampaign = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Form */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Wallet Balance Warning */}
+            {wallet && formData.budget && parseFloat(formData.budget) > wallet.balance && (
+              <Card className="border border-destructive/50 bg-destructive/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-destructive">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-sm font-medium">Insufficient Wallet Balance</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Your wallet balance (₦{wallet.balance.toLocaleString()}) is less than the campaign budget (₦{parseFloat(formData.budget).toLocaleString()}). 
+                    Please fund your wallet or reduce the budget amount.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
             <Card className="border border-gray-200">
               <CardHeader>
                 <CardTitle className="text-black">Campaign Details</CardTitle>
@@ -274,6 +298,8 @@ const CreateCampaign = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Wallet Card */}
+            <BrandWalletCard onBalanceUpdate={loadWallet} />
             <Card className="border border-gray-200">
               <CardHeader>
                 <CardTitle className="text-black flex items-center gap-2">
@@ -313,7 +339,7 @@ const CreateCampaign = () => {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm text-gray-600">
-                  <li>• Payment is processed securely via Flutterwave</li>
+                  <li>• Campaign budget is deducted from your wallet</li>
                   <li>• Your campaign is submitted for admin approval</li>
                   <li>• Once approved, users can start working on your tasks</li>
                   <li>• You can track progress in your dashboard</li>
@@ -323,20 +349,20 @@ const CreateCampaign = () => {
 
             <div className="space-y-3">
               <Button
-                onClick={handleCreateAndPay}
-                disabled={loading}
+                onClick={handleCreateFromWallet}
+                disabled={loading || !wallet || (formData.budget && parseFloat(formData.budget) > wallet?.balance)}
                 className="w-full bg-black text-white hover:bg-gray-800"
                 size="lg"
               >
                 {loading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Processing...
+                    Creating Campaign...
                   </div>
                 ) : (
                   <>
-                    <DollarSign className="w-4 h-4 mr-2" />
-                    Create & Pay Now
+                    <Wallet className="w-4 h-4 mr-2" />
+                    Create Campaign from Wallet
                   </>
                 )}
               </Button>

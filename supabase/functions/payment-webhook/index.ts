@@ -135,6 +135,10 @@ async function processPaymentByType(supabase: any, transaction: any, paymentData
       await processCampaignFunding(supabase, transaction, meta);
       break;
     
+    case "wallet_funding":
+      await processWalletFunding(supabase, transaction, meta);
+      break;
+    
     case "reward_purchase":
       await processRewardPurchase(supabase, transaction, meta);
       break;
@@ -186,6 +190,48 @@ async function processCampaignFunding(supabase: any, transaction: any, meta: any
 
   } catch (error) {
     console.error("Error processing campaign funding:", error);
+  }
+}
+
+async function processWalletFunding(supabase: any, transaction: any, meta: any) {
+  try {
+    // Process wallet deposit using the stored procedure
+    const { data: transactionId, error: walletError } = await supabase
+      .rpc('process_wallet_transaction', {
+        p_brand_id: transaction.user_id,
+        p_transaction_type: 'deposit',
+        p_amount: transaction.amount_settled || transaction.amount,
+        p_description: `Wallet funding via Flutterwave - ${transaction.transaction_ref}`,
+        p_payment_transaction_id: transaction.id
+      });
+
+    if (walletError) {
+      console.error("Error processing wallet funding:", walletError);
+      return;
+    }
+
+    console.log("Wallet funded successfully:", transaction.user_id, "Amount:", transaction.amount);
+
+    // Create admin notification for wallet funding
+    await supabase.from("admin_notifications").insert({
+      type: "wallet_funding",
+      message: `Brand wallet funded: ₦${transaction.amount.toLocaleString()} by user ${transaction.customer_email}`,
+      link_to: `/admin?section=brands&user=${transaction.user_id}`
+    });
+
+    // Log the funding event
+    await supabase.from("user_activity_logs").insert({
+      user_id: transaction.user_id,
+      action: "wallet_funded",
+      details: {
+        amount: transaction.amount,
+        transaction_id: transaction.id,
+        wallet_transaction_id: transactionId
+      }
+    });
+
+  } catch (error) {
+    console.error("Error processing wallet funding:", error);
   }
 }
 

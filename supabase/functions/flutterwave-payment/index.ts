@@ -92,6 +92,7 @@ serve(async (req) => {
 
     console.log("Initiating Flutterwave payment:", { tx_ref, amount: paymentData.amount });
 
+    // Use live Flutterwave API for production
     const response = await fetch("https://api.flutterwave.com/v3/payments", {
       method: "POST",
       headers: {
@@ -141,6 +142,7 @@ serve(async (req) => {
         message: "Payment initiated successfully",
         data: {
           link: flutterwaveResponse.data.link,
+          payment_link: flutterwaveResponse.data.link, // Also include payment_link for backward compatibility
           tx_ref,
           amount: paymentData.amount,
           currency: paymentData.currency,
