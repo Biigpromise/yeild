@@ -4,6 +4,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useAuthOperations } from './auth/useAuthOperations';
 
 interface AuthContextType {
   user: User | null;
@@ -12,7 +13,9 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName?: string, userType?: string, metadata?: any, redirectUrl?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  signInWithProvider: (provider: 'google' | 'github' | 'twitter', userType?: string) => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
+  resendConfirmation: (email: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,6 +33,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  
+  const {
+    signUp: authSignUp,
+    signIn: authSignIn,
+    signOut: authSignOut,
+    signInWithProvider: authSignInWithProvider,
+    resetPassword: authResetPassword,
+    resendConfirmation: authResendConfirmation,
+  } = useAuthOperations();
 
   useEffect(() => {
     console.log('AuthProvider: Setting up auth listeners');
@@ -99,23 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      console.log('AuthContext: Signing in user');
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        console.error('Sign in error:', error);
-        return { error };
-      }
-
-      console.log('Sign in successful:', data);
-      return { error: null };
-    } catch (error) {
-      console.error('Sign in exception:', error);
-      return { error };
+      return await authSignIn(email, password);
     } finally {
       setLoading(false);
     }
@@ -124,31 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, fullName?: string, userType?: string, metadata?: any, redirectUrl?: string) => {
     try {
       setLoading(true);
-      console.log('AuthContext: Signing up user');
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            user_type: userType,
-            ...metadata
-          },
-          emailRedirectTo: redirectUrl || `${window.location.origin}/`
-        }
-      });
-
-      if (error) {
-        console.error('Sign up error:', error);
-        return { error };
-      }
-
-      console.log('Sign up successful:', data);
-      return { error: null };
-    } catch (error) {
-      console.error('Sign up exception:', error);
-      return { error };
+      return await authSignUp(email, password, fullName, userType, metadata, redirectUrl);
     } finally {
       setLoading(false);
     }
@@ -156,44 +128,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      console.log('AuthContext: Signing out');
       setLoading(true);
-      
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('Sign out error:', error);
-        toast.error('Error signing out');
-      } else {
-        console.log('Sign out successful');
-        setUser(null);
-        setSession(null);
-        navigate('/');
-      }
-    } catch (error) {
-      console.error('Sign out exception:', error);
-      toast.error('Error signing out');
+      await authSignOut();
+      setUser(null);
+      setSession(null);
+      navigate('/');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithProvider = async (provider: 'google' | 'github' | 'twitter', userType?: string) => {
+    try {
+      setLoading(true);
+      return await authSignInWithProvider(provider, userType);
     } finally {
       setLoading(false);
     }
   };
 
   const resetPassword = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
-      });
-      
-      if (error) {
-        console.error('Reset password error:', error);
-        return { error };
-      }
-      
-      return { error: null };
-    } catch (error) {
-      console.error('Reset password exception:', error);
-      return { error };
-    }
+    return await authResetPassword(email);
+  };
+
+  const resendConfirmation = async (email: string) => {
+    return await authResendConfirmation(email);
   };
 
   const value = {
@@ -203,7 +162,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signUp,
     signOut,
-    resetPassword
+    signInWithProvider,
+    resetPassword,
+    resendConfirmation
   };
 
   return (
