@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 interface ProgressiveSignupFlowProps {
   userType: 'user' | 'brand';
   onBack: () => void;
+  onSwitchToSignin?: () => void;
 }
 
 interface SignupData {
@@ -24,7 +25,7 @@ interface SignupData {
   username: string;
 }
 
-const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType, onBack }) => {
+const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType, onBack, onSwitchToSignin }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -419,6 +420,21 @@ const ProgressiveSignupFlow: React.FC<ProgressiveSignupFlowProps> = ({ userType,
             )}
           </Button>
         </div>
+
+        {/* Sign in option */}
+        {onSwitchToSignin && (
+          <div className="mt-6 text-center">
+            <p className="text-muted-foreground">
+              Already have an account?{' '}
+              <button
+                onClick={onSwitchToSignin}
+                className="text-primary hover:underline font-medium"
+              >
+                Sign in
+              </button>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

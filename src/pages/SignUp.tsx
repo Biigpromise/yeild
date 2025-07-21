@@ -85,6 +85,7 @@ const SignUp = () => {
       <ProgressiveSignupFlow
         userType={selectedUserType}
         onBack={() => setSelectedUserType(null)}
+        onSwitchToSignin={() => setAuthMode('signin')}
       />
     );
   }
