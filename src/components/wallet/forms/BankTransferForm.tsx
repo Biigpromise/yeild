@@ -3,7 +3,7 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { NIGERIAN_BANKS, getBanksByType } from "@/services/bankService";
+import { NIGERIAN_BANKS, getFlutterwaveSupportedBanks } from "@/services/bankService";
 
 interface BankTransferFormProps {
   amount: string;
@@ -22,9 +22,8 @@ export const BankTransferForm = ({
   minWithdrawal,
   maxWithdrawal
 }: BankTransferFormProps) => {
-  const traditionalBanks = getBanksByType('traditional');
-  const microfinanceBanks = getBanksByType('microfinance');
-  const fintechBanks = getBanksByType('fintech');
+  // Only show banks supported by Flutterwave for withdrawals
+  const supportedBanks = getFlutterwaveSupportedBanks();
 
   return (
     <div className="space-y-4">
@@ -43,7 +42,7 @@ export const BankTransferForm = ({
 
       <div className="space-y-3">
         <div>
-          <Label htmlFor="bank">Bank</Label>
+          <Label htmlFor="bank">Bank (Flutterwave Supported)</Label>
           <Select value={payoutDetails.bankCode} onValueChange={(value) => {
             const bank = NIGERIAN_BANKS.find(b => b.code === value);
             setPayoutDetails({
@@ -57,26 +56,8 @@ export const BankTransferForm = ({
             </SelectTrigger>
             <SelectContent>
               <div className="p-2">
-                <div className="font-medium text-sm mb-2">Traditional Banks</div>
-                {traditionalBanks.map((bank) => (
-                  <SelectItem key={bank.code} value={bank.code}>
-                    {bank.name}
-                  </SelectItem>
-                ))}
-              </div>
-              
-              <div className="p-2">
-                <div className="font-medium text-sm mb-2">Microfinance Banks</div>
-                {microfinanceBanks.map((bank) => (
-                  <SelectItem key={bank.code} value={bank.code}>
-                    {bank.name}
-                  </SelectItem>
-                ))}
-              </div>
-
-              <div className="p-2">
-                <div className="font-medium text-sm mb-2">Fintech Banks</div>
-                {fintechBanks.map((bank) => (
+                <div className="font-medium text-sm mb-2 text-green-600">✓ Supported for Instant Withdrawals</div>
+                {supportedBanks.map((bank) => (
                   <SelectItem key={bank.code} value={bank.code}>
                     {bank.name}
                   </SelectItem>
