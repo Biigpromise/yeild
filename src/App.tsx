@@ -9,7 +9,7 @@ import Dashboard from './pages/Dashboard';
 import AnalyticsSetup from './pages/AnalyticsSetup';
 import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { SEOHead } from './components/seo/SEOHead';
+import SEOHead from './components/seo/SEOHead';
 
 const queryClient = new QueryClient();
 
