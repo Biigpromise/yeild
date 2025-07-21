@@ -130,7 +130,7 @@ export const referralService = {
         // First, find the referrer by referral code
         const { data: referrer, error: referrerError } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, total_referrals_count')
           .eq('referral_code', referralCode)
           .single();
 
@@ -152,11 +152,11 @@ export const referralService = {
           throw new Error(`Failed to create referral: ${createError.message}`);
         }
 
-        // Update referrer's total referral count manually
+        // Update referrer's total referral count
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ 
-            total_referrals_count: supabase.sql`total_referrals_count + 1`
+            total_referrals_count: (referrer.total_referrals_count || 0) + 1
           })
           .eq('id', referrer.id);
 

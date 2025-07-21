@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -406,11 +405,11 @@ export const userService = {
 
         return (data || []).map(item => ({
           ...item,
-          referred_user: item.profiles && typeof item.profiles === 'object' && 'id' in item.profiles && item.profiles.id ? {
+          referred_user: item.profiles && typeof item.profiles === 'object' && 'id' in item.profiles ? {
             id: item.profiles.id,
-            name: item.profiles?.name || '',
-            email: item.profiles?.email || '',
-            profile_picture_url: item.profiles?.profile_picture_url || undefined
+            name: item.profiles.name || '',
+            email: item.profiles.email || '',
+            profile_picture_url: item.profiles.profile_picture_url || undefined
           } : undefined
         }));
       }, 'getUserReferrals');
