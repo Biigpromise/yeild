@@ -22,10 +22,8 @@ export const useAuthOperations = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref');
 
-      // Set redirect URL based on user type or use provided one
-      const redirectUrl = emailRedirectTo || (userType === 'brand' 
-        ? `${window.location.origin}/brand-dashboard`
-        : `${window.location.origin}/onboarding`);
+      // Always use the current origin for email confirmation
+      const redirectUrl = emailRedirectTo || `${window.location.origin}/dashboard`;
       
       console.log("Using redirect URL:", redirectUrl);
 
@@ -66,22 +64,25 @@ export const useAuthOperations = () => {
         }
       }
 
-      // For brand users, trigger the brand confirmation email
-      if (userType === 'brand' && data.user) {
+      // Send verification email manually to ensure it's sent
+      if (data.user && !data.user.email_confirmed_at) {
         try {
-          const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-brand-confirmation-email', {
-            body: {
-              email: email,
-              companyName: name || 'Brand User'
+          console.log('Sending verification email to:', email);
+          const { error: resendError } = await supabase.auth.resend({
+            type: 'signup',
+            email: email,
+            options: {
+              emailRedirectTo: redirectUrl
             }
           });
-          if (emailError) {
-            console.error('Error sending brand confirmation email:', emailError);
+          
+          if (resendError) {
+            console.error('Error sending verification email:', resendError);
           } else {
-            console.log('Brand confirmation email sent successfully');
+            console.log('Verification email sent successfully');
           }
         } catch (emailError) {
-          console.error('Error sending brand confirmation email:', emailError);
+          console.error('Error sending verification email:', emailError);
         }
       }
 

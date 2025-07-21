@@ -20,7 +20,7 @@ const UserTypeSelection = ({ onSelectUser, onSelectBrand, onSwitchToSignin }: Us
           <h2 className="text-3xl font-bold text-white">
             Welcome to YIELD
           </h2>
-          <p className="text-gray-300">Sign in as a Creator or Brand Partner</p>
+          <p className="text-gray-300">Sign up as a Creator or Brand Partner</p>
         </div>
         
         <div className="space-y-4">
@@ -44,9 +44,9 @@ const UserTypeSelection = ({ onSelectUser, onSelectBrand, onSwitchToSignin }: Us
           
           <div className="text-center pt-4">
             <p className="text-gray-400">
-              Don't have an account?{' '}
+              Already have an account?{' '}
               <button onClick={onSwitchToSignin} className="text-yeild-yellow font-medium">
-                Sign up
+                Sign in
               </button>
             </p>
           </div>

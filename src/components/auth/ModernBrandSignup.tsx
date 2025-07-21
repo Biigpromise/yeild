@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,9 +25,10 @@ interface BrandSignupData {
 
 interface ModernBrandSignupProps {
   onBack: () => void;
+  onSwitchToSignin?: () => void;
 }
 
-const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
+const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack, onSwitchToSignin }) => {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showExistingUserMessage, setShowExistingUserMessage] = useState(false);
@@ -268,6 +268,20 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
                   className="bg-gray-900 border-gray-700 text-white"
                 />
               </div>
+
+              {!showExistingUserMessage && (
+                <div className="text-center pt-4">
+                  <p className="text-gray-400 text-sm">
+                    Already have an account?{' '}
+                    <button 
+                      onClick={onSwitchToSignin}
+                      className="text-yeild-yellow hover:underline"
+                    >
+                      Sign in
+                    </button>
+                  </p>
+                </div>
+              )}
 
               {showExistingUserMessage && (
                 <div className="text-center pt-4">

@@ -12,7 +12,7 @@ const SignUp = () => {
   const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
   const [selectedUserType, setSelectedUserType] = useState<'user' | 'brand' | null>(null);
-  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup'); // Default to signup instead of signin
+  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup');
 
   // Check for user type in URL params
   useEffect(() => {
@@ -78,6 +78,7 @@ const SignUp = () => {
     return (
       <ModernBrandSignup
         onBack={() => setSelectedUserType(null)}
+        onSwitchToSignin={() => setAuthMode('signin')}
       />
     );
   } else {
@@ -85,6 +86,7 @@ const SignUp = () => {
       <ProgressiveSignupFlow
         userType={selectedUserType}
         onBack={() => setSelectedUserType(null)}
+        onSwitchToSignin={() => setAuthMode('signin')}
       />
     );
   }
