@@ -30,6 +30,16 @@ export const WithdrawalValidation = ({
     if (paymentMethod === 'bank_transfer') {
       return payoutDetails.accountNumber && payoutDetails.bankCode && payoutDetails.accountName && withdrawalAmount >= minWithdrawal;
     }
+    if (paymentMethod === 'flutterwave') {
+      return payoutDetails.accountNumber && 
+             payoutDetails.bankCode && 
+             payoutDetails.accountName && 
+             payoutDetails.phoneNumber &&
+             payoutDetails.currency &&
+             payoutDetails.country &&
+             withdrawalAmount >= minWithdrawal && 
+             userPoints >= withdrawalAmount;
+    }
     return false;
   };
 
@@ -66,6 +76,16 @@ export const useWithdrawalValidation = (
     }
     if (paymentMethod === 'bank_transfer') {
       return payoutDetails.accountNumber && payoutDetails.bankCode && payoutDetails.accountName && withdrawalAmount >= minWithdrawal;
+    }
+    if (paymentMethod === 'flutterwave') {
+      return payoutDetails.accountNumber && 
+             payoutDetails.bankCode && 
+             payoutDetails.accountName && 
+             payoutDetails.phoneNumber &&
+             payoutDetails.currency &&
+             payoutDetails.country &&
+             withdrawalAmount >= minWithdrawal && 
+             userPoints >= withdrawalAmount;
     }
     return false;
   };

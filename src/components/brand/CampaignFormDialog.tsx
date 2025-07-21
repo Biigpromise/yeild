@@ -1,46 +1,26 @@
-import React, { useEffect } from "react";
+
+import React from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { taskService, Task, CreateCampaignPayload } from "@/services/taskService";
-import { LoadingState } from "../ui/loading-state";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import type { BrandCampaign } from "@/hooks/useBrandCampaigns";
 
 const campaignSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters long."),
-  description: z.string().min(10, "Description must be at least 10 characters long."),
-  category: z.string().min(1, "Category is required."),
-  difficulty: z.enum(["Easy", "Medium", "Hard"]),
-  estimated_time: z.string().optional(),
-  expires_at: z.date().optional(),
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  budget: z.number().min(10, "Minimum budget is $10"),
+  status: z.enum(['draft', 'active', 'paused', 'completed', 'cancelled']),
+  start_date: z.string().optional(),
+  end_date: z.string().optional(),
 });
 
 type CampaignFormData = z.infer<typeof campaignSchema>;
@@ -49,211 +29,187 @@ interface CampaignFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCampaignSaved: () => void;
-  campaign?: Task | null;
+  campaign?: BrandCampaign | null;
 }
 
-export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({ open, onOpenChange, onCampaignSaved, campaign }) => {
-  const queryClient = useQueryClient();
+export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
+  open,
+  onOpenChange,
+  onCampaignSaved,
+  campaign
+}) => {
   const { user } = useAuth();
-  const isEditMode = !!campaign;
+  const [loading, setLoading] = React.useState(false);
 
   const form = useForm<CampaignFormData>({
     resolver: zodResolver(campaignSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      category: "",
-      difficulty: "Easy",
-      estimated_time: "",
-      expires_at: undefined,
-    },
+      title: campaign?.title || "",
+      description: campaign?.description || "",
+      budget: campaign?.budget || 10,
+      status: campaign?.status || 'draft',
+      start_date: campaign?.start_date || "",
+      end_date: campaign?.end_date || "",
+    }
   });
 
-  const { data: categories, isLoading: isLoadingCategories } = useQuery({
-    queryKey: ["taskCategories", user?.id],
-    queryFn: taskService.getCategories,
-    enabled: !!user,
-  });
-
-  useEffect(() => {
+  React.useEffect(() => {
     if (campaign) {
       form.reset({
         title: campaign.title,
-        description: campaign.description,
-        category: campaign.category,
-        difficulty: campaign.difficulty as "Easy" | "Medium" | "Hard",
-        estimated_time: campaign.estimated_time || "",
-        expires_at: campaign.expires_at ? new Date(campaign.expires_at) : undefined,
+        description: campaign.description || "",
+        budget: campaign.budget,
+        status: campaign.status,
+        start_date: campaign.start_date || "",
+        end_date: campaign.end_date || "",
       });
     } else {
-      form.reset();
+      form.reset({
+        title: "",
+        description: "",
+        budget: 10,
+        status: 'draft',
+        start_date: "",
+        end_date: "",
+      });
     }
   }, [campaign, form]);
 
-  const mutation = useMutation({
-    mutationFn: (data: CampaignFormData) => {
-        const campaignData = {
-            ...data,
-            expires_at: data.expires_at?.toISOString(),
-        };
-        if (isEditMode) {
-            return taskService.updateCampaign(campaign!.id, campaignData);
-        }
-        return taskService.createCampaign(campaignData as CreateCampaignPayload);
-    },
-    onSuccess: () => {
-        onCampaignSaved();
-        onOpenChange(false);
-        queryClient.invalidateQueries({ queryKey: ['brandCampaigns'] });
-    },
-  });
+  const onSubmit = async (data: CampaignFormData) => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      const campaignData = {
+        brand_id: user.id,
+        title: data.title,
+        description: data.description,
+        budget: data.budget,
+        status: data.status,
+        start_date: data.start_date || null,
+        end_date: data.end_date || null,
+      };
 
-  const onSubmit = (data: CampaignFormData) => {
-    mutation.mutate(data);
+      if (campaign) {
+        const { error } = await supabase
+          .from('brand_campaigns')
+          .update(campaignData)
+          .eq('id', campaign.id);
+        
+        if (error) throw error;
+        toast.success('Campaign updated successfully!');
+      } else {
+        const { error } = await supabase
+          .from('brand_campaigns')
+          .insert([campaignData]);
+        
+        if (error) throw error;
+        toast.success('Campaign created successfully!');
+      }
+
+      onCampaignSaved();
+      onOpenChange(false);
+    } catch (error: any) {
+      toast.error('Failed to save campaign: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] md:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{isEditMode ? "Edit Campaign" : "Create New Campaign"}</DialogTitle>
-          <DialogDescription>
-            {isEditMode ? "Update the details of your campaign." : "Fill in the details to launch a new campaign."}
-          </DialogDescription>
+          <DialogTitle>{campaign ? 'Edit Campaign' : 'Create New Campaign'}</DialogTitle>
         </DialogHeader>
-        {isLoadingCategories ? <LoadingState/> : (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Follow us on Twitter" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+        
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <Label htmlFor="title">Campaign Title</Label>
+            <Input
+              id="title"
+              {...form.register('title')}
+              placeholder="Enter campaign title"
             />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Detailed description of the campaign task for users." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            {form.formState.errors.title && (
+              <p className="text-sm text-red-600 mt-1">{form.formState.errors.title.message}</p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              {...form.register('description')}
+              placeholder="Describe your campaign objectives"
+              rows={3}
             />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                   <Select onValueChange={field.onChange} value={field.value || ''}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories?.map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+          </div>
+
+          <div>
+            <Label htmlFor="budget">Budget ($)</Label>
+            <Input
+              id="budget"
+              type="number"
+              min="10"
+              step="0.01"
+              {...form.register('budget', { valueAsNumber: true })}
+              placeholder="10.00"
             />
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <FormField
-                control={form.control}
-                name="difficulty"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Difficulty</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select difficulty" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Easy">Easy</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Hard">Hard</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="estimated_time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Estimated Time</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. 5 minutes" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            {form.formState.errors.budget && (
+              <p className="text-sm text-red-600 mt-1">{form.formState.errors.budget.message}</p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="status">Status</Label>
+            <Select onValueChange={(value) => form.setValue('status', value as any)} defaultValue={form.getValues('status')}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="paused">Paused</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="start_date">Start Date</Label>
+              <Input
+                id="start_date"
+                type="date"
+                {...form.register('start_date')}
               />
             </div>
-            <FormField
-              control={form.control}
-              name="expires_at"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Expires At (Optional)</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving..." : "Save Campaign"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-        )}
+            <div>
+              <Label htmlFor="end_date">End Date</Label>
+              <Input
+                id="end_date"
+                type="date"
+                {...form.register('end_date')}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Saving...' : (campaign ? 'Update Campaign' : 'Create Campaign')}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

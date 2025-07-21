@@ -39,7 +39,7 @@ const TaskFilter: React.FC<TaskFilterProps> = ({
   const hasActiveFilters = selectedCategory !== "all" || selectedDifficulty !== "all" || selectedStatus !== "all" || searchQuery.length > 0;
 
   return (
-    <div className="yeild-card mb-6">
+    <div className="bg-card border rounded-lg p-4 mb-6 relative z-10">
       <div className="flex items-center gap-2 mb-4">
         <Filter className="h-5 w-5 text-yeild-yellow" />
         <h3 className="text-lg font-semibold">Filter Tasks</h3>
@@ -48,7 +48,7 @@ const TaskFilter: React.FC<TaskFilterProps> = ({
             variant="outline"
             size="sm"
             onClick={onClearFilters}
-            className="ml-auto text-gray-400 hover:text-yeild-yellow"
+            className="ml-auto"
           >
             <X className="h-4 w-4 mr-1" />
             Clear Filters
@@ -61,14 +61,14 @@ const TaskFilter: React.FC<TaskFilterProps> = ({
           placeholder="Search tasks..."
           value={searchQuery}
           onChange={onSearchChange}
-          className="bg-gray-800 border-gray-700 focus:border-yeild-yellow"
+          className="w-full"
         />
 
         <Select value={selectedCategory} onValueChange={onCategoryChange}>
-          <SelectTrigger className="bg-gray-800 border-gray-700 focus:border-yeild-yellow">
+          <SelectTrigger>
             <SelectValue placeholder="Category" />
           </SelectTrigger>
-          <SelectContent className="bg-gray-800 border-gray-700">
+          <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
             <SelectItem value="survey">Survey</SelectItem>
             <SelectItem value="app_testing">App Testing</SelectItem>
@@ -79,10 +79,10 @@ const TaskFilter: React.FC<TaskFilterProps> = ({
         </Select>
 
         <Select value={selectedDifficulty} onValueChange={onDifficultyChange}>
-          <SelectTrigger className="bg-gray-800 border-gray-700 focus:border-yeild-yellow">
+          <SelectTrigger>
             <SelectValue placeholder="Difficulty" />
           </SelectTrigger>
-          <SelectContent className="bg-gray-800 border-gray-700">
+          <SelectContent>
             <SelectItem value="all">All Difficulties</SelectItem>
             <SelectItem value="easy">Easy</SelectItem>
             <SelectItem value="medium">Medium</SelectItem>
@@ -91,10 +91,10 @@ const TaskFilter: React.FC<TaskFilterProps> = ({
         </Select>
 
         <Select value={selectedStatus} onValueChange={onStatusChange}>
-          <SelectTrigger className="bg-gray-800 border-gray-700 focus:border-yeild-yellow">
+          <SelectTrigger>
             <SelectValue placeholder="Status" />
           </SelectTrigger>
-          <SelectContent className="bg-gray-800 border-gray-700">
+          <SelectContent>
             <SelectItem value="all">All Tasks</SelectItem>
             <SelectItem value="available">Available</SelectItem>
             <SelectItem value="in_progress">In Progress</SelectItem>

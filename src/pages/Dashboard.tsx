@@ -8,6 +8,7 @@ import { ReferralsTab } from "@/components/dashboard/ReferralsTab";
 import { CommunityTab } from "@/components/dashboard/CommunityTab";
 import { SupportTab } from "@/components/dashboard/SupportTab";
 import { LeaderboardTab } from "@/components/dashboard/LeaderboardTab";
+import { ChatTab } from "@/components/dashboard/ChatTab";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { BirdStatusDisplay } from "@/components/bird/BirdStatusDisplay";
@@ -35,11 +36,11 @@ const Dashboard: React.FC = () => {
     }
     
     return (
-        <div className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div className="w-full max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div className="flex items-center gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-yeild-yellow">YIELD Dashboard</h1>
+                        <h1 className="text-2xl font-bold text-yeild-yellow">YIELD Dashboard</h1>
                         <p className="text-muted-foreground mt-1">Welcome back, {user?.user_metadata.full_name || 'YEILDer'}!</p>
                     </div>
                 </div>
@@ -51,24 +52,29 @@ const Dashboard: React.FC = () => {
                 </button>
             </header>
 
-            {/* Bird Status Display - Prominent placement */}
-            <div className="mb-8">
+            {/* Bird Status Display - More prominent */}
+            <div className="mb-6">
                 <BirdStatusDisplay />
             </div>
             
             <Tabs defaultValue="tasks" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-7">
+                <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8">
                     <TabsTrigger value="tasks">Tasks</TabsTrigger>
                     <TabsTrigger value="profile">Profile</TabsTrigger>
                     <TabsTrigger value="wallet">Wallet</TabsTrigger>
                     <TabsTrigger value="referrals">Referrals</TabsTrigger>
+                    <TabsTrigger value="chat">Messages</TabsTrigger>
                     <TabsTrigger value="community">Community</TabsTrigger>
                     <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
                     <TabsTrigger value="support">Support</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="tasks" className="mt-6">
-                    <TasksTab {...dashboardData} />
+                    <TasksTab 
+                        userStats={dashboardData.userStats} 
+                        userTasks={dashboardData.userTasks}
+                        loadUserData={dashboardData.loadUserData}
+                    />
                 </TabsContent>
                 <TabsContent value="profile" className="mt-6">
                     <ProfileTab />
@@ -78,6 +84,9 @@ const Dashboard: React.FC = () => {
                 </TabsContent>
                 <TabsContent value="referrals" className="mt-6">
                     <ReferralsTab />
+                </TabsContent>
+                <TabsContent value="chat" className="mt-6">
+                    <ChatTab />
                 </TabsContent>
                 <TabsContent value="community" className="mt-6">
                     <CommunityTab />

@@ -24,11 +24,7 @@ export function useFormSubmission({ onSubmissionComplete, clearDraft }: FormSubm
         setIsLoading(false);
         return;
       }
-      if (await checkFieldUniqueness("email", data.email)) {
-        toast.error("This email is already registered.");
-        setIsLoading(false);
-        return;
-      }
+      // Email uniqueness will be handled by Supabase during signup
       const applicationData = {
         companyName: data.companyName,
         website: data.website,
