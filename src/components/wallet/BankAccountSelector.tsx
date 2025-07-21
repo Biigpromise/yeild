@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Trash2, Star, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Star, CheckCircle, AlertCircle, Loader2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { 
@@ -19,7 +18,12 @@ import {
   verifyBankAccount,
   type SavedBankAccount 
 } from '@/services/bankAccountVerification';
-import { getActiveBanks, getBanksByType } from '@/services/bankService';
+import { 
+  getActiveBanks, 
+  getBanksByType, 
+  getFlutterwaveSupportedBanks,
+  isBankSupportedByFlutterwave 
+} from '@/services/bankService';
 
 interface BankAccountSelectorProps {
   onAccountSelect: (account: any) => void;
@@ -43,6 +47,7 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
   });
 
   const banks = getActiveBanks();
+  const supportedBanks = getFlutterwaveSupportedBanks();
   const traditionalBanks = getBanksByType('traditional');
   const fintechBanks = getBanksByType('fintech');
   const microfinanceBanks = getBanksByType('microfinance');
@@ -89,6 +94,13 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
         toast.success('Account verified successfully');
       } else {
         toast.error(result.error || 'Account verification failed');
+        // For unsupported banks, still allow saving with manual verification
+        if (result.error?.includes('not currently supported')) {
+          setNewAccount(prev => ({
+            ...prev,
+            accountName: 'Manual Verification Required'
+          }));
+        }
       }
     } catch (error) {
       console.error('Verification error:', error);
@@ -105,14 +117,15 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
     }
 
     try {
+      const isSupported = isBankSupportedByFlutterwave(newAccount.bankCode);
       const savedAccount = await saveBankAccount({
         user_id: user.id,
         account_name: newAccount.accountName,
         account_number: newAccount.accountNumber,
         bank_code: newAccount.bankCode,
         bank_name: newAccount.bankName,
-        is_default: savedAccounts.length === 0, // First account is default
-        is_verified: true
+        is_default: savedAccounts.length === 0,
+        is_verified: isSupported && newAccount.accountName !== 'Manual Verification Required'
       });
 
       if (savedAccount) {
@@ -189,6 +202,9 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
     );
   }
 
+  const selectedBank = banks.find(b => b.code === newAccount.bankCode);
+  const isSelectedBankSupported = selectedBank ? isBankSupportedByFlutterwave(selectedBank.code) : false;
+
   return (
     <Card>
       <CardHeader>
@@ -215,7 +231,8 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
                       setNewAccount(prev => ({
                         ...prev,
                         bankCode: value,
-                        bankName: bank?.name || ''
+                        bankName: bank?.name || '',
+                        accountName: '' // Reset account name when bank changes
                       }));
                     }}
                   >
@@ -224,34 +241,61 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
                     </SelectTrigger>
                     <SelectContent>
                       <div className="p-2">
-                        <div className="font-medium text-sm mb-2 text-blue-600">Traditional Banks</div>
-                        {traditionalBanks.map((bank) => (
+                        <div className="font-medium text-sm mb-2 text-green-600">✓ Supported Banks (Auto-verification)</div>
+                        {supportedBanks.map((bank) => (
                           <SelectItem key={bank.code} value={bank.code}>
-                            {bank.name}
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                              {bank.name}
+                            </div>
                           </SelectItem>
                         ))}
                       </div>
                       
                       <div className="p-2">
-                        <div className="font-medium text-sm mb-2 text-green-600">Fintech Banks</div>
+                        <div className="font-medium text-sm mb-2 text-orange-600">⚠ Limited Support (Manual verification)</div>
+                        {traditionalBanks.filter(bank => !bank.flutterwaveSupported).map((bank) => (
+                          <SelectItem key={bank.code} value={bank.code}>
+                            <div className="flex items-center gap-2">
+                              <AlertTriangle className="h-4 w-4 text-orange-600" />
+                              {bank.name}
+                            </div>
+                          </SelectItem>
+                        ))}
                         {fintechBanks.map((bank) => (
                           <SelectItem key={bank.code} value={bank.code}>
-                            {bank.name}
+                            <div className="flex items-center gap-2">
+                              <AlertTriangle className="h-4 w-4 text-orange-600" />
+                              {bank.name}
+                            </div>
                           </SelectItem>
                         ))}
                       </div>
 
                       <div className="p-2">
-                        <div className="font-medium text-sm mb-2 text-purple-600">Microfinance Banks</div>
+                        <div className="font-medium text-sm mb-2 text-red-600">⚠ Microfinance Banks (Manual verification)</div>
                         {microfinanceBanks.map((bank) => (
                           <SelectItem key={bank.code} value={bank.code}>
-                            {bank.name}
+                            <div className="flex items-center gap-2">
+                              <AlertTriangle className="h-4 w-4 text-red-600" />
+                              {bank.name}
+                            </div>
                           </SelectItem>
                         ))}
                       </div>
                     </SelectContent>
                   </Select>
                 </div>
+
+                {selectedBank && !isSelectedBankSupported && (
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>Note:</strong> {selectedBank.name} requires manual verification. 
+                      Your account will be verified during the withdrawal process.
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="accountNumber">Account Number</Label>
@@ -262,7 +306,8 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
                       value={newAccount.accountNumber}
                       onChange={(e) => setNewAccount(prev => ({
                         ...prev,
-                        accountNumber: e.target.value
+                        accountNumber: e.target.value,
+                        accountName: '' // Reset account name when number changes
                       }))}
                       maxLength={10}
                     />
@@ -322,7 +367,7 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
                 key={account.id}
                 className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                   selectedAccount?.id === account.id
-                    ? 'border-blue-500 bg-blue-50'
+                    ? 'border-yeild-yellow bg-yeild-yellow/10'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
                 onClick={() => handleSelectAccount(account)}
@@ -337,10 +382,15 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
                           Default
                         </Badge>
                       )}
-                      {account.is_verified && (
+                      {account.is_verified ? (
                         <Badge variant="outline" className="text-xs text-green-600">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Verified
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs text-orange-600">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          Manual Verification
                         </Badge>
                       )}
                     </div>
@@ -355,7 +405,7 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleSetDefault(account.id);
+                          setDefaultBankAccount(user?.id || '', account.id);
                         }}
                       >
                         <Star className="h-4 w-4" />
@@ -366,7 +416,12 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteAccount(account.id);
+                        deleteBankAccount(account.id).then(() => {
+                          setSavedAccounts(prev => prev.filter(acc => acc.id !== account.id));
+                          if (selectedAccount?.id === account.id) {
+                            onAccountSelect(null);
+                          }
+                        });
                       }}
                     >
                       <Trash2 className="h-4 w-4" />

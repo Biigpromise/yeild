@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, TrendingUp, Clock, Target, BarChart3, AlertCircle } from 'lucide-react';
+import { Users, TrendingUp, Clock, Target, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
@@ -153,6 +153,7 @@ const ReferralTabContent: React.FC = () => {
     if (!user) return;
 
     try {
+      setError(null);
       const { data, error } = await supabase
         .from('profiles')
         .select('referral_code, total_referrals_count, active_referrals_count, points')
@@ -166,7 +167,12 @@ const ReferralTabContent: React.FC = () => {
       }
 
       if (data) {
-        setReferralData(data);
+        setReferralData({
+          referral_code: data.referral_code || '',
+          total_referrals_count: data.total_referrals_count || 0,
+          active_referrals_count: data.active_referrals_count || 0,
+          points: data.points || 0
+        });
       }
     } catch (error) {
       console.error('Error loading referral data:', error);
@@ -197,6 +203,13 @@ const ReferralTabContent: React.FC = () => {
     }
   };
 
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    loadReferralData();
+    loadReferrals();
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -216,7 +229,8 @@ const ReferralTabContent: React.FC = () => {
           <CardContent className="p-6 text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <p className="text-red-500 mb-4">{error}</p>
-            <Button onClick={loadReferralData} variant="outline">
+            <Button onClick={handleRetry} variant="outline" className="gap-2">
+              <RefreshCw className="h-4 w-4" />
               Try Again
             </Button>
           </CardContent>
@@ -247,9 +261,36 @@ const ReferralTabContent: React.FC = () => {
               <CardTitle>Referral Overview</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">
-                Track your referral progress and earnings here.
-              </p>
+              <div className="space-y-4">
+                <div className="p-4 bg-yeild-yellow/10 rounded-lg border border-yeild-yellow/20">
+                  <h4 className="font-semibold text-yeild-yellow mb-2">How Referrals Work</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Share your referral link with friends</li>
+                    <li>• They sign up using your link</li>
+                    <li>• You earn points when they complete tasks</li>
+                    <li>• More active referrals = higher rewards</li>
+                  </ul>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <h4 className="font-semibold text-green-700 mb-1">Activation Rate</h4>
+                    <p className="text-2xl font-bold text-green-600">
+                      {referralStats.totalReferrals > 0 
+                        ? Math.round((referralStats.activeReferrals / referralStats.totalReferrals) * 100)
+                        : 0}%
+                    </p>
+                  </div>
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-semibold text-blue-700 mb-1">Avg. Points/Referral</h4>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {referralStats.activeReferrals > 0 
+                        ? Math.round(referralData.points / referralStats.activeReferrals)
+                        : 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -268,6 +309,7 @@ const ReferralTabContent: React.FC = () => {
                 <div className="text-center py-8">
                   <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">No referrals yet</p>
+                  <p className="text-sm text-muted-foreground">Share your referral link to get started!</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -278,10 +320,22 @@ const ReferralTabContent: React.FC = () => {
                         <p className="text-sm text-muted-foreground">
                           {formatDistanceToNow(new Date(referral.created_at), { addSuffix: true })}
                         </p>
+                        {referral.activated_at && (
+                          <p className="text-xs text-green-600">
+                            Activated {formatDistanceToNow(new Date(referral.activated_at), { addSuffix: true })}
+                          </p>
+                        )}
                       </div>
-                      <Badge variant={referral.is_active ? "default" : "secondary"}>
-                        {referral.is_active ? "Active" : "Pending"}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={referral.is_active ? "default" : "secondary"}>
+                          {referral.is_active ? "Active" : "Pending"}
+                        </Badge>
+                        {referral.points_awarded && (
+                          <Badge variant="outline" className="text-yeild-yellow">
+                            +{referral.points_awarded} pts
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

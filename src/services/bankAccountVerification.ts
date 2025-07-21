@@ -1,6 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { isBankSupportedByFlutterwave, getFlutterwaveCode } from "./bankService";
 
 export interface BankAccountVerificationResult {
   success: boolean;
@@ -30,11 +30,31 @@ export async function verifyBankAccount(
   bankName: string
 ): Promise<BankAccountVerificationResult> {
   try {
+    // Check if bank is supported by Flutterwave
+    if (!isBankSupportedByFlutterwave(bankCode)) {
+      return {
+        success: false,
+        accountNumber,
+        bankCode,
+        bankName,
+        error: `${bankName} is not currently supported for automatic verification. You can still save this account, but verification will be done manually during withdrawal.`
+      };
+    }
+
+    // Get the correct Flutterwave bank code
+    const flutterwaveBankCode = getFlutterwaveCode(bankCode);
+    
+    console.log('Verifying account with Flutterwave:', { 
+      accountNumber, 
+      originalBankCode: bankCode, 
+      flutterwaveBankCode 
+    });
+
     // Call Flutterwave account verification endpoint
     const response = await supabase.functions.invoke('verify-bank-account', {
       body: {
         account_number: accountNumber,
-        account_bank: bankCode
+        account_bank: flutterwaveBankCode
       }
     });
 
