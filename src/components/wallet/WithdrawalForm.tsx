@@ -16,6 +16,7 @@ import { FlutterwavePayment } from "./payment-methods/FlutterwavePayment";
 import { BankTransferForm } from "./forms/BankTransferForm";
 import { AmountBreakdown } from "./forms/AmountBreakdown";
 import { WithdrawalValidation, useWithdrawalValidation } from "./forms/WithdrawalValidation";
+import { WithdrawalLimits } from "./forms/WithdrawalLimits";
 
 interface WithdrawalFormProps {
   userPoints: number;
@@ -50,19 +51,8 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
       return;
     }
 
-    // Validation based on payment method
-    if (paymentMethod === 'yield_wallet') {
-      if (withdrawalAmount < 100) {
-        toast.error("Minimum transfer to yield wallet is 100 points");
-        return;
-      }
-    } else if (withdrawalAmount < minWithdrawal) {
-      toast.error(`Minimum withdrawal is ${minWithdrawal.toLocaleString()} points`);
-      return;
-    }
-
-    if (withdrawalAmount > userPoints) {
-      toast.error("Insufficient points for withdrawal");
+    if (!isValidRequest) {
+      toast.error("Please complete all required fields");
       return;
     }
 
@@ -149,8 +139,8 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
           phoneNumber: payoutDetails.phoneNumber,
           currency: payoutDetails.currency || 'NGN',
           country: payoutDetails.country || 'NG',
-          processingFee: payoutDetails.processingFee,
-          netAmount: payoutDetails.netAmount
+          processingFee: Math.ceil(withdrawalAmount * 0.05),
+          netAmount: withdrawalAmount - Math.ceil(withdrawalAmount * 0.05)
         };
       }
 
@@ -186,112 +176,106 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Banknote className="h-5 w-5" />
-          Withdraw or Transfer Points
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Tabs value={paymentMethod} onValueChange={setPaymentMethod}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="flutterwave" className="flex items-center gap-1">
-                <CreditCard className="h-4 w-4" />
-                Flutterwave
-              </TabsTrigger>
-              <TabsTrigger value="yield_wallet" className="flex items-center gap-1">
-                <Wallet className="h-4 w-4" />
-                Yield Wallet
-              </TabsTrigger>
-            </TabsList>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Banknote className="h-5 w-5" />
+            Withdraw or Transfer Points
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Tabs value={paymentMethod} onValueChange={setPaymentMethod}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="flutterwave" className="flex items-center gap-1">
+                  <CreditCard className="h-4 w-4" />
+                  Flutterwave
+                </TabsTrigger>
+                <TabsTrigger value="yield_wallet" className="flex items-center gap-1">
+                  <Wallet className="h-4 w-4" />
+                  Yield Wallet
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="flutterwave">
-              <FlutterwavePayment
-                onDetailsChange={setPayoutDetails}
-                details={payoutDetails}
-                userPoints={userPoints}
-                amount={amount}
-              />
-              {paymentMethod === 'flutterwave' && (
-                <div className="space-y-2 mt-4">
-                  <Label htmlFor="flutterwave-amount">Withdrawal Amount (Points)</Label>
-                  <input
-                    id="flutterwave-amount"
-                    type="number"
-                    placeholder={`Min: ${minWithdrawal.toLocaleString()}`}
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    min={minWithdrawal}
-                    max={maxWithdrawal}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                  />
-                </div>
-              )}
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">Supported Nigerian Banks</h4>
-                <div className="grid grid-cols-2 gap-1 text-sm text-blue-700">
-                  <span>• Access Bank</span>
-                  <span>• GTB</span>
-                  <span>• First Bank</span>
-                  <span>• UBA</span>
-                  <span>• Zenith Bank</span>
-                  <span>• Fidelity Bank</span>
-                  <span>• Sterling Bank</span>
-                  <span>• Wema Bank</span>
-                  <span>• FCMB</span>
-                  <span>• Union Bank</span>
-                </div>
+              <TabsContent value="flutterwave">
+                <FlutterwavePayment
+                  onDetailsChange={setPayoutDetails}
+                  details={payoutDetails}
+                  userPoints={userPoints}
+                  amount={amount}
+                />
+                {paymentMethod === 'flutterwave' && (
+                  <div className="space-y-2 mt-4">
+                    <Label htmlFor="flutterwave-amount">Withdrawal Amount (Points)</Label>
+                    <input
+                      id="flutterwave-amount"
+                      type="number"
+                      placeholder={`Min: ${minWithdrawal.toLocaleString()}`}
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      min={minWithdrawal}
+                      max={maxWithdrawal}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                    />
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="yield_wallet">
+                <YieldWalletPayment 
+                  onDetailsChange={(details) => setPayoutDetails({...details, userPoints})} 
+                  details={payoutDetails}
+                />
+              </TabsContent>
+            </Tabs>
+
+            <AmountBreakdown
+              withdrawalAmount={withdrawalAmount}
+              paymentMethod={paymentMethod}
+              processingFee={Math.ceil(withdrawalAmount * 0.05)}
+            />
+
+            {/* Notes for withdrawal methods */}
+            {paymentMethod === 'flutterwave' && (
+              <div className="space-y-2">
+                <Label htmlFor="notes">Additional Notes (Optional)</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Any additional information..."
+                  value={payoutDetails.notes || ''}
+                  onChange={(e) => setPayoutDetails({...payoutDetails, notes: e.target.value})}
+                />
               </div>
-            </TabsContent>
+            )}
 
-            <TabsContent value="yield_wallet">
-              <YieldWalletPayment 
-                onDetailsChange={(details) => setPayoutDetails({...details, userPoints})} 
-                details={payoutDetails}
-              />
-            </TabsContent>
-          </Tabs>
+            <WithdrawalValidation
+              withdrawalAmount={withdrawalAmount}
+              paymentMethod={paymentMethod}
+              payoutDetails={payoutDetails}
+              userPoints={userPoints}
+              minWithdrawal={minWithdrawal}
+            />
 
-          <AmountBreakdown
-            withdrawalAmount={withdrawalAmount}
-            paymentMethod={paymentMethod}
-            processingFee={processingFee}
-          />
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={loading || !isValidRequest}
+            >
+              {loading ? "Processing..." : 
+               paymentMethod === 'yield_wallet' ? "Transfer to Yield Wallet" : 
+               "Submit Withdrawal Request"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
-          {/* Notes for withdrawal methods */}
-          {paymentMethod === 'flutterwave' && (
-            <div className="space-y-2">
-              <Label htmlFor="notes">Additional Notes (Optional)</Label>
-              <Textarea
-                id="notes"
-                placeholder="Any additional information..."
-                value={payoutDetails.notes || ''}
-                onChange={(e) => setPayoutDetails({...payoutDetails, notes: e.target.value})}
-              />
-            </div>
-          )}
-
-          <WithdrawalValidation
-            withdrawalAmount={withdrawalAmount}
-            paymentMethod={paymentMethod}
-            payoutDetails={payoutDetails}
-            userPoints={userPoints}
-            minWithdrawal={minWithdrawal}
-          />
-
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={loading || !isValidRequest}
-          >
-            {loading ? "Processing..." : 
-             paymentMethod === 'yield_wallet' ? "Transfer to Yield Wallet" : 
-             "Submit Withdrawal Request"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+      {/* Withdrawal Limits */}
+      <WithdrawalLimits
+        userPoints={userPoints}
+        userLevel={1} // You can get this from user profile
+        isVerified={true} // You can get this from user profile
+      />
+    </div>
   );
 };
