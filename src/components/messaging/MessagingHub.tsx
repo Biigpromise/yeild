@@ -1,58 +1,31 @@
-import React, { useState } from "react";
-import { ChatList } from "./ChatList";
-import { ChatWindow } from "./ChatWindow";
 
-interface Chat {
-  id: string;
-  name: string;
-  isGroupChat: boolean;
-  lastMessage?: string;
-  lastMessageTime?: string;
-  unreadCount: number;
-  participants: Array<{
-    id: string;
-    name: string;
-    avatar?: string;
-    isOnline?: boolean;
-  }>;
-  avatar?: string;
-}
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { MessageCircle, Lock } from "lucide-react";
 
 export const MessagingHub = () => {
-  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-
-  const handleChatSelect = (chat: Chat) => {
-    setSelectedChat(chat);
-  };
-
-  const handleCloseChat = () => {
-    setSelectedChat(null);
-  };
-
   return (
     <div className="flex gap-4 p-4">
-      <ChatList 
-        onChatSelect={handleChatSelect} 
-        selectedChatId={selectedChat?.id}
-      />
-      
-      {selectedChat ? (
-        <ChatWindow
-          chatId={selectedChat.id}
-          chatName={selectedChat.name}
-          isGroupChat={selectedChat.isGroupChat}
-          participants={selectedChat.participants}
-          onClose={handleCloseChat}
-        />
-      ) : (
-        <div className="flex-1 flex items-center justify-center bg-muted/20 rounded-lg">
-          <div className="text-center text-muted-foreground">
-            <div className="text-4xl mb-4">💬</div>
-            <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
-            <p>Choose from your existing conversations or start a new one</p>
-          </div>
-        </div>
-      )}
+      <Card className="flex-1">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageCircle className="h-5 w-5" />
+            Messages
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <Lock className="h-16 w-16 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Coming Soon</h3>
+          <p className="text-muted-foreground text-center">
+            Direct messaging feature is currently under development. 
+            Stay tuned for updates!
+          </p>
+          <Button disabled className="mt-4">
+            Messages Coming Soon
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };

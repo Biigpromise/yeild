@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +31,7 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showExistingUserMessage, setShowExistingUserMessage] = useState(false);
+  const [showSignInMode, setShowSignInMode] = useState(false);
   const [formData, setFormData] = useState<BrandSignupData>({
     email: '',
     password: '',
@@ -105,6 +105,31 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
     }
   };
 
+  const handleSignIn = async () => {
+    if (!formData.email || !formData.password) {
+      toast.error("Please enter both email and password to sign in");
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const { error } = await signIn(formData.email, formData.password);
+      
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Successfully signed in!");
+        // Navigation will be handled by AuthContext
+      }
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      toast.error("An error occurred during sign in");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleExistingUserSignIn = async () => {
     if (!formData.email || !formData.password) {
       toast.error("Please enter both email and password to sign in");
@@ -120,7 +145,7 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
         toast.error(error.message);
       } else {
         toast.success("Successfully signed in!");
-        navigate('/brand-dashboard');
+        // Navigation will be handled by AuthContext
       }
     } catch (error: any) {
       console.error('Sign in error:', error);
@@ -195,6 +220,90 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
     'Article Reading',
     'Newsletter Signup'
   ];
+
+  // Sign in mode render
+  if (showSignInMode) {
+    return (
+      <div className="min-h-screen bg-black text-white">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-800">
+          <button 
+            onClick={() => setShowSignInMode(false)} 
+            className="text-white hover:text-yeild-yellow transition-colors flex items-center gap-2"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Sign Up
+          </button>
+          <div className="text-center">
+            <span className="text-yeild-yellow text-2xl font-bold">YIELD</span>
+          </div>
+          <div className="w-16"></div>
+        </div>
+
+        {/* Sign In Content */}
+        <div className="px-6 py-8">
+          <div className="max-w-md mx-auto">
+            <div className="text-center mb-8">
+              <Building2 className="w-16 h-16 text-yeild-yellow mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-white mb-2">Sign In to Your Brand Account</h2>
+              <p className="text-gray-400">Welcome back! Enter your credentials to continue</p>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">Email Address</label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="your@company.com"
+                  className="bg-gray-900 border-gray-700 text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">Password</label>
+                <Input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  placeholder="Enter your password"
+                  className="bg-gray-900 border-gray-700 text-white"
+                />
+              </div>
+
+              <Button
+                onClick={handleSignIn}
+                disabled={isLoading}
+                className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 mt-6"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                    Signing in...
+                  </div>
+                ) : (
+                  'Sign In'
+                )}
+              </Button>
+
+              <div className="text-center pt-4">
+                <p className="text-gray-400 text-sm">
+                  Don't have an account?{' '}
+                  <button 
+                    onClick={() => setShowSignInMode(false)}
+                    className="text-yeild-yellow hover:underline"
+                  >
+                    Create one here
+                  </button>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const renderStepContent = () => {
     switch (step) {
@@ -502,19 +611,32 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack }) => {
 
           {/* Navigation */}
           <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-800">
-            {step > 1 && !showExistingUserMessage ? (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setStep(prev => prev - 1)}
-                disabled={isLoading}
-                className="border-gray-700 text-white hover:bg-gray-800"
-              >
-                Back
-              </Button>
-            ) : (
-              <div></div>
-            )}
+            <div className="flex items-center gap-4">
+              {step > 1 && !showExistingUserMessage ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(prev => prev - 1)}
+                  disabled={isLoading}
+                  className="border-gray-700 text-white hover:bg-gray-800"
+                >
+                  Back
+                </Button>
+              ) : (
+                <div></div>
+              )}
+              
+              {step === 1 && !showExistingUserMessage && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowSignInMode(true)}
+                  className="border-gray-700 text-white hover:bg-gray-800"
+                >
+                  Already have an account? Sign In
+                </Button>
+              )}
+            </div>
 
             {step < 4 && !showExistingUserMessage ? (
               <Button
