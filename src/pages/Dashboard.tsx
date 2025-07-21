@@ -54,7 +54,9 @@ const Dashboard = () => {
         const { data: userTasksData, error: userTasksError } = await supabase
           .from('user_tasks')
           .select(`
-            *,
+            id,
+            points_earned,
+            completed_at,
             tasks(title, points, category, brand_name)
           `)
           .eq('user_id', user.id)
@@ -71,7 +73,7 @@ const Dashboard = () => {
             .select(`
               id,
               task_id,
-              submitted_at as completed_at,
+              submitted_at,
               tasks(title, points, category, brand_name)
             `)
             .eq('user_id', user.id)
@@ -88,7 +90,7 @@ const Dashboard = () => {
               id: task.id,
               tasks: task.tasks,
               points_earned: task.tasks?.points || 0,
-              completed_at: task.completed_at
+              completed_at: task.submitted_at
             })) || [];
             setUserTasks(transformedData);
           }
