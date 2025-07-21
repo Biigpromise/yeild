@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,7 +33,7 @@ interface UserProfile {
   level: number;
   tasks_completed: number;
   created_at: string;
-  social_media_links: Record<string, string> | null;
+  social_media_links: string[] | Record<string, any> | null;
   followers_count: number;
   following_count: number;
 }
@@ -77,7 +76,7 @@ const Profile = () => {
         level: data.level || 1,
         tasks_completed: data.tasks_completed || 0,
         created_at: data.created_at || '',
-        social_media_links: data.social_media_links || {},
+        social_media_links: data.social_media_links || null,
         followers_count: data.followers_count || 0,
         following_count: data.following_count || 0
       };
