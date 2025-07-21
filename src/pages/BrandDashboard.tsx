@@ -11,7 +11,7 @@ import { EmailConfirmationGuard } from "@/components/brand/EmailConfirmationGuar
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LifeBuoy, LogOut, Building } from "lucide-react";
+import { LifeBuoy, LogOut, Building, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const BrandDashboard: React.FC = () => {
@@ -19,14 +19,7 @@ const BrandDashboard: React.FC = () => {
     const navigate = useNavigate();
     const { showOnboarding, userType, completeOnboarding } = useOnboarding();
     
-    // Get brand display name with enhanced fallbacks
     const getBrandDisplayName = () => {
-        console.log('Getting brand display name. User data:', {
-            company_name: user?.user_metadata?.company_name,
-            name: user?.user_metadata?.name,
-            email: user?.email
-        });
-
         if (user?.user_metadata?.company_name?.trim()) {
             return user.user_metadata.company_name.trim();
         }
@@ -34,14 +27,12 @@ const BrandDashboard: React.FC = () => {
             return user.user_metadata.name.trim();
         }
         if (user?.email) {
-            // Extract name from email and format as company name
             const emailName = user.email.split('@')[0];
             return emailName.charAt(0).toUpperCase() + emailName.slice(1) + ' Company';
         }
         return 'Brand Partner';
     };
 
-    // Get greeting message based on time of day
     const getGreetingMessage = () => {
         const hour = new Date().getHours();
         if (hour < 12) return 'Good morning';
@@ -49,7 +40,6 @@ const BrandDashboard: React.FC = () => {
         return 'Good evening';
     };
     
-    // Show onboarding if needed
     if (showOnboarding) {
         return (
             <OnboardingFlow 
@@ -61,66 +51,75 @@ const BrandDashboard: React.FC = () => {
     
     return (
         <EmailConfirmationGuard>
-            <div className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                    <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                            <Building className="w-8 h-8 text-yeild-yellow" />
-                            <h1 className="text-3xl font-bold text-yeild-yellow">Brand Dashboard</h1>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-xl font-medium text-white">
-                                {getGreetingMessage()}, {getBrandDisplayName()}! 🚀
-                            </p>
-                            <p className="text-muted-foreground">
-                                Manage your campaigns and track performance
-                            </p>
-                            <div className="flex items-center gap-2 text-sm text-gray-400 mt-2">
-                                <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-                                <span>Brand Account Active</span>
-                                {user?.email_confirmed_at && (
-                                    <>
-                                        <span>•</span>
-                                        <span className="text-green-400">Email Verified</span>
-                                    </>
-                                )}
+            <div className="min-h-screen bg-white">
+                <div className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+                    <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-6 border-b border-gray-200">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                                <Building className="w-8 h-8 text-black" />
+                                <h1 className="text-3xl font-bold text-black">Brand Dashboard</h1>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xl font-medium text-gray-900">
+                                    {getGreetingMessage()}, {getBrandDisplayName()}! 🚀
+                                </p>
+                                <p className="text-gray-600">
+                                    Create campaigns, manage tasks, and track your marketing performance
+                                </p>
+                                <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
+                                    <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                                    <span>Brand Account Active</span>
+                                    {user?.email_confirmed_at && (
+                                        <>
+                                            <span>•</span>
+                                            <span className="text-green-600">Email Verified</span>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button onClick={() => navigate('/support')} variant="outline" size="sm">
-                            <LifeBuoy className="mr-2 h-4 w-4" /> Support
-                        </Button>
-                        <Button onClick={signOut} variant="outline" size="sm">
-                            <LogOut className="mr-2 h-4 w-4" /> Sign Out
-                        </Button>
-                    </div>
-                </header>
-                
-                <Tabs defaultValue="campaigns" className="w-full">
-                    <TabsList className="grid w-full grid-cols-5">
-                        <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
-                        <TabsTrigger value="performance">Performance</TabsTrigger>
-                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                        <TabsTrigger value="billing">Billing</TabsTrigger>
-                        <TabsTrigger value="profile">Profile</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="campaigns" className="mt-6">
-                        <BrandCampaignsTab />
-                    </TabsContent>
-                    <TabsContent value="performance" className="mt-6">
-                        <BrandPerformanceTab />
-                    </TabsContent>
-                    <TabsContent value="analytics" className="mt-6">
-                        <BrandAnalyticsTab />
-                    </TabsContent>
-                    <TabsContent value="billing" className="mt-6">
-                        <BrandBillingTab />
-                    </TabsContent>
-                    <TabsContent value="profile" className="mt-6">
-                        <BrandProfileTab />
-                    </TabsContent>
-                </Tabs>
+                        <div className="flex items-center gap-2">
+                            <Button 
+                                onClick={() => navigate('/campaigns/create')} 
+                                className="bg-black text-white hover:bg-gray-800"
+                            >
+                                <Plus className="mr-2 h-4 w-4" /> 
+                                Create Campaign
+                            </Button>
+                            <Button onClick={() => navigate('/support')} variant="outline" size="sm">
+                                <LifeBuoy className="mr-2 h-4 w-4" /> Support
+                            </Button>
+                            <Button onClick={signOut} variant="outline" size="sm">
+                                <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                            </Button>
+                        </div>
+                    </header>
+                    
+                    <Tabs defaultValue="campaigns" className="w-full">
+                        <TabsList className="grid w-full grid-cols-5 bg-gray-100">
+                            <TabsTrigger value="campaigns" className="data-[state=active]:bg-white data-[state=active]:text-black">Campaigns</TabsTrigger>
+                            <TabsTrigger value="performance" className="data-[state=active]:bg-white data-[state=active]:text-black">Performance</TabsTrigger>
+                            <TabsTrigger value="analytics" className="data-[state=active]:bg-white data-[state=active]:text-black">Analytics</TabsTrigger>
+                            <TabsTrigger value="billing" className="data-[state=active]:bg-white data-[state=active]:text-black">Billing</TabsTrigger>
+                            <TabsTrigger value="profile" className="data-[state=active]:bg-white data-[state=active]:text-black">Profile</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="campaigns" className="mt-6">
+                            <BrandCampaignsTab />
+                        </TabsContent>
+                        <TabsContent value="performance" className="mt-6">
+                            <BrandPerformanceTab />
+                        </TabsContent>
+                        <TabsContent value="analytics" className="mt-6">
+                            <BrandAnalyticsTab />
+                        </TabsContent>
+                        <TabsContent value="billing" className="mt-6">
+                            <BrandBillingTab />
+                        </TabsContent>
+                        <TabsContent value="profile" className="mt-6">
+                            <BrandProfileTab />
+                        </TabsContent>
+                    </Tabs>
+                </div>
             </div>
         </EmailConfirmationGuard>
     );

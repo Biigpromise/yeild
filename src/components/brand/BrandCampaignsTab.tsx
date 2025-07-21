@@ -1,141 +1,222 @@
 
-import React from "react";
-import { useBrandCampaigns } from "@/hooks/useBrandCampaigns";
-import { LoadingState } from "@/components/ui/loading-state";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, MoreVertical, Edit, DollarSign } from "lucide-react";
-import { CampaignFormDialog } from "./CampaignFormDialog";
-import { CampaignFundingDialog } from "./CampaignFundingDialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import type { BrandCampaign } from "@/hooks/useBrandCampaigns";
+import { Plus, Eye, Edit, DollarSign, Users, Calendar, TrendingUp } from "lucide-react";
+import { useBrandCampaigns } from "@/hooks/useBrandCampaigns";
+import { useNavigate } from "react-router-dom";
+import { CampaignFundingForm } from "@/components/payments/CampaignFundingForm";
 
 export const BrandCampaignsTab: React.FC = () => {
-    const { campaigns, loading, refreshCampaigns } = useBrandCampaigns();
-    const [isFormOpen, setIsFormOpen] = React.useState(false);
-    const [isFundingOpen, setIsFundingOpen] = React.useState(false);
-    const [editingCampaign, setEditingCampaign] = React.useState<BrandCampaign | null>(null);
-    const [fundingCampaign, setFundingCampaign] = React.useState<BrandCampaign | null>(null);
+  const { campaigns, loading, refreshCampaigns } = useBrandCampaigns();
+  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [showFundingModal, setShowFundingModal] = useState(false);
+  const navigate = useNavigate();
 
-    const handleCreateClick = () => {
-        setEditingCampaign(null);
-        setIsFormOpen(true);
-    };
-
-    const handleEditClick = (campaign: BrandCampaign) => {
-        setEditingCampaign(campaign);
-        setIsFormOpen(true);
-    };
-
-    const handleFundClick = (campaign: BrandCampaign) => {
-        setFundingCampaign(campaign);
-        setIsFundingOpen(true);
-    };
-
-    const handleSave = () => {
-        refreshCampaigns();
-    };
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'active': return 'bg-green-100 text-green-800';
-            case 'draft': return 'bg-gray-100 text-gray-800';
-            case 'paused': return 'bg-yellow-100 text-yellow-800';
-            case 'completed': return 'bg-blue-100 text-blue-800';
-            case 'cancelled': return 'bg-red-100 text-red-800';
-            default: return 'bg-gray-100 text-gray-800';
-        }
-    };
-
-    if (loading) {
-        return <LoadingState text="Loading your campaigns..." />;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'draft':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'paused':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
 
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'failed':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const handleFundCampaign = (campaign: any) => {
+    setSelectedCampaign(campaign);
+    setShowFundingModal(true);
+  };
+
+  if (loading) {
     return (
-        <>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Your Campaigns</CardTitle>
-                    <CardDescription>Create and manage your marketing campaigns. Minimum budget is $10.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex justify-end mb-4">
-                        <Button onClick={handleCreateClick}>
-                            <PlusCircle className="mr-2 h-4 w-4" /> Create Campaign
-                        </Button>
-                    </div>
-                    {campaigns.length > 0 ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Title</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Budget</TableHead>
-                                    <TableHead>Funded</TableHead>
-                                    <TableHead>Created</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {campaigns.map(campaign => (
-                                    <TableRow key={campaign.id}>
-                                        <TableCell className="font-medium">{campaign.title}</TableCell>
-                                        <TableCell>
-                                            <Badge className={getStatusColor(campaign.status)}>
-                                                {campaign.status}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>${campaign.budget.toFixed(2)}</TableCell>
-                                        <TableCell>${campaign.funded_amount.toFixed(2)}</TableCell>
-                                        <TableCell>{new Date(campaign.created_at).toLocaleDateString()}</TableCell>
-                                        <TableCell className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" className="h-8 w-8 p-0">
-                                                        <span className="sr-only">Open menu</span>
-                                                        <MoreVertical className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => handleEditClick(campaign)}>
-                                                        <Edit className="mr-2 h-4 w-4" />
-                                                        Edit
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleFundClick(campaign)}>
-                                                        <DollarSign className="mr-2 h-4 w-4" />
-                                                        Add Funding
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    ) : (
-                        <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg">
-                            <h3 className="text-lg font-medium mb-2">No campaigns yet</h3>
-                            <p className="text-muted-foreground mb-4">Create your first campaign to start engaging with users. Minimum budget is $10.</p>
-                        </div>
-                    )}
-                </CardContent>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-black">Your Campaigns</h2>
+          <Button className="bg-black text-white hover:bg-gray-800">
+            <Plus className="mr-2 h-4 w-4" />
+            Create Campaign
+          </Button>
+        </div>
+        <div className="grid gap-4">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-6 bg-gray-200 rounded mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              </CardContent>
             </Card>
-            
-            <CampaignFormDialog
-                open={isFormOpen}
-                onOpenChange={setIsFormOpen}
-                onCampaignSaved={handleSave}
-                campaign={editingCampaign}
-            />
-            
-            <CampaignFundingDialog
-                open={isFundingOpen}
-                onOpenChange={setIsFundingOpen}
-                campaign={fundingCampaign}
-                onFundingComplete={handleSave}
-            />
-        </>
+          ))}
+        </div>
+      </div>
     );
-}
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-black">Your Campaigns</h2>
+          <p className="text-gray-600">Create and manage your marketing campaigns</p>
+        </div>
+        <Button 
+          onClick={() => navigate('/campaigns/create')}
+          className="bg-black text-white hover:bg-gray-800"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Create Campaign
+        </Button>
+      </div>
+
+      {campaigns.length === 0 ? (
+        <Card className="border border-gray-200">
+          <CardContent className="p-12 text-center">
+            <TrendingUp className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-black mb-2">No campaigns yet</h3>
+            <p className="text-gray-600 mb-6">
+              Start by creating your first campaign to reach our engaged community
+            </p>
+            <Button 
+              onClick={() => navigate('/campaigns/create')}
+              className="bg-black text-white hover:bg-gray-800"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Create Your First Campaign
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-6">
+          {campaigns.map((campaign) => (
+            <Card key={campaign.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+              <CardHeader className="pb-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <CardTitle className="text-xl text-black mb-2">{campaign.title}</CardTitle>
+                    <p className="text-gray-600 text-sm">{campaign.description}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={getStatusColor(campaign.status)}>
+                      {campaign.status}
+                    </Badge>
+                    <Badge className={getPaymentStatusColor(campaign.payment_status || 'unpaid')}>
+                      {campaign.payment_status || 'unpaid'}
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">Budget:</span>
+                    <span className="font-medium text-black">₦{campaign.budget?.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">Funded:</span>
+                    <span className="font-medium text-black">₦{campaign.funded_amount?.toLocaleString() || 0}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">Created:</span>
+                    <span className="font-medium text-black">{new Date(campaign.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">Status:</span>
+                    <span className="font-medium text-black">{campaign.admin_approval_status || 'pending'}</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                      className="border-gray-300 text-black hover:bg-gray-50"
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      View Details
+                    </Button>
+                    {campaign.status === 'draft' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/campaigns/${campaign.id}/edit`)}
+                        className="border-gray-300 text-black hover:bg-gray-50"
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {campaign.payment_status !== 'paid' && (
+                    <Button
+                      onClick={() => handleFundCampaign(campaign)}
+                      className="bg-black text-white hover:bg-gray-800"
+                      size="sm"
+                    >
+                      <DollarSign className="mr-2 h-4 w-4" />
+                      Fund Campaign
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Funding Modal */}
+      {showFundingModal && selectedCampaign && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-black">Fund Campaign</h3>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFundingModal(false)}
+                  className="border-gray-300"
+                >
+                  Close
+                </Button>
+              </div>
+              <CampaignFundingForm
+                campaign={selectedCampaign}
+                onFundingComplete={() => {
+                  setShowFundingModal(false);
+                  refreshCampaigns();
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

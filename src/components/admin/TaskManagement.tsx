@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskSubmissionReview } from "./TaskSubmissionReview";
 import { CreateTaskForm } from "./CreateTaskForm";
+import { CampaignApprovalTab } from "./CampaignApprovalTab";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Plus, CheckCircle } from "lucide-react";
 import { TaskOverviewStats } from "./TaskOverviewStats";
 import { TaskFilterBar } from "./TaskFilterBar";
 import { TaskTable } from "./TaskTable";
@@ -41,18 +43,15 @@ export const TaskManagement = () => {
     loadData,
   } = useAdminTaskManagement();
 
-  // Edit task modal state
   const [editTaskModalOpen, setEditTaskModalOpen] = React.useState(false);
   const [taskToEdit, setTaskToEdit] = React.useState(null);
 
   const handleEditTask = (task: any) => {
-    console.log('Opening edit modal for task:', task);
     setTaskToEdit(task);
     setEditTaskModalOpen(true);
   };
 
   const handleTaskUpdated = () => {
-    console.log('Task updated, reloading data...');
     loadData();
     setEditTaskModalOpen(false);
     setTaskToEdit(null);
@@ -77,7 +76,6 @@ export const TaskManagement = () => {
 
   return (
     <div className="h-screen flex flex-col gap-6 p-6 overflow-hidden">
-      {/* Overview Stats */}
       <TaskOverviewStats 
         activeTasksCount={activeTasksCount}
         pendingSubmissionsCount={pendingSubmissions.length}
@@ -95,6 +93,10 @@ export const TaskManagement = () => {
                 {pendingSubmissions.length}
               </Badge>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="campaigns">
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Campaign Approvals
           </TabsTrigger>
           <TabsTrigger value="automation">Auto Processing</TabsTrigger>
           <TabsTrigger value="bulk">Bulk Operations</TabsTrigger>
@@ -115,14 +117,12 @@ export const TaskManagement = () => {
               </div>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col space-y-4 overflow-hidden">
-              {/* Filters */}
               <TaskFilterBar
                 searchTerm={searchTerm}
                 statusFilter={statusFilter}
                 onSearchChange={setSearchTerm}
                 onStatusFilterChange={setStatusFilter}
               />
-              {/* Tasks Table */}
               <div className="flex-1 overflow-auto">
                 <TaskTable 
                   tasks={filteredTasks}
@@ -142,6 +142,10 @@ export const TaskManagement = () => {
             submissions={submissions}
             onUpdate={handleSubmissionUpdate}
           />
+        </TabsContent>
+
+        <TabsContent value="campaigns" className="flex-1 overflow-y-auto">
+          <CampaignApprovalTab />
         </TabsContent>
 
         <TabsContent value="automation" className="flex-1 overflow-y-auto">
@@ -174,7 +178,6 @@ export const TaskManagement = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Edit Task Dialog */}
       <TaskEditDialog
         task={taskToEdit}
         isOpen={editTaskModalOpen}

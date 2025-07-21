@@ -217,6 +217,9 @@ export type Database = {
       }
       brand_campaigns: {
         Row: {
+          admin_approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
           brand_id: string | null
           budget: number
           created_at: string | null
@@ -224,6 +227,9 @@ export type Database = {
           end_date: string | null
           funded_amount: number | null
           id: string
+          payment_status: string | null
+          payment_transaction_id: string | null
+          rejection_reason: string | null
           requirements: Json | null
           start_date: string | null
           status: string | null
@@ -232,6 +238,9 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          admin_approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           brand_id?: string | null
           budget: number
           created_at?: string | null
@@ -239,6 +248,9 @@ export type Database = {
           end_date?: string | null
           funded_amount?: number | null
           id?: string
+          payment_status?: string | null
+          payment_transaction_id?: string | null
+          rejection_reason?: string | null
           requirements?: Json | null
           start_date?: string | null
           status?: string | null
@@ -247,6 +259,9 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          admin_approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           brand_id?: string | null
           budget?: number
           created_at?: string | null
@@ -254,6 +269,9 @@ export type Database = {
           end_date?: string | null
           funded_amount?: number | null
           id?: string
+          payment_status?: string | null
+          payment_transaction_id?: string | null
+          rejection_reason?: string | null
           requirements?: Json | null
           start_date?: string | null
           status?: string | null
@@ -261,7 +279,15 @@ export type Database = {
           title?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "brand_campaigns_payment_transaction_id_fkey"
+            columns: ["payment_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "payment_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       brand_payment_methods: {
         Row: {
@@ -328,6 +354,54 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      campaign_approval_requests: {
+        Row: {
+          brand_id: string | null
+          campaign_id: string | null
+          created_at: string
+          id: string
+          payment_amount: number | null
+          payment_transaction_id: string | null
+          request_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          brand_id?: string | null
+          campaign_id?: string | null
+          created_at?: string
+          id?: string
+          payment_amount?: number | null
+          payment_transaction_id?: string | null
+          request_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          brand_id?: string | null
+          campaign_id?: string | null
+          created_at?: string
+          id?: string
+          payment_amount?: number | null
+          payment_transaction_id?: string | null
+          request_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_approval_requests_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "brand_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_approval_requests_payment_transaction_id_fkey"
+            columns: ["payment_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "payment_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       campaigns: {
         Row: {

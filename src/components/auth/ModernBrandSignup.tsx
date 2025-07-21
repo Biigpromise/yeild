@@ -32,6 +32,7 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack, onSwitchT
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showExistingUserMessage, setShowExistingUserMessage] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const [formData, setFormData] = useState<BrandSignupData>({
     email: '',
     password: '',
@@ -50,7 +51,6 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack, onSwitchT
 
   const handleInputChange = (field: keyof BrandSignupData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear existing user message when user starts typing
     if (field === 'email' || field === 'password') {
       setShowExistingUserMessage(false);
     }
@@ -111,13 +111,18 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack, onSwitchT
       return;
     }
 
-    setIsLoading(true);
+    setIsSigningIn(true);
     
     try {
       const { error } = await signIn(formData.email, formData.password);
       
       if (error) {
-        toast.error(error.message);
+        console.error('Sign in error:', error);
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error("Invalid email or password. Please check your credentials and try again.");
+        } else {
+          toast.error(error.message);
+        }
       } else {
         toast.success("Successfully signed in!");
         navigate('/brand-dashboard');
@@ -126,7 +131,7 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack, onSwitchT
       console.error('Sign in error:', error);
       toast.error("An error occurred during sign in");
     } finally {
-      setIsLoading(false);
+      setIsSigningIn(false);
     }
   };
 
@@ -158,17 +163,20 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack, onSwitchT
       );
       
       if (error) {
+        console.error('Signup error:', error);
+        
+        // Check for existing user errors
         if (error.message.includes('User already registered') || 
             error.message.includes('already exists') ||
+            error.message.includes('already been registered') ||
             error.code === 'user_already_exists') {
           setShowExistingUserMessage(true);
-          setStep(1); // Go back to first step to show sign in option
+          setStep(1);
         } else {
-          toast.error(error.message);
+          toast.error(error.message || "Failed to create account. Please try again.");
         }
       } else {
         toast.success("Brand application submitted successfully! Please check your email to verify your account.");
-        // Don't navigate immediately - let email confirmation guard handle it
       }
     } catch (error: any) {
       console.error('Brand signup error:', error);
@@ -207,7 +215,6 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack, onSwitchT
               <p className="text-gray-400">Join YIELD and connect with our engaged community</p>
             </div>
 
-            {/* Show existing user message */}
             {showExistingUserMessage && (
               <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
                 <div className="flex items-start gap-3">
@@ -219,10 +226,10 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack, onSwitchT
                     </p>
                     <Button
                       onClick={handleExistingUserSignIn}
-                      disabled={isLoading}
+                      disabled={isSigningIn}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
                     >
-                      {isLoading ? (
+                      {isSigningIn ? (
                         <div className="flex items-center gap-2">
                           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                           Signing in...
@@ -459,7 +466,6 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack, onSwitchT
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-800">
         <button 
           onClick={onBack} 
@@ -474,7 +480,6 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack, onSwitchT
         <div className="w-16"></div>
       </div>
 
-      {/* Progress Indicator */}
       <div className="px-6 py-4">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-4">
@@ -501,7 +506,6 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack, onSwitchT
         </div>
       </div>
 
-      {/* Content */}
       <div className="px-6 py-8">
         <div className="max-w-2xl mx-auto">
           <motion.div
@@ -514,7 +518,6 @@ const ModernBrandSignup: React.FC<ModernBrandSignupProps> = ({ onBack, onSwitchT
             {renderStepContent()}
           </motion.div>
 
-          {/* Navigation */}
           <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-800">
             {step > 1 && !showExistingUserMessage ? (
               <Button

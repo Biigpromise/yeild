@@ -11,12 +11,18 @@ export interface BrandCampaign {
   budget: number;
   funded_amount: number;
   status: 'draft' | 'active' | 'paused' | 'completed' | 'cancelled';
+  payment_status: 'unpaid' | 'pending' | 'paid' | 'failed';
+  admin_approval_status: 'pending' | 'approved' | 'rejected';
   start_date?: string;
   end_date?: string;
   target_audience?: any;
   requirements?: any;
   created_at: string;
   updated_at: string;
+  payment_transaction_id?: string;
+  approved_by?: string;
+  approved_at?: string;
+  rejection_reason?: string;
 }
 
 export const useBrandCampaigns = () => {
@@ -40,14 +46,17 @@ export const useBrandCampaigns = () => {
 
       if (error) throw error;
       
-      // Type cast the data to ensure status field matches our interface
+      // Type cast the data to ensure status fields match our interface
       const typedData = (data || []).map(campaign => ({
         ...campaign,
-        status: campaign.status as 'draft' | 'active' | 'paused' | 'completed' | 'cancelled'
+        status: campaign.status as 'draft' | 'active' | 'paused' | 'completed' | 'cancelled',
+        payment_status: campaign.payment_status as 'unpaid' | 'pending' | 'paid' | 'failed',
+        admin_approval_status: campaign.admin_approval_status as 'pending' | 'approved' | 'rejected'
       }));
       
       setCampaigns(typedData);
     } catch (error: any) {
+      console.error('Error fetching campaigns:', error);
       toast.error('Failed to fetch campaigns: ' + error.message);
     } finally {
       setLoading(false);
