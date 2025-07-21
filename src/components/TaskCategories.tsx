@@ -12,10 +12,8 @@ import {
   PenTool,
   Share2,
   Search,
-  Target,
-  Plus
+  Target
 } from "lucide-react";
-import { Button } from "./ui/button";
 
 interface TaskCategoriesProps {
   categories?: TaskCategory[];
@@ -27,7 +25,8 @@ const iconMap = {
   Smartphone,
   PenTool,
   Share2,
-  Search
+  Search,
+  Target
 };
 
 const TaskCategories: React.FC<TaskCategoriesProps> = ({ 
@@ -53,6 +52,10 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
         taskService.getTasks(),
         taskService.getUserSubmissions()
       ]);
+      
+      console.log('Categories loaded:', categoriesData);
+      console.log('Tasks loaded:', tasksData);
+      
       setCategories(propCategories || categoriesData);
       setTasks(tasksData);
       setUserSubmissions(submissionsData);
@@ -96,7 +99,7 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
   return (
     <>
       <div className="space-y-8">
-        {/* Category Overview - Only show if categories exist */}
+        {/* Category Overview */}
         {categories.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {categories.map((category) => {
@@ -111,7 +114,7 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
                 >
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg bg-gray-100 ${category.color}`}>
+                      <div className={`p-2 rounded-lg bg-gray-100 ${category.color || 'text-gray-600'}`}>
                         <IconComponent className="h-5 w-5" />
                       </div>
                       <div className="flex-1">
@@ -150,7 +153,6 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
             </Badge>
           </div>
 
-          {/* Show only real tasks from database */}
           {tasks.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">

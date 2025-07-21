@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -5,12 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, DollarSign, Target, Users } from 'lucide-react';
-import { format } from 'date-fns';
 import { useBrandTasks } from '@/hooks/useBrandTasks';
+import { toast } from 'sonner';
 
 interface CreateTaskDialogProps {
   open: boolean;
@@ -18,265 +15,141 @@ interface CreateTaskDialogProps {
 }
 
 export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({ open, onOpenChange }) => {
-  const { createTask } = useBrandTasks();
-  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: '',
-    points: '',
-    maxSubmissions: '',
-    deadline: undefined as Date | undefined,
+    category: 'Content Creation',
+    points: 10,
+    expires_at: '',
     requirements: '',
-    socialMediaPlatform: '',
-    contentType: ''
+    social_media_platform: 'any',
+    content_type: 'any'
   });
 
-  const taskCategories = [
-    'Social Media Post',
-    'Product Review',
-    'Content Creation',
-    'Survey/Research',
-    'Brand Awareness',
-    'User Generated Content'
-  ];
-
-  const socialPlatforms = [
-    'Instagram',
-    'TikTok', 
-    'YouTube',
-    'Twitter/X',
-    'Facebook',
-    'LinkedIn'
-  ];
-
-  const contentTypes = [
-    'Photo Post',
-    'Video',
-    'Story',
-    'Reel',
-    'Blog Post',
-    'Review'
-  ];
+  const { createTask } = useBrandTasks();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.title || !formData.description || !formData.points || !formData.deadline) {
-      return;
-    }
-
     setLoading(true);
-    
-    const taskData = {
-      title: formData.title,
-      description: formData.description,
-      category: formData.category,
-      points: parseInt(formData.points),
-      expires_at: formData.deadline.toISOString(),
-      requirements: formData.requirements,
-      social_media_platform: formData.socialMediaPlatform,
-      content_type: formData.contentType,
-      social_media_links: {
-        platform: formData.socialMediaPlatform,
-        content_type: formData.contentType,
-        requirements: formData.requirements,
-      }
-    };
 
-    const result = await createTask(taskData);
-    setLoading(false);
-    
-    if (result) {
-      // Reset form
-      setFormData({
-        title: '',
-        description: '',
-        category: '',
-        points: '',
-        maxSubmissions: '',
-        deadline: undefined,
-        requirements: '',
-        socialMediaPlatform: '',
-        contentType: ''
+    try {
+      const result = await createTask({
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        points: formData.points,
+        expires_at: formData.expires_at,
+        requirements: formData.requirements,
+        social_media_platform: formData.social_media_platform,
+        content_type: formData.content_type,
+        social_media_links: {
+          platform: formData.social_media_platform,
+          content_type: formData.content_type,
+          requirements: formData.requirements
+        }
       });
-      onOpenChange(false);
+
+      if (result) {
+        setFormData({
+          title: '',
+          description: '',
+          category: 'Content Creation',
+          points: 10,
+          expires_at: '',
+          requirements: '',
+          social_media_platform: 'any',
+          content_type: 'any'
+        });
+        onOpenChange(false);
+        toast.success('Task created successfully!');
+      }
+    } catch (error) {
+      console.error('Error creating task:', error);
+      toast.error('Failed to create task');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5" />
-            Create New Task
-          </DialogTitle>
+          <DialogTitle>Create New Task</DialogTitle>
         </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="title">Task Title</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="category">Category</Label>
+              <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Content Creation">Content Creation</SelectItem>
+                  <SelectItem value="Social Media">Social Media</SelectItem>
+                  <SelectItem value="Design">Design</SelectItem>
+                  <SelectItem value="Marketing">Marketing</SelectItem>
+                  <SelectItem value="Research">Research</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <h3 className="font-semibold text-lg">Basic Information</h3>
-              
-              <div className="space-y-2">
-                <Label htmlFor="title">Task Title</Label>
-                <Input
-                  id="title"
-                  placeholder="e.g., Instagram post about summer collection"
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  required
-                />
-              </div>
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              required
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Describe what you want users to do..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  rows={3}
-                  required
-                />
-              </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="points">Points Reward</Label>
+              <Input
+                id="points"
+                type="number"
+                value={formData.points}
+                onChange={(e) => setFormData({...formData, points: parseInt(e.target.value) || 0})}
+                min="1"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="expires_at">Deadline</Label>
+              <Input
+                id="expires_at"
+                type="datetime-local"
+                value={formData.expires_at}
+                onChange={(e) => setFormData({...formData, expires_at: e.target.value})}
+              />
+            </div>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {taskCategories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
+          <div>
+            <Label htmlFor="requirements">Requirements</Label>
+            <Textarea
+              id="requirements"
+              value={formData.requirements}
+              onChange={(e) => setFormData({...formData, requirements: e.target.value})}
+              placeholder="Describe what users need to do to complete this task..."
+            />
+          </div>
 
-          {/* Task Settings */}
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <h3 className="font-semibold text-lg">Task Settings</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="points">Points per Completion</Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="points"
-                      type="number"
-                      placeholder="50"
-                      className="pl-10"
-                      value={formData.points}
-                      onChange={(e) => setFormData({...formData, points: e.target.value})}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="maxSubmissions">Max Submissions</Label>
-                  <div className="relative">
-                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="maxSubmissions"
-                      type="number"
-                      placeholder="10"
-                      className="pl-10"
-                      value={formData.maxSubmissions}
-                      onChange={(e) => setFormData({...formData, maxSubmissions: e.target.value})}
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Deadline</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.deadline ? format(formData.deadline, "PPP") : "Select deadline"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={formData.deadline}
-                      onSelect={(date) => setFormData({...formData, deadline: date})}
-                      disabled={(date) => date < new Date()}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Content Specifications */}
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <h3 className="font-semibold text-lg">Content Specifications</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Social Media Platform</Label>
-                  <Select value={formData.socialMediaPlatform} onValueChange={(value) => setFormData({...formData, socialMediaPlatform: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select platform" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {socialPlatforms.map((platform) => (
-                        <SelectItem key={platform} value={platform}>
-                          {platform}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Content Type</Label>
-                  <Select value={formData.contentType} onValueChange={(value) => setFormData({...formData, contentType: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select content type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {contentTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="requirements">Additional Requirements</Label>
-                <Textarea
-                  id="requirements"
-                  placeholder="e.g., Include specific hashtags, mention our handle, show product clearly..."
-                  value={formData.requirements}
-                  onChange={(e) => setFormData({...formData, requirements: e.target.value})}
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 justify-end">
+          <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>

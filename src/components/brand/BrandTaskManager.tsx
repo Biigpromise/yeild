@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,6 @@ import {
   Eye, 
   Pause, 
   Play,
-  Trash2,
   Calendar,
   DollarSign,
   Users
@@ -65,7 +65,7 @@ export const BrandTaskManager = () => {
         </Button>
       </div>
 
-      {/* Search and Filters */}
+      {/* Search */}
       <Card>
         <CardContent className="p-6">
           <div className="flex gap-4 items-center">
@@ -78,7 +78,6 @@ export const BrandTaskManager = () => {
                 className="pl-10"
               />
             </div>
-            <Button variant="outline">Filter</Button>
           </div>
         </CardContent>
       </Card>
