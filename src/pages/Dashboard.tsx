@@ -29,6 +29,23 @@ const Dashboard: React.FC = () => {
     // Mock user stats for experience level calculation
     const { isFeatureUnlocked } = useExperienceLevel(0, 0, 0);
     
+    // Get user's display name with fallbacks
+    const getUserDisplayName = () => {
+        if (dashboardData.userProfile?.name) {
+            return dashboardData.userProfile.name;
+        }
+        if (user?.user_metadata?.full_name) {
+            return user.user_metadata.full_name;
+        }
+        if (user?.user_metadata?.name) {
+            return user.user_metadata.name;
+        }
+        if (user?.email) {
+            return user.email.split('@')[0];
+        }
+        return 'YEILDer';
+    };
+    
     // Show onboarding if needed
     if (showOnboarding) {
         return (
@@ -45,7 +62,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-yeild-yellow">YIELD Dashboard</h1>
-                        <p className="text-muted-foreground mt-1">Welcome back, {user?.user_metadata.full_name || 'YEILDer'}!</p>
+                        <p className="text-muted-foreground mt-1">Welcome back, {getUserDisplayName()}!</p>
                         {referralStats.activeReferrals > 0 && (
                             <p className="text-sm text-green-600 mt-1">
                                 {referralStats.activeReferrals} active referral{referralStats.activeReferrals !== 1 ? 's' : ''} earning you rewards!

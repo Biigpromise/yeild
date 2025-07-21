@@ -137,9 +137,55 @@ export const useAuthOperations = () => {
 
       // Check if email is confirmed
       if (data.user && !data.user.email_confirmed_at) {
-        // Sign out the user immediately
-        await supabase.auth.signOut();
-        return { error: { message: "Please check your email and confirm your account before signing in." } };
+        // For brand users, allow them to proceed with a warning
+        const isBrandUser = data.user.user_metadata?.user_type === 'brand' || 
+                           data.user.user_metadata?.company_name;
+        
+        if (isBrandUser) {
+          console.log("Brand user signing in without email confirmation");
+          toast.warning("Please confirm your email to access all brand features.");
+        } else {
+          // Sign out regular users who haven't confirmed email
+          await supabase.auth.signOut();
+          return { error: { message: "Please check your email and confirm your account before signing in." } };
+        }
+      }
+
+      // Check if brand user has proper metadata, if not, create it
+      if (data.user) {
+        const isBrandUser = data.user.user_metadata?.user_type === 'brand' || 
+                           data.user.user_metadata?.company_name;
+        
+        if (isBrandUser) {
+          try {
+            // Check if brand application exists
+            const { data: brandApp, error: brandAppError } = await supabase
+              .from('brand_applications')
+              .select('id')
+              .eq('user_id', data.user.id)
+              .single();
+
+            if (brandAppError && brandAppError.code === 'PGRST116') {
+              // Create brand application if it doesn't exist
+              console.log('Creating missing brand application for user:', data.user.id);
+              await supabase
+                .from('brand_applications')
+                .insert({
+                  user_id: data.user.id,
+                  company_name: data.user.user_metadata?.company_name || data.user.user_metadata?.name || 'Brand User',
+                  website: data.user.user_metadata?.website || '',
+                  industry: data.user.user_metadata?.industry || 'Other',
+                  company_size: data.user.user_metadata?.company_size || '1-10',
+                  task_types: data.user.user_metadata?.task_types || [],
+                  budget: data.user.user_metadata?.budget || '$1,000 - $5,000',
+                  goals: data.user.user_metadata?.goals || 'Brand promotion',
+                  email_confirmed: !!data.user.email_confirmed_at
+                });
+            }
+          } catch (brandError) {
+            console.error('Error handling brand application:', brandError);
+          }
+        }
       }
 
       console.log("AuthContext: Sign in successful");

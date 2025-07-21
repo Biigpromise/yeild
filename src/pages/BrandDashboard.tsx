@@ -19,6 +19,20 @@ const BrandDashboard: React.FC = () => {
     const navigate = useNavigate();
     const { showOnboarding, userType, completeOnboarding } = useOnboarding();
     
+    // Get brand display name with fallbacks
+    const getBrandDisplayName = () => {
+        if (user?.user_metadata?.company_name) {
+            return user.user_metadata.company_name;
+        }
+        if (user?.user_metadata?.name) {
+            return user.user_metadata.name;
+        }
+        if (user?.email) {
+            return user.email.split('@')[0];
+        }
+        return 'Brand Partner';
+    };
+    
     // Show onboarding if needed
     if (showOnboarding) {
         return (
@@ -35,7 +49,7 @@ const BrandDashboard: React.FC = () => {
                 <header className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-yeild-yellow">Brand Dashboard</h1>
-                        <p className="text-muted-foreground mt-1">Welcome back, {user?.user_metadata.company_name || 'Brand Partner'}</p>
+                        <p className="text-muted-foreground mt-1">Welcome back, {getBrandDisplayName()}</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <Button onClick={() => navigate('/support')} variant="outline" size="sm">

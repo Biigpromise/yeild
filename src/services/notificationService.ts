@@ -63,13 +63,11 @@ export const notificationService = {
     });
   },
 
-  // Send task rejection notification
-  async sendTaskRejectionNotification(userId: string, taskTitle: string, reason: string): Promise<boolean> {
-    return this.sendNotification({
-      userId,
-      title: 'Task Submission Rejected',
-      content: `Your submission for "${taskTitle}" was rejected. Reason: ${reason}`,
-      type: 'warning'
-    });
+  // Task rejection - DO NOT send notification (as per user request)
+  // Users should see decline reasons in the task interface instead
+  async logTaskRejection(userId: string, taskTitle: string, reason: string): Promise<boolean> {
+    console.log(`Task "${taskTitle}" declined for user ${userId}. Reason: ${reason}`);
+    // No notification sent - user will see decline reason in task interface
+    return true;
   }
 };
