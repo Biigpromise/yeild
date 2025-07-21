@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -24,8 +25,12 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { email, name, confirmationUrl }: VerificationEmailRequest = await req.json();
 
+    console.log("Sending verification email to:", email);
+    console.log("Confirmation URL:", confirmationUrl);
+
     // Validate input
     if (!email || !confirmationUrl) {
+      console.error("Missing required fields:", { email: !!email, confirmationUrl: !!confirmationUrl });
       return new Response(
         JSON.stringify({ error: "Email and confirmation URL are required" }),
         {
@@ -44,109 +49,123 @@ const handler = async (req: Request): Promise<Response> => {
     const displayName = name || email.split('@')[0];
 
     const emailResponse = await resend.emails.send({
-      from: "YieldSocials <onboarding@resend.dev>",
+      from: "YEILD <noreply@yeildsocials.com>",
       to: [email],
-      subject: "Please verify your email address",
+      subject: "✅ Verify your YEILD account - Action Required",
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Email Verification</title>
-          <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8fafc; }
-            .container { max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; }
-            .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 600; }
-            .content { padding: 40px 30px; }
-            .greeting { font-size: 18px; color: #374151; margin-bottom: 20px; }
-            .message { color: #6b7280; line-height: 1.6; margin-bottom: 30px; }
-            .cta-button { 
-              display: inline-block; 
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white; 
-              text-decoration: none; 
-              padding: 14px 28px; 
-              border-radius: 8px; 
-              font-weight: 600;
-              margin: 20px 0;
-              transition: transform 0.2s;
-            }
-            .cta-button:hover { transform: translateY(-1px); }
-            .security-notice { 
-              background-color: #fef3c7; 
-              border-left: 4px solid #f59e0b; 
-              padding: 16px; 
-              margin: 20px 0; 
-              border-radius: 4px;
-            }
-            .footer { background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }
-            .footer a { color: #667eea; text-decoration: none; }
-          </style>
+          <title>Verify Your YEILD Account</title>
         </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>Welcome to YieldSocials!</h1>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to YEILD!</h1>
+            <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Hi ${displayName}, let's verify your account</p>
+          </div>
+          
+          <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              Thank you for signing up with YEILD! To complete your registration and access your account, please verify your email address by clicking the button below.
+            </p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${confirmationUrl}" 
+                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                        color: white; 
+                        padding: 15px 30px; 
+                        text-decoration: none; 
+                        border-radius: 8px; 
+                        font-weight: bold; 
+                        font-size: 16px;
+                        display: inline-block;
+                        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                Verify My Account
+              </a>
             </div>
-            <div class="content">
-              <div class="greeting">Hello ${displayName},</div>
-              <div class="message">
-                Thank you for joining YieldSocials! To complete your registration and start earning rewards, 
-                please verify your email address by clicking the button below.
-              </div>
-              
-              <div style="text-align: center;">
-                <a href="${confirmationUrl}" class="cta-button">Verify Email Address</a>
-              </div>
-              
-              <div class="security-notice">
-                <strong>Security Notice:</strong> This verification link will expire in 24 hours. 
-                If you didn't create an account with YieldSocials, please ignore this email.
-              </div>
-              
-              <div class="message">
-                Once verified, you'll be able to:
-                <ul>
-                  <li>Complete tasks and earn points</li>
-                  <li>Refer friends and get bonus rewards</li>
-                  <li>Access exclusive features</li>
-                  <li>Withdraw your earnings</li>
-                </ul>
-              </div>
-              
-              <div class="message" style="margin-top: 30px; font-size: 14px; color: #9ca3af;">
-                If the button above doesn't work, copy and paste this link into your browser:<br>
-                <a href="${confirmationUrl}" style="color: #667eea; word-break: break-all;">${confirmationUrl}</a>
-              </div>
-            </div>
-            <div class="footer">
-              <p>Best regards,<br>The YieldSocials Team</p>
-              <p>
-                <a href="mailto:support@yieldsocials.com">Contact Support</a> | 
-                <a href="#">Privacy Policy</a> | 
-                <a href="#">Terms of Service</a>
-              </p>
-            </div>
+            
+            <p style="font-size: 14px; color: #666; margin-top: 30px;">
+              If the button doesn't work, you can also copy and paste this link into your browser:
+            </p>
+            <p style="background: #f8f9fa; padding: 15px; border-radius: 5px; word-break: break-all; font-size: 14px; margin: 15px 0;">
+              <a href="${confirmationUrl}" style="color: #667eea;">${confirmationUrl}</a>
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+            
+            <h3 style="color: #333; margin-bottom: 15px;">What's Next?</h3>
+            <ul style="color: #666; font-size: 14px;">
+              <li>Complete your profile setup</li>
+              <li>Start earning points by completing tasks</li>
+              <li>Invite friends and earn referral bonuses</li>
+              <li>Redeem your points for rewards</li>
+            </ul>
+            
+            <p style="font-size: 14px; color: #666; margin-top: 30px;">
+              If you didn't create this account, please ignore this email or contact our support team.
+            </p>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
+            <p style="margin: 0; font-size: 14px; color: #666;">
+              Best regards,<br>
+              <strong>The YEILD Team</strong>
+            </p>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
+              © 2024 YEILD. All rights reserved.
+            </p>
           </div>
         </body>
         </html>
       `,
+      text: `
+Welcome to YEILD, ${displayName}!
+
+Thank you for signing up! To complete your registration, please verify your email address by visiting this link:
+
+${confirmationUrl}
+
+What's Next?
+- Complete your profile setup
+- Start earning points by completing tasks
+- Invite friends and earn referral bonuses
+- Redeem your points for rewards
+
+If you didn't create this account, please ignore this email.
+
+Best regards,
+The YEILD Team
+      `.trim(),
     });
 
-    // Log email send attempt
-    await supabaseClient.from('user_activity_logs').insert({
-      user_id: null, // No user ID yet since they're not verified
-      activity_type: 'email_verification_sent',
-      activity_data: {
-        email: email,
-        timestamp: new Date().toISOString(),
-        email_id: emailResponse.data?.id
-      }
-    });
+    console.log("Resend API response:", emailResponse);
 
-    console.log("Verification email sent successfully:", emailResponse);
+    if (emailResponse.error) {
+      console.error("Resend error:", emailResponse.error);
+      throw new Error(emailResponse.error.message || "Failed to send email");
+    }
+
+    // Log email send attempt with correct column name
+    try {
+      await supabaseClient.from('user_activity_logs').insert({
+        user_id: null, // No user ID yet since they're not verified
+        action: 'email_verification_sent',
+        activity_data: {
+          email: email,
+          timestamp: new Date().toISOString(),
+          email_id: emailResponse.data?.id,
+          resend_response: emailResponse.data
+        }
+      });
+      console.log("Activity logged successfully");
+    } catch (logError) {
+      console.error("Failed to log activity:", logError);
+      // Don't fail the email send if logging fails
+    }
+
+    console.log("Verification email sent successfully:", emailResponse.data);
 
     return new Response(JSON.stringify({ 
       success: true, 

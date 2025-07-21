@@ -11,16 +11,24 @@ export function useResendBrandConfirmation() {
       toast.error('Missing application context, please refresh and try again.');
       return false;
     }
+    
     setResendLoading(true);
     try {
-      const { error } = await supabase.functions.invoke('send-brand-confirmation-email', {
+      console.log('Resending brand confirmation email to:', email, 'Company:', companyName);
+      
+      const { data, error } = await supabase.functions.invoke('send-brand-confirmation-email', {
         body: { email, companyName },
       });
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Failed to resend brand confirmation email:', error);
+        throw error;
+      }
+      
+      console.log('Brand confirmation email resent successfully:', data);
       toast.success('Confirmation email sent! Please check your inbox.');
       return true;
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('Failed to resend confirmation email', err);
       toast.error('Failed to resend confirmation email. Please try again shortly.');
       return false;

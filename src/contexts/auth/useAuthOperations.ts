@@ -1,3 +1,4 @@
+
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -64,25 +65,46 @@ export const useAuthOperations = () => {
         }
       }
 
-      // Always send verification email - both for regular users and brands
+      // Send custom verification email for all signups
       if (data.user && !data.user.email_confirmed_at) {
         try {
-          console.log('Sending verification email to:', email);
-          const { error: resendError } = await supabase.auth.resend({
-            type: 'signup',
-            email: email,
-            options: {
-              emailRedirectTo: redirectUrl
-            }
-          });
+          console.log('Sending custom verification email to:', email);
           
-          if (resendError) {
-            console.error('Error sending verification email:', resendError);
+          if (userType === 'brand') {
+            // Send brand confirmation email
+            const { error: brandEmailError } = await supabase.functions.invoke('send-brand-confirmation-email', {
+              body: { 
+                email: email, 
+                companyName: name || 'Brand User' 
+              }
+            });
+            
+            if (brandEmailError) {
+              console.error('Error sending brand confirmation email:', brandEmailError);
+              toast.error('Account created but failed to send confirmation email. Please contact support.');
+            } else {
+              console.log('Brand confirmation email sent successfully');
+            }
           } else {
-            console.log('Verification email sent successfully');
+            // Send regular user verification email
+            const { error: userEmailError } = await supabase.functions.invoke('send-verification-email', {
+              body: { 
+                email: email, 
+                name: name,
+                confirmationUrl: `${window.location.origin}/auth/confirm?token_hash=${data.user.email_change_token_current}&type=signup&redirect_to=${encodeURIComponent(redirectUrl)}`
+              }
+            });
+            
+            if (userEmailError) {
+              console.error('Error sending user verification email:', userEmailError);
+              toast.error('Account created but failed to send verification email. Please contact support.');
+            } else {
+              console.log('User verification email sent successfully');
+            }
           }
         } catch (emailError) {
           console.error('Error sending verification email:', emailError);
+          toast.error('Account created but failed to send verification email. Please contact support.');
         }
       }
 
@@ -243,11 +265,11 @@ export const useAuthOperations = () => {
 
       const redirectUrl = `${window.location.origin}/dashboard`;
       
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email,
-        options: {
-          emailRedirectTo: redirectUrl
+      // Use our custom verification email function
+      const { error } = await supabase.functions.invoke('send-verification-email', {
+        body: { 
+          email: email, 
+          confirmationUrl: `${window.location.origin}/auth/confirm?redirect_to=${encodeURIComponent(redirectUrl)}`
         }
       });
       

@@ -18,7 +18,11 @@ serve(async (req) => {
 
   try {
     const { email, companyName } = await req.json()
+    
+    console.log("Sending brand confirmation email to:", email, "Company:", companyName);
+    
     if (!email || !companyName) {
+      console.error("Missing required fields:", { email: !!email, companyName: !!companyName });
       return new Response(JSON.stringify({ error: 'Email and companyName are required.' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -40,22 +44,26 @@ serve(async (req) => {
       }
     })
 
-    if (linkError) throw linkError
+    if (linkError) {
+      console.error("Failed to generate magic link:", linkError);
+      throw linkError;
+    }
     
     const magicLink = linkData.properties.action_link;
+    console.log("Generated magic link for brand:", magicLink);
 
     // Send the email using Resend with your verified domain
-    const { data, error: resendError } = await resend.emails.send({
-      from: 'YEILD <noreply@yeildsocials.com>', // Using your verified domain
+    const emailResponse = await resend.emails.send({
+      from: 'YEILD <noreply@yeildsocials.com>',
       to: [email],
-      subject: '✅ Confirm your YEILD account - Action Required',
+      subject: '✅ Confirm your YEILD brand account - Action Required',
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Confirm Your YEILD Account</title>
+          <title>Confirm Your YEILD Brand Account</title>
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
@@ -65,7 +73,7 @@ serve(async (req) => {
           
           <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
             <p style="font-size: 16px; margin-bottom: 20px;">
-              Thank you for signing up with YEILD! To complete your registration and access your account, please confirm your email address by clicking the button below.
+              Thank you for signing up with YEILD as a brand partner! To complete your registration and access your brand dashboard, please confirm your email address by clicking the button below.
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
@@ -97,6 +105,7 @@ serve(async (req) => {
               <li>Your brand application will be reviewed by our team</li>
               <li>You'll receive an update within 24-48 hours</li>
               <li>Once approved, you can start creating campaigns</li>
+              <li>Access advanced analytics and targeting options</li>
             </ul>
             
             <p style="font-size: 14px; color: #666; margin-top: 30px;">
@@ -119,7 +128,7 @@ serve(async (req) => {
       text: `
 Welcome to YEILD, ${companyName}!
 
-Thank you for signing up! To complete your registration, please confirm your email address by visiting this link:
+Thank you for signing up as a brand partner! To complete your registration, please confirm your email address by visiting this link:
 
 ${magicLink}
 
@@ -127,6 +136,7 @@ What's Next?
 - Your brand application will be reviewed by our team
 - You'll receive an update within 24-48 hours  
 - Once approved, you can start creating campaigns
+- Access advanced analytics and targeting options
 
 If you didn't create this account, please ignore this email.
 
@@ -135,16 +145,49 @@ The YEILD Team
       `.trim(),
     })
 
-    if (resendError) throw resendError
+    console.log("Resend API response for brand:", emailResponse);
 
-    return new Response(JSON.stringify({ success: true }), {
+    if (emailResponse.error) {
+      console.error("Resend error for brand:", emailResponse.error);
+      throw new Error(emailResponse.error.message || "Failed to send brand confirmation email");
+    }
+
+    // Log the email send attempt
+    try {
+      await supabaseAdmin.from('user_activity_logs').insert({
+        user_id: null,
+        action: 'brand_confirmation_email_sent',
+        activity_data: {
+          email: email,
+          company_name: companyName,
+          timestamp: new Date().toISOString(),
+          email_id: emailResponse.data?.id,
+          resend_response: emailResponse.data
+        }
+      });
+      console.log("Brand email activity logged successfully");
+    } catch (logError) {
+      console.error("Failed to log brand email activity:", logError);
+      // Don't fail the email send if logging fails
+    }
+
+    console.log("Brand confirmation email sent successfully:", emailResponse.data);
+
+    return new Response(JSON.stringify({ 
+      success: true,
+      message: "Brand confirmation email sent successfully",
+      emailId: emailResponse.data?.id 
+    }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
 
   } catch (error) {
     console.error('Error in send-brand-confirmation-email function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: "Failed to send brand confirmation email",
+      details: error.message 
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
