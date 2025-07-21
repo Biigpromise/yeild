@@ -1867,6 +1867,7 @@ export type Database = {
           id: string
           point_breakdown: Json | null
           point_explanation: string | null
+          rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
@@ -1885,6 +1886,7 @@ export type Database = {
           id?: string
           point_breakdown?: Json | null
           point_explanation?: string | null
+          rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
@@ -1903,6 +1905,7 @@ export type Database = {
           id?: string
           point_breakdown?: Json | null
           point_explanation?: string | null
+          rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
