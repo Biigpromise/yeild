@@ -1,4 +1,3 @@
-
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -91,7 +90,7 @@ export const useAuthOperations = () => {
               body: { 
                 email: email, 
                 name: name,
-                confirmationUrl: `${window.location.origin}/auth/confirm?token_hash=${data.user.email_change_token_current}&type=signup&redirect_to=${encodeURIComponent(redirectUrl)}`
+                confirmationUrl: `${window.location.origin}/auth/confirm?redirect_to=${encodeURIComponent(redirectUrl)}`
               }
             });
             
