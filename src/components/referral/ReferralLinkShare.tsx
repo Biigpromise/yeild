@@ -4,19 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Copy, Share2, Check } from "lucide-react";
 import { toast } from "sonner";
+import { generateReferralLink } from "@/config/app";
 
 interface ReferralLinkShareProps {
   referralCode: string;
-  customDomain?: string;
 }
 
 export const ReferralLinkShare: React.FC<ReferralLinkShareProps> = ({ 
-  referralCode, 
-  customDomain = "yeildsocials.com" 
+  referralCode
 }) => {
   const [copied, setCopied] = useState(false);
   
-  const referralLink = `https://${customDomain}/signup?ref=${referralCode}`;
+  const referralLink = generateReferralLink(referralCode);
 
   const copyToClipboard = async () => {
     try {

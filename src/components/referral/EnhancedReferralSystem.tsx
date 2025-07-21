@@ -21,6 +21,7 @@ import { BirdProgression } from "./BirdProgression";
 import { BirdLevelNotification } from "./BirdLevelNotification";
 import { ProfileBirdBadge } from "./ProfileBirdBadge";
 import { supabase } from "@/integrations/supabase/client";
+import { generateReferralLink } from "@/config/app";
 
 export const EnhancedReferralSystem = () => {
   const [referralCode, setReferralCode] = useState<string>("");
@@ -70,7 +71,7 @@ export const EnhancedReferralSystem = () => {
     }
   };
 
-  const referralLink = referralCode ? `${window.location.origin}/signup?ref=${referralCode}` : '';
+  const referralLink = referralCode ? generateReferralLink(referralCode) : '';
 
   const copyReferralLink = () => {
     if (!referralLink) {

@@ -40,6 +40,7 @@ export const useSignUp = () => {
     if (refCode) {
       setReferralCode(refCode);
       toast.info("You're signing up with a referral code!");
+      console.log('Referral code detected:', refCode);
     }
   }, [location]);
 
@@ -65,6 +66,7 @@ export const useSignUp = () => {
     setIsLoading(true);
     
     try {
+      console.log('Starting signup process...');
       const { error } = await signUp(email, password, name);
       
       if (error) {
@@ -77,14 +79,23 @@ export const useSignUp = () => {
           toast.error(error.message || "Sign up failed");
         }
       } else {
+        console.log('Signup successful, handling referral code...');
+        
         // Handle referral code if present
         if (referralCode) {
+          console.log('Processing referral code:', referralCode);
           const currentUser = await supabase.auth.getUser();
           if (currentUser.data.user) {
+            console.log('User found, applying referral:', currentUser.data.user.id);
             const success = await userService.handleReferralSignup(referralCode, currentUser.data.user.id);
             if (success) {
               toast.success("Referral bonus applied!");
+              console.log('Referral bonus applied successfully');
+            } else {
+              console.log('Referral bonus application failed');
             }
+          } else {
+            console.log('No user found for referral application');
           }
         }
         
@@ -99,6 +110,7 @@ export const useSignUp = () => {
         toast.success("Account created! Please check your email for a confirmation link.");
       }
     } catch (error) {
+      console.error('Signup error:', error);
       setSignUpError("An unexpected error occurred");
       toast.error("An unexpected error occurred");
     } finally {

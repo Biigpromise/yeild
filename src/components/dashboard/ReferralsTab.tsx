@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { ReferralLinkShare } from '@/components/referral/ReferralLinkShare';
+import { generateReferralLink } from '@/config/app';
 
 interface ReferralData {
   referral_code: string;
@@ -95,7 +97,7 @@ export const ReferralsTab: React.FC = () => {
   };
 
   const shareReferralLink = () => {
-    const referralLink = `https://yeildsocials.com/signup?ref=${referralData.referral_code}`;
+    const referralLink = generateReferralLink(referralData.referral_code);
     navigator.clipboard.writeText(referralLink);
     toast.success('Referral link copied to clipboard!');
   };
@@ -116,8 +118,7 @@ export const ReferralsTab: React.FC = () => {
     <div className="space-y-6">
       {/* Referral Link Share Component */}
       <ReferralLinkShare 
-        referralCode={referralData.referral_code} 
-        customDomain="yeildsocials.com" 
+        referralCode={referralData.referral_code}
       />
 
       {/* Referral Overview */}
