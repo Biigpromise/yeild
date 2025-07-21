@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -31,13 +30,19 @@ const Auth = () => {
   const handleGoogleAuth = async () => {
     try {
       setIsLoading(true);
+      
+      // Track Google auth attempt
+      console.log('Starting Google authentication');
+      
       const { error } = await signInWithProvider('google');
       if (error) {
         toast.error(error.message);
+        console.error('Google auth error:', error);
       }
       // The redirect will be handled by the auth context
     } catch (error: any) {
       toast.error(error.message);
+      console.error('Google auth unexpected error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -60,17 +65,21 @@ const Auth = () => {
     
     try {
       if (isLogin) {
+        console.log('Attempting email login');
         const { error } = await signIn(formData.email, formData.password);
         if (error) {
           toast.error(error.message);
+          console.error('Email login error:', error);
         } else {
           toast.success("Welcome back!");
           navigate('/dashboard');
         }
       } else {
+        console.log('Attempting email signup');
         const { error } = await signUp(formData.email, formData.password, formData.name);
         if (error) {
           toast.error(error.message);
+          console.error('Email signup error:', error);
         } else {
           toast.success("Account created successfully!");
           navigate('/onboarding');
@@ -78,6 +87,7 @@ const Auth = () => {
       }
     } catch (error: any) {
       toast.error("An unexpected error occurred");
+      console.error('Email auth unexpected error:', error);
     } finally {
       setIsLoading(false);
     }
