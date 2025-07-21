@@ -405,7 +405,7 @@ export const userService = {
 
         return (data || []).map(item => ({
           ...item,
-          referred_user: item.profiles && typeof item.profiles === 'object' && 'id' in item.profiles ? {
+          referred_user: item.profiles && typeof item.profiles === 'object' && 'id' in item.profiles && item.profiles !== null ? {
             id: item.profiles.id,
             name: item.profiles.name || '',
             email: item.profiles.email || '',
@@ -470,7 +470,7 @@ export const userService = {
         return (data || []).map(item => ({
           ...item,
           views_count: item.view_count || 0,
-          user: item.profiles ? {
+          user: item.profiles && item.profiles !== null ? {
             id: item.profiles.id,
             name: item.profiles.name,
             email: item.profiles.email,
