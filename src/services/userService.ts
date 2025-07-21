@@ -64,6 +64,7 @@ export interface UserProfile {
   level: string;
   active_referrals_count: number;
   total_referrals_count: number;
+  tasks_completed: number;
   created_at: string;
   updated_at: string;
 }
@@ -218,7 +219,7 @@ export const userService = {
 
         return {
           points: data.points || 0,
-          level: String(data.level || 'Beginner'),
+          level: String(data.level || 1),
           tasksCompleted: data.tasks_completed || 0
         };
       }, 'getUserStats');
@@ -405,7 +406,7 @@ export const userService = {
 
         return (data || []).map(item => ({
           ...item,
-          referred_user: item.profiles ? {
+          referred_user: item.profiles && typeof item.profiles === 'object' && 'id' in item.profiles ? {
             id: item.profiles.id,
             name: item.profiles.name,
             email: item.profiles.email,
@@ -458,7 +459,7 @@ export const userService = {
           .from('stories')
           .select(`
             *,
-            user:profiles!inner(id, name, profile_picture_url)
+            profiles!inner(id, name, profile_picture_url, email, followers_count, following_count, points, level, active_referrals_count, total_referrals_count, tasks_completed, created_at, updated_at)
           `)
           .gt('expires_at', new Date().toISOString())
           .order('created_at', { ascending: false });
@@ -469,7 +470,23 @@ export const userService = {
 
         return (data || []).map(item => ({
           ...item,
-          views_count: item.view_count || 0
+          views_count: item.view_count || 0,
+          user: item.profiles ? {
+            id: item.profiles.id,
+            name: item.profiles.name,
+            email: item.profiles.email,
+            profile_picture_url: item.profiles.profile_picture_url,
+            bio: item.profiles.bio,
+            followers_count: item.profiles.followers_count,
+            following_count: item.profiles.following_count,
+            points: item.profiles.points,
+            level: String(item.profiles.level),
+            active_referrals_count: item.profiles.active_referrals_count,
+            total_referrals_count: item.profiles.total_referrals_count,
+            tasks_completed: item.profiles.tasks_completed,
+            created_at: item.profiles.created_at,
+            updated_at: item.profiles.updated_at
+          } : undefined
         }));
       }, 'getStories');
     } catch (error) {

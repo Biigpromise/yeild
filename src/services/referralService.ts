@@ -156,7 +156,7 @@ export const referralService = {
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ 
-            total_referrals_count: supabase.raw('total_referrals_count + 1') as any
+            total_referrals_count: supabase.sql`total_referrals_count + 1`
           })
           .eq('id', referrer.id);
 
@@ -164,11 +164,11 @@ export const referralService = {
           console.error('Error updating referrer count:', updateError);
         }
 
-        return true;
+        return { success: true };
       }, 'processReferralSignup');
     } catch (error) {
       console.error('Error processing referral signup:', error);
-      return false;
+      return { success: false, error: error.message };
     }
   }
 };

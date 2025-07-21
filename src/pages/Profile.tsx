@@ -229,7 +229,7 @@ export const Profile = () => {
                 <div className="flex items-center justify-center mb-2">
                   <Star className="h-8 w-8 text-blue-500" />
                 </div>
-                <div className="text-2xl font-bold">Level {String(profile.level || 1)}</div>
+                <div className="text-2xl font-bold">Level {profile.level || 1}</div>
                 <div className="text-sm text-muted-foreground">Current Level</div>
               </CardContent>
             </Card>
