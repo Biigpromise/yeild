@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Crown, Users, Target } from 'lucide-react';
+import { Star, Trophy, Crown, Sparkles } from 'lucide-react';
 
 interface BirdProgressionProps {
   userPoints: number;
@@ -18,150 +18,130 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
   currentBirdLevel,
   nextBirdLevel
 }) => {
+  const getBirdIcon = (level: any) => {
+    if (!level) return Star;
+    
+    switch (level.name?.toLowerCase()) {
+      case 'phoenix':
+        return Crown;
+      case 'eagle':
+        return Trophy;
+      default:
+        return Star;
+    }
+  };
+
   const calculateProgress = () => {
     if (!nextBirdLevel) return 100;
     
-    const pointsProgress = nextBirdLevel.minPoints > 0 
-      ? Math.min(100, (userPoints / nextBirdLevel.minPoints) * 100)
+    const referralProgress = nextBirdLevel.min_referrals > 0 
+      ? (activeReferrals / nextBirdLevel.min_referrals) * 100 
       : 100;
     
-    const referralsProgress = nextBirdLevel.minReferrals > 0 
-      ? Math.min(100, (activeReferrals / nextBirdLevel.minReferrals) * 100)
+    const pointsProgress = nextBirdLevel.min_points > 0 
+      ? (userPoints / nextBirdLevel.min_points) * 100 
       : 100;
     
-    // Both requirements must be met, so take the minimum
-    return Math.min(pointsProgress, referralsProgress);
+    return Math.min(Math.min(referralProgress, pointsProgress), 100);
   };
 
-  const getBirdLevelBenefits = (birdLevel: any) => {
-    if (!birdLevel?.benefits) return [];
-    return birdLevel.benefits;
-  };
-
-  const progress = calculateProgress();
+  const CurrentIcon = getBirdIcon(currentBirdLevel);
+  const NextIcon = getBirdIcon(nextBirdLevel);
 
   return (
-    <div className="space-y-4">
-      {/* Current Bird Level */}
-      <Card className="border border-border bg-card">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2 text-card-foreground">
-              <Crown className="h-5 w-5 text-primary" />
-              Current Bird Level
-            </CardTitle>
-            {currentBirdLevel && (
+    <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-purple-600" />
+          Bird Badge Progression
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div 
+              className="w-12 h-12 rounded-full flex items-center justify-center border-2"
+              style={{ 
+                backgroundColor: currentBirdLevel?.color + '20' || '#3B82F620',
+                borderColor: currentBirdLevel?.color || '#3B82F6'
+              }}
+            >
+              <span className="text-2xl">{currentBirdLevel?.emoji || '🐣'}</span>
+            </div>
+            <div>
               <Badge 
-                variant="secondary" 
-                className="text-lg px-3 py-1"
-                style={{ backgroundColor: currentBirdLevel.color + '20', color: currentBirdLevel.color }}
+                className="mb-1"
+                style={{ 
+                  backgroundColor: currentBirdLevel?.color + '20' || '#3B82F620',
+                  color: currentBirdLevel?.color || '#3B82F6'
+                }}
               >
-                {currentBirdLevel.emoji} {currentBirdLevel.name}
+                {currentBirdLevel?.name || 'Hatchling'}
               </Badge>
-            )}
+              <div className="text-sm text-muted-foreground">
+                Current Level
+              </div>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          {currentBirdLevel ? (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">{currentBirdLevel.description}</p>
-              
-              {/* Current Benefits */}
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm text-card-foreground">Your Current Benefits:</h4>
-                <div className="grid grid-cols-1 gap-2">
-                  {getBirdLevelBenefits(currentBirdLevel).map((benefit: string, index: number) => (
-                    <div key={index} className="flex items-center gap-2 text-sm text-card-foreground">
-                      <Sparkles className="h-3 w-3 text-primary" />
-                      <span>{benefit}</span>
-                    </div>
-                  ))}
+
+          {nextBirdLevel && (
+            <div className="flex items-center gap-3">
+              <div>
+                <Badge variant="outline" className="mb-1">
+                  {nextBirdLevel.name}
+                </Badge>
+                <div className="text-sm text-muted-foreground text-right">
+                  Next Level
                 </div>
               </div>
+              <div 
+                className="w-12 h-12 rounded-full flex items-center justify-center border-2 opacity-50"
+                style={{ 
+                  backgroundColor: nextBirdLevel.color + '20',
+                  borderColor: nextBirdLevel.color
+                }}
+              >
+                <span className="text-2xl">{nextBirdLevel.emoji}</span>
+              </div>
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Start your bird progression journey!</p>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Next Bird Level Progress */}
-      {nextBirdLevel && (
-        <Card className="border border-border bg-card">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2 text-card-foreground">
-              <Target className="h-5 w-5 text-primary" />
-              Next: {nextBirdLevel.emoji} {nextBirdLevel.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-0">
-            <p className="text-sm text-muted-foreground">{nextBirdLevel.description}</p>
+        {nextBirdLevel && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Progress to {nextBirdLevel.name}</span>
+              <span className="font-medium">{calculateProgress().toFixed(1)}%</span>
+            </div>
+            <Progress value={calculateProgress()} className="h-2" />
             
-            {/* Progress Bar */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-card-foreground">Progress to Next Level</span>
-                <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
-              </div>
-              <Progress value={progress} className="h-2" />
-            </div>
-
-            {/* Requirements */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Target className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-card-foreground">Points</span>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="text-center p-2 bg-blue-100 rounded">
+                <div className="font-semibold text-blue-800">
+                  {activeReferrals} / {nextBirdLevel.min_referrals}
                 </div>
-                <p className="text-lg font-bold text-primary">
-                  {userPoints.toLocaleString()}
-                </p>
-                 <p className="text-xs text-muted-foreground">
-                   / {nextBirdLevel.minPoints?.toLocaleString() || 0} needed
-                 </p>
+                <div className="text-blue-600">Active Referrals</div>
               </div>
-              
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Users className="h-4 w-4 text-secondary" />
-                  <span className="text-sm font-medium text-card-foreground">Referrals</span>
+              <div className="text-center p-2 bg-green-100 rounded">
+                <div className="font-semibold text-green-800">
+                  {userPoints} / {nextBirdLevel.min_points}
                 </div>
-                <p className="text-lg font-bold text-secondary">
-                  {activeReferrals}
-                </p>
-                 <p className="text-xs text-muted-foreground">
-                   / {nextBirdLevel.minReferrals || 0} needed
-                 </p>
+                <div className="text-green-600">Points Earned</div>
               </div>
             </div>
+          </div>
+        )}
 
-            {/* Next Level Benefits Preview */}
-            <div className="space-y-2">
-              <h4 className="font-medium text-sm text-card-foreground">Unlock These Benefits:</h4>
-              <div className="grid grid-cols-1 gap-2">
-                {getBirdLevelBenefits(nextBirdLevel).map((benefit: string, index: number) => (
-                  <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Sparkles className="h-3 w-3 text-accent" />
-                    <span>{benefit}</span>
-                  </div>
-                ))}
-              </div>
+        {!nextBirdLevel && (
+          <div className="text-center py-4">
+            <Crown className="h-8 w-8 mx-auto mb-2 text-yellow-600" />
+            <div className="font-semibold text-yellow-800">Maximum Level Reached!</div>
+            <div className="text-sm text-yellow-600">
+              You've achieved the highest bird badge level
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {!nextBirdLevel && currentBirdLevel && (
-        <Card className="border border-border bg-card">
-          <CardContent className="text-center py-6">
-            <Crown className="h-12 w-12 mx-auto mb-3 text-accent" />
-            <h3 className="font-bold text-lg mb-2 text-card-foreground">Maximum Level Achieved!</h3>
-            <p className="text-sm text-muted-foreground">
-              Congratulations! You've reached the highest bird level. Keep earning to maintain your status!
-            </p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };

@@ -1,26 +1,19 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Crown, Zap, Gem, Flame, Bird } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface BirdLevel {
   id: number;
   name: string;
   icon: string;
   emoji: string;
+  color: string;
   min_referrals: number;
   min_points: number;
   description: string;
-  color: string;
   benefits: string[];
-  animation_type: string;
   glow_effect: boolean;
-}
-
-interface NextBirdLevel extends BirdLevel {
-  referrals_needed: number;
-  points_needed: number;
 }
 
 interface EnhancedBirdBadgeProps {
@@ -31,15 +24,6 @@ interface EnhancedBirdBadgeProps {
   className?: string;
 }
 
-const iconMap = {
-  dove: Bird,
-  bird: Bird,
-  zap: Zap,
-  crown: Crown,
-  gem: Gem,
-  flame: Flame,
-};
-
 export const EnhancedBirdBadge: React.FC<EnhancedBirdBadgeProps> = ({
   userId,
   size = 'md',
@@ -48,7 +32,6 @@ export const EnhancedBirdBadge: React.FC<EnhancedBirdBadgeProps> = ({
   className = ''
 }) => {
   const [birdLevel, setBirdLevel] = useState<BirdLevel | null>(null);
-  const [nextLevel, setNextLevel] = useState<NextBirdLevel | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,30 +40,16 @@ export const EnhancedBirdBadge: React.FC<EnhancedBirdBadgeProps> = ({
 
   const loadBirdLevel = async () => {
     try {
-      // Get current bird level
-      const { data: currentLevel, error: currentError } = await supabase
+      const { data, error } = await supabase
         .rpc('get_user_bird_level', { user_id_param: userId });
 
-      if (currentError) throw currentError;
-
-      if (currentLevel && currentLevel.length > 0) {
-        setBirdLevel(currentLevel[0]);
+      if (error) {
+        console.error('Error loading bird level:', error);
+        return;
       }
 
-      // Get next bird level
-      const { data: nextLevelData, error: nextError } = await supabase
-        .rpc('get_next_bird_level', { user_id_param: userId });
-
-      if (nextError) throw nextError;
-
-      if (nextLevelData && nextLevelData.length > 0) {
-        const nextData = nextLevelData[0] as any;
-        setNextLevel({
-          ...nextData,
-          benefits: nextData.benefits || [],
-          animation_type: nextData.animation_type || 'static',
-          glow_effect: nextData.glow_effect || false
-        });
+      if (data && data.length > 0) {
+        setBirdLevel(data[0]);
       }
     } catch (error) {
       console.error('Error loading bird level:', error);
@@ -89,124 +58,57 @@ export const EnhancedBirdBadge: React.FC<EnhancedBirdBadgeProps> = ({
     }
   };
 
-  if (loading || !birdLevel) {
-    return (
-      <div className={cn('flex items-center gap-2', className)}>
-        <div className="animate-pulse bg-muted rounded-full w-6 h-6" />
-        {showName && <div className="animate-pulse bg-muted h-4 w-16 rounded" />}
-      </div>
-    );
-  }
-
-  const IconComponent = iconMap[birdLevel.icon as keyof typeof iconMap] || Bird;
-
   const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8',
-    xl: 'w-12 h-12'
+    sm: 'w-6 h-6 text-xs',
+    md: 'w-8 h-8 text-sm',
+    lg: 'w-10 h-10 text-base',
+    xl: 'w-12 h-12 text-lg'
   };
 
-  const textSizes = {
+  const textSizeClasses = {
     sm: 'text-xs',
     md: 'text-sm',
     lg: 'text-base',
     xl: 'text-lg'
   };
 
-  const getAnimationClasses = () => {
-    switch (birdLevel.animation_type) {
-      case 'wing-flap':
-        return 'animate-pulse hover:animate-bounce';
-      case 'hover-motion':
-        return 'hover:scale-110 transition-transform duration-300';
-      case 'full-animation':
-        return 'animate-pulse hover:animate-spin transition-all duration-500 hover:shadow-lg hover:shadow-pink-500/50';
-      default:
-        return '';
-    }
-  };
+  if (loading) {
+    return (
+      <div className={`${sizeClasses[size]} rounded-full bg-gray-200 animate-pulse ${className}`} />
+    );
+  }
 
-  const getGlowClasses = () => {
-    if (!birdLevel.glow_effect) return '';
-    
-    if (birdLevel.name === 'Phoenix') {
-      return 'drop-shadow-lg hover:drop-shadow-xl transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/30';
-    }
-    
-    return 'drop-shadow-lg hover:drop-shadow-xl transition-all duration-300';
-  };
-
-  const getSpecialEffects = () => {
-    if (birdLevel.name === 'Phoenix') {
-      return (
-        <div className="absolute inset-0 rounded-full">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-500/20 via-red-500/20 to-orange-500/20 animate-pulse" />
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/10 to-transparent animate-ping" />
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const tooltipContent = (
-    <div className="max-w-xs p-2">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-lg">{birdLevel.emoji}</span>
-        <span className="font-bold text-base">{birdLevel.name}</span>
+  if (!birdLevel) {
+    return (
+      <div className={`${sizeClasses[size]} rounded-full bg-gray-100 flex items-center justify-center ${className}`}>
+        <span className="text-gray-400">🐣</span>
       </div>
-      <p className="text-sm text-muted-foreground mb-2">{birdLevel.description}</p>
-      <div className="text-xs text-muted-foreground mb-2">
-        Requirements: {birdLevel.min_referrals} referrals, {birdLevel.min_points} points
-      </div>
-      {birdLevel.benefits.length > 0 && (
-        <div className="mb-2">
-          <div className="text-xs font-medium mb-1">Benefits:</div>
-          <ul className="text-xs text-muted-foreground">
-            {birdLevel.benefits.map((benefit, index) => (
-              <li key={index}>• {benefit}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {nextLevel && (
-        <div className="border-t pt-2 mt-2">
-          <div className="text-xs font-medium text-primary">Next: {nextLevel.name}</div>
-          <div className="text-xs text-muted-foreground">
-            Need: {nextLevel.referrals_needed} more referrals, {nextLevel.points_needed} more points
-          </div>
-        </div>
-      )}
-    </div>
-  );
+    );
+  }
 
-  const badgeElement = (
-    <div className={cn(
-      'flex items-center gap-2 transition-all duration-300',
-      getAnimationClasses(),
-      className
-    )}>
+  const BadgeComponent = (
+    <div className={`flex items-center gap-2 ${className}`}>
       <div 
-        className={cn(
-          'relative rounded-full flex items-center justify-center overflow-hidden',
-          sizeClasses[size],
-          getGlowClasses()
-        )}
+        className={`
+          ${sizeClasses[size]} 
+          rounded-full 
+          flex items-center justify-center 
+          border-2 
+          transition-all duration-200 
+          ${birdLevel.glow_effect ? 'shadow-lg' : ''}
+        `}
         style={{ 
           backgroundColor: birdLevel.color + '20',
-          border: `2px solid ${birdLevel.color}`,
-          color: birdLevel.color
+          borderColor: birdLevel.color,
+          color: birdLevel.color,
+          boxShadow: birdLevel.glow_effect ? `0 0 15px ${birdLevel.color}40` : undefined
         }}
       >
-        {getSpecialEffects()}
-        <IconComponent className={cn(sizeClasses[size], 'p-1 relative z-10')} />
+        <span>{birdLevel.emoji}</span>
       </div>
       {showName && (
         <span 
-          className={cn(
-            'font-medium',
-            textSizes[size]
-          )}
+          className={`font-medium ${textSizeClasses[size]}`}
           style={{ color: birdLevel.color }}
         >
           {birdLevel.name}
@@ -216,19 +118,28 @@ export const EnhancedBirdBadge: React.FC<EnhancedBirdBadgeProps> = ({
   );
 
   if (!showTooltip) {
-    return badgeElement;
+    return BadgeComponent;
   }
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="cursor-pointer">
-            {badgeElement}
-          </div>
+          {BadgeComponent}
         </TooltipTrigger>
-        <TooltipContent side="top" className="border">
-          {tooltipContent}
+        <TooltipContent>
+          <div className="text-center">
+            <div className="font-semibold">{birdLevel.name}</div>
+            <div className="text-sm text-muted-foreground">{birdLevel.description}</div>
+            <div className="text-xs mt-1">
+              Requirements: {birdLevel.min_referrals} referrals, {birdLevel.min_points} points
+            </div>
+            {birdLevel.benefits.length > 0 && (
+              <div className="text-xs mt-1">
+                <strong>Benefits:</strong> {birdLevel.benefits.join(', ')}
+              </div>
+            )}
+          </div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

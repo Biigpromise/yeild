@@ -111,7 +111,6 @@ export const EnhancedReferralSystem = () => {
   }
 
   if (!referralStats) {
-    // Provide fallback content instead of just error message
     return (
       <div className="space-y-6">
         <Card>
@@ -192,142 +191,104 @@ export const EnhancedReferralSystem = () => {
         </Card>
       </div>
 
-      {/* How It Works */}
+      {/* Referral Link Section */}
       <Card>
         <CardHeader>
-          <CardTitle>How Bird Badges Work</CardTitle>
+          <CardTitle>Share Your Referral Link</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold text-blue-900 mb-2">1. Share Your Link</h4>
-              <p className="text-sm text-blue-700">
-                Share your unique referral link with friends and family.
+          {referralCode ? (
+            <>
+              <div className="flex gap-2">
+                <Input 
+                  value={referralLink}
+                  readOnly
+                  className="font-mono text-sm"
+                />
+                <Button onClick={copyReferralLink} variant="outline">
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button onClick={shareReferralLink}>
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Share this link and build your way to the <strong>Phoenix badge</strong> with points and referrals!
               </p>
+            </>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Your referral code is being generated...</p>
+              <p className="text-xs mt-2">Please try refreshing the page if this persists.</p>
             </div>
-            <div className="p-4 bg-orange-50 rounded-lg">
-              <h4 className="font-semibold text-orange-900 mb-2">2. They Get Active & You Earn Points</h4>
-              <p className="text-sm text-orange-700">
-                Your referrals must complete tasks AND you need to earn points to unlock birds.
-              </p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <h4 className="font-semibold text-green-900 mb-2">3. Earn Bird Badges</h4>
-              <p className="text-sm text-green-700">
-                Collect prestigious bird badges based on your referrals and points!
-              </p>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="share" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="share">Share Link</TabsTrigger>
-          <TabsTrigger value="referrals">My Referrals</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="share">
-          <Card>
-            <CardHeader>
-              <CardTitle>Share Your Referral Link</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {referralCode ? (
-                <>
-                  <div className="flex gap-2">
-                    <Input 
-                      value={referralLink}
-                      readOnly
-                      className="font-mono text-sm"
-                    />
-                    <Button onClick={copyReferralLink} variant="outline">
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button onClick={shareReferralLink}>
-                      <Share2 className="h-4 w-4" />
-                    </Button>
+      {/* Referral History */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Referrals</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {userReferrals.map((referral) => (
+              <div key={referral.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={referral.referred_user?.profile_picture_url} />
+                      <AvatarFallback>
+                        {referral.referred_user?.name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    {referral.referred_user?.id && (
+                      <div className="absolute -top-1 -right-1">
+                        <ProfileBirdBadge userId={referral.referred_user.id} size="sm" />
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Share this link and build your way to the <strong>Phoenix badge</strong> with points and referrals!
-                  </p>
-                </>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Your referral code is being generated...</p>
-                  <p className="text-xs mt-2">Please try refreshing the page if this persists.</p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">{referral.referred_user?.name || 'Anonymous User'}</p>
+                      {referral.referred_user?.id && (
+                        <ProfileBirdBadge userId={referral.referred_user.id} size="sm" />
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Joined {new Date(referral.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="referrals">
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Referrals</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {userReferrals.map((referral) => (
-                  <div key={referral.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={referral.referred_user?.profile_picture_url} />
-                          <AvatarFallback>
-                            {referral.referred_user?.name?.charAt(0) || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        {referral.referred_user?.id && (
-                          <div className="absolute -top-1 -right-1">
-                            <ProfileBirdBadge userId={referral.referred_user.id} size="sm" />
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{referral.referred_user?.name || 'Anonymous User'}</p>
-                          {referral.referred_user?.id && (
-                            <ProfileBirdBadge userId={referral.referred_user.id} size="sm" />
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Joined {new Date(referral.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <Badge variant={referral.is_active ? "default" : "secondary"}>
-                        {referral.is_active ? (
-                          <>
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Active
-                          </>
-                        ) : (
-                          <>
-                            <Clock className="h-3 w-3 mr-1" />
-                            Pending
-                          </>
-                        )}
-                      </Badge>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {referral.is_active ? 'Counts toward badge' : 'Need to complete tasks'}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-                {userReferrals.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No referrals yet. Start sharing your link to earn bird badges!</p>
-                  </div>
-                )}
+                <div className="text-right">
+                  <Badge variant={referral.is_active ? "default" : "secondary"}>
+                    {referral.is_active ? (
+                      <>
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Active
+                      </>
+                    ) : (
+                      <>
+                        <Clock className="h-3 w-3 mr-1" />
+                        Pending
+                      </>
+                    )}
+                  </Badge>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {referral.is_active ? 'Counts toward badge' : 'Need to complete tasks'}
+                  </p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            ))}
+            {userReferrals.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No referrals yet. Start sharing your link to earn bird badges!</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

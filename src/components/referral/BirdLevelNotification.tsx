@@ -1,12 +1,13 @@
 
-import React, { useEffect } from 'react';
-import { toast } from 'sonner';
-import { ReferralBirdLevel } from '@/services/userService';
-import { BirdBadge } from './BirdBadge';
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Crown, Sparkles, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface BirdLevelNotificationProps {
-  previousLevel: ReferralBirdLevel | null;
-  currentLevel: ReferralBirdLevel | null;
+  previousLevel: any;
+  currentLevel: any;
   activeReferrals: number;
 }
 
@@ -15,102 +16,86 @@ export const BirdLevelNotification: React.FC<BirdLevelNotificationProps> = ({
   currentLevel,
   activeReferrals
 }) => {
+  const [showNotification, setShowNotification] = useState(false);
+
   useEffect(() => {
-    // Check if user leveled up
-    if (currentLevel && previousLevel && currentLevel.minReferrals > previousLevel.minReferrals) {
-      showLevelUpNotification(currentLevel, activeReferrals);
+    // Show notification if level has changed and we have a new level
+    if (previousLevel && currentLevel && previousLevel.id !== currentLevel.id) {
+      setShowNotification(true);
+      
+      // Auto-hide after 10 seconds
+      const timer = setTimeout(() => {
+        setShowNotification(false);
+      }, 10000);
+
+      return () => clearTimeout(timer);
     }
-    
-    // Check if user is close to next level
-    if (currentLevel) {
-      checkProximityNotification(currentLevel, activeReferrals);
-    }
-  }, [currentLevel, previousLevel, activeReferrals]);
+  }, [previousLevel, currentLevel]);
 
-  const showLevelUpNotification = (level: ReferralBirdLevel, referrals: number) => {
-    const getSpecialMessage = (levelName: string) => {
-      switch (levelName) {
-        case 'Phoenix':
-          return '🔥 LEGENDARY ACHIEVEMENT! You are now a Phoenix - the ultimate referral master! 🔥';
-        case 'Falcon':
-          return '⚡ AMAZING! You\'ve reached Falcon status with incredible speed! ⚡';
-        case 'Eagle':
-          return '👑 EXCELLENT! You\'ve soared to Eagle level - truly majestic! 👑';
-        case 'Hawk':
-          return '🦅 GREAT! You\'ve earned your Hawk wings - sharp and focused! 🦅';
-        case 'Dove':
-          return '🕊️ WONDERFUL! You\'ve unlocked your first Dove badge - peace and growth! 🕊️';
-        default:
-          return `🎉 Congratulations! You just unlocked the ${levelName} badge! 🎉`;
-      }
-    };
+  if (!showNotification || !currentLevel) return null;
 
-    toast.success(
-      <div className="flex items-center gap-3 p-2">
-        <BirdBadge birdLevel={level} size="md" />
-        <div>
-          <p className="font-bold text-green-800">{getSpecialMessage(level.name)}</p>
-          <p className="text-sm text-green-700">
-            With {referrals} active referrals, you've earned this prestigious badge!
-          </p>
-        </div>
-      </div>,
-      {
-        duration: 8000,
-        className: 'bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-300',
-      }
-    );
-  };
-
-  const checkProximityNotification = (currentLevel: ReferralBirdLevel, referrals: number) => {
-    const nextLevels = [
-      { name: 'Dove', min: 5, icon: 'dove' },
-      { name: 'Hawk', min: 20, icon: 'hawk' },
-      { name: 'Eagle', min: 100, icon: 'eagle' },
-      { name: 'Falcon', min: 500, icon: 'falcon' },
-      { name: 'Phoenix', min: 1000, icon: 'phoenix' }
-    ];
-
-    const nextLevel = nextLevels.find(level => referrals < level.min);
-    if (!nextLevel) return;
-
-    const remaining = nextLevel.min - referrals;
-    
-    // Show notification when close to next level
-    if (remaining === 1) {
-      toast.info(
-        <div className="flex items-center gap-3 p-2">
-          <div className="text-3xl animate-bounce">🔥</div>
-          <div>
-            <p className="font-bold text-orange-800">So Close!</p>
-            <p className="text-sm text-orange-700">
-              Just 1 more referral to become a {nextLevel.name}!
-            </p>
-          </div>
-        </div>,
-        {
-          duration: 6000,
-          className: 'bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300',
-        }
-      );
-    } else if (remaining <= 5 && remaining > 1) {
-      toast.info(
-        <div className="flex items-center gap-2 p-2">
-          <div className="text-2xl">🎯</div>
-          <div>
-            <p className="font-semibold text-blue-800">Getting Close!</p>
-            <p className="text-sm text-blue-700">
-              {remaining} more referrals to unlock {nextLevel.name}!
-            </p>
-          </div>
-        </div>,
-        {
-          duration: 4000,
-          className: 'bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200',
-        }
-      );
-    }
-  };
-
-  return null;
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: -50, scale: 0.9 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -50, scale: 0.9 }}
+        transition={{ duration: 0.3 }}
+        className="fixed top-4 right-4 z-50 max-w-md"
+      >
+        <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <div 
+                  className="w-12 h-12 rounded-full flex items-center justify-center border-2 animate-pulse"
+                  style={{ 
+                    backgroundColor: currentLevel.color + '20',
+                    borderColor: currentLevel.color,
+                    boxShadow: `0 0 15px ${currentLevel.color}40`
+                  }}
+                >
+                  <span className="text-2xl">{currentLevel.emoji}</span>
+                </div>
+              </div>
+              
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Crown className="h-4 w-4 text-yellow-600" />
+                  <span className="font-semibold text-yellow-800">
+                    Bird Badge Upgraded!
+                  </span>
+                </div>
+                <div className="text-sm text-gray-700">
+                  Congratulations! You've earned the{' '}
+                  <span 
+                    className="font-semibold"
+                    style={{ color: currentLevel.color }}
+                  >
+                    {currentLevel.name}
+                  </span>{' '}
+                  badge with {activeReferrals} active referrals!
+                </div>
+                {currentLevel.benefits && currentLevel.benefits.length > 0 && (
+                  <div className="text-xs text-gray-600 mt-1">
+                    <Sparkles className="h-3 w-3 inline mr-1" />
+                    New benefits: {currentLevel.benefits.join(', ')}
+                  </div>
+                )}
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowNotification(false)}
+                className="flex-shrink-0 h-6 w-6 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </AnimatePresence>
+  );
 };
