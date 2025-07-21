@@ -1,4 +1,3 @@
-
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -162,7 +161,7 @@ export const useAuthOperations = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref');
       
-      // Use the current origin for the redirect URL to ensure it matches the configured domain
+      // Use the current origin for the redirect URL
       const currentOrigin = window.location.origin;
       const redirectUrl = `${currentOrigin}/auth/callback`;
       
@@ -185,7 +184,6 @@ export const useAuthOperations = () => {
         options: {
           redirectTo: redirectUrl,
           queryParams,
-          // Add skipBrowserRedirect for better error handling
           skipBrowserRedirect: false
         }
       });
@@ -195,9 +193,9 @@ export const useAuthOperations = () => {
         
         // Provide specific error messages for OAuth issues
         if (error.message.includes('403') || error.message.includes('access')) {
-          toast.error('Google sign-in is not properly configured. Please contact support.');
+          toast.error('Google sign-in access denied. Please check your Google OAuth configuration.');
         } else if (error.message.includes('redirect')) {
-          toast.error('Redirect URL mismatch. Please try again or contact support.');
+          toast.error('Redirect URL mismatch. Please update your Google OAuth settings.');
         } else {
           const friendlyMessage = handleAuthError(error, `${provider} sign in`);
           toast.error(friendlyMessage);
