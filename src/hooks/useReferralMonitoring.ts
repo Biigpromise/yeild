@@ -52,13 +52,17 @@ export const useReferralMonitoring = () => {
   }, [user, loadReferralStats]);
 
   const setupSubscription = useCallback(() => {
-    if (!user || isSubscribedRef.current) return;
+    // Prevent multiple subscriptions
+    if (!user || isSubscribedRef.current || subscriptionRef.current) return;
 
     try {
       console.log('Setting up referral subscription for user:', user.id);
+      isSubscribedRef.current = true;
       
       const channel = supabase
-        .channel(`referral-changes-${user.id}`)
+        .channel(`referral-changes-${user.id}`, {
+          config: { presence: { key: user.id } }
+        })
         .on(
           'postgres_changes',
           {
@@ -87,26 +91,13 @@ export const useReferralMonitoring = () => {
           console.log('Subscription status:', status);
           
           if (status === 'SUBSCRIBED') {
-            console.log('Referral monitoring subscription active');
             setIsConnected(true);
             setConnectionError(null);
-            isSubscribedRef.current = true;
           } else if (status === 'CHANNEL_ERROR') {
-            console.error('Referral monitoring subscription error');
             setIsConnected(false);
-            setConnectionError('Subscription error');
+            setConnectionError('Connection error');
             isSubscribedRef.current = false;
-            
-            // Retry connection after 5 seconds
-            if (reconnectTimeoutRef.current) {
-              clearTimeout(reconnectTimeoutRef.current);
-            }
-            reconnectTimeoutRef.current = setTimeout(() => {
-              console.log('Attempting to reconnect...');
-              setupSubscription();
-            }, 5000);
           } else if (status === 'CLOSED') {
-            console.log('Subscription closed');
             setIsConnected(false);
             isSubscribedRef.current = false;
           }
