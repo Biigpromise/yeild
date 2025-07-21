@@ -10,20 +10,21 @@ export const APP_CONFIG = {
   
   // Get the appropriate domain based on environment
   getAppDomain: () => {
-    // In production or when custom domain is set, use custom domain
-    if (APP_CONFIG.customDomain) {
-      return APP_CONFIG.customDomain;
-    }
-    
-    // For development, use current origin but check if it's a Lovable project URL
+    // For development environments (localhost or Lovable project URLs), use current origin
     const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
     
-    // If it's a Lovable project URL, use the custom domain instead
-    if (currentOrigin.includes('.lovableproject.com')) {
-      return APP_CONFIG.customDomain || 'https://yeildsocials.com';
+    // If we're on localhost or a Lovable project URL, use the current origin for functionality
+    if (currentOrigin.includes('localhost') || currentOrigin.includes('.lovableproject.com')) {
+      return currentOrigin;
     }
     
-    return currentOrigin;
+    // For production, use the custom domain
+    return APP_CONFIG.customDomain || currentOrigin;
+  },
+  
+  // Get the display domain (what users see in referral links)
+  getDisplayDomain: () => {
+    return APP_CONFIG.customDomain;
   },
   
   // Application name and branding
@@ -42,9 +43,9 @@ export const APP_CONFIG = {
   }
 };
 
-// Helper function to generate referral links with custom domain
+// Helper function to generate referral links with proper domain handling
 export const generateReferralLink = (referralCode: string): string => {
-  const domain = APP_CONFIG.getAppDomain();
+  const domain = APP_CONFIG.getDisplayDomain();
   return `${domain}/signup?ref=${referralCode}`;
 };
 

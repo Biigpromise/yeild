@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Users, Gift, TrendingUp } from 'lucide-react';
+import { RefreshCw, Users, Gift, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useReferralMonitoring } from '@/hooks/useReferralMonitoring';
 import { useErrorRecovery } from '@/hooks/useErrorRecovery';
@@ -25,7 +26,7 @@ export const EnhancedReferralsTab: React.FC = () => {
   // Use the fixed referral monitoring hook
   const { isConnected, connectionError } = useReferralMonitoring();
 
-  const loadReferralStats = async () => {
+  const loadReferralStats = async (showToast = false) => {
     if (!user) return;
     
     try {
@@ -34,8 +35,15 @@ export const EnhancedReferralsTab: React.FC = () => {
       if (stats) {
         setReferralStats(stats);
       }
+      clearError();
+      if (showToast) {
+        toast.success('Referral data refreshed');
+      }
     } catch (error) {
       handleError(error as Error, 'loading referral stats');
+      if (showToast) {
+        toast.error('Failed to refresh referral data');
+      }
     } finally {
       setLoading(false);
     }
@@ -48,10 +56,7 @@ export const EnhancedReferralsTab: React.FC = () => {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await loadReferralStats();
-      toast.success('Referral data refreshed');
-    } catch (error) {
-      handleError(error as Error, 'refreshing referral data');
+      await loadReferralStats(true);
     } finally {
       setRefreshing(false);
     }
@@ -77,7 +82,8 @@ export const EnhancedReferralsTab: React.FC = () => {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center">
+          <div className="text-center space-y-4">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
             <div className="text-destructive mb-4">
               Failed to load referral data
             </div>
@@ -97,18 +103,39 @@ export const EnhancedReferralsTab: React.FC = () => {
     <ErrorBoundary>
       <div className="space-y-6">
         {/* Connection Status */}
-        {connectionError && (
-          <Card className="border-yellow-200 bg-yellow-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-yellow-700">
-                <RefreshCw className="h-4 w-4" />
-                <span className="text-sm">
-                  Real-time updates temporarily unavailable. Data may not be current.
-                </span>
+        <Card className={`${connectionError ? 'border-yellow-200 bg-yellow-50' : isConnected ? 'border-green-200 bg-green-50' : 'border-gray-200'}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              {isConnected ? (
+                <CheckCircle className="h-5 w-5 text-green-600" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-yellow-600" />
+              )}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <span className={isConnected ? 'text-green-700' : 'text-yellow-700'}>
+                    {isConnected ? 'Connected' : 'Connection Issues'}
+                  </span>
+                  <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {connectionError || (isConnected ? 'Real-time updates active' : 'Limited connectivity')}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              {!isConnected && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                >
+                  <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -173,8 +200,8 @@ export const EnhancedReferralsTab: React.FC = () => {
               </div>
               <div className="bg-green-50 p-3 rounded-lg border border-green-200">
                 <div className="text-sm text-green-800">
-                  <p><strong>✓ Professional Domain:</strong> {APP_CONFIG.getAppDomain()}</p>
-                  <p className="text-xs mt-1">No more unprofessional URLs - your referral links now use your custom domain!</p>
+                  <p><strong>✓ Professional Domain:</strong> {APP_CONFIG.getDisplayDomain()}</p>
+                  <p className="text-xs mt-1">Your referral links use your professional domain for better conversion rates!</p>
                 </div>
               </div>
               <Button onClick={copyReferralLink} className="w-full">
@@ -185,7 +212,7 @@ export const EnhancedReferralsTab: React.FC = () => {
         </Card>
 
         {/* Status Indicators */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-yellow-500'}`} />
             <span>{isConnected ? 'Real-time updates active' : 'Limited connectivity'}</span>
