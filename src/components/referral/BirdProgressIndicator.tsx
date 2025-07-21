@@ -22,18 +22,16 @@ export const BirdProgressIndicator: React.FC<BirdProgressIndicatorProps> = ({
     return null;
   }
 
-  const progress = Math.min(100, (activeReferrals / nextBirdLevel.minReferrals) * 100);
-  const referralsNeeded = Math.max(0, nextBirdLevel.minReferrals - activeReferrals);
+  const progress = Math.min(100, (activeReferrals / nextBirdLevel.min_referrals) * 100);
+  const referralsNeeded = Math.max(0, nextBirdLevel.min_referrals - activeReferrals);
 
   const getProgressColor = () => {
     switch (nextBirdLevel.icon) {
-      case 'hawk':
+      case '🐦':
         return 'bg-amber-500';
-      case 'eagle':
+      case '🦅':
         return 'bg-blue-500';
-      case 'falcon':
-        return 'bg-purple-500';
-      case 'phoenix':
+      case '🔥':
         return 'bg-gradient-to-r from-red-500 to-orange-500';
       default:
         return 'bg-gray-500';
@@ -42,13 +40,11 @@ export const BirdProgressIndicator: React.FC<BirdProgressIndicatorProps> = ({
 
   const getBenefits = (birdIcon: string) => {
     switch (birdIcon) {
-      case 'hawk':
-        return 'Access to premium tasks';
-      case 'eagle':
+      case '🐦':
+        return 'Bonus points on tasks';
+      case '🦅':
         return 'Leaderboard visibility & exclusive badges';
-      case 'falcon':
-        return 'Special rank status & early task access';
-      case 'phoenix':
+      case '🔥':
         return 'Elite status & exclusive Phoenix rewards';
       default:
         return 'Enhanced profile features';
@@ -62,7 +58,7 @@ export const BirdProgressIndicator: React.FC<BirdProgressIndicatorProps> = ({
           Progress to {nextBirdLevel.name}
         </span>
         <span className="text-xs font-mono">
-          {activeReferrals}/{nextBirdLevel.minReferrals}
+          {activeReferrals}/{nextBirdLevel.min_referrals}
         </span>
       </div>
       

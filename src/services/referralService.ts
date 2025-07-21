@@ -122,5 +122,53 @@ export const referralService = {
       toast.error('Failed to create referral');
       return null;
     }
+  },
+
+  async processReferralSignup(referralCode: string, newUserId: string) {
+    try {
+      return await withRetry(async () => {
+        // First, find the referrer by referral code
+        const { data: referrer, error: referrerError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('referral_code', referralCode)
+          .single();
+
+        if (referrerError || !referrer) {
+          throw new Error('Invalid referral code');
+        }
+
+        // Create the referral relationship
+        const { error: createError } = await supabase
+          .from('user_referrals')
+          .insert({
+            referrer_id: referrer.id,
+            referred_id: newUserId,
+            referral_code: referralCode,
+            is_active: false // Will be activated when user completes first task
+          });
+
+        if (createError) {
+          throw new Error(`Failed to create referral: ${createError.message}`);
+        }
+
+        // Update referrer's total referral count
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ 
+            total_referrals_count: supabase.raw('total_referrals_count + 1')
+          })
+          .eq('id', referrer.id);
+
+        if (updateError) {
+          console.error('Error updating referrer count:', updateError);
+        }
+
+        return true;
+      }, 'processReferralSignup');
+    } catch (error) {
+      console.error('Error processing referral signup:', error);
+      return false;
+    }
   }
 };
