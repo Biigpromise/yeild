@@ -80,8 +80,8 @@ export const AdminBirdLevelOverrides: React.FC<AdminBirdLevelOverridesProps> = (
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
-          active_referrals_count: Math.max(selectedUserInfo.active_referrals_count, birdLevel.minReferrals),
-          points: Math.max(selectedUserInfo.points, birdLevel.minPoints)
+          active_referrals_count: Math.max(selectedUserInfo.active_referrals_count, birdLevel.min_referrals),
+          points: Math.max(selectedUserInfo.points, birdLevel.min_points)
         })
         .eq('id', selectedUser);
 
@@ -99,8 +99,8 @@ export const AdminBirdLevelOverrides: React.FC<AdminBirdLevelOverridesProps> = (
             admin_override: true,
             previous_referrals: selectedUserInfo.active_referrals_count,
             previous_points: selectedUserInfo.points,
-            new_referrals: Math.max(selectedUserInfo.active_referrals_count, birdLevel.minReferrals),
-            new_points: Math.max(selectedUserInfo.points, birdLevel.minPoints)
+            new_referrals: Math.max(selectedUserInfo.active_referrals_count, birdLevel.min_referrals),
+            new_points: Math.max(selectedUserInfo.points, birdLevel.min_points)
           }
         });
 
@@ -173,7 +173,7 @@ export const AdminBirdLevelOverrides: React.FC<AdminBirdLevelOverridesProps> = (
                     <SelectItem key={level.name} value={level.name}>
                       <div className="flex items-center gap-2">
                         <BirdBadge birdLevel={level} size="sm" />
-                        <span>{level.name} ({level.minReferrals}+ referrals)</span>
+                        <span>{level.name} ({level.min_referrals}+ referrals)</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -240,8 +240,8 @@ export const AdminBirdLevelOverrides: React.FC<AdminBirdLevelOverridesProps> = (
               <div key={level.name} className="text-center p-4 border rounded-lg">
                 <BirdBadge birdLevel={level} size="lg" showName />
                 <div className="mt-2 text-sm text-muted-foreground">
-                  <p>{level.minReferrals}+ referrals</p>
-                  <p>{level.minPoints}+ points</p>
+                  <p>{level.min_referrals}+ referrals</p>
+                  <p>{level.min_points}+ points</p>
                 </div>
               </div>
             ))}

@@ -103,11 +103,11 @@ export const BirdLevelManagementDialog: React.FC<BirdLevelManagementDialogProps>
                       <div className="mt-3 space-y-1">
                         <div className="flex items-center justify-center gap-1">
                           <Users className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">{level.minReferrals}+ referrals</span>
+                          <span className="text-xs text-muted-foreground">{level.min_referrals}+ referrals</span>
                         </div>
                         <div className="flex items-center justify-center gap-1">
                           <Trophy className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">{level.minPoints}+ points</span>
+                          <span className="text-xs text-muted-foreground">{level.min_points}+ points</span>
                         </div>
                       </div>
                     </div>

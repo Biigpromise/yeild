@@ -1,338 +1,287 @@
-import React, { useState, useEffect } from "react";
-import { UserProfile } from "@/components/UserProfile";
-import { AchievementSystem } from "@/components/AchievementSystem";
-import { StatsDashboard } from "@/components/StatsDashboard";
-import { StreakTracker } from "@/components/StreakTracker";
-import TaskHistory from "@/components/TaskHistory";
-import { RedemptionHistory } from "@/components/rewards/RedemptionHistory";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { taskService } from "@/services/taskService";
-import { userService } from "@/services/userService";
-import { toast } from "sonner";
-import { 
-  User, 
-  Trophy, 
-  BarChart3, 
-  Flame,
-  History,
-  Gift,
-  Settings,
-  ArrowLeft,
-  Target,
-  Award,
-  TrendingUp
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
-const Profile = () => {
+import React, { useState, useEffect } from 'react';
+import { userService } from '@/services/userService';
+import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Edit2, Camera, Save, X, User, Star, Trophy, Gift } from 'lucide-react';
+import { fileUploadService } from '@/services/fileUploadService';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+export const Profile = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [completedTasks, setCompletedTasks] = useState<any[]>([]);
-  
-  // Enhanced user data with real stats
-  const [userData, setUserData] = useState({
-    id: "user-123",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    bio: "Passionate about completing tasks and earning rewards. Love trying new products and sharing feedback!",
-    avatar: "",
-    level: 12,
-    points: 2450,
-    tasksCompleted: 38,
-    currentStreak: 5,
-    longestStreak: 12,
-    joinDate: "2024-01-15",
-    totalPointsEarned: 3200,
-    averageTaskRating: 4.8,
-    favoriteCategory: "Social Media",
-    completionRate: 92,
-    followers_count: 0,
-    following_count: 0,
-    active_referrals_count: 0,
-    total_referrals_count: 0,
+  const [profile, setProfile] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    bio: '',
+    profile_picture_url: ''
   });
 
   useEffect(() => {
-    loadUserData();
-  }, [user]);
+    if (user?.id) {
+      loadProfile();
+    }
+  }, [user?.id]);
 
-  const loadUserData = async () => {
-    if (!user) return;
+  const loadProfile = async () => {
+    if (!user?.id) return;
     
+    setIsLoading(true);
     try {
-      setLoading(true);
-      
-      // Fetch user profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (profileError) {
-        console.error('Error fetching profile:', profileError);
-        return;
+      const profileData = await userService.getUserProfile(user.id);
+      if (profileData) {
+        setProfile(profileData);
+        setEditForm({
+          name: profileData.name || '',
+          bio: profileData.bio || '',
+          profile_picture_url: profileData.profile_picture_url || ''
+        });
       }
-      
-      setUserProfile(profile);
-      
-      // Update userData with real profile data
-      setUserData(prev => ({
-        ...prev,
-        id: user.id,
-        name: profile.name || user.email || "User",
-        email: user.email || "",
-        bio: profile.bio || prev.bio,
-        avatar: profile.profile_picture_url || "",
-        level: profile.level || 1,
-        points: profile.points || 0,
-        tasksCompleted: profile.tasks_completed || 0,
-        joinDate: profile.created_at ? new Date(profile.created_at).toISOString().split('T')[0] : prev.joinDate,
-        followers_count: profile.followers_count || 0,
-        following_count: profile.following_count || 0,
-        active_referrals_count: profile.active_referrals_count || 0,
-        total_referrals_count: profile.total_referrals_count || 0,
-      }));
-
-      // Fetch user tasks
-      const tasksData = await taskService.getUserTasks();
-      setCompletedTasks(tasksData);
-      
-      // Calculate additional stats
-      const totalPointsEarned = tasksData.reduce((sum, task) => sum + (task.points_earned || 0), 0);
-      const completionRate = tasksData.length > 0 ? Math.round((tasksData.length / (tasksData.length + 3)) * 100) : 0;
-      
-      setUserData(prev => ({
-        ...prev,
-        totalPointsEarned,
-        completionRate
-      }));
-      
     } catch (error) {
-      console.error('Error loading user data:', error);
-      toast.error("Failed to load profile data");
+      console.error('Error loading profile:', error);
+      toast.error('Failed to load profile');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleProfileUpdate = async (updatedData: Partial<typeof userData>) => {
-    setUserData(prev => ({ ...prev, ...updatedData }));
-    
-    // Update profile in database
-    if (user) {
-      const updatePayload: any = {};
-      
-      if (updatedData.name !== undefined) updatePayload.name = updatedData.name;
-      if (updatedData.bio !== undefined) updatePayload.bio = updatedData.bio;
-      if (updatedData.avatar !== undefined) updatePayload.profile_picture_url = updatedData.avatar;
-      
-      if (Object.keys(updatePayload).length > 0) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            ...updatePayload,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', user.id);
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
 
-        if (error) {
-          console.error('Error updating profile:', error);
-          toast.error("Failed to update profile");
-        }
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditForm({
+      name: profile?.name || '',
+      bio: profile?.bio || '',
+      profile_picture_url: profile?.profile_picture_url || ''
+    });
+  };
+
+  const handleSave = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: editForm.name,
+          bio: editForm.bio,
+          profile_picture_url: editForm.profile_picture_url
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setProfile(prev => ({
+        ...prev,
+        name: editForm.name,
+        bio: editForm.bio,
+        profile_picture_url: editForm.profile_picture_url
+      }));
+
+      setIsEditing(false);
+      toast.success('Profile updated successfully!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const imageUrl = await fileUploadService.uploadProfilePicture(file);
+      if (imageUrl) {
+        setEditForm(prev => ({
+          ...prev,
+          profile_picture_url: imageUrl
+        }));
       }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
     }
   };
 
-  // Calculate level progress
-  const currentLevelPoints = userData.level * 1000;
-  const nextLevelPoints = (userData.level + 1) * 1000;
-  const progressToNextLevel = ((userData.points - currentLevelPoints) / (nextLevelPoints - currentLevelPoints)) * 100;
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-black">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          <div className="animate-pulse space-y-8">
-            <div className="h-8 bg-gray-700 rounded w-1/4"></div>
-            <div className="grid grid-cols-3 gap-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-700 rounded"></div>
-              ))}
-            </div>
-          </div>
-        </div>
+      <div className="container mx-auto p-4">
+        <div className="text-center">Loading profile...</div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="container mx-auto p-4">
+        <div className="text-center">Profile not found</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 border-gray-600 text-white hover:bg-gray-800"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </Button>
+    <div className="container mx-auto p-4 max-w-4xl">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-6 w-6" />
+              Profile
+            </CardTitle>
+            {!isEditing && (
+              <Button onClick={handleEdit} variant="outline">
+                <Edit2 className="h-4 w-4 mr-2" />
+                Edit Profile
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Profile Picture and Basic Info */}
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <Avatar className="h-24 w-24">
+                <AvatarImage 
+                  src={isEditing ? editForm.profile_picture_url : profile.profile_picture_url} 
+                />
+                <AvatarFallback className="text-lg">
+                  {profile.name?.charAt(0) || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              {isEditing && (
+                <label className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/80">
+                  <Camera className="h-4 w-4" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-white">My Profile</h1>
-              <p className="text-gray-400">
-                Manage your profile, view achievements, and track your progress
-              </p>
+              {isEditing ? (
+                <div className="space-y-2">
+                  <Input
+                    value={editForm.name}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter your name"
+                  />
+                  <Textarea
+                    value={editForm.bio}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
+                    placeholder="Tell us about yourself..."
+                    rows={3}
+                  />
+                </div>
+              ) : (
+                <div>
+                  <h2 className="text-2xl font-bold">{profile.name || 'Anonymous User'}</h2>
+                  <p className="text-muted-foreground">{profile.email}</p>
+                  {profile.bio && (
+                    <p className="mt-2 text-sm">{profile.bio}</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Quick Stats Overview */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <Card className="border-gray-700 bg-gray-900 shadow-sm">
+          {/* Action Buttons for Editing */}
+          {isEditing && (
+            <div className="flex gap-2">
+              <Button onClick={handleSave}>
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+              <Button onClick={handleCancel} variant="outline">
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
+          )}
+
+          {/* Profile Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
               <CardContent className="p-4 text-center">
-                <Target className="h-6 w-6 mx-auto mb-2 text-blue-500" />
-                <div className="text-2xl font-bold text-blue-400">{userData.points.toLocaleString()}</div>
-                <div className="text-sm text-gray-400">Total Points</div>
+                <div className="flex items-center justify-center mb-2">
+                  <Trophy className="h-8 w-8 text-yellow-500" />
+                </div>
+                <div className="text-2xl font-bold">{profile.points || 0}</div>
+                <div className="text-sm text-muted-foreground">Points</div>
               </CardContent>
             </Card>
-            <Card className="border-gray-700 bg-gray-900 shadow-sm">
+
+            <Card>
               <CardContent className="p-4 text-center">
-                <Trophy className="h-6 w-6 mx-auto mb-2 text-yellow-500" />
-                <div className="text-2xl font-bold text-yellow-400">Level {userData.level}</div>
-                <div className="text-sm text-gray-400">Current Level</div>
+                <div className="flex items-center justify-center mb-2">
+                  <Star className="h-8 w-8 text-blue-500" />
+                </div>
+                <div className="text-2xl font-bold">Level {String(profile.level || 1)}</div>
+                <div className="text-sm text-muted-foreground">Current Level</div>
               </CardContent>
             </Card>
-            <Card className="border-gray-700 bg-gray-900 shadow-sm">
+
+            <Card>
               <CardContent className="p-4 text-center">
-                <Award className="h-6 w-6 mx-auto mb-2 text-green-500" />
-                <div className="text-2xl font-bold text-green-400">{userData.tasksCompleted}</div>
-                <div className="text-sm text-gray-400">Tasks Done</div>
-              </CardContent>
-            </Card>
-            <Card className="border-gray-700 bg-gray-900 shadow-sm">
-              <CardContent className="p-4 text-center">
-                <TrendingUp className="h-6 w-6 mx-auto mb-2 text-purple-500" />
-                <div className="text-2xl font-bold text-purple-400">{userData.completionRate}%</div>
-                <div className="text-sm text-gray-400">Success Rate</div>
+                <div className="flex items-center justify-center mb-2">
+                  <Gift className="h-8 w-8 text-green-500" />
+                </div>
+                <div className="text-2xl font-bold">{profile.tasks_completed || 0}</div>
+                <div className="text-sm text-muted-foreground">Tasks Completed</div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Level Progress */}
-          <Card className="border-gray-700 bg-gray-900 shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium text-white">Level {userData.level} Progress</span>
-                <span className="text-sm text-gray-400">
-                  {userData.points - currentLevelPoints} / {nextLevelPoints - currentLevelPoints} points
-                </span>
+          {/* Social Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-xl font-bold">{profile.followers_count || 0}</div>
+                <div className="text-sm text-muted-foreground">Followers</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-xl font-bold">{profile.following_count || 0}</div>
+                <div className="text-sm text-muted-foreground">Following</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Referral Stats */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Referral Statistics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="text-center">
+                  <div className="text-xl font-bold">{profile.active_referrals_count || 0}</div>
+                  <div className="text-sm text-muted-foreground">Active Referrals</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold">{profile.total_referrals_count || 0}</div>
+                  <div className="text-sm text-muted-foreground">Total Referrals</div>
+                </div>
               </div>
-              <Progress value={Math.max(0, Math.min(100, progressToNextLevel))} className="h-2" />
-              <p className="text-xs text-gray-400 mt-1">
-                {Math.max(0, nextLevelPoints - userData.points)} points to Level {userData.level + 1}
-              </p>
             </CardContent>
           </Card>
-        </div>
-
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-6 bg-gray-800">
-            <TabsTrigger value="profile" className="flex items-center gap-2 text-white data-[state=active]:bg-gray-700">
-              <User className="h-4 w-4" />
-              Profile
-            </TabsTrigger>
-            <TabsTrigger value="achievements" className="flex items-center gap-2 text-white data-[state=active]:bg-gray-700">
-              <Trophy className="h-4 w-4" />
-              Badges
-            </TabsTrigger>
-            <TabsTrigger value="stats" className="flex items-center gap-2 text-white data-[state=active]:bg-gray-700">
-              <BarChart3 className="h-4 w-4" />
-              Stats
-            </TabsTrigger>
-            <TabsTrigger value="streaks" className="flex items-center gap-2 text-white data-[state=active]:bg-gray-700">
-              <Flame className="h-4 w-4" />
-              Streaks
-            </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-2 text-white data-[state=active]:bg-gray-700">
-              <History className="h-4 w-4" />
-              History
-            </TabsTrigger>
-            <TabsTrigger value="rewards" className="flex items-center gap-2 text-white data-[state=active]:bg-gray-700">
-              <Gift className="h-4 w-4" />
-              Rewards
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="profile">
-            <UserProfile 
-              user={userData} 
-              onUpdate={handleProfileUpdate}
-            />
-          </TabsContent>
-
-          <TabsContent value="achievements">
-            <AchievementSystem 
-              userStats={{
-                tasksCompleted: userData.tasksCompleted,
-                currentStreak: userData.currentStreak,
-                longestStreak: userData.longestStreak,
-                points: userData.points,
-                level: userData.level
-              }}
-            />
-          </TabsContent>
-
-          <TabsContent value="stats">
-            <StatsDashboard 
-              userStats={{
-                tasksCompleted: userData.tasksCompleted,
-                level: userData.level,
-                points: userData.points,
-                currentStreak: userData.currentStreak,
-                longestStreak: userData.longestStreak,
-                tasks_completed: userData.tasksCompleted,
-                referrals_made: 0,
-                achievements_earned: 0
-              }}
-            />
-          </TabsContent>
-
-          <TabsContent value="streaks">
-            <StreakTracker 
-              currentStreak={userData.currentStreak}
-              longestStreak={userData.longestStreak}
-              todayCompleted={true}
-              weeklyGoal={7}
-              weeklyProgress={5}
-            />
-          </TabsContent>
-
-          <TabsContent value="history">
-            <TaskHistory
-              completedTasks={completedTasks}
-              totalPointsEarned={userData.totalPointsEarned}
-              totalTasksCompleted={userData.tasksCompleted}
-            />
-          </TabsContent>
-
-          <TabsContent value="rewards">
-            <RedemptionHistory />
-          </TabsContent>
-        </Tabs>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
-
-export default Profile;

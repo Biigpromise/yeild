@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Story, UserProfile } from '@/services/userService';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -131,7 +132,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ isOpen, onOpenChange, 
             </div>
             <div className="flex items-center gap-1 text-xs">
               <Eye className="h-3 w-3" />
-              <span>{story.view_count}</span>
+              <span>{story.views_count}</span>
             </div>
           </div>
         </div>

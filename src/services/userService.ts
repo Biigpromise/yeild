@@ -75,6 +75,7 @@ export interface PostReply {
   content: string;
   created_at: string;
   profiles?: {
+    id: string;
     name: string;
     profile_picture_url?: string;
   };
@@ -217,7 +218,7 @@ export const userService = {
 
         return {
           points: data.points || 0,
-          level: data.level || 'Beginner',
+          level: String(data.level || 'Beginner'),
           tasksCompleted: data.tasks_completed || 0
         };
       }, 'getUserStats');
@@ -279,7 +280,7 @@ export const userService = {
           .from('post_replies')
           .select(`
             *,
-            profiles!inner(name, profile_picture_url)
+            profiles!inner(id, name, profile_picture_url)
           `)
           .eq('post_id', postId)
           .order('created_at', { ascending: true });
@@ -393,7 +394,7 @@ export const userService = {
           .from('user_referrals')
           .select(`
             *,
-            referred_user:profiles!user_referrals_referred_id_fkey(id, name, email, profile_picture_url)
+            profiles!user_referrals_referred_id_fkey(id, name, email, profile_picture_url)
           `)
           .eq('referrer_id', user.id)
           .order('created_at', { ascending: false });
@@ -402,7 +403,15 @@ export const userService = {
           throw new Error(`Failed to fetch user referrals: ${error.message}`);
         }
 
-        return data || [];
+        return (data || []).map(item => ({
+          ...item,
+          referred_user: item.profiles ? {
+            id: item.profiles.id,
+            name: item.profiles.name,
+            email: item.profiles.email,
+            profile_picture_url: item.profiles.profile_picture_url
+          } : undefined
+        }));
       }, 'getUserReferrals');
     } catch (error) {
       console.error('Error fetching user referrals:', error);
@@ -458,7 +467,10 @@ export const userService = {
           throw new Error(`Failed to fetch stories: ${error.message}`);
         }
 
-        return data || [];
+        return (data || []).map(item => ({
+          ...item,
+          views_count: item.view_count || 0
+        }));
       }, 'getStories');
     } catch (error) {
       console.error('Error fetching stories:', error);

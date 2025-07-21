@@ -5,8 +5,20 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Send, MessageCircle } from 'lucide-react';
 import { userService } from '@/services/userService';
-import { PostReply } from '@/types/post';
 import { formatDistanceToNow } from 'date-fns';
+
+interface PostReply {
+  id: string;
+  post_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  profiles?: {
+    id: string;
+    name: string;
+    profile_picture_url?: string;
+  };
+}
 
 interface PostRepliesProps {
   postId: string;

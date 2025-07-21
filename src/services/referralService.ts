@@ -156,7 +156,7 @@ export const referralService = {
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ 
-            total_referrals_count: supabase.raw('total_referrals_count + 1')
+            total_referrals_count: supabase.raw('total_referrals_count + 1') as any
           })
           .eq('id', referrer.id);
 

@@ -1,165 +1,81 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { fraudDetectionService } from "@/services/fraudDetectionService";
-import { referralService } from "@/services/referralService";
-import { useSignupFraudDetection } from "@/hooks/useSignupFraudDetection";
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { referralService } from '@/services/referralService';
+import { toast } from 'sonner';
+
+interface SignUpData {
+  email: string;
+  password: string;
+  name: string;
+  userType: 'user' | 'brand';
+  referralCode?: string;
+  brandData?: {
+    companyName: string;
+    website: string;
+    industry: string;
+    companySize: string;
+    taskTypes: string[];
+    budget: string;
+    goals: string;
+  };
+}
 
 export const useSignUp = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { signUp, resendConfirmation } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [resendLoading, setResendLoading] = useState(false);
 
-  // Form values
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [agreeTerms, setAgreeTerms] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
-  // Confirmation step UI
-  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
-
-  // For tracking any error encountered during sign up so we can display below the form
-  const [signUpError, setSignUpError] = useState<string | null>(null);
-
-  // Extract referral code from URL
-  const [referralCode, setReferralCode] = useState<string>("");
-
-  // Use fraud detection hook
-  useSignupFraudDetection();
-
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const refCode = searchParams.get('ref');
-    if (refCode) {
-      setReferralCode(refCode);
-      console.log('Referral code detected:', refCode);
-    }
-  }, [location]);
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSignUpError(null);
-
-    if (!agreeTerms) {
-      toast.error("Please agree to the Terms and Privacy Policy");
-      return;
-    }
-
-    if (!email || !password || !name) {
-      toast.error("Please fill out all fields");
-      return;
-    }
-
-    if (password.length < 8) {
-      toast.error("Password must be at least 8 characters long");
-      return;
-    }
-
+  const signUp = async (data: SignUpData) => {
     setIsLoading(true);
-    
     try {
-      console.log('Starting signup process...');
-      const { error } = await signUp(email, password, name);
-      
-      if (error) {
-        setSignUpError(error.message || "Sign up failed");
-        if (error.message.includes("User already registered")) {
-          toast.error("An account with this email already exists");
-        } else if (error.message.includes("Password must be at least 6 characters long")) {
-          toast.error("Password must be at least 6 characters long");
+      // Prepare metadata
+      const metadata: any = {
+        name: data.name,
+        user_type: data.userType
+      };
+
+      // Add brand-specific data to metadata
+      if (data.userType === 'brand' && data.brandData) {
+        metadata.brand_application_data = data.brandData;
+      }
+
+      // Create user account
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: metadata
+        }
+      });
+
+      if (authError) {
+        throw authError;
+      }
+
+      if (!authData.user) {
+        throw new Error('User creation failed');
+      }
+
+      // Handle referral signup if referral code is provided
+      if (data.referralCode) {
+        const result = await referralService.processReferralSignup(data.referralCode, authData.user.id);
+        if (result) {
+          toast.success('Account created successfully! Referral bonus will be activated after completing your first task.');
         } else {
-          toast.error(error.message || "Sign up failed");
+          toast.warning('Account created, but referral code may be invalid.');
         }
       } else {
-        console.log('Signup successful, processing referral...');
-        
-        // Get the current user
-        const { data: currentUser } = await supabase.auth.getUser();
-        
-        if (currentUser.user) {
-          // Process referral code if present
-          if (referralCode) {
-            console.log('Processing referral code:', referralCode);
-            const referralResult = await referralService.processReferralSignup(
-              referralCode, 
-              currentUser.user.id
-            );
-            
-            if (referralResult.success) {
-              toast.success(`Welcome! ${referralResult.message}`, {
-                description: "Complete tasks to activate your referral bonus!",
-              });
-              console.log('Referral processed successfully');
-            } else {
-              toast.warning(`Referral code issue: ${referralResult.message}`);
-              console.log('Referral processing failed:', referralResult.message);
-            }
-          }
-          
-          // Store fraud detection data
-          await fraudDetectionService.storeSignupData(currentUser.user.id);
-        }
-        
-        setAwaitingConfirmation(true);
-        toast.success("Account created! Please check your email for a confirmation link.");
+        toast.success('Account created successfully! Please check your email for verification.');
       }
-    } catch (error) {
-      console.error('Signup error:', error);
-      setSignUpError("An unexpected error occurred");
-      toast.error("An unexpected error occurred");
+
+      return { success: true, data: authData };
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      toast.error(error.message || 'Failed to create account');
+      return { success: false, error: error.message };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleResendConfirmation = async () => {
-    if (!email) {
-      toast.error("Please enter your email address");
-      return;
-    }
-
-    setResendLoading(true);
-    
-    try {
-      const { error } = await resendConfirmation(email);
-      
-      if (error) {
-        toast.error(error.message || "Failed to resend confirmation email");
-      } else {
-        toast.success("Confirmation email sent! Please check your inbox.");
-      }
-    } catch (error) {
-      toast.error("An unexpected error occurred");
-    } finally {
-      setResendLoading(false);
-    }
-  };
-
-  return {
-    email,
-    setEmail,
-    password,
-    setPassword,
-    name,
-    setName,
-    agreeTerms,
-    setAgreeTerms,
-    showPassword,
-    setShowPassword,
-    isLoading,
-    handleSignUp,
-    awaitingConfirmation,
-    signUpError,
-    setAwaitingConfirmation,
-    referralCode,
-    handleResendConfirmation,
-    resendLoading
-  };
+  return { signUp, isLoading };
 };

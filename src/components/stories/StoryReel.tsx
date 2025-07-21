@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { userService, Story, UserProfile } from '@/services/userService';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -115,7 +116,7 @@ export const StoryReel: React.FC = () => {
           {/* Stories from others */}
           {groupedStories.filter(g => g.user.id !== currentUser?.id).map(group => {
             const latestStory = group.stories[0];
-            const totalViews = group.stories.reduce((sum, story) => sum + (story.view_count || 0), 0);
+            const totalViews = group.stories.reduce((sum, story) => sum + (story.views_count || 0), 0);
             
             return (
               <div key={group.user.id} className="text-center flex-shrink-0 cursor-pointer" onClick={() => handleOpenViewer(group.stories[0].id)}>
