@@ -44,8 +44,15 @@ const SignUp = () => {
       if (user.email === 'yeildsocials@gmail.com') {
         navigate("/admin");
       } else {
-        // Check user roles to determine proper dashboard
-        navigate("/dashboard");
+        // Check if user is a brand based on metadata
+        const isBrand = user.user_metadata?.user_type === 'brand' || 
+                       user.user_metadata?.company_name;
+        
+        if (isBrand) {
+          navigate("/brand-dashboard");
+        } else {
+          navigate("/dashboard");
+        }
       }
     }
   }, [user, loading, navigate]);
