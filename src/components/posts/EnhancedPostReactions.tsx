@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAnalyticsTracking } from '@/hooks/useAnalyticsTracking';
 
 interface PostReactionsProps {
   postId: string;
@@ -21,6 +22,7 @@ export const EnhancedPostReactions: React.FC<PostReactionsProps> = ({ postId, us
   const [reactions, setReactions] = useState<ReactionCount[]>([]);
   const [userReactions, setUserReactions] = useState<string[]>([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const { trackSocialInteraction } = useAnalyticsTracking();
 
   const handleReaction = async (emoji: string) => {
     if (!userId) {
@@ -48,6 +50,9 @@ export const EnhancedPostReactions: React.FC<PostReactionsProps> = ({ postId, us
             ? { ...r, count: Math.max(0, r.count - 1), userReacted: false }
             : r
         ));
+
+        // Track reaction removal
+        trackSocialInteraction('like', postId, 'post_reaction_removed');
       } else {
         // Add reaction
         const { error } = await supabase
@@ -56,7 +61,7 @@ export const EnhancedPostReactions: React.FC<PostReactionsProps> = ({ postId, us
             post_id: postId,
             user_id: userId,
             emoji: emoji,
-            reaction_type: 'like' // Keep for backward compatibility
+            reaction_type: 'like'
           });
         
         if (error) throw error;
@@ -74,6 +79,9 @@ export const EnhancedPostReactions: React.FC<PostReactionsProps> = ({ postId, us
             return [...prev, { emoji, count: 1, userReacted: true }];
           }
         });
+
+        // Track reaction addition with emoji type
+        trackSocialInteraction('like', postId, 'post_reaction');
       }
       
       setIsPopoverOpen(false);
@@ -95,12 +103,11 @@ export const EnhancedPostReactions: React.FC<PostReactionsProps> = ({ postId, us
         return;
       }
 
-      // Count reactions by emoji
       const reactionCounts: { [key: string]: { count: number; userReacted: boolean } } = {};
       const currentUserReactions: string[] = [];
 
       data?.forEach(reaction => {
-        const emoji = reaction.emoji || '👍'; // Default for backward compatibility
+        const emoji = reaction.emoji || '👍';
         
         if (!reactionCounts[emoji]) {
           reactionCounts[emoji] = { count: 0, userReacted: false };
@@ -135,7 +142,6 @@ export const EnhancedPostReactions: React.FC<PostReactionsProps> = ({ postId, us
 
   return (
     <div className="flex items-center gap-2">
-      {/* Show existing reactions */}
       {reactions.length > 0 && (
         <div className="flex items-center gap-1 mr-2">
           {reactions.slice(0, 3).map((reaction) => (
@@ -160,7 +166,6 @@ export const EnhancedPostReactions: React.FC<PostReactionsProps> = ({ postId, us
         </div>
       )}
 
-      {/* Add reaction button */}
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
           <Button 

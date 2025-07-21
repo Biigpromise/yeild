@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { CreditCard, DollarSign } from "lucide-react";
+import { useAnalyticsTracking } from "@/hooks/useAnalyticsTracking";
 import type { BrandCampaign } from "@/hooks/useBrandCampaigns";
 
 const fundingSchema = z.object({
@@ -34,6 +35,7 @@ export const CampaignFundingDialog: React.FC<CampaignFundingDialogProps> = ({
 }) => {
   const { user } = useAuth();
   const [loading, setLoading] = React.useState(false);
+  const { trackBrandCampaign } = useAnalyticsTracking();
 
   const form = useForm<FundingFormData>({
     resolver: zodResolver(fundingSchema),
@@ -47,6 +49,13 @@ export const CampaignFundingDialog: React.FC<CampaignFundingDialogProps> = ({
     
     setLoading(true);
     try {
+      // Track funding attempt
+      trackBrandCampaign('fund_attempt', campaign.id, data.amount, {
+        payment_method: 'flutterwave',
+        original_budget: campaign.budget,
+        current_funded: campaign.funded_amount
+      });
+
       // Create payment transaction
       const { data: paymentData, error: paymentError } = await supabase.functions.invoke('flutterwave-payment', {
         body: {
@@ -63,6 +72,12 @@ export const CampaignFundingDialog: React.FC<CampaignFundingDialogProps> = ({
       if (paymentError) throw paymentError;
 
       if (paymentData?.payment_link) {
+        // Track successful payment link generation
+        trackBrandCampaign('fund_payment_link_generated', campaign.id, data.amount, {
+          payment_provider: 'flutterwave',
+          payment_link: paymentData.payment_link
+        });
+
         // Open payment page in new tab
         window.open(paymentData.payment_link, '_blank');
         toast.success('Payment window opened. Complete the payment to fund your campaign.');
@@ -71,6 +86,12 @@ export const CampaignFundingDialog: React.FC<CampaignFundingDialogProps> = ({
         throw new Error('Failed to create payment link');
       }
     } catch (error: any) {
+      // Track funding error
+      trackBrandCampaign('fund_error', campaign.id, data.amount, {
+        error_message: error.message,
+        error_type: 'payment_link_generation'
+      });
+
       toast.error('Failed to initiate payment: ' + error.message);
     } finally {
       setLoading(false);

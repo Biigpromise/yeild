@@ -1,228 +1,242 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { TrendingUp, Users, MousePointer, DollarSign, Activity, Calendar, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { analytics } from '@/services/analytics';
 
-interface AnalyticsDashboardProps {
-  className?: string;
+interface AnalyticsMetric {
+  name: string;
+  value: number;
+  change: number;
+  changeType: 'increase' | 'decrease' | 'neutral';
 }
 
-const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ className }) => {
+interface EventData {
+  event: string;
+  count: number;
+  percentage: number;
+}
+
+const AnalyticsDashboard: React.FC = () => {
   const { user } = useAuth();
-  const [analyticsData, setAnalyticsData] = useState({
-    totalUsers: 0,
-    totalSignups: 0,
-    activeUsers: 0,
-    taskCompletions: 0,
-    brandAccounts: 0
-  });
+  const [metrics, setMetrics] = useState<AnalyticsMetric[]>([
+    { name: 'Page Views', value: 1234, change: 12.5, changeType: 'increase' },
+    { name: 'Active Users', value: 567, change: -2.3, changeType: 'decrease' },
+    { name: 'Social Interactions', value: 890, change: 8.7, changeType: 'increase' },
+    { name: 'Task Completions', value: 234, change: 15.2, changeType: 'increase' },
+  ]);
 
-  useEffect(() => {
-    // In a real implementation, this would fetch from GA4 API
-    // For now, we'll use placeholder data
-    setAnalyticsData({
-      totalUsers: 25,
-      totalSignups: 8,
-      activeUsers: 12,
-      taskCompletions: 3,
-      brandAccounts: 2
-    });
-  }, []);
+  const [chartData] = useState([
+    { date: '2024-01-01', pageViews: 400, users: 240, interactions: 120 },
+    { date: '2024-01-02', pageViews: 300, users: 139, interactions: 180 },
+    { date: '2024-01-03', pageViews: 200, users: 980, interactions: 190 },
+    { date: '2024-01-04', pageViews: 278, users: 390, interactions: 200 },
+    { date: '2024-01-05', pageViews: 189, users: 480, interactions: 181 },
+    { date: '2024-01-06', pageViews: 239, users: 380, interactions: 250 },
+    { date: '2024-01-07', pageViews: 349, users: 430, interactions: 210 },
+  ]);
 
-  const chartData = [
-    { name: 'Mon', signups: 2, logins: 8 },
-    { name: 'Tue', signups: 1, logins: 12 },
-    { name: 'Wed', signups: 3, logins: 15 },
-    { name: 'Thu', signups: 2, logins: 10 },
-    { name: 'Fri', signups: 0, logins: 8 },
-    { name: 'Sat', signups: 1, logins: 6 },
-    { name: 'Sun', signups: 1, logins: 9 }
-  ];
+  const [eventData] = useState<EventData[]>([
+    { event: 'Page View', count: 1234, percentage: 45 },
+    { event: 'Social Interaction', count: 567, percentage: 20 },
+    { event: 'Task Completion', count: 234, percentage: 15 },
+    { event: 'User Registration', count: 123, percentage: 10 },
+    { event: 'Campaign Creation', count: 89, percentage: 10 },
+  ]);
 
-  const testAnalytics = () => {
-    if (user) {
-      // Test various analytics events
-      analytics.trackEvent({
-        event_name: 'test_event',
-        event_category: 'testing',
-        event_label: 'dashboard_test',
-        user_id: user.id
-      });
-      
-      analytics.trackPageView('analytics_dashboard', user.id, user.user_metadata?.user_type);
-      
-      console.log('Test analytics events fired');
-    }
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
+  const openGoogleAnalytics = () => {
+    window.open('https://analytics.google.com/analytics/web/#/p/your-property-id/reports/dashboard', '_blank');
+  };
+
+  const openGTM = () => {
+    window.open('https://tagmanager.google.com/#/container/accounts/your-account-id/containers/your-container-id/workspaces/your-workspace-id', '_blank');
   };
 
   return (
-    <div className={`space-y-6 ${className}`}>
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-        <Button onClick={testAnalytics} variant="outline" size="sm">
-          Test Analytics
-        </Button>
+    <div className="container mx-auto py-8 px-4">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
+          <p className="text-muted-foreground">Track your app's performance and user engagement</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={openGoogleAnalytics}>
+            <ExternalLink className="w-4 h-4 mr-2" />
+            GA4 Dashboard
+          </Button>
+          <Button variant="outline" size="sm" onClick={openGTM}>
+            <ExternalLink className="w-4 h-4 mr-2" />
+            GTM Workspace
+          </Button>
+        </div>
       </div>
 
-      {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.totalUsers}</div>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="events">Events</TabsTrigger>
+          <TabsTrigger value="social">Social</TabsTrigger>
+          <TabsTrigger value="monetization">Monetization</TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">New Signups</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.totalSignups}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.activeUsers}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Task Completions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.taskCompletions}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Brand Accounts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.brandAccounts}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Daily Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="signups" fill="#8884d8" name="Signups" />
-                <Bar dataKey="logins" fill="#82ca9d" name="Logins" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>User Growth Trend</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="signups" stroke="#8884d8" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Analytics Implementation Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Analytics Implementation Status</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span>Google Analytics 4</span>
-              <span className="text-green-600">✓ Implemented</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Google Tag Manager</span>
-              <span className="text-green-600">✓ Implemented</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Authentication Tracking</span>
-              <span className="text-green-600">✓ Implemented</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Page View Tracking</span>
-              <span className="text-green-600">✓ Implemented</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Custom Event Tracking</span>
-              <span className="text-green-600">✓ Implemented</span>
-            </div>
+        <TabsContent value="overview" className="space-y-6">
+          {/* Key Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {metrics.map((metric) => (
+              <Card key={metric.name}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{metric.value.toLocaleString()}</div>
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <TrendingUp className={`mr-1 h-3 w-3 ${
+                      metric.changeType === 'increase' ? 'text-green-500' : 
+                      metric.changeType === 'decrease' ? 'text-red-500' : 'text-gray-500'
+                    }`} />
+                    <span className={
+                      metric.changeType === 'increase' ? 'text-green-600' : 
+                      metric.changeType === 'decrease' ? 'text-red-600' : 'text-gray-600'
+                    }>
+                      {metric.change > 0 ? '+' : ''}{metric.change}%
+                    </span>
+                    <span className="ml-1">from last week</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Setup Instructions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Setup Instructions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4 text-sm">
-            <div>
-              <h4 className="font-semibold mb-2">1. Google Analytics 4 Setup</h4>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Go to <a href="https://analytics.google.com" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Google Analytics</a></li>
-                <li>Create a new GA4 property for your domain</li>
-                <li>Copy the Measurement ID and replace 'GA_MEASUREMENT_ID' in index.html</li>
-                <li>Set up enhanced ecommerce tracking</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-2">2. Google Tag Manager Setup</h4>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Go to <a href="https://tagmanager.google.com" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Google Tag Manager</a></li>
-                <li>Create a new container for your website</li>
-                <li>Copy the Container ID and replace 'GTM-PLACEHOLDER' in index.html</li>
-                <li>Configure GA4 tag through GTM</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-2">3. Google Search Console Setup</h4>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Go to <a href="https://search.google.com/search-console" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Google Search Console</a></li>
-                <li>Add and verify your domain property</li>
-                <li>Submit your XML sitemap</li>
-                <li>Monitor organic search performance</li>
-              </ul>
-            </div>
+          {/* Activity Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Activity Trends</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="pageViews" stroke="#8884d8" strokeWidth={2} />
+                  <Line type="monotone" dataKey="users" stroke="#82ca9d" strokeWidth={2} />
+                  <Line type="monotone" dataKey="interactions" stroke="#ffc658" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="events" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Event Distribution */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Event Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={eventData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percentage }) => `${name} ${percentage}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="count"
+                    >
+                      {eventData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Event Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Event Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {eventData.map((event, index) => (
+                    <div key={event.event} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        />
+                        <span className="font-medium">{event.event}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold">{event.count.toLocaleString()}</div>
+                        <div className="text-sm text-muted-foreground">{event.percentage}%</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        <TabsContent value="social" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Social Interactions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">456</div>
+                  <div className="text-sm text-blue-600">Likes</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">123</div>
+                  <div className="text-sm text-green-600">Comments</div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">89</div>
+                  <div className="text-sm text-purple-600">Shares</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="monetization" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Monetization Metrics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">$1,234</div>
+                  <div className="text-sm text-green-600">Total Earnings</div>
+                </div>
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">$567</div>
+                  <div className="text-sm text-blue-600">Withdrawals</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
