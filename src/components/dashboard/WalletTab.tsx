@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { WithdrawalButton } from '@/components/wallet/WithdrawalButton';
 import { PaymentMethodsButton } from '@/components/wallet/PaymentMethodsButton';
+import { WalletOverview } from '@/components/wallet/WalletOverview';
 
 interface WalletData {
   balance: number;
@@ -120,98 +121,11 @@ export const WalletTab: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Wallet Balance Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Wallet className="h-5 w-5" />
-              YIELD Wallet
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowBalance(!showBalance)}
-            >
-              {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="text-center p-6 bg-gradient-to-r from-yeild-yellow/10 to-yellow-400/10 rounded-lg">
-            <div className="text-3xl font-bold text-yeild-yellow mb-2">
-              {showBalance ? `${walletData.balance} Points` : '••• Points'}
-            </div>
-            <p className="text-muted-foreground">Available Balance</p>
-          </div>
-
-          {/* Wallet Stats */}
-          <div className="grid grid-cols-2 gap-4">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600 mb-1">
-                  {showBalance ? walletData.total_earned : '•••'}
-                </div>
-                <div className="text-sm text-muted-foreground">Total Earned</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-red-600 mb-1">
-                  {showBalance ? walletData.total_spent : '•••'}
-                </div>
-                <div className="text-sm text-muted-foreground">Total Spent</div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <WithdrawalButton userPoints={walletData.balance} />
-            <PaymentMethodsButton />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recent Transactions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {transactions.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              <CreditCard className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No transactions yet</p>
-              <p className="text-sm">Complete tasks to start earning points</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {transactions.map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="flex items-center gap-3">
-                    {getTransactionIcon(transaction.transaction_type)}
-                    <div>
-                      <div className="font-medium">{transaction.description}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {formatDistanceToNow(new Date(transaction.created_at), { addSuffix: true })}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className={`font-bold ${getTransactionColor(transaction.points)}`}>
-                      {transaction.points > 0 ? '+' : ''}{transaction.points} pts
-                    </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {transaction.transaction_type.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    <WalletOverview
+      userPoints={walletData.balance}
+      totalEarned={walletData.total_earned}
+      pendingWithdrawals={0}
+      completedWithdrawals={walletData.total_spent}
+    />
   );
 };

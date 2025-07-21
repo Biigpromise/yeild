@@ -140,40 +140,9 @@ export const WalletOverview: React.FC<WalletOverviewProps> = ({
         </Card>
       </div>
 
-      {/* Earning Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>How to Earn Points</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold text-blue-900 mb-2">Complete Tasks</h4>
-              <p className="text-sm text-blue-700">
-                Earn points by completing various tasks. Your current earning rate is <strong>{(earningMultiplier * 100).toFixed(0)}%</strong> of base points due to your Level {userLevel} status.
-              </p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <h4 className="font-semibold text-green-900 mb-2">Level Up Benefits</h4>
-              <p className="text-sm text-green-700">
-                Each level increases your earning capacity by 4%. Reach Level {userLevel + 1} to earn <strong>{(nextLevelMultiplier * 100).toFixed(0)}%</strong> of base task points!
-              </p>
-            </div>
-          </div>
-          
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <h4 className="font-semibold mb-2">Exchange Rate</h4>
-            <div className="flex items-center gap-4 text-sm">
-              <Badge variant="outline">1000 points = $1 USD</Badge>
-              <Badge variant="outline">Minimum withdrawal: 1000 points</Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Wallet Actions */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
