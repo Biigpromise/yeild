@@ -408,17 +408,19 @@ export const userService = {
           const profiles = item.profiles;
           
           // Enhanced type guard with strict null checks
-          if (profiles && typeof profiles === 'object' && 'id' in profiles && profiles.id) {
+          if (profiles && typeof profiles === 'object' && profiles !== null) {
             const validProfile = profiles as { id: string; name: string; email: string; profile_picture_url?: string };
-            return {
-              ...item,
-              referred_user: {
-                id: validProfile.id,
-                name: validProfile.name || '',
-                email: validProfile.email || '',
-                profile_picture_url: validProfile.profile_picture_url || undefined
-              }
-            };
+            if ('id' in validProfile && validProfile.id) {
+              return {
+                ...item,
+                referred_user: {
+                  id: validProfile.id,
+                  name: validProfile.name || '',
+                  email: validProfile.email || '',
+                  profile_picture_url: validProfile.profile_picture_url || undefined
+                }
+              };
+            }
           }
           
           return {
