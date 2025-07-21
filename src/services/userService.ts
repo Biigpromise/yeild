@@ -408,7 +408,7 @@ export const userService = {
           const profiles = item.profiles;
           return {
             ...item,
-            referred_user: profiles && profiles !== null && typeof profiles === 'object' && 'id' in profiles ? {
+            referred_user: profiles && typeof profiles === 'object' && profiles !== null && 'id' in profiles ? {
               id: profiles.id,
               name: profiles.name || '',
               email: profiles.email || '',
@@ -473,25 +473,35 @@ export const userService = {
 
         return (data || []).map(item => {
           const profiles = item.profiles;
+          
+          // Improved type guard with proper null checks
+          if (profiles && typeof profiles === 'object' && profiles !== null && 'id' in profiles) {
+            return {
+              ...item,
+              views_count: item.view_count || 0,
+              user: {
+                id: profiles.id,
+                name: profiles.name || '',
+                email: profiles.email || '',
+                profile_picture_url: profiles.profile_picture_url || undefined,
+                bio: profiles.bio || undefined,
+                followers_count: profiles.followers_count || 0,
+                following_count: profiles.following_count || 0,
+                points: profiles.points || 0,
+                level: String(profiles.level || 1),
+                active_referrals_count: profiles.active_referrals_count || 0,
+                total_referrals_count: profiles.total_referrals_count || 0,
+                tasks_completed: profiles.tasks_completed || 0,
+                created_at: profiles.created_at || '',
+                updated_at: profiles.updated_at || ''
+              }
+            };
+          }
+          
           return {
             ...item,
             views_count: item.view_count || 0,
-            user: profiles && typeof profiles === 'object' && profiles !== null && 'id' in profiles ? {
-              id: profiles.id,
-              name: profiles.name || '',
-              email: profiles.email || '',
-              profile_picture_url: profiles.profile_picture_url || undefined,
-              bio: profiles.bio || undefined,
-              followers_count: profiles.followers_count || 0,
-              following_count: profiles.following_count || 0,
-              points: profiles.points || 0,
-              level: String(profiles.level || 1),
-              active_referrals_count: profiles.active_referrals_count || 0,
-              total_referrals_count: profiles.total_referrals_count || 0,
-              tasks_completed: profiles.tasks_completed || 0,
-              created_at: profiles.created_at || '',
-              updated_at: profiles.updated_at || ''
-            } : undefined
+            user: undefined
           };
         });
       }, 'getStories');
