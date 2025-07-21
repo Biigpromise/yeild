@@ -66,18 +66,32 @@ const transformTask = (dbTask: any): Task => ({
 export const taskService = {
   // Get all active tasks for users
   async getTasks(): Promise<Task[]> {
+    console.log('TaskService: Getting tasks...');
     const tasks = await taskQueries.getTasks();
+    console.log('TaskService: Retrieved tasks:', tasks.length);
     return tasks.map(transformTask);
   },
 
   // Get task categories
   async getCategories(): Promise<TaskCategory[]> {
-    return await taskQueries.getCategories();
+    console.log('TaskService: Getting categories...');
+    const categories = await taskQueries.getCategories();
+    console.log('TaskService: Retrieved categories:', categories.length);
+    return categories;
   },
 
-  // Submit a task
+  // Submit a task with enhanced logging
   async submitTask(taskId: string, evidence: string, timeSpent?: number): Promise<boolean> {
-    return await taskSubmissionService.submitTask(taskId, evidence, timeSpent);
+    console.log('TaskService: Submitting task...', { taskId, evidenceLength: evidence?.length });
+    
+    try {
+      const result = await taskSubmissionService.submitTask(taskId, evidence, timeSpent);
+      console.log('TaskService: Submission result:', result);
+      return result;
+    } catch (error) {
+      console.error('TaskService: Submission failed:', error);
+      throw error;
+    }
   },
 
   // Check if user has submitted a task
@@ -85,11 +99,15 @@ export const taskService = {
     return await taskSubmissionService.hasUserSubmittedTask(taskId);
   },
 
-  // Get user's task submissions
+  // Get user's task submissions with enhanced logging
   async getUserSubmissions(): Promise<any[]> {
     try {
+      console.log('TaskService: Getting user submissions...');
       const user = (await supabase.auth.getUser()).data.user;
-      if (!user) return [];
+      if (!user) {
+        console.log('TaskService: No authenticated user');
+        return [];
+      }
 
       const { data, error } = await supabase
         .from('task_submissions')
@@ -100,10 +118,15 @@ export const taskService = {
         .eq('user_id', user.id)
         .order('submitted_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('TaskService: Error fetching submissions:', error);
+        throw error;
+      }
+      
+      console.log('TaskService: Retrieved submissions:', data?.length || 0);
       return data || [];
     } catch (error) {
-      console.error('Error fetching user submissions:', error);
+      console.error('TaskService: Error in getUserSubmissions:', error);
       return [];
     }
   },

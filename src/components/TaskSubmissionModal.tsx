@@ -30,7 +30,7 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
 
-  // NEW: Persist form draft (evidence text + preview)
+  // Persist form draft (evidence text + preview)
   const { clearDraft } = useTaskSubmissionPersistence(
     task ? task.id : null,
     evidence,
@@ -58,6 +58,8 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    console.log('TaskSubmissionModal: File selected:', file.name, file.type, file.size);
     
     // Check file type: Accept only images and videos
     if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
@@ -92,18 +94,19 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
       return;
     }
 
+    console.log('TaskSubmissionModal: Submit button clicked');
+    console.log('Evidence length:', evidence.trim().length);
+    console.log('Has file:', !!evidenceFile);
+
     if (!validateEvidence(evidence)) {
+      console.log('TaskSubmissionModal: Validation failed');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      console.log('Starting task submission...', {
-        taskId: task.id,
-        evidenceLength: evidence.trim().length,
-        hasFile: !!evidenceFile
-      });
+      console.log('TaskSubmissionModal: Starting submission process...');
 
       if (!evidence.trim() && !evidenceFile) {
         setValidationError("Please provide text or file evidence.");
@@ -118,9 +121,10 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
         evidenceFile || undefined
       );
 
-      console.log('Task submission result:', success);
+      console.log('TaskSubmissionModal: Submission result:', success);
 
       if (success) {
+        console.log('TaskSubmissionModal: Submission successful, clearing form...');
         setEvidence("");
         setValidationError("");
         setEvidenceFile(null);
@@ -130,10 +134,11 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
         onSubmitted();
         onClose();
       } else {
+        console.error('TaskSubmissionModal: Submission returned false');
         toast.error("Failed to submit task. Please check your details and try again.");
       }
     } catch (error) {
-      console.error("Detailed submission error:", error);
+      console.error("TaskSubmissionModal: Submission error:", error);
       
       // More specific error messages
       if (error instanceof Error) {
@@ -155,6 +160,7 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
   };
 
   const handleClose = () => {
+    console.log('TaskSubmissionModal: Closing modal');
     setEvidence("");
     setValidationError("");
     setEvidenceFile(null);

@@ -47,28 +47,35 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
   const loadData = async () => {
     try {
       setLoading(true);
+      console.log('TaskCategories: Loading data...');
+      
       const [categoriesData, tasksData, submissionsData] = await Promise.all([
         taskService.getCategories(),
         taskService.getTasks(),
         taskService.getUserSubmissions()
       ]);
       
-      console.log('Categories loaded:', categoriesData);
-      console.log('Tasks loaded:', tasksData);
+      console.log('TaskCategories: Data loaded', {
+        categories: categoriesData.length,
+        tasks: tasksData.length,
+        submissions: submissionsData.length
+      });
       
       // Filter categories to only show those that have tasks
       const categoriesWithTasks = categoriesData.filter(category => {
-        return tasksData.some(task => 
+        const hasMatchingTasks = tasksData.some(task => 
           task.category === category.name || 
           task.category === category.id
         );
+        console.log(`Category "${category.name}" has tasks:`, hasMatchingTasks);
+        return hasMatchingTasks;
       });
       
       setCategories(propCategories || categoriesWithTasks);
       setTasks(tasksData);
       setUserSubmissions(submissionsData);
     } catch (error) {
-      console.error("Error loading data:", error);
+      console.error("TaskCategories: Error loading data:", error);
       toast.error("Failed to load tasks");
     } finally {
       setLoading(false);
@@ -76,17 +83,21 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
   };
 
   const handleTaskSubmit = (task: Task) => {
+    console.log('TaskCategories: Task submit requested for:', task.id);
     setSelectedTask(task);
     setIsModalOpen(true);
   };
 
   const handleTaskSubmitted = () => {
+    console.log('TaskCategories: Task submitted, reloading data...');
     loadData(); // Reload data to update submission status
     toast.success("Task submitted successfully!");
   };
 
   const isTaskSubmitted = (taskId: string) => {
-    return userSubmissions.some(sub => sub.task_id === taskId);
+    const submitted = userSubmissions.some(sub => sub.task_id === taskId);
+    console.log(`Task ${taskId} submitted:`, submitted);
+    return submitted;
   };
 
   if (loading) {
@@ -111,6 +122,11 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
       task.category === category.id
     );
     return categoryTasks.length > 0;
+  });
+
+  console.log('TaskCategories: Rendering with', {
+    totalTasks: tasks.length,
+    categoriesWithTasks: categoriesWithTasks.length
   });
 
   return (
