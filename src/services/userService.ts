@@ -476,7 +476,7 @@ export const userService = {
           return {
             ...item,
             views_count: item.view_count || 0,
-            user: profiles && profiles !== null && typeof profiles === 'object' && 'id' in profiles ? {
+            user: profiles && typeof profiles === 'object' && profiles !== null && 'id' in profiles ? {
               id: profiles.id,
               name: profiles.name || '',
               email: profiles.email || '',
