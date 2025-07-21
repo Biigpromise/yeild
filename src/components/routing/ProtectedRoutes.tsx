@@ -1,48 +1,37 @@
-
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import CreateCampaign from '@/pages/CreateCampaign';
-import BrandDashboard from '@/pages/BrandDashboard';
-import { RoleProtectedRoute } from '@/components/RoleProtectedRoute';
+import { Routes, Route } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
 
-export const ProtectedRoutes = () => {
+// Import pages
+import BrandDashboard from '@/pages/BrandDashboard';
+import CreateCampaign from '@/pages/CreateCampaign';
+import BrandPayment from '@/pages/BrandPayment';
+
+export const ProtectedRoutes: React.FC = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-yeild-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yeild-yellow mx-auto mb-4"></div>
+          <p className="text-white">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
   return (
     <Routes>
-      <Route 
-        path="/brand-dashboard" 
-        element={
-          <RoleProtectedRoute requiredRole="brand">
-            <BrandDashboard />
-          </RoleProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/campaigns/create" 
-        element={
-          <RoleProtectedRoute requiredRole="brand">
-            <CreateCampaign />
-          </RoleProtectedRoute>
-        } 
-      />
-      <Route path="/campaigns/:id/payment-success" element={<PaymentSuccessPage />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/brand-dashboard" element={<BrandDashboard />} />
+      <Route path="/campaigns/create" element={<CreateCampaign />} />
+      <Route path="/brand/payment" element={<BrandPayment />} />
+      {/* Add more protected routes here */}
     </Routes>
-  );
-};
-
-const PaymentSuccessPage = () => {
-  return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-black mb-4">Payment Successful!</h1>
-        <p className="text-gray-600 mb-6">Your campaign has been funded and submitted for admin approval.</p>
-        <button 
-          onClick={() => window.location.href = '/brand-dashboard'}
-          className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800"
-        >
-          Return to Dashboard
-        </button>
-      </div>
-    </div>
   );
 };

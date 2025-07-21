@@ -6,12 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Eye, Edit, DollarSign, Users, Calendar, TrendingUp } from "lucide-react";
 import { useBrandCampaigns } from "@/hooks/useBrandCampaigns";
 import { useNavigate } from "react-router-dom";
-import { CampaignFundingForm } from "@/components/payments/CampaignFundingForm";
+import { CampaignFundingDialog } from "@/components/brand/CampaignFundingDialog";
 
 export const BrandCampaignsTab: React.FC = () => {
   const { campaigns, loading, refreshCampaigns } = useBrandCampaigns();
   const [selectedCampaign, setSelectedCampaign] = useState(null);
-  const [showFundingModal, setShowFundingModal] = useState(false);
+  const [showFundingDialog, setShowFundingDialog] = useState(false);
   const navigate = useNavigate();
 
   const getStatusColor = (status: string) => {
@@ -44,27 +44,40 @@ export const BrandCampaignsTab: React.FC = () => {
     }
   };
 
+  const getApprovalStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'rejected':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
   const handleFundCampaign = (campaign: any) => {
     setSelectedCampaign(campaign);
-    setShowFundingModal(true);
+    setShowFundingDialog(true);
   };
 
   if (loading) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-black">Your Campaigns</h2>
-          <Button className="bg-black text-white hover:bg-gray-800">
+          <h2 className="text-2xl font-bold text-white">Your Campaigns</h2>
+          <Button className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark">
             <Plus className="mr-2 h-4 w-4" />
             Create Campaign
           </Button>
         </div>
         <div className="grid gap-4">
           {[...Array(3)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
+            <Card key={i} className="animate-pulse bg-gray-800 border-gray-700">
               <CardContent className="p-6">
-                <div className="h-6 bg-gray-200 rounded mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-6 bg-gray-700 rounded mb-4"></div>
+                <div className="h-4 bg-gray-700 rounded w-3/4"></div>
               </CardContent>
             </Card>
           ))}
@@ -77,12 +90,12 @@ export const BrandCampaignsTab: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-black">Your Campaigns</h2>
-          <p className="text-gray-600">Create and manage your marketing campaigns</p>
+          <h2 className="text-2xl font-bold text-white">Your Campaigns</h2>
+          <p className="text-gray-300">Create and manage your marketing campaigns</p>
         </div>
         <Button 
           onClick={() => navigate('/campaigns/create')}
-          className="bg-black text-white hover:bg-gray-800"
+          className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark font-semibold"
         >
           <Plus className="mr-2 h-4 w-4" />
           Create Campaign
@@ -90,16 +103,16 @@ export const BrandCampaignsTab: React.FC = () => {
       </div>
 
       {campaigns.length === 0 ? (
-        <Card className="border border-gray-200">
+        <Card className="border-gray-700 bg-gray-800">
           <CardContent className="p-12 text-center">
-            <TrendingUp className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-black mb-2">No campaigns yet</h3>
-            <p className="text-gray-600 mb-6">
+            <TrendingUp className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">No campaigns yet</h3>
+            <p className="text-gray-400 mb-6">
               Start by creating your first campaign to reach our engaged community
             </p>
             <Button 
               onClick={() => navigate('/campaigns/create')}
-              className="bg-black text-white hover:bg-gray-800"
+              className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark font-semibold"
             >
               <Plus className="mr-2 h-4 w-4" />
               Create Your First Campaign
@@ -109,19 +122,22 @@ export const BrandCampaignsTab: React.FC = () => {
       ) : (
         <div className="grid gap-6">
           {campaigns.map((campaign) => (
-            <Card key={campaign.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+            <Card key={campaign.id} className="border-gray-700 bg-gray-800 hover:shadow-md transition-shadow">
               <CardHeader className="pb-4">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <CardTitle className="text-xl text-black mb-2">{campaign.title}</CardTitle>
-                    <p className="text-gray-600 text-sm">{campaign.description}</p>
+                    <CardTitle className="text-xl text-white mb-2">{campaign.title}</CardTitle>
+                    <p className="text-gray-400 text-sm">{campaign.description}</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Badge className={getStatusColor(campaign.status)}>
                       {campaign.status}
                     </Badge>
                     <Badge className={getPaymentStatusColor(campaign.payment_status || 'unpaid')}>
                       {campaign.payment_status || 'unpaid'}
+                    </Badge>
+                    <Badge className={getApprovalStatusColor(campaign.admin_approval_status || 'pending')}>
+                      Admin: {campaign.admin_approval_status || 'pending'}
                     </Badge>
                   </div>
                 </div>
@@ -130,33 +146,41 @@ export const BrandCampaignsTab: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">Budget:</span>
-                    <span className="font-medium text-black">₦{campaign.budget?.toLocaleString()}</span>
+                    <span className="text-sm text-gray-400">Budget:</span>
+                    <span className="font-medium text-white">₦{campaign.budget?.toLocaleString()}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">Funded:</span>
-                    <span className="font-medium text-black">₦{campaign.funded_amount?.toLocaleString() || 0}</span>
+                    <span className="text-sm text-gray-400">Funded:</span>
+                    <span className="font-medium text-white">₦{campaign.funded_amount?.toLocaleString() || 0}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">Created:</span>
-                    <span className="font-medium text-black">{new Date(campaign.created_at).toLocaleDateString()}</span>
+                    <span className="text-sm text-gray-400">Created:</span>
+                    <span className="font-medium text-white">{new Date(campaign.created_at).toLocaleDateString()}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">Status:</span>
-                    <span className="font-medium text-black">{campaign.admin_approval_status || 'pending'}</span>
+                    <span className="text-sm text-gray-400">Status:</span>
+                    <span className="font-medium text-white">{campaign.admin_approval_status || 'pending'}</span>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                {campaign.rejection_reason && (
+                  <div className="mb-4 p-3 bg-red-900/20 border border-red-800 rounded-lg">
+                    <p className="text-red-400 text-sm">
+                      <strong>Rejection Reason:</strong> {campaign.rejection_reason}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center pt-4 border-t border-gray-700">
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => navigate(`/campaigns/${campaign.id}`)}
-                      className="border-gray-300 text-black hover:bg-gray-50"
+                      className="border-gray-600 text-white hover:bg-gray-700"
                     >
                       <Eye className="mr-2 h-4 w-4" />
                       View Details
@@ -166,7 +190,7 @@ export const BrandCampaignsTab: React.FC = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => navigate(`/campaigns/${campaign.id}/edit`)}
-                        className="border-gray-300 text-black hover:bg-gray-50"
+                        className="border-gray-600 text-white hover:bg-gray-700"
                       >
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
@@ -177,7 +201,7 @@ export const BrandCampaignsTab: React.FC = () => {
                   {campaign.payment_status !== 'paid' && (
                     <Button
                       onClick={() => handleFundCampaign(campaign)}
-                      className="bg-black text-white hover:bg-gray-800"
+                      className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark font-semibold"
                       size="sm"
                     >
                       <DollarSign className="mr-2 h-4 w-4" />
@@ -191,32 +215,16 @@ export const BrandCampaignsTab: React.FC = () => {
         </div>
       )}
 
-      {/* Funding Modal */}
-      {showFundingModal && selectedCampaign && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold text-black">Fund Campaign</h3>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowFundingModal(false)}
-                  className="border-gray-300"
-                >
-                  Close
-                </Button>
-              </div>
-              <CampaignFundingForm
-                campaign={selectedCampaign}
-                onFundingComplete={() => {
-                  setShowFundingModal(false);
-                  refreshCampaigns();
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Funding Dialog */}
+      <CampaignFundingDialog
+        open={showFundingDialog}
+        onOpenChange={setShowFundingDialog}
+        campaign={selectedCampaign}
+        onFundingComplete={() => {
+          setShowFundingDialog(false);
+          refreshCampaigns();
+        }}
+      />
     </div>
   );
 };

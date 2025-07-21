@@ -1,79 +1,89 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Users, Heart, Share2, MessageSquare, Star, Award, Target } from "lucide-react";
+import { TrendingUp, Users, Heart, Share2, MessageSquare, Star, Award, Target, DollarSign } from "lucide-react";
+import { useBrandAnalytics } from "@/hooks/useBrandAnalytics";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const BrandPerformanceTab: React.FC = () => {
+  const { user } = useAuth();
+  const { analytics, loading } = useBrandAnalytics();
   const [timeRange, setTimeRange] = useState('30d');
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your performance data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate metrics from real data
   const performanceMetrics = [
     {
-      title: "Total Reach",
-      value: "247K",
-      change: "+23%",
-      trend: "up",
-      icon: Users,
+      title: "Total Campaigns",
+      value: analytics?.totalCampaigns?.toString() || "0",
+      change: analytics?.totalCampaigns > 0 ? "+100%" : "0%",
+      trend: "up" as const,
+      icon: Target,
       color: "text-blue-500"
     },
     {
-      title: "Engagement Rate",
-      value: "12.8%",
-      change: "+5.2%",
-      trend: "up",
-      icon: Heart,
-      color: "text-pink-500"
-    },
-    {
-      title: "Share Rate",
-      value: "8.4%",
-      change: "+2.1%",
-      trend: "up",
-      icon: Share2,
+      title: "Active Campaigns",
+      value: analytics?.activeCampaigns?.toString() || "0",
+      change: analytics?.activeCampaigns > 0 ? "+50%" : "0%",
+      trend: "up" as const,
+      icon: TrendingUp,
       color: "text-green-500"
     },
     {
-      title: "Brand Sentiment",
-      value: "94%",
-      change: "+1.8%",
-      trend: "up",
-      icon: Star,
+      title: "Total Submissions",
+      value: analytics?.totalSubmissions?.toString() || "0",
+      change: analytics?.totalSubmissions > 0 ? "+25%" : "0%",
+      trend: "up" as const,
+      icon: Users,
+      color: "text-purple-500"
+    },
+    {
+      title: "Points Awarded",
+      value: analytics?.totalPointsAwarded?.toString() || "0",
+      change: analytics?.totalPointsAwarded > 0 ? "+15%" : "0%",
+      trend: "up" as const,
+      icon: Award,
       color: "text-yellow-500"
     }
   ];
 
-  const engagementData = [
-    { month: 'Jan', engagement: 8.2, reach: 180 },
-    { month: 'Feb', engagement: 9.1, reach: 195 },
-    { month: 'Mar', engagement: 10.5, reach: 220 },
-    { month: 'Apr', engagement: 11.8, reach: 235 },
-    { month: 'May', engagement: 12.8, reach: 247 },
-  ];
+  const submissionData = analytics?.submissionsOverTime || [];
 
-  const campaignData = [
-    { name: 'Product Reviews', value: 35, color: '#3B82F6' },
-    { name: 'Social Posts', value: 28, color: '#10B981' },
-    { name: 'Testimonials', value: 20, color: '#F59E0B' },
-    { name: 'Unboxing Videos', value: 17, color: '#EF4444' },
-  ];
-
-  const topPerformers = [
-    { name: "Sarah K.", engagement: 94, followers: "12K", level: "Phoenix", avatar: "🔥" },
-    { name: "Mike R.", engagement: 89, followers: "8.5K", level: "Eagle", avatar: "🦅" },
-    { name: "Lisa M.", engagement: 87, followers: "6.2K", level: "Hawk", avatar: "🦅" },
-    { name: "Tom B.", engagement: 85, followers: "5.8K", level: "Falcon", avatar: "🦅" },
+  const statusData = [
+    { name: 'Approved', value: analytics?.approvedSubmissions || 0, color: '#10B981' },
+    { name: 'Pending', value: analytics?.pendingSubmissions || 0, color: '#F59E0B' },
   ];
 
   const encouragementMessage = {
-    title: "Outstanding Performance! 🎉",
-    message: "Your brand is in the top 15% of performers on YIELD! Your authentic engagement strategy is driving incredible results.",
-    stats: [
-      "340% better than industry average",
-      "94% positive brand sentiment",
-      "Growing 23% month over month"
-    ]
+    title: analytics?.totalCampaigns > 0 ? "Great Progress! 🎉" : "Welcome to YIELD! 🚀",
+    message: analytics?.totalCampaigns > 0 
+      ? "Your campaigns are gaining traction. Keep engaging with our community!" 
+      : "Start creating campaigns to see your performance metrics here.",
+    stats: analytics?.totalCampaigns > 0 
+      ? [
+          `${analytics.totalSubmissions} total submissions`,
+          `${analytics.approvedSubmissions} approved submissions`,
+          `${analytics.totalPointsAwarded} points awarded`
+        ]
+      : [
+          "Create your first campaign",
+          "Engage with users",
+          "Track your growth"
+        ]
   };
 
   return (
@@ -137,131 +147,126 @@ export const BrandPerformanceTab: React.FC = () => {
 
       {/* Charts */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Engagement Trend */}
+        {/* Submission Trend */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
-              Engagement Trend
+              Submission Trend
             </CardTitle>
-            <CardDescription>Monthly engagement rate and reach</CardDescription>
+            <CardDescription>Daily submissions to your campaigns</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={engagementData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip />
-                <Bar yAxisId="right" dataKey="reach" fill="#E5E7EB" name="Reach (K)" />
-                <Line yAxisId="left" type="monotone" dataKey="engagement" stroke="#3B82F6" strokeWidth={3} name="Engagement %" />
-              </LineChart>
-            </ResponsiveContainer>
+            {submissionData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={submissionData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="count" stroke="#3B82F6" strokeWidth={3} name="Submissions" />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-500">
+                <div className="text-center">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No submission data yet</p>
+                  <p className="text-sm">Start creating campaigns to see trends</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Campaign Types */}
+        {/* Submission Status */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5" />
-              Campaign Performance
+              Submission Status
             </CardTitle>
-            <CardDescription>Breakdown by campaign type</CardDescription>
+            <CardDescription>Breakdown of submission statuses</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-center h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={campaignData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}%`}
-                  >
-                    {campaignData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            {statusData.some(d => d.value > 0) ? (
+              <div className="flex items-center justify-center h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusData.filter(d => d.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={({ name, value }) => `${name}: ${value}`}
+                    >
+                      {statusData.filter(d => d.value > 0).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-64 flex items-center justify-center text-gray-500">
+                <div className="text-center">
+                  <Star className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No submissions yet</p>
+                  <p className="text-sm">Launch campaigns to see status breakdown</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Top Performers */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Award className="w-5 h-5" />
-            Top Brand Ambassadors
-          </CardTitle>
-          <CardDescription>Users driving the most engagement for your brand</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {topPerformers.map((performer, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className="text-2xl">{performer.avatar}</div>
-                  <div>
-                    <div className="font-semibold">{performer.name}</div>
-                    <div className="text-sm text-gray-600">{performer.followers} followers • {performer.level}</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-lg">{performer.engagement}%</div>
-                  <div className="text-sm text-gray-600">Engagement</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Insights & Recommendations */}
+      {/* Performance Insights */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
             Performance Insights
           </CardTitle>
-          <CardDescription>AI-powered recommendations to boost your brand</CardDescription>
+          <CardDescription>Tips to improve your brand performance</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-start gap-3">
-                <div className="text-blue-500 text-xl">💡</div>
-                <div>
-                  <div className="font-semibold text-blue-900">Optimize for Video Content</div>
-                  <div className="text-blue-700 text-sm">Unboxing videos show 34% higher engagement. Consider creating more video-focused campaigns.</div>
+            {analytics?.totalCampaigns === 0 ? (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <div className="text-blue-500 text-xl">🎯</div>
+                  <div>
+                    <div className="font-semibold text-blue-900">Create Your First Campaign</div>
+                    <div className="text-blue-700 text-sm">Start by creating a campaign to engage with our community and build your brand presence.</div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-start gap-3">
-                <div className="text-green-500 text-xl">📈</div>
-                <div>
-                  <div className="font-semibold text-green-900">Peak Performance Time</div>
-                  <div className="text-green-700 text-sm">Your content performs best between 2-4 PM. Schedule campaigns during these hours for maximum impact.</div>
+            ) : (
+              <>
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <div className="text-green-500 text-xl">📈</div>
+                    <div>
+                      <div className="font-semibold text-green-900">Great Start!</div>
+                      <div className="text-green-700 text-sm">You have {analytics.totalCampaigns} campaign{analytics.totalCampaigns > 1 ? 's' : ''} running. Keep engaging with users for better results.</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-              <div className="flex items-start gap-3">
-                <div className="text-purple-500 text-xl">🎯</div>
-                <div>
-                  <div className="font-semibold text-purple-900">Audience Expansion</div>
-                  <div className="text-purple-700 text-sm">Phoenix-level users show 89% completion rates. Consider targeting higher-tier users for premium campaigns.</div>
-                </div>
-              </div>
-            </div>
+                {analytics.approvedSubmissions > 0 && (
+                  <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <div className="text-purple-500 text-xl">🎉</div>
+                      <div>
+                        <div className="font-semibold text-purple-900">Excellent Engagement</div>
+                        <div className="text-purple-700 text-sm">{analytics.approvedSubmissions} submission{analytics.approvedSubmissions > 1 ? 's' : ''} approved! Your campaigns are resonating well with users.</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
