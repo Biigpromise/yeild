@@ -9,7 +9,7 @@ import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import AnalyticsSetup from './pages/AnalyticsSetup';
 import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import ProtectedRoute from './components/ProtectedRoute';
 import { SessionRecovery } from './components/auth/SessionRecovery';
 import SEOHead from './components/seo/SEOHead';
 import { AnalyticsIntegration } from './components/analytics/AnalyticsIntegration';

@@ -9,12 +9,14 @@ export const SessionRecovery = () => {
   const [isRecovering, setIsRecovering] = useState(false);
 
   useEffect(() => {
-    // Check for session recovery needs
-    const checkSessionHealth = async () => {
-      if (!user || !session) return;
+    // Only attempt session recovery if we have a user but potentially invalid session
+    if (!user || !session) return;
 
+    let timeoutId: NodeJS.Timeout;
+
+    const checkSessionHealth = async () => {
       try {
-        // Test if the current session is valid by making a simple API call
+        // Test if the current session is valid with a lightweight query
         const { error } = await supabase.from('profiles').select('id').limit(1);
         
         if (error && error.message.includes('JWT')) {
@@ -26,8 +28,7 @@ export const SessionRecovery = () => {
           
           if (refreshError) {
             console.error('Session refresh failed:', refreshError);
-            // Don't show error toast for silent recovery attempts
-            console.log('Signing out due to invalid session');
+            // Only sign out if refresh explicitly fails
             await supabase.auth.signOut();
           } else if (data.session) {
             console.log('Session refreshed successfully');
@@ -42,48 +43,18 @@ export const SessionRecovery = () => {
       }
     };
 
-    // Check session health on mount and every 5 minutes
-    checkSessionHealth();
-    const interval = setInterval(checkSessionHealth, 5 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, [user, session]);
-
-  // Listen for auth errors globally
-  useEffect(() => {
-    const handleAuthError = async (error: any) => {
-      if (error?.message?.includes('JWT') || error?.message?.includes('session')) {
-        console.log('Auth error detected, attempting recovery:', error);
-        setIsRecovering(true);
-        
-        try {
-          const { data, error: refreshError } = await supabase.auth.refreshSession();
-          if (refreshError) {
-            console.error('Auto-recovery failed:', refreshError);
-            await supabase.auth.signOut();
-          }
-        } catch (refreshError) {
-          console.error('Auto-recovery error:', refreshError);
-          await supabase.auth.signOut();
-        }
-        
-        setIsRecovering(false);
-      }
-    };
-
-    // This is a simple error listener - in a real app you might want a more sophisticated approach
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      if (event.reason?.message?.includes('JWT') || event.reason?.message?.includes('session')) {
-        handleAuthError(event.reason);
-      }
-    };
-
-    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    // Check session health after a delay and then periodically
+    timeoutId = setTimeout(() => {
+      checkSessionHealth();
+      // Set up periodic checks (every 10 minutes)
+      const interval = setInterval(checkSessionHealth, 10 * 60 * 1000);
+      return () => clearInterval(interval);
+    }, 5000); // Wait 5 seconds before first check
 
     return () => {
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, []);
+  }, [user, session]);
 
   if (isRecovering) {
     return (
