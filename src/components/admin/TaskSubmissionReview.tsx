@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, Eye, ExternalLink } from "lucide-react";
+import { CheckCircle, XCircle, Eye, ExternalLink, Image, Video, FileText } from "lucide-react";
 
 interface TaskSubmissionReviewProps {
   submissions: any[];
@@ -50,9 +50,80 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
         return "bg-green-100 text-green-800";
       case "rejected":
         return "bg-red-100 text-red-800";
+      case "flagged":
+        return "bg-orange-100 text-orange-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const renderFilePreview = (url: string, isVideo: boolean = false) => {
+    if (isVideo) {
+      return (
+        <video
+          src={url}
+          controls
+          className="max-w-sm max-h-40 rounded border"
+        >
+          Your browser does not support the video tag.
+        </video>
+      );
+    }
+    return (
+      <img
+        src={url}
+        alt="Evidence"
+        className="max-w-sm max-h-40 object-cover rounded border"
+      />
+    );
+  };
+
+  const renderMultipleFiles = (submission: any) => {
+    const evidenceFiles = submission.evidence_files || [];
+    const singleFile = submission.evidence_file_url;
+    
+    // Handle both old single file and new multiple files format
+    const allFiles = evidenceFiles.length > 0 ? evidenceFiles : (singleFile ? [singleFile] : []);
+    
+    if (allFiles.length === 0) {
+      return (
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <FileText className="h-4 w-4" />
+          <span>Text evidence only</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <Image className="h-4 w-4" />
+          <span>{allFiles.length} file(s) submitted</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {allFiles.map((url: string, index: number) => {
+            const isVideo = url.match(/\.(mp4|mov|avi|webm)$/i);
+            return (
+              <div key={index} className="relative group">
+                {renderFilePreview(url, !!isVideo)}
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button size="sm" variant="secondary" asChild>
+                    <a href={url} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </Button>
+                </div>
+                <div className="absolute bottom-2 left-2">
+                  <Badge variant="secondary" className="text-xs">
+                    {isVideo ? <Video className="h-3 w-3" /> : <Image className="h-3 w-3" />}
+                  </Badge>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -69,85 +140,104 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
                   <TableHead>User</TableHead>
                   <TableHead>Task</TableHead>
                   <TableHead>Submitted</TableHead>
+                  <TableHead>Files</TableHead>
                   <TableHead>Points</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {submissions.map((submission) => (
-                  <TableRow key={submission.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">
-                          {submission.profiles?.name || 'Unknown User'}
+                {submissions.map((submission) => {
+                  const fileCount = submission.evidence_files?.length || (submission.evidence_file_url ? 1 : 0);
+                  return (
+                    <TableRow key={submission.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">
+                            {submission.profiles?.name || 'Unknown User'}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {submission.profiles?.email}
+                          </div>
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          {submission.profiles?.email}
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{submission.tasks?.title}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {submission.tasks?.category}
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{submission.tasks?.title}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {submission.tasks?.category}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(submission.submitted_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {fileCount > 0 ? (
+                            <>
+                              <Image className="h-4 w-4 text-primary" />
+                              <span className="text-sm">{fileCount} file(s)</span>
+                            </>
+                          ) : (
+                            <>
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">Text only</span>
+                            </>
+                          )}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(submission.submitted_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {submission.calculated_points || submission.tasks?.points} pts
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(submission.status)}>
-                        {submission.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleViewSubmission(submission)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        {submission.status === 'pending' && (
-                          <>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
-                              onClick={() => {
-                                onUpdate(submission.id, 'approved');
-                              }}
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-                              onClick={() => {
-                                onUpdate(submission.id, 'rejected');
-                              }}
-                            >
-                              <XCircle className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {submission.calculated_points || submission.tasks?.points} pts
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(submission.status)}>
+                          {submission.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleViewSubmission(submission)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          {submission.status === 'pending' && (
+                            <>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
+                                onClick={() => {
+                                  onUpdate(submission.id, 'approved');
+                                }}
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                                onClick={() => {
+                                  onUpdate(submission.id, 'rejected');
+                                }}
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
                 {submissions.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
                       No task submissions found
                     </TableCell>
                   </TableRow>
@@ -160,13 +250,13 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
 
       {/* Review Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Review Task Submission</DialogTitle>
           </DialogHeader>
           
           {selectedSubmission && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">User</label>
@@ -187,44 +277,18 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
               
               <div>
                 <label className="text-sm font-medium">Evidence Provided</label>
-                <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                  <p className="text-sm">{selectedSubmission.evidence}</p>
-                  {selectedSubmission.evidence?.startsWith('http') && (
-                    <a 
-                      href={selectedSubmission.evidence} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-blue-600 text-sm mt-2 hover:underline"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      View Link
-                    </a>
-                  )}
-                  {selectedSubmission.evidence_file_url && (
-                    <div className="mt-2">
-                      {selectedSubmission.evidence_file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                        <img
-                          src={selectedSubmission.evidence_file_url}
-                          alt="Evidence"
-                          className="h-32 w-32 object-cover rounded border"
-                        />
-                      ) : selectedSubmission.evidence_file_url.match(/\.(mp4|mov|avi|webm)$/i) ? (
-                        <video width="220" height="180" controls className="rounded border">
-                          <source src={selectedSubmission.evidence_file_url} />
-                          Your browser does not support the video tag.
-                        </video>
-                      ) : (
-                        <a
-                          href={selectedSubmission.evidence_file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          Download evidence file
-                        </a>
-                      )}
+                <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                  {selectedSubmission.evidence && (
+                    <div className="mb-3">
+                      <h4 className="text-sm font-medium mb-2">Text Evidence:</h4>
+                      <p className="text-sm">{selectedSubmission.evidence}</p>
                     </div>
                   )}
+                  
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">File Evidence:</h4>
+                    {renderMultipleFiles(selectedSubmission)}
+                  </div>
                 </div>
               </div>
               

@@ -12,6 +12,16 @@ export interface ImageHash {
   created_at: string;
 }
 
+export interface GlobalImageUsage {
+  id: string;
+  hash_value: string;
+  user_id: string;
+  task_id?: string;
+  submission_id?: string;
+  file_url: string;
+  used_at: string;
+}
+
 export interface DuplicateImageFlag {
   id: string;
   original_hash_id: string;
@@ -22,7 +32,7 @@ export interface DuplicateImageFlag {
 }
 
 export const imageHashService = {
-  // Generate SHA-256 hash from file (replaced MD5 which is not supported)
+  // Generate SHA-256 hash from file
   async generateFileHash(file: File): Promise<string> {
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -31,44 +41,62 @@ export const imageHashService = {
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     } catch (error) {
       console.error('Hash generation failed:', error);
-      // Return a fallback hash based on file properties
       return `fallback_${file.name}_${file.size}_${file.lastModified}`;
     }
   },
 
-  // Check if hash already exists and flag if duplicate
-  async checkForDuplicate(hash: string, userId: string, taskId?: string): Promise<{ isDuplicate: boolean; originalSubmission?: ImageHash }> {
+  // Check if hash already exists globally (across all users)
+  async checkForGlobalDuplicate(hash: string, userId: string): Promise<{ isDuplicate: boolean; originalUser?: string }> {
     try {
-      const { data: existingHash, error } = await supabase
-        .from('image_hashes')
+      const { data: existingUsage, error } = await supabase
+        .from('global_image_usage')
         .select('*')
         .eq('hash_value', hash)
-        .neq('user_id', userId) // Don't flag if same user (they might resubmit)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error('Error checking for duplicate:', error);
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking for global duplicate:', error);
         return { isDuplicate: false };
       }
 
-      if (existingHash) {
-        // Create duplicate flag
-        await this.createDuplicateFlag(existingHash.id, hash, userId, taskId);
-        return { isDuplicate: true, originalSubmission: existingHash };
+      if (existingUsage) {
+        return { 
+          isDuplicate: true, 
+          originalUser: existingUsage.user_id 
+        };
       }
 
       return { isDuplicate: false };
     } catch (error) {
-      console.error('Error in duplicate check:', error);
+      console.error('Error in global duplicate check:', error);
       return { isDuplicate: false };
     }
   },
 
-  // Store image hash with improved error handling
-  async storeImageHash(hash: string, userId: string, fileUrl: string, taskId?: string, submissionId?: string): Promise<boolean> {
+  // Check multiple files for duplicates
+  async checkMultipleFilesForDuplicates(files: File[], userId: string): Promise<{ duplicates: string[], validFiles: File[] }> {
+    const duplicates: string[] = [];
+    const validFiles: File[] = [];
+
+    for (const file of files) {
+      const hash = await this.generateFileHash(file);
+      const { isDuplicate } = await this.checkForGlobalDuplicate(hash, userId);
+      
+      if (isDuplicate) {
+        duplicates.push(file.name);
+      } else {
+        validFiles.push(file);
+      }
+    }
+
+    return { duplicates, validFiles };
+  },
+
+  // Store image hash in global usage table
+  async storeGlobalImageUsage(hash: string, userId: string, fileUrl: string, taskId?: string, submissionId?: string): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from('image_hashes')
+        .from('global_image_usage')
         .insert({
           hash_value: hash,
           user_id: userId,
@@ -78,56 +106,61 @@ export const imageHashService = {
         });
 
       if (error) {
-        console.error('Error storing image hash:', error);
+        console.error('Error storing global image usage:', error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Error storing image hash:', error);
+      console.error('Error storing global image usage:', error);
       return false;
     }
   },
 
-  // Create duplicate flag for admin review
-  async createDuplicateFlag(originalHashId: string, duplicateHash: string, userId: string, taskId?: string): Promise<void> {
+  // Store multiple files in global usage
+  async storeMultipleGlobalUsage(files: File[], fileUrls: string[], userId: string, taskId?: string, submissionId?: string): Promise<boolean> {
     try {
-      // First, store the duplicate hash
-      const { data: duplicateHashRecord, error: hashError } = await supabase
-        .from('image_hashes')
-        .insert({
-          hash_value: duplicateHash,
+      const usageRecords = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const hash = await this.generateFileHash(files[i]);
+        usageRecords.push({
+          hash_value: hash,
           user_id: userId,
           task_id: taskId,
-          file_url: 'DUPLICATE_FLAGGED'
-        })
-        .select()
-        .single();
-
-      if (hashError || !duplicateHashRecord) {
-        console.error('Error storing duplicate hash:', hashError);
-        return;
-      }
-
-      // Create the duplicate flag
-      const { error: flagError } = await supabase
-        .from('duplicate_image_flags')
-        .insert({
-          original_hash_id: originalHashId,
-          duplicate_hash_id: duplicateHashRecord.id
+          submission_id: submissionId,
+          file_url: fileUrls[i]
         });
-
-      if (flagError) {
-        console.error('Error creating duplicate flag:', flagError);
       }
+
+      const { error } = await supabase
+        .from('global_image_usage')
+        .insert(usageRecords);
+
+      if (error) {
+        console.error('Error storing multiple global image usage:', error);
+        return false;
+      }
+
+      return true;
     } catch (error) {
-      console.error('Error creating duplicate flag:', error);
+      console.error('Error storing multiple global image usage:', error);
+      return false;
     }
+  },
+
+  // Legacy functions for backwards compatibility
+  async checkForDuplicate(hash: string, userId: string, taskId?: string): Promise<{ isDuplicate: boolean; originalSubmission?: ImageHash }> {
+    const { isDuplicate } = await this.checkForGlobalDuplicate(hash, userId);
+    return { isDuplicate };
+  },
+
+  async storeImageHash(hash: string, userId: string, fileUrl: string, taskId?: string, submissionId?: string): Promise<boolean> {
+    return this.storeGlobalImageUsage(hash, userId, fileUrl, taskId, submissionId);
   },
 
   // Admin functions
   admin: {
-    // Get all duplicate flags for admin dashboard
     async getDuplicateFlags(): Promise<DuplicateImageFlag[]> {
       try {
         const { data, error } = await supabase
@@ -152,7 +185,6 @@ export const imageHashService = {
       }
     },
 
-    // Mark duplicate flag as reviewed
     async markAsReviewed(flagId: string, adminNotes?: string): Promise<boolean> {
       try {
         const { error } = await supabase
@@ -175,6 +207,25 @@ export const imageHashService = {
         console.error('Error marking flag as reviewed:', error);
         toast.error('Failed to update duplicate flag');
         return false;
+      }
+    },
+
+    async getGlobalImageUsage(): Promise<GlobalImageUsage[]> {
+      try {
+        const { data, error } = await supabase
+          .from('global_image_usage')
+          .select('*')
+          .order('used_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching global image usage:', error);
+          return [];
+        }
+
+        return data || [];
+      } catch (error) {
+        console.error('Error fetching global image usage:', error);
+        return [];
       }
     }
   }

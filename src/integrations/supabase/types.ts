@@ -691,6 +691,36 @@ export type Database = {
         }
         Relationships: []
       }
+      global_image_usage: {
+        Row: {
+          file_url: string
+          hash_value: string
+          id: string
+          submission_id: string | null
+          task_id: string | null
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          file_url: string
+          hash_value: string
+          id?: string
+          submission_id?: string | null
+          task_id?: string | null
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          file_url?: string
+          hash_value?: string
+          id?: string
+          submission_id?: string | null
+          task_id?: string | null
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       image_hashes: {
         Row: {
           created_at: string | null
@@ -1833,6 +1863,7 @@ export type Database = {
           created_at: string | null
           evidence: string | null
           evidence_file_url: string | null
+          evidence_files: Json | null
           id: string
           point_breakdown: Json | null
           point_explanation: string | null
@@ -1850,6 +1881,7 @@ export type Database = {
           created_at?: string | null
           evidence?: string | null
           evidence_file_url?: string | null
+          evidence_files?: Json | null
           id?: string
           point_breakdown?: Json | null
           point_explanation?: string | null
@@ -1867,6 +1899,7 @@ export type Database = {
           created_at?: string | null
           evidence?: string | null
           evidence_file_url?: string | null
+          evidence_files?: Json | null
           id?: string
           point_breakdown?: Json | null
           point_explanation?: string | null

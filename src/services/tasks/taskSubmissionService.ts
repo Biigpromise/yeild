@@ -4,11 +4,11 @@ import { pointCalculationService, PointCalculationFactors } from "../pointCalcul
 import { imageHashService } from "../imageHashService";
 
 export const taskSubmissionService = {
-  async submitTask(taskId: string, evidence: string, timeSpent?: number, evidenceFile?: File): Promise<boolean> {
+  async submitTask(taskId: string, evidence: string, timeSpent?: number, evidenceFiles?: File[]): Promise<boolean> {
     console.log('=== TASK SUBMISSION START ===');
     console.log('Task ID:', taskId);
     console.log('Evidence length:', evidence?.length || 0);
-    console.log('Has file:', !!evidenceFile);
+    console.log('Files count:', evidenceFiles?.length || 0);
     console.log('Time spent:', timeSpent);
 
     try {
@@ -69,8 +69,29 @@ export const taskSubmissionService = {
 
       console.log('Task found:', { id: task.id, title: task.title, category: task.category });
 
-      // Step 4: Get user profile for point calculation
-      console.log('Step 4: Getting user profile...');
+      // Step 4: Check for duplicate images globally if files are provided
+      let validFiles: File[] = [];
+      let duplicateFiles: string[] = [];
+      
+      if (evidenceFiles && evidenceFiles.length > 0) {
+        console.log('Step 4: Checking for duplicate images...');
+        const duplicateCheck = await imageHashService.checkMultipleFilesForDuplicates(evidenceFiles, user.id);
+        validFiles = duplicateCheck.validFiles;
+        duplicateFiles = duplicateCheck.duplicates;
+
+        if (duplicateFiles.length > 0) {
+          throw new Error(`The following images have already been used: ${duplicateFiles.join(', ')}. Please upload different screenshots.`);
+        }
+
+        if (validFiles.length === 0) {
+          throw new Error("No valid files to upload. All files have been used before.");
+        }
+
+        console.log(`${validFiles.length} valid files to upload`);
+      }
+
+      // Step 5: Get user profile for point calculation
+      console.log('Step 5: Getting user profile...');
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('level, tasks_completed, points')
@@ -79,54 +100,31 @@ export const taskSubmissionService = {
 
       if (profileError) {
         console.warn('Warning: Could not fetch user profile:', profileError);
-        // Continue without profile data rather than failing
       }
 
       console.log('User profile:', profile || 'Not found');
 
-      // Step 5: File upload logic with improved duplicate detection
-      let evidenceFileUrl: string | undefined = undefined;
-      let isDuplicateImage = false;
+      // Step 6: File upload logic for multiple files
+      let evidenceFileUrls: string[] = [];
       
-      if (evidenceFile) {
-        console.log('Step 5: Processing file upload...');
+      if (validFiles.length > 0) {
+        console.log('Step 6: Processing multiple file uploads...');
         
-        try {
-          // Generate hash for duplicate detection with fallback
-          let fileHash: string;
-          try {
-            fileHash = await imageHashService.generateFileHash(evidenceFile);
-            console.log('Generated file hash successfully');
-          } catch (hashError) {
-            console.warn('File hashing failed, continuing without duplicate detection:', hashError);
-            fileHash = `fallback_${evidenceFile.name}_${evidenceFile.size}_${Date.now()}`;
-          }
+        for (let i = 0; i < validFiles.length; i++) {
+          const file = validFiles[i];
+          const ext = file.name.split('.').pop();
+          const filePath = `${user.id}/${taskId}/${Date.now()}_${i}.${ext}`;
           
-          // Check for duplicates (optional - don't fail submission if this fails)
-          try {
-            const duplicateCheck = await imageHashService.checkForDuplicate(fileHash, user.id, taskId);
-            if (duplicateCheck.isDuplicate) {
-              isDuplicateImage = true;
-              console.log('Duplicate image detected');
-              toast.warning("Possible duplicate image detected - submission flagged for admin review");
-            }
-          } catch (duplicateError) {
-            console.warn('Duplicate check failed, continuing without flagging:', duplicateError);
-          }
-
-          const ext = evidenceFile.name.split('.').pop();
-          const filePath = `${user.id}/${taskId}/${Date.now()}.${ext}`;
-          
-          console.log('Uploading file to path:', filePath);
+          console.log(`Uploading file ${i + 1}/${validFiles.length} to path:`, filePath);
           
           const { data: uploadData, error: uploadError } = await supabase
             .storage
             .from('task-evidence')
-            .upload(filePath, evidenceFile);
+            .upload(filePath, file);
 
           if (uploadError) {
-            console.error("File upload failed:", uploadError);
-            throw new Error(`Failed to upload evidence file: ${uploadError.message}`);
+            console.error(`File upload failed for ${file.name}:`, uploadError);
+            throw new Error(`Failed to upload evidence file ${file.name}: ${uploadError.message}`);
           }
 
           // Get public URL
@@ -135,23 +133,16 @@ export const taskSubmissionService = {
             .from('task-evidence')
             .getPublicUrl(filePath);
           
-          evidenceFileUrl = pubUrl?.publicUrl || undefined;
-          console.log('File uploaded successfully to:', evidenceFileUrl);
-
-          // Store image hash for future duplicate detection (optional)
-          try {
-            await imageHashService.storeImageHash(fileHash, user.id, evidenceFileUrl, taskId);
-          } catch (hashStoreError) {
-            console.warn('Failed to store image hash, continuing:', hashStoreError);
+          if (pubUrl?.publicUrl) {
+            evidenceFileUrls.push(pubUrl.publicUrl);
           }
-        } catch (fileError) {
-          console.error('File processing error:', fileError);
-          throw new Error(`File upload failed: ${fileError instanceof Error ? fileError.message : 'Unknown error'}`);
         }
+
+        console.log(`Successfully uploaded ${evidenceFileUrls.length} files`);
       }
 
-      // Step 6: Calculate points with enhanced factors
-      console.log('Step 6: Calculating points...');
+      // Step 7: Calculate points with enhanced factors
+      console.log('Step 7: Calculating points...');
       let calculatedPoints = task.points;
       let pointBreakdown = null;
       let pointExplanation = `Base points for ${task.title}`;
@@ -162,7 +153,7 @@ export const taskSubmissionService = {
             basePoints: task.points,
             difficulty: task.difficulty || 'medium',
             userLevel: profile.level || 1,
-            tasksCompletedToday: 0, // TODO: Calculate actual tasks completed today
+            tasksCompletedToday: 0,
             totalTasksCompleted: profile.tasks_completed || 0,
             taskCategory: task.category || 'general'
           };
@@ -175,22 +166,21 @@ export const taskSubmissionService = {
           console.log('Points calculated:', { base: task.points, calculated: calculatedPoints });
         } catch (pointError) {
           console.warn('Point calculation failed, using base points:', pointError);
-          // Continue with base points if calculation fails
         }
       }
 
-      // Step 7: Submit the task
-      console.log('Step 7: Submitting task to database...');
+      // Step 8: Submit the task
+      console.log('Step 8: Submitting task to database...');
       const submissionData = {
         user_id: user.id,
         task_id: taskId,
-        evidence: evidence,
-        evidence_file_url: evidenceFileUrl,
+        evidence: evidence || "Files submitted",
+        evidence_file_url: evidenceFileUrls[0] || null, // Keep first file for backwards compatibility
+        evidence_files: evidenceFileUrls, // Store all file URLs
         calculated_points: calculatedPoints,
         point_breakdown: pointBreakdown as any,
         point_explanation: pointExplanation,
-        status: isDuplicateImage ? 'flagged' as const : 'pending' as const,
-        admin_notes: isDuplicateImage ? 'Flagged for possible duplicate image' : undefined,
+        status: 'pending' as const,
         submitted_at: new Date().toISOString()
       };
 
@@ -199,7 +189,8 @@ export const taskSubmissionService = {
         task_id: submissionData.task_id,
         evidence_length: submissionData.evidence.length,
         status: submissionData.status,
-        calculated_points: submissionData.calculated_points
+        calculated_points: submissionData.calculated_points,
+        files_count: evidenceFileUrls.length
       });
 
       const { data: submission, error: submissionError } = await supabase
@@ -215,23 +206,24 @@ export const taskSubmissionService = {
 
       console.log('Task submission successful:', submission.id);
 
-      // Step 8: Update image hash with submission ID (optional)
-      if (evidenceFile && submission) {
+      // Step 9: Store global image usage for all files
+      if (validFiles.length > 0 && submission) {
         try {
-          const fileHash = await imageHashService.generateFileHash(evidenceFile);
-          await supabase
-            .from('image_hashes')
-            .update({ submission_id: submission.id })
-            .eq('hash_value', fileHash)
-            .eq('user_id', user.id);
+          await imageHashService.storeMultipleGlobalUsage(
+            validFiles,
+            evidenceFileUrls,
+            user.id,
+            taskId,
+            submission.id
+          );
+          console.log('Global image usage recorded for all files');
         } catch (hashError) {
-          console.warn('Failed to update image hash:', hashError);
-          // Don't fail the submission for this
+          console.warn('Failed to store global image usage:', hashError);
         }
       }
 
-      // Step 9: Record the submission in user_tasks table
-      console.log('Step 9: Recording submission in user_tasks...');
+      // Step 10: Record the submission in user_tasks table
+      console.log('Step 10: Recording submission in user_tasks...');
       try {
         await supabase
           .from('user_tasks')
@@ -245,15 +237,10 @@ export const taskSubmissionService = {
         console.log('User task record updated');
       } catch (userTaskError) {
         console.warn('Failed to update user_tasks:', userTaskError);
-        // Don't fail the submission for this
       }
 
-      // Step 10: Success feedback
-      if (isDuplicateImage) {
-        toast.success("Task submitted but flagged for review due to possible duplicate image.");
-      } else {
-        toast.success("Task submitted successfully! Awaiting review.");
-      }
+      // Step 11: Success feedback
+      toast.success(`Task submitted successfully with ${evidenceFileUrls.length} file(s)! Awaiting review.`);
       
       console.log('=== TASK SUBMISSION SUCCESS ===');
       return true;
@@ -263,7 +250,6 @@ export const taskSubmissionService = {
       console.error('Error details:', error);
       
       if (error instanceof Error) {
-        // Re-throw known errors to preserve error messages
         throw error;
       } else {
         throw new Error("Failed to submit task due to an unexpected error");
@@ -275,6 +261,8 @@ export const taskSubmissionService = {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
+
+      console.log('Fetching submissions for user:', user.id);
 
       const { data, error } = await supabase
         .from('task_submissions')
