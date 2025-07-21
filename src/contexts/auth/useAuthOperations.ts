@@ -1,3 +1,4 @@
+
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -161,8 +162,9 @@ export const useAuthOperations = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref');
       
-      // Always redirect to OAuth callback handler
-      const redirectUrl = `${window.location.origin}/auth/callback`;
+      // Use the current origin for the redirect URL to ensure it matches the configured domain
+      const currentOrigin = window.location.origin;
+      const redirectUrl = `${currentOrigin}/auth/callback`;
       
       const queryParams: Record<string, string> = {
         user_type: userType || 'user',
@@ -176,27 +178,40 @@ export const useAuthOperations = () => {
       
       console.log('OAuth redirect URL:', redirectUrl);
       console.log('OAuth query params:', queryParams);
+      console.log('Current origin:', currentOrigin);
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: redirectUrl,
-          queryParams
+          queryParams,
+          // Add skipBrowserRedirect for better error handling
+          skipBrowserRedirect: false
         }
       });
       
       if (error) {
         console.error('OAuth sign in error:', error);
-        const friendlyMessage = handleAuthError(error, `${provider} sign in`);
-        return { error: { ...error, message: friendlyMessage } };
+        
+        // Provide specific error messages for OAuth issues
+        if (error.message.includes('403') || error.message.includes('access')) {
+          toast.error('Google sign-in is not properly configured. Please contact support.');
+        } else if (error.message.includes('redirect')) {
+          toast.error('Redirect URL mismatch. Please try again or contact support.');
+        } else {
+          const friendlyMessage = handleAuthError(error, `${provider} sign in`);
+          toast.error(friendlyMessage);
+        }
+        
+        return { error };
       }
       
       console.log('OAuth sign in initiated successfully');
       return { error: null };
     } catch (error) {
       console.error("AuthContext: Provider sign in unexpected error:", error);
-      const friendlyMessage = handleAuthError(error, `${provider} sign in`);
-      return { error: { message: friendlyMessage } };
+      toast.error('An unexpected error occurred with Google sign-in. Please try again.');
+      return { error: { message: 'An unexpected error occurred with Google sign-in' } };
     }
   };
 
