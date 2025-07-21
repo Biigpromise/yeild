@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -403,15 +404,18 @@ export const userService = {
           throw new Error(`Failed to fetch user referrals: ${error.message}`);
         }
 
-        return (data || []).map(item => ({
-          ...item,
-          referred_user: item.profiles && typeof item.profiles === 'object' && 'id' in item.profiles && item.profiles !== null ? {
-            id: item.profiles.id,
-            name: item.profiles.name || '',
-            email: item.profiles.email || '',
-            profile_picture_url: item.profiles.profile_picture_url || undefined
-          } : undefined
-        }));
+        return (data || []).map(item => {
+          const profiles = item.profiles;
+          return {
+            ...item,
+            referred_user: profiles && profiles !== null && typeof profiles === 'object' && 'id' in profiles ? {
+              id: profiles.id,
+              name: profiles.name || '',
+              email: profiles.email || '',
+              profile_picture_url: profiles.profile_picture_url || undefined
+            } : undefined
+          };
+        });
       }, 'getUserReferrals');
     } catch (error) {
       console.error('Error fetching user referrals:', error);
@@ -467,26 +471,29 @@ export const userService = {
           throw new Error(`Failed to fetch stories: ${error.message}`);
         }
 
-        return (data || []).map(item => ({
-          ...item,
-          views_count: item.view_count || 0,
-          user: item.profiles && item.profiles !== null ? {
-            id: item.profiles.id,
-            name: item.profiles.name,
-            email: item.profiles.email,
-            profile_picture_url: item.profiles.profile_picture_url,
-            bio: item.profiles.bio || undefined,
-            followers_count: item.profiles.followers_count,
-            following_count: item.profiles.following_count,
-            points: item.profiles.points,
-            level: String(item.profiles.level),
-            active_referrals_count: item.profiles.active_referrals_count,
-            total_referrals_count: item.profiles.total_referrals_count,
-            tasks_completed: item.profiles.tasks_completed,
-            created_at: item.profiles.created_at,
-            updated_at: item.profiles.updated_at
-          } : undefined
-        }));
+        return (data || []).map(item => {
+          const profiles = item.profiles;
+          return {
+            ...item,
+            views_count: item.view_count || 0,
+            user: profiles && profiles !== null && typeof profiles === 'object' && 'id' in profiles ? {
+              id: profiles.id,
+              name: profiles.name,
+              email: profiles.email,
+              profile_picture_url: profiles.profile_picture_url,
+              bio: profiles.bio || undefined,
+              followers_count: profiles.followers_count,
+              following_count: profiles.following_count,
+              points: profiles.points,
+              level: String(profiles.level),
+              active_referrals_count: profiles.active_referrals_count,
+              total_referrals_count: profiles.total_referrals_count,
+              tasks_completed: profiles.tasks_completed,
+              created_at: profiles.created_at,
+              updated_at: profiles.updated_at
+            } : undefined
+          };
+        });
       }, 'getStories');
     } catch (error) {
       console.error('Error fetching stories:', error);
