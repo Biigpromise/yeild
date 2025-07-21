@@ -483,8 +483,8 @@ export const userService = {
         return (data || []).map(item => {
           const profiles = item.profiles;
           
-          // Enhanced type guard with strict null checks
-          if (profiles && typeof profiles === 'object' && 'id' in profiles && profiles !== null && profiles.id !== null) {
+          // More robust null checking for profiles
+          if (profiles && typeof profiles === 'object' && profiles !== null && 'id' in profiles && profiles.id) {
             const validProfile = profiles as { 
               id: string; 
               name: string; 
