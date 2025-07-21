@@ -5,12 +5,15 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 export const AnalyticsStatus: React.FC = () => {
-  // Check analytics status
+  // Enhanced GTM status detection
   const ga4Status = typeof window !== 'undefined' && window.gtag ? 'active' : 'inactive';
-  const gtmStatus = typeof window !== 'undefined' && window.dataLayer ? 'active' : 'inactive';
+  const gtmStatus = typeof window !== 'undefined' && 
+    window.dataLayer && 
+    window.dataLayer.some((item: any) => item.event === 'gtm.js' || item['gtm.start']) ? 'active' : 'inactive';
   const dataLayerStatus = typeof window !== 'undefined' && 
     window.dataLayer && 
-    Array.isArray(window.dataLayer) ? 'active' : 'inactive';
+    Array.isArray(window.dataLayer) && 
+    window.dataLayer.length > 0 ? 'active' : 'inactive';
 
   const getStatusIcon = (status: string) => {
     switch (status) {

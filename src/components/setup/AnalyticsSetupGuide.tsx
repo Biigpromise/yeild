@@ -7,6 +7,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, ExternalLink, Copy, AlertCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GTMSetupGuide } from './GTMSetupGuide';
+import { GTMTagSetup } from './GTMTagSetup';
+import { SearchConsoleSetup } from './SearchConsoleSetup';
 
 export const AnalyticsSetupGuide: React.FC = () => {
   const [completedSteps, setCompletedSteps] = useState<string[]>(['ga4']); // GA4 is already completed
@@ -42,14 +44,11 @@ export const AnalyticsSetupGuide: React.FC = () => {
       title: 'Google Tag Manager Setup',
       status: completedSteps.includes('gtm') ? 'completed' : 'pending',
       steps: [
-        'Go to https://tagmanager.google.com',
-        'Click "Create Account"',
-        'Account name: "YEILD Social Platform"',
-        'Container name: "yeildsocials.com"',
-        'Choose "Web" as the target platform',
-        'Copy your Container ID (format: GTM-XXXXXXX)',
-        'Replace GTM-XXXXXXXXX in index.html with your actual ID',
-        'Configure GA4 tag in GTM (recommended for advanced tracking)'
+        '✅ GTM Container created: GTM-KNMLZ7MQ',
+        '✅ Container ID updated in index.html',
+        '✅ Basic GTM implementation active',
+        'Configure advanced tags using GTM Tag Setup',
+        'Test GTM implementation in Preview mode'
       ]
     },
     {
@@ -74,21 +73,23 @@ export const AnalyticsSetupGuide: React.FC = () => {
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold">Analytics Setup Guide</h1>
         <p className="text-muted-foreground">
-          Follow these steps to set up Google Analytics 4, Google Tag Manager, and Google Search Console
+          Complete analytics setup with Google Analytics 4, Google Tag Manager, and Google Search Console
         </p>
       </div>
 
       <Alert>
         <CheckCircle className="h-4 w-4 text-green-500" />
         <AlertDescription>
-          <strong>✅ GA4 Setup Complete!</strong> Your Google Analytics 4 is now configured with ID: G-E8XEF9FWZR
+          <strong>✅ GA4 & GTM Setup Complete!</strong> Your analytics are now configured. Use the advanced guides below to optimize your setup.
         </AlertDescription>
       </Alert>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="gtm-detailed">GTM Setup Guide</TabsTrigger>
+          <TabsTrigger value="gtm-setup">GTM Setup</TabsTrigger>
+          <TabsTrigger value="gtm-tags">GTM Tags</TabsTrigger>
+          <TabsTrigger value="search-console">Search Console</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -106,27 +107,20 @@ export const AnalyticsSetupGuide: React.FC = () => {
                 <Badge className="bg-green-100 text-green-800">G-E8XEF9FWZR</Badge>
               </div>
 
+              <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="font-medium">GTM Container ID</span>
+                </div>
+                <Badge className="bg-green-100 text-green-800">GTM-KNMLZ7MQ</Badge>
+              </div>
+
               <div className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 text-yellow-500" />
-                  <span className="font-medium">GTM Container ID</span>
+                  <span className="font-medium">Search Console</span>
                 </div>
-                <Badge variant="secondary">Pending Setup</Badge>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-muted rounded">
-                <div>
-                  <p className="font-medium">GTM Container ID Placeholder</p>
-                  <code className="text-sm text-muted-foreground">GTM-XXXXXXXXX</code>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard('GTM-XXXXXXXXX', 'gtm')}
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  {copiedText === 'gtm' ? 'Copied!' : 'Copy'}
-                </Button>
+                <Badge variant="secondary">Setup Required</Badge>
               </div>
             </CardContent>
           </Card>
@@ -188,32 +182,40 @@ export const AnalyticsSetupGuide: React.FC = () => {
           ))}
         </TabsContent>
 
-        <TabsContent value="gtm-detailed">
+        <TabsContent value="gtm-setup">
           <GTMSetupGuide />
+        </TabsContent>
+
+        <TabsContent value="gtm-tags">
+          <GTMTagSetup />
+        </TabsContent>
+
+        <TabsContent value="search-console">
+          <SearchConsoleSetup />
         </TabsContent>
       </Tabs>
 
       {/* Verification */}
       <Card>
         <CardHeader>
-          <CardTitle>Verification & Testing</CardTitle>
+          <CardTitle>Next Steps & Verification</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <h4 className="font-medium">After updating the GTM Container ID:</h4>
+            <h4 className="font-medium">After completing the setup:</h4>
             <ul className="text-sm space-y-1 text-muted-foreground">
-              <li>• Use the Verification tab to test your setup</li>
-              <li>• Use Google Analytics Real-Time reports to verify tracking</li>
-              <li>• Test GTM Preview mode to confirm tag firing</li>
-              <li>• Check Search Console for crawl errors</li>
-              <li>• Use the analytics dashboard to monitor events</li>
+              <li>• Use the Verification tab to test your analytics implementation</li>
+              <li>• Configure advanced GTM tags for enhanced tracking</li>
+              <li>• Set up Search Console for SEO monitoring</li>
+              <li>• Monitor real-time data in Google Analytics</li>
+              <li>• Test conversion tracking and custom events</li>
             </ul>
           </div>
           
           <Alert>
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              <strong>Pro Tip:</strong> After setup, it can take 24-48 hours for data to fully populate in Google Analytics and Search Console.
+              <strong>Pro Tip:</strong> Use GTM Preview mode to test your tags before publishing, and check GA4 Real-Time reports to verify data flow.
             </AlertDescription>
           </Alert>
         </CardContent>
