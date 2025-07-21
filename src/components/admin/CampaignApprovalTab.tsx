@@ -67,7 +67,7 @@ export const CampaignApprovalTab = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRequests(data || []);
+      setRequests((data || []) as CampaignApprovalRequest[]);
     } catch (error: any) {
       console.error('Error fetching approval requests:', error);
       toast.error('Failed to fetch approval requests');
