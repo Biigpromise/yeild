@@ -1,44 +1,28 @@
 
-export class CurrencyService {
-  private static instance: CurrencyService;
-  private readonly exchangeRate = 1000; // 1000 points = $1 USD
+export const currencyService = {
+  pointsToUSD(points: number): number {
+    // Conversion rate: 100 points = $1 USD
+    return points / 100;
+  },
 
-  public static getInstance(): CurrencyService {
-    if (!CurrencyService.instance) {
-      CurrencyService.instance = new CurrencyService();
-    }
-    return CurrencyService.instance;
+  usdToPoints(usd: number): number {
+    // Conversion rate: $1 USD = 100 points
+    return usd * 100;
+  },
+
+  formatCurrency(amount: number, currency: string = 'USD'): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  },
+
+  formatPoints(points: number): string {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(points);
   }
-
-  public pointsToUSD(points: number): string {
-    const usdValue = points / this.exchangeRate;
-    return usdValue.toFixed(2);
-  }
-
-  public usdToPoints(usd: number): number {
-    return Math.round(usd * this.exchangeRate);
-  }
-
-  public formatPoints(points: number): string {
-    return points.toLocaleString();
-  }
-
-  public formatUSD(usd: number): string {
-    return `$${usd.toFixed(2)}`;
-  }
-
-  public getExchangeRate(): number {
-    return this.exchangeRate;
-  }
-
-  public calculateNetAmount(grossAmount: number, feePercent: number): number {
-    const fee = Math.ceil(grossAmount * (feePercent / 100));
-    return grossAmount - fee;
-  }
-
-  public calculateProcessingFee(amount: number, feePercent: number): number {
-    return Math.ceil(amount * (feePercent / 100));
-  }
-}
-
-export const currencyService = CurrencyService.getInstance();
+};
