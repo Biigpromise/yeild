@@ -18,7 +18,12 @@ export const useAuthGuard = (options: AuthGuardOptions = {}) => {
         setHasAccess(access);
       } catch (error) {
         console.error('Auth guard hook error:', error);
-        setHasAccess(false);
+        // For non-critical routes, default to allowing access rather than blocking
+        if (!options.requireAuth) {
+          setHasAccess(true);
+        } else {
+          setHasAccess(false);
+        }
       } finally {
         setChecking(false);
       }

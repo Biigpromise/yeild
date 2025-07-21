@@ -36,61 +36,93 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const authOperations = useAuthOperations();
 
   useEffect(() => {
-    // Get initial session
+    // Get initial session with better error handling
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      if (session?.user) {
-        setUser(session.user);
-        // Set user properties in analytics
-        const userType = session.user.user_metadata?.user_type || 'user';
-        analytics.setUserProperties(session.user.id, {
-          user_type: userType,
-          email: session.user.email,
-          created_at: session.user.created_at
-        });
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting initial session:', error);
+          // Don't throw, just set to null and continue
+          setSession(null);
+          setUser(null);
+        } else {
+          setSession(session);
+          if (session?.user) {
+            setUser(session.user);
+            // Set user properties in analytics safely
+            try {
+              const userType = session.user.user_metadata?.user_type || 'user';
+              analytics.setUserProperties(session.user.id, {
+                user_type: userType,
+                email: session.user.email,
+                created_at: session.user.created_at
+              });
+            } catch (analyticsError) {
+              console.warn('Analytics error (non-critical):', analyticsError);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Unexpected error getting session:', error);
+        setSession(null);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     getInitialSession();
 
-    // Listen for auth changes
+    // Listen for auth changes with better error handling
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
         
-        setSession(session);
-        if (session?.user) {
-          setUser(session.user);
-          const userType = session.user.user_metadata?.user_type || 'user';
-          
-          // Track authentication events
-          if (event === 'SIGNED_IN') {
-            const loginMethod = session.user.app_metadata?.provider || 'email';
-            analytics.trackLogin(session.user.id, userType, loginMethod as 'email' | 'google');
-            // Also track signup for new users (first time sign in)
-            if (session.user.created_at && new Date(session.user.created_at).getTime() > Date.now() - 60000) {
-              const signupMethod = session.user.app_metadata?.provider || 'email';
-              analytics.trackSignup(session.user.id, userType, signupMethod as 'email' | 'google');
+        try {
+          setSession(session);
+          if (session?.user) {
+            setUser(session.user);
+            const userType = session.user.user_metadata?.user_type || 'user';
+            
+            // Track authentication events safely
+            try {
+              if (event === 'SIGNED_IN') {
+                const loginMethod = session.user.app_metadata?.provider || 'email';
+                analytics.trackLogin(session.user.id, userType, loginMethod as 'email' | 'google');
+                // Also track signup for new users (first time sign in)
+                if (session.user.created_at && new Date(session.user.created_at).getTime() > Date.now() - 60000) {
+                  const signupMethod = session.user.app_metadata?.provider || 'email';
+                  analytics.trackSignup(session.user.id, userType, signupMethod as 'email' | 'google');
+                }
+              }
+              
+              // Set user properties
+              analytics.setUserProperties(session.user.id, {
+                user_type: userType,
+                email: session.user.email,
+                created_at: session.user.created_at
+              });
+            } catch (analyticsError) {
+              console.warn('Analytics error (non-critical):', analyticsError);
             }
+          } else {
+            // Track logout if user was previously signed in
+            if (user) {
+              try {
+                const userType = user.user_metadata?.user_type || 'user';
+                analytics.trackLogout(user.id, userType);
+              } catch (analyticsError) {
+                console.warn('Analytics error (non-critical):', analyticsError);
+              }
+            }
+            setUser(null);
           }
-          
-          // Set user properties
-          analytics.setUserProperties(session.user.id, {
-            user_type: userType,
-            email: session.user.email,
-            created_at: session.user.created_at
-          });
-        } else {
-          // Track logout if user was previously signed in
-          if (user) {
-            const userType = user.user_metadata?.user_type || 'user';
-            analytics.trackLogout(user.id, userType);
-          }
-          setUser(null);
+        } catch (error) {
+          console.error('Error in auth state change handler:', error);
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 

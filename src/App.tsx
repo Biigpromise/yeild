@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -9,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import AnalyticsSetup from './pages/AnalyticsSetup';
 import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { SessionRecovery } from './components/auth/SessionRecovery';
 import SEOHead from './components/seo/SEOHead';
 import { AnalyticsIntegration } from './components/analytics/AnalyticsIntegration';
 
@@ -23,6 +25,7 @@ function App() {
             <div className="min-h-screen bg-background">
               <SEOHead />
               <AnalyticsIntegration />
+              <SessionRecovery />
               <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route 
@@ -33,6 +36,7 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
+                {/* Make analytics setup publicly accessible */}
                 <Route 
                   path="/analytics-setup" 
                   element={<AnalyticsSetup />}

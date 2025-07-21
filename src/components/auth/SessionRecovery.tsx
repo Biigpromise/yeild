@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,7 +26,8 @@ export const SessionRecovery = () => {
           
           if (refreshError) {
             console.error('Session refresh failed:', refreshError);
-            toast.error('Session expired. Please sign in again.');
+            // Don't show error toast for silent recovery attempts
+            console.log('Signing out due to invalid session');
             await supabase.auth.signOut();
           } else if (data.session) {
             console.log('Session refreshed successfully');
@@ -70,14 +72,16 @@ export const SessionRecovery = () => {
     };
 
     // This is a simple error listener - in a real app you might want a more sophisticated approach
-    window.addEventListener('unhandledrejection', (event) => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       if (event.reason?.message?.includes('JWT') || event.reason?.message?.includes('session')) {
         handleAuthError(event.reason);
       }
-    });
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
     return () => {
-      window.removeEventListener('unhandledrejection', handleAuthError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);
 
