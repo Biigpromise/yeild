@@ -1,40 +1,29 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, CheckCircle, Trash2, Star, Search, Building2, Smartphone, CreditCard } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Plus, Trash2, Star, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { NIGERIAN_BANKS, getBanksByType, searchBanks, getBankByCode } from '@/services/bankService';
 import { 
-  verifyBankAccount, 
-  saveBankAccount, 
   getUserBankAccounts, 
-  setDefaultBankAccount, 
-  deleteBankAccount,
-  type SavedBankAccount,
-  type BankAccountVerificationResult
+  saveBankAccount, 
+  deleteBankAccount, 
+  setDefaultBankAccount,
+  verifyBankAccount,
+  type SavedBankAccount 
 } from '@/services/bankAccountVerification';
+import { getActiveBanks, getBanksByType } from '@/services/bankService';
 
 interface BankAccountSelectorProps {
-  onAccountSelect: (account: {
-    accountNumber: string;
-    bankCode: string;
-    bankName: string;
-    accountName: string;
-  }) => void;
-  selectedAccount?: {
-    accountNumber: string;
-    bankCode: string;
-    bankName: string;
-    accountName: string;
-  };
+  onAccountSelect: (account: any) => void;
+  selectedAccount: any;
 }
 
 export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
@@ -42,17 +31,21 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
   selectedAccount
 }) => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('saved');
   const [savedAccounts, setSavedAccounts] = useState<SavedBankAccount[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // New account form state
-  const [accountNumber, setAccountNumber] = useState('');
-  const [selectedBankCode, setSelectedBankCode] = useState('');
-  const [verificationResult, setVerificationResult] = useState<BankAccountVerificationResult | null>(null);
-  const [saveForFuture, setSaveForFuture] = useState(true);
+  const [newAccount, setNewAccount] = useState({
+    accountNumber: '',
+    bankCode: '',
+    bankName: '',
+    accountName: ''
+  });
+
+  const banks = getActiveBanks();
+  const traditionalBanks = getBanksByType('traditional');
+  const fintechBanks = getBanksByType('fintech');
+  const microfinanceBanks = getBanksByType('microfinance');
 
   useEffect(() => {
     if (user) {
@@ -63,60 +56,37 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
   const loadSavedAccounts = async () => {
     if (!user) return;
     
-    setLoading(true);
     try {
       const accounts = await getUserBankAccounts(user.id);
       setSavedAccounts(accounts);
-      
-      // Auto-select default account if none is selected
-      if (!selectedAccount && accounts.length > 0) {
-        const defaultAccount = accounts.find(acc => acc.is_default) || accounts[0];
-        onAccountSelect({
-          accountNumber: defaultAccount.account_number,
-          bankCode: defaultAccount.bank_code,
-          bankName: defaultAccount.bank_name,
-          accountName: defaultAccount.account_name
-        });
-      }
     } catch (error) {
       console.error('Error loading saved accounts:', error);
+      toast.error('Failed to load saved accounts');
     } finally {
       setLoading(false);
     }
   };
 
   const handleVerifyAccount = async () => {
-    if (!accountNumber || !selectedBankCode) {
+    if (!newAccount.accountNumber || !newAccount.bankCode) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    const selectedBank = getBankByCode(selectedBankCode);
-    if (!selectedBank) {
-      toast.error('Please select a valid bank');
-      return;
-    }
-
     setVerifying(true);
-    setVerificationResult(null);
-
     try {
       const result = await verifyBankAccount(
-        accountNumber,
-        selectedBankCode,
-        selectedBank.name
+        newAccount.accountNumber,
+        newAccount.bankCode,
+        newAccount.bankName
       );
 
-      setVerificationResult(result);
-
-      if (result.success) {
-        toast.success('Account verified successfully!');
-        onAccountSelect({
-          accountNumber: result.accountNumber,
-          bankCode: result.bankCode,
-          bankName: result.bankName,
-          accountName: result.accountName!
-        });
+      if (result.success && result.accountName) {
+        setNewAccount(prev => ({
+          ...prev,
+          accountName: result.accountName
+        }));
+        toast.success('Account verified successfully');
       } else {
         toast.error(result.error || 'Account verification failed');
       }
@@ -129,23 +99,32 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
   };
 
   const handleSaveAccount = async () => {
-    if (!user || !verificationResult?.success) return;
+    if (!user || !newAccount.accountName) {
+      toast.error('Please verify the account first');
+      return;
+    }
 
     try {
       const savedAccount = await saveBankAccount({
         user_id: user.id,
-        account_name: verificationResult.accountName!,
-        account_number: verificationResult.accountNumber,
-        bank_code: verificationResult.bankCode,
-        bank_name: verificationResult.bankName,
-        is_default: savedAccounts.length === 0, // First account becomes default
+        account_name: newAccount.accountName,
+        account_number: newAccount.accountNumber,
+        bank_code: newAccount.bankCode,
+        bank_name: newAccount.bankName,
+        is_default: savedAccounts.length === 0, // First account is default
         is_verified: true
       });
 
       if (savedAccount) {
-        setSavedAccounts(prev => [savedAccount, ...prev]);
-        toast.success('Account saved successfully!');
-        setActiveTab('saved');
+        setSavedAccounts(prev => [...prev, savedAccount]);
+        setNewAccount({
+          accountNumber: '',
+          bankCode: '',
+          bankName: '',
+          accountName: ''
+        });
+        setShowAddForm(false);
+        toast.success('Account saved successfully');
       }
     } catch (error) {
       console.error('Error saving account:', error);
@@ -153,261 +132,251 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
     }
   };
 
+  const handleDeleteAccount = async (accountId: string) => {
+    try {
+      const success = await deleteBankAccount(accountId);
+      if (success) {
+        setSavedAccounts(prev => prev.filter(acc => acc.id !== accountId));
+        if (selectedAccount?.id === accountId) {
+          onAccountSelect(null);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+    }
+  };
+
   const handleSetDefault = async (accountId: string) => {
     if (!user) return;
-
-    const success = await setDefaultBankAccount(user.id, accountId);
-    if (success) {
-      setSavedAccounts(prev => 
-        prev.map(acc => ({
-          ...acc,
-          is_default: acc.id === accountId
-        }))
-      );
+    
+    try {
+      const success = await setDefaultBankAccount(user.id, accountId);
+      if (success) {
+        setSavedAccounts(prev => 
+          prev.map(acc => ({
+            ...acc,
+            is_default: acc.id === accountId
+          }))
+        );
+      }
+    } catch (error) {
+      console.error('Error setting default account:', error);
     }
   };
 
-  const handleDeleteAccount = async (accountId: string) => {
-    const success = await deleteBankAccount(accountId);
-    if (success) {
-      setSavedAccounts(prev => prev.filter(acc => acc.id !== accountId));
-    }
+  const handleSelectAccount = (account: SavedBankAccount) => {
+    onAccountSelect({
+      id: account.id,
+      accountNumber: account.account_number,
+      bankCode: account.bank_code,
+      bankName: account.bank_name,
+      accountName: account.account_name,
+      isDefault: account.is_default,
+      isVerified: account.is_verified
+    });
   };
 
-  const filteredBanks = searchQuery 
-    ? searchBanks(searchQuery)
-    : NIGERIAN_BANKS;
-
-  const traditionalBanks = getBanksByType('traditional');
-  const microfinanceBanks = getBanksByType('microfinance');
-  const fintechBanks = getBanksByType('fintech');
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin mr-2" />
+            <span>Loading saved accounts...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Building2 className="h-5 w-5" />
-          Bank Account Selection
+        <CardTitle className="flex items-center justify-between">
+          <span>Bank Account</span>
+          <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Account
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Add New Bank Account</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bank">Bank</Label>
+                  <Select 
+                    value={newAccount.bankCode} 
+                    onValueChange={(value) => {
+                      const bank = banks.find(b => b.code === value);
+                      setNewAccount(prev => ({
+                        ...prev,
+                        bankCode: value,
+                        bankName: bank?.name || ''
+                      }));
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your bank" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <div className="p-2">
+                        <div className="font-medium text-sm mb-2 text-blue-600">Traditional Banks</div>
+                        {traditionalBanks.map((bank) => (
+                          <SelectItem key={bank.code} value={bank.code}>
+                            {bank.name}
+                          </SelectItem>
+                        ))}
+                      </div>
+                      
+                      <div className="p-2">
+                        <div className="font-medium text-sm mb-2 text-green-600">Fintech Banks</div>
+                        {fintechBanks.map((bank) => (
+                          <SelectItem key={bank.code} value={bank.code}>
+                            {bank.name}
+                          </SelectItem>
+                        ))}
+                      </div>
+
+                      <div className="p-2">
+                        <div className="font-medium text-sm mb-2 text-purple-600">Microfinance Banks</div>
+                        {microfinanceBanks.map((bank) => (
+                          <SelectItem key={bank.code} value={bank.code}>
+                            {bank.name}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="accountNumber">Account Number</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="accountNumber"
+                      placeholder="Enter 10-digit account number"
+                      value={newAccount.accountNumber}
+                      onChange={(e) => setNewAccount(prev => ({
+                        ...prev,
+                        accountNumber: e.target.value
+                      }))}
+                      maxLength={10}
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleVerifyAccount}
+                      disabled={verifying || !newAccount.accountNumber || !newAccount.bankCode}
+                    >
+                      {verifying ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        'Verify'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {newAccount.accountName && (
+                  <Alert>
+                    <CheckCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>Account Name:</strong> {newAccount.accountName}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAddForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSaveAccount}
+                    disabled={!newAccount.accountName}
+                  >
+                    Save Account
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="saved">Saved Accounts</TabsTrigger>
-            <TabsTrigger value="new">Add New Account</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="saved" className="space-y-4">
-            {loading ? (
-              <div className="text-center py-4">Loading saved accounts...</div>
-            ) : savedAccounts.length === 0 ? (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  No saved accounts found. Add a new account to get started.
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <div className="space-y-3">
-                {savedAccounts.map((account) => (
-                  <Card key={account.id} className={`cursor-pointer transition-colors ${
-                    selectedAccount?.accountNumber === account.account_number ? 'ring-2 ring-primary' : ''
-                  }`}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div 
-                          className="flex-1"
-                          onClick={() => onAccountSelect({
-                            accountNumber: account.account_number,
-                            bankCode: account.bank_code,
-                            bankName: account.bank_name,
-                            accountName: account.account_name
-                          })}
-                        >
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-medium">{account.account_name}</span>
-                            {account.is_default && (
-                              <Badge variant="secondary" className="text-xs">
-                                <Star className="h-3 w-3 mr-1" />
-                                Default
-                              </Badge>
-                            )}
-                            {account.is_verified && (
-                              <Badge variant="default" className="text-xs">
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Verified
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {account.bank_name} • {account.account_number}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {!account.is_default && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleSetDefault(account.id)}
-                            >
-                              Set Default
-                            </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteAccount(account.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="new" className="space-y-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="account-number">Account Number</Label>
-                <Input
-                  id="account-number"
-                  type="text"
-                  placeholder="Enter account number"
-                  value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value)}
-                  maxLength={10}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bank-search">Search Banks</Label>
-                <div className="relative">
-                  <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
-                  <Input
-                    id="bank-search"
-                    placeholder="Search banks..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bank-select">Select Bank</Label>
-                <Select value={selectedBankCode} onValueChange={setSelectedBankCode}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose your bank" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <div className="p-2">
-                      <div className="font-medium text-sm mb-2 flex items-center gap-2">
-                        <Building2 className="h-4 w-4" />
-                        Traditional Banks
-                      </div>
-                      {traditionalBanks.filter(bank => 
-                        !searchQuery || bank.name.toLowerCase().includes(searchQuery.toLowerCase())
-                      ).map((bank) => (
-                        <SelectItem key={bank.code} value={bank.code}>
-                          {bank.name}
-                        </SelectItem>
-                      ))}
-                    </div>
-                    
-                    <div className="p-2">
-                      <div className="font-medium text-sm mb-2 flex items-center gap-2">
-                        <Smartphone className="h-4 w-4" />
-                        Microfinance Banks
-                      </div>
-                      {microfinanceBanks.filter(bank => 
-                        !searchQuery || bank.name.toLowerCase().includes(searchQuery.toLowerCase())
-                      ).map((bank) => (
-                        <SelectItem key={bank.code} value={bank.code}>
-                          {bank.name}
-                        </SelectItem>
-                      ))}
-                    </div>
-
-                    <div className="p-2">
-                      <div className="font-medium text-sm mb-2 flex items-center gap-2">
-                        <CreditCard className="h-4 w-4" />
-                        Fintech Banks
-                      </div>
-                      {fintechBanks.filter(bank => 
-                        !searchQuery || bank.name.toLowerCase().includes(searchQuery.toLowerCase())
-                      ).map((bank) => (
-                        <SelectItem key={bank.code} value={bank.code}>
-                          {bank.name}
-                        </SelectItem>
-                      ))}
-                    </div>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Button 
-                onClick={handleVerifyAccount}
-                disabled={verifying || !accountNumber || !selectedBankCode}
-                className="w-full"
+        {savedAccounts.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p>No saved accounts</p>
+            <p className="text-sm">Add a bank account to get started</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {savedAccounts.map((account) => (
+              <div
+                key={account.id}
+                className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                  selectedAccount?.id === account.id
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => handleSelectAccount(account)}
               >
-                {verifying ? 'Verifying...' : 'Verify Account'}
-              </Button>
-
-              {verificationResult && (
-                <Alert className={verificationResult.success ? 'border-green-200' : 'border-red-200'}>
-                  <div className="flex items-center gap-2">
-                    {verificationResult.success ? (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription>
-                      {verificationResult.success ? (
-                        <div>
-                          <div className="font-medium">Account Verified!</div>
-                          <div>Account Name: {verificationResult.accountName}</div>
-                          <div>Bank: {verificationResult.bankName}</div>
-                          <div>Account Number: {verificationResult.accountNumber}</div>
-                        </div>
-                      ) : (
-                        <div className="text-red-700">
-                          {verificationResult.error}
-                        </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-medium">{account.account_name}</span>
+                      {account.is_default && (
+                        <Badge variant="outline" className="text-xs">
+                          <Star className="h-3 w-3 mr-1" />
+                          Default
+                        </Badge>
                       )}
-                    </AlertDescription>
+                      {account.is_verified && (
+                        <Badge variant="outline" className="text-xs text-green-600">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Verified
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {account.bank_name} • {account.account_number}
+                    </div>
                   </div>
-                </Alert>
-              )}
-
-              {verificationResult?.success && (
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="save-account"
-                      checked={saveForFuture}
-                      onChange={(e) => setSaveForFuture(e.target.checked)}
-                      className="rounded border-gray-300"
-                    />
-                    <Label htmlFor="save-account" className="text-sm">
-                      Save this account for future withdrawals
-                    </Label>
-                  </div>
-                  
-                  {saveForFuture && (
-                    <Button onClick={handleSaveAccount} className="w-full">
-                      Save Account
+                  <div className="flex items-center gap-2">
+                    {!account.is_default && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSetDefault(account.id);
+                        }}
+                      >
+                        <Star className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteAccount(account.id);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
-                  )}
+                  </div>
                 </div>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
