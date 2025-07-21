@@ -102,7 +102,7 @@ const AuthCallback = () => {
         }
 
         // For regular users - check if they need to complete onboarding
-        if (!profile || !profile.name || !profile.username) {
+        if (!profile || !profile.name) {
           console.log('User needs to complete profile, redirecting to progressive auth');
           navigate('/auth/progressive?step=1');
           return;
