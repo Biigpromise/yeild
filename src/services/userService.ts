@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -406,11 +405,11 @@ export const userService = {
 
         return (data || []).map(item => ({
           ...item,
-          referred_user: item.profiles && typeof item.profiles === 'object' && 'id' in item.profiles ? {
+          referred_user: item.profiles && typeof item.profiles === 'object' && 'id' in item.profiles && item.profiles.id ? {
             id: item.profiles.id,
-            name: item.profiles.name,
-            email: item.profiles.email,
-            profile_picture_url: item.profiles.profile_picture_url
+            name: item.profiles.name || '',
+            email: item.profiles.email || '',
+            profile_picture_url: item.profiles.profile_picture_url || undefined
           } : undefined
         }));
       }, 'getUserReferrals');
@@ -459,7 +458,7 @@ export const userService = {
           .from('stories')
           .select(`
             *,
-            profiles!inner(id, name, profile_picture_url, email, followers_count, following_count, points, level, active_referrals_count, total_referrals_count, tasks_completed, created_at, updated_at)
+            profiles!inner(id, name, profile_picture_url, email, followers_count, following_count, points, level, active_referrals_count, total_referrals_count, tasks_completed, created_at, updated_at, bio)
           `)
           .gt('expires_at', new Date().toISOString())
           .order('created_at', { ascending: false });
@@ -476,7 +475,7 @@ export const userService = {
             name: item.profiles.name,
             email: item.profiles.email,
             profile_picture_url: item.profiles.profile_picture_url,
-            bio: item.profiles.bio,
+            bio: item.profiles.bio || undefined,
             followers_count: item.profiles.followers_count,
             following_count: item.profiles.following_count,
             points: item.profiles.points,

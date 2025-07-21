@@ -152,13 +152,9 @@ export const referralService = {
           throw new Error(`Failed to create referral: ${createError.message}`);
         }
 
-        // Update referrer's total referral count
+        // Update referrer's total referral count using RPC function
         const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ 
-            total_referrals_count: supabase.sql`total_referrals_count + 1`
-          })
-          .eq('id', referrer.id);
+          .rpc('update_referral_counts');
 
         if (updateError) {
           console.error('Error updating referrer count:', updateError);

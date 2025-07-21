@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { userService } from '@/services/userService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -97,14 +96,14 @@ export const Profile = () => {
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !user) return;
 
     try {
-      const imageUrl = await fileUploadService.uploadProfilePicture(file);
-      if (imageUrl) {
+      const result = await fileUploadService.uploadProfilePicture(file, user.id);
+      if (result && result.url) {
         setEditForm(prev => ({
           ...prev,
-          profile_picture_url: imageUrl
+          profile_picture_url: result.url
         }));
       }
     } catch (error) {
