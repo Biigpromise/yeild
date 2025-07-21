@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,7 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
     // Check file type: Accept only images and videos
     if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
       toast.error("Only image and video files are allowed.");
@@ -97,29 +99,56 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
     setIsSubmitting(true);
 
     try {
+      console.log('Starting task submission...', {
+        taskId: task.id,
+        evidenceLength: evidence.trim().length,
+        hasFile: !!evidenceFile
+      });
+
       if (!evidence.trim() && !evidenceFile) {
         setValidationError("Please provide text or file evidence.");
         setIsSubmitting(false);
         return;
       }
+
       const success = await taskSubmissionService.submitTask(
         task.id,
         evidence.trim(),
         undefined,
         evidenceFile || undefined
       );
+
+      console.log('Task submission result:', success);
+
       if (success) {
         setEvidence("");
         setValidationError("");
         setEvidenceFile(null);
         setFilePreview(null);
-        clearDraft();    // Clear persisted draft
+        clearDraft();
+        toast.success("Task submitted successfully! It will be reviewed shortly.");
         onSubmitted();
         onClose();
+      } else {
+        toast.error("Failed to submit task. Please check your details and try again.");
       }
     } catch (error) {
-      console.error("Submission error in modal:", error);
-      toast.error("Failed to submit task. Please try again.");
+      console.error("Detailed submission error:", error);
+      
+      // More specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('auth')) {
+          toast.error("Authentication error. Please log in and try again.");
+        } else if (error.message.includes('permission')) {
+          toast.error("Permission denied. Please check your account status.");
+        } else if (error.message.includes('already submitted')) {
+          toast.error("You have already submitted this task.");
+        } else {
+          toast.error(`Submission failed: ${error.message}`);
+        }
+      } else {
+        toast.error("Failed to submit task. Please try again or contact support.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -130,7 +159,7 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
     setValidationError("");
     setEvidenceFile(null);
     setFilePreview(null);
-    clearDraft();      // Clear persisted draft
+    clearDraft();
     onClose();
   };
 

@@ -56,7 +56,15 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
       console.log('Categories loaded:', categoriesData);
       console.log('Tasks loaded:', tasksData);
       
-      setCategories(propCategories || categoriesData);
+      // Filter categories to only show those that have tasks
+      const categoriesWithTasks = categoriesData.filter(category => {
+        return tasksData.some(task => 
+          task.category === category.name || 
+          task.category === category.id
+        );
+      });
+      
+      setCategories(propCategories || categoriesWithTasks);
       setTasks(tasksData);
       setUserSubmissions(submissionsData);
     } catch (error) {
@@ -84,7 +92,7 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[...Array(6)].map((_, i) => (
+        {[...Array(3)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
               <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
@@ -96,55 +104,19 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
     );
   }
 
+  // Only show categories that have actual tasks
+  const categoriesWithTasks = categories.filter(category => {
+    const categoryTasks = tasks.filter(task => 
+      task.category === category.name || 
+      task.category === category.id
+    );
+    return categoryTasks.length > 0;
+  });
+
   return (
     <>
       <div className="space-y-8">
-        {/* Category Overview */}
-        {categories.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            {categories.map((category) => {
-              const IconComponent = iconMap[category.icon as keyof typeof iconMap] || FileText;
-              const categoryTasks = tasks.filter(task => task.category === category.name);
-
-              return (
-                <Card 
-                  key={category.id} 
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => onCategorySelect?.(category.name)}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg bg-gray-100 ${category.color || 'text-gray-600'}`}>
-                        <IconComponent className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1">
-                        <CardTitle className="text-sm font-medium">{category.name}</CardTitle>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                      {category.description}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <Badge variant="outline" className="text-xs">
-                        {categoryTasks.length} tasks
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {categoryTasks.length > 0 
-                          ? `~${Math.round(categoryTasks.reduce((sum, t) => sum + t.points, 0) / categoryTasks.length)} pts avg`
-                          : "No tasks"
-                        }
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Available Tasks */}
+        {/* Available Tasks - Main Focus */}
         <div>
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-bold">Available Tasks</h3>
@@ -179,6 +151,44 @@ const TaskCategories: React.FC<TaskCategoriesProps> = ({
             </div>
           )}
         </div>
+
+        {/* Category Overview - Only if there are categories with tasks */}
+        {categoriesWithTasks.length > 0 && (
+          <div>
+            <h3 className="text-xl font-bold mb-4">Browse by Category</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {categoriesWithTasks.map((category) => {
+                const IconComponent = iconMap[category.icon as keyof typeof iconMap] || FileText;
+                const categoryTasks = tasks.filter(task => 
+                  task.category === category.name || 
+                  task.category === category.id
+                );
+
+                return (
+                  <Card 
+                    key={category.id} 
+                    className="cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={() => onCategorySelect?.(category.name)}
+                  >
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center gap-2">
+                        <div className={`p-2 rounded-lg bg-gray-100 ${category.color || 'text-gray-600'}`}>
+                          <IconComponent className="h-4 w-4" />
+                        </div>
+                        <CardTitle className="text-sm font-medium">{category.name}</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <Badge variant="outline" className="text-xs">
+                        {categoryTasks.length} tasks
+                      </Badge>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       <TaskSubmissionModal
