@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -484,7 +483,7 @@ export const userService = {
         return (data || []).map(item => {
           const profiles = item.profiles;
           
-          // Improved type guard with proper null checks
+          // Enhanced type guard with strict null checks
           if (profiles && typeof profiles === 'object' && profiles !== null && 'id' in profiles) {
             const validProfile = profiles as { 
               id: string; 
