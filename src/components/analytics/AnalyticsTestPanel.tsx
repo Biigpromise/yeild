@@ -171,13 +171,15 @@ export const AnalyticsTestPanel: React.FC = () => {
                   {getStatusIcon(result.status)}
                   <span className="text-sm font-medium">{result.name}</span>
                 </div>
-                <Badge variant={result.status === 'success' ? 'default' : 'destructive'}>
-                  {result.status}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant={result.status === 'success' ? 'default' : 'destructive'}>
+                    {result.status}
+                  </Badge>
+                </div>
               </div>
             ))}
             <div className="text-xs text-muted-foreground mt-2">
-              <p>{result.message}</p>
+              <p>Tests completed. Check results above for status of each analytics function.</p>
             </div>
           </div>
         )}
