@@ -1,97 +1,125 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { LogOut, User } from 'lucide-react';
+import { useDashboard } from '@/hooks/useDashboard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { StatsCards } from '@/components/dashboard/StatsCards';
+import { TasksTab } from '@/components/dashboard/TasksTab';
+import { ProfileTab } from '@/components/dashboard/ProfileTab';
+import { WalletTab } from '@/components/dashboard/WalletTab';
+import { ReferralTab } from '@/components/dashboard/ReferralTab';
+import { LeaderboardTab } from '@/components/dashboard/LeaderboardTab';
+import { SocialTab } from '@/components/dashboard/SocialTab';
+import { ChatTab } from '@/components/dashboard/ChatTab';
+import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
+import { useOnboarding } from '@/hooks/useOnboarding';
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('tasks');
+  const { showOnboarding, userType, completeOnboarding } = useOnboarding();
+  const {
+    userProfile,
+    userStats,
+    userTasks,
+    userSubmissions,
+    completedTasks,
+    totalPointsEarned,
+    withdrawalStats,
+    loading,
+    loadUserData
+  } = useDashboard();
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
+  if (showOnboarding) {
+    return (
+      <OnboardingFlow 
+        userType={userType} 
+        onComplete={completeOnboarding}
+      />
+    );
+  }
+
+  if (loading && !user) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yeild-yellow"></div>
+          <div>Loading dashboard...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-black p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-4">
-            <img 
-              src="/lovable-uploads/54ccebd1-9d4c-452f-b0a9-0b9de0fcfebf.png" 
-              alt="YEILD Logo" 
-              className="w-12 h-12 object-contain"
+    <div className="min-h-screen bg-black text-white">
+      <DashboardHeader user={user} onTabChange={setActiveTab} />
+      
+      <div className="max-w-7xl mx-auto p-4 space-y-6">
+        <StatsCards 
+          userStats={userStats}
+          totalPointsEarned={totalPointsEarned}
+          withdrawalStats={withdrawalStats}
+        />
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-gray-800 border-gray-700">
+            <TabsTrigger value="tasks" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-black text-gray-300">
+              Tasks
+            </TabsTrigger>
+            <TabsTrigger value="wallet" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-black text-gray-300">
+              Wallet
+            </TabsTrigger>
+            <TabsTrigger value="referral" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-black text-gray-300">
+              Referral
+            </TabsTrigger>
+            <TabsTrigger value="leaderboard" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-black text-gray-300">
+              Leaderboard
+            </TabsTrigger>
+            <TabsTrigger value="social" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-black text-gray-300">
+              Social
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-black text-gray-300">
+              Profile
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="tasks" className="mt-6">
+            <TasksTab 
+              userTasks={userTasks}
+              userSubmissions={userSubmissions}
+              completedTasks={completedTasks}
+              onTaskUpdate={loadUserData}
             />
-            <h1 className="text-2xl font-bold text-yeild-yellow">YEILD Dashboard</h1>
-          </div>
-          <Button
-            onClick={handleSignOut}
-            variant="outline"
-            className="border-gray-600 text-gray-300 hover:bg-gray-800"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
-        </div>
+          </TabsContent>
 
-        {/* Welcome Card */}
-        <Card className="bg-gray-900 border-gray-700 mb-6">
-          <CardHeader>
-            <CardTitle className="text-yeild-yellow flex items-center gap-2">
-              <User className="w-5 h-5" />
-              Welcome back!
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-300 mb-2">
-              Email: <span className="text-white">{user?.email}</span>
-            </p>
-            <p className="text-gray-300">
-              You're logged in as a creator. Start completing tasks to earn rewards!
-            </p>
-          </CardContent>
-        </Card>
+          <TabsContent value="wallet" className="mt-6">
+            <WalletTab 
+              userStats={userStats}
+              withdrawalStats={withdrawalStats}
+              onWithdrawalUpdate={loadUserData}
+            />
+          </TabsContent>
 
-        {/* Dashboard Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="bg-gray-900 border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-white">Tasks</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-400">
-                Task management functionality coming soon...
-              </p>
-            </CardContent>
-          </Card>
+          <TabsContent value="referral" className="mt-6">
+            <ReferralTab userId={user?.id} />
+          </TabsContent>
 
-          <Card className="bg-gray-900 border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-white">Rewards</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-400">
-                Rewards system coming soon...
-              </p>
-            </CardContent>
-          </Card>
+          <TabsContent value="leaderboard" className="mt-6">
+            <LeaderboardTab />
+          </TabsContent>
 
-          <Card className="bg-gray-900 border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-white">Profile</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-400">
-                Profile management coming soon...
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+          <TabsContent value="social" className="mt-6">
+            <SocialTab />
+          </TabsContent>
+
+          <TabsContent value="profile" className="mt-6">
+            <ProfileTab 
+              userProfile={userProfile}
+              onProfileUpdate={loadUserData}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
