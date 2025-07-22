@@ -82,13 +82,13 @@ export const BrandBillingTab: React.FC = () => {
           <div className="grid md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
-                ${transactions.filter(t => t.status === 'successful').reduce((sum, t) => sum + t.amount, 0).toFixed(2)}
+                ₦{transactions.filter(t => t.status === 'successful').reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
               </div>
               <div className="text-sm text-blue-700">Total Funded</div>
             </div>
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
               <div className="text-2xl font-bold text-yellow-600">
-                ${transactions.filter(t => t.status === 'pending').reduce((sum, t) => sum + t.amount, 0).toFixed(2)}
+                ₦{transactions.filter(t => t.status === 'pending').reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
               </div>
               <div className="text-sm text-yellow-700">Pending</div>
             </div>
@@ -114,7 +114,7 @@ export const BrandBillingTab: React.FC = () => {
               <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">1</div>
               <div>
                 <h4 className="font-medium">Create Campaign</h4>
-                <p className="text-sm text-gray-600">Set up your campaign with a minimum budget of $10</p>
+                <p className="text-sm text-gray-600">Set up your campaign with a minimum budget of ₦1,000</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -161,7 +161,7 @@ export const BrandBillingTab: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <div className="font-medium">${transaction.amount.toFixed(2)}</div>
+                        <div className="font-medium">₦{transaction.amount.toLocaleString()}</div>
                         <Badge className={getStatusColor(transaction.status)}>
                           {transaction.status}
                         </Badge>

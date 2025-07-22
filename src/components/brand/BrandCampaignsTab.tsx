@@ -3,10 +3,12 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Eye, Edit, DollarSign, Users, Calendar, TrendingUp, AlertCircle } from "lucide-react";
+import { Plus, Eye, Edit, DollarSign, Users, Calendar, TrendingUp, AlertCircle, Trash2 } from "lucide-react";
 import { useBrandCampaigns } from "@/hooks/useBrandCampaigns";
 import { useNavigate } from "react-router-dom";
 import { CampaignFundingDialog } from "@/components/brand/CampaignFundingDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const BrandCampaignsTab: React.FC = () => {
   const { campaigns, loading, refreshCampaigns } = useBrandCampaigns();
@@ -60,6 +62,27 @@ export const BrandCampaignsTab: React.FC = () => {
   const handleFundCampaign = (campaign: any) => {
     setSelectedCampaign(campaign);
     setShowFundingDialog(true);
+  };
+
+  const handleDeleteCampaign = async (campaignId: string) => {
+    if (!confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('brand_campaigns')
+        .delete()
+        .eq('id', campaignId);
+
+      if (error) throw error;
+
+      toast.success('Campaign deleted successfully');
+      refreshCampaigns();
+    } catch (error: any) {
+      console.error('Error deleting campaign:', error);
+      toast.error('Failed to delete campaign. Please try again.');
+    }
   };
 
   if (loading) {
@@ -179,7 +202,7 @@ export const BrandCampaignsTab: React.FC = () => {
                 )}
 
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-gray-700">
-                  <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                   <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                     <Button
                       variant="outline"
                       size="sm"
@@ -190,15 +213,26 @@ export const BrandCampaignsTab: React.FC = () => {
                       View Details
                     </Button>
                     {campaign.status === 'draft' && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/campaigns/${campaign.id}/edit`)}
-                        className="border-gray-600 text-white hover:bg-gray-700 flex-1 sm:flex-none"
-                      >
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </Button>
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/campaigns/${campaign.id}/edit`)}
+                          className="border-gray-600 text-white hover:bg-gray-700 flex-1 sm:flex-none"
+                        >
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteCampaign(campaign.id)}
+                          className="border-red-600 text-red-400 hover:bg-red-900/20 flex-1 sm:flex-none"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </Button>
+                      </>
                     )}
                   </div>
                   

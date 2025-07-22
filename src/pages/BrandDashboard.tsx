@@ -8,6 +8,7 @@ import { BrandBillingTab } from "@/components/brand/BrandBillingTab";
 import { BrandPerformanceTab } from "@/components/brand/BrandPerformanceTab";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { EmailConfirmationGuard } from "@/components/brand/EmailConfirmationGuard";
+import { BrandWalletCard } from "@/components/brand/BrandWalletCard";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -120,7 +121,10 @@ const BrandDashboard: React.FC = () => {
                             <BrandAnalyticsTab />
                         </TabsContent>
                         <TabsContent value="billing" className="mt-6">
-                            <BrandBillingTab />
+                            <div className="space-y-6">
+                                <BrandWalletCard onBalanceUpdate={() => {}} />
+                                <BrandBillingTab />
+                            </div>
                         </TabsContent>
                         <TabsContent value="profile" className="mt-6">
                             <BrandProfileTab />

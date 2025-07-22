@@ -14,6 +14,7 @@ import BrandDashboard from '@/pages/BrandDashboard';
 import CreateCampaign from '@/pages/CreateCampaign';
 import BrandPayment from '@/pages/BrandPayment';
 import AdminDashboard from '@/pages/AdminDashboard';
+import WithdrawalPage from '@/pages/WithdrawalPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,7 @@ function App() {
                 <Route path="/campaigns/create" element={<CreateCampaign />} />
                 <Route path="/brand/payment" element={<BrandPayment />} />
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/withdrawal" element={<WithdrawalPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
               <Toaster position="top-right" />
