@@ -80,7 +80,7 @@ export const taskQueries = {
   },
 
   // Get user's task submissions with enhanced logging
-  async getUserSubmissions(): Promise<TaskSubmission[]> {
+  async getUserSubmissions(): Promise<any[]> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {

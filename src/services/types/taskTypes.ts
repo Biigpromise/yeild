@@ -32,8 +32,17 @@ export interface TaskSubmission {
   task_id: string;
   user_id: string;
   evidence: string;
+  submission_text: string;
   status: string;
   submitted_at: string;
   reviewed_at?: string;
   admin_notes?: string;
+  image_url?: string;
+  calculated_points?: number;
+  evidence_file_url?: string;
+  evidence_files?: any;
+  point_breakdown?: any;
+  point_explanation?: string;
+  profiles?: any;
+  tasks?: any;
 }

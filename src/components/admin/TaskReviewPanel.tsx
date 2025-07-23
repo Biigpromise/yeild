@@ -32,9 +32,9 @@ interface TaskSubmission {
 }
 
 export const TaskReviewPanel: React.FC = () => {
-  const [submissions, setSubmissions] = useState<TaskSubmission[]>([]);
+  const [submissions, setSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSubmission, setSelectedSubmission] = useState<TaskSubmission | null>(null);
+  const [selectedSubmission, setSelectedSubmission] = useState<any | null>(null);
   const [reviewNotes, setReviewNotes] = useState('');
   const [qualityScore, setQualityScore] = useState<number>(80);
   const [filterStatus, setFilterStatus] = useState<string>('pending');

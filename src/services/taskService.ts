@@ -1,18 +1,10 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Task, TaskCategory, TaskSubmission } from '@/services/types/taskTypes';
 
-export interface TaskSubmission {
-  id: string;
-  user_id: string;
-  task_id: string;
-  submission_text: string;
-  image_url?: string;
-  status: 'pending' | 'approved' | 'rejected';
-  submitted_at: string;
-  reviewed_at?: string;
-  admin_notes?: string;
-}
+// Re-export types for convenience
+export type { Task, TaskCategory, TaskSubmission } from '@/services/types/taskTypes';
 
 export const taskService = {
   async submitTask(taskId: string, submissionText: string, imageUrl?: string) {
@@ -131,6 +123,124 @@ export const taskService = {
     } catch (error) {
       console.error('Error fetching task:', error);
       throw error;
+    }
+  },
+
+  async getTasks() {
+    return this.getAllTasks();
+  },
+
+  async getCategories() {
+    try {
+      const { data, error } = await supabase
+        .from('task_categories')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      return [];
+    }
+  },
+
+  admin: {
+    async getAllTasks() {
+      try {
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
+        console.error('Error fetching admin tasks:', error);
+        return [];
+      }
+    },
+
+    async getAllSubmissions() {
+      try {
+        const { data, error } = await supabase
+          .from('task_submissions')
+          .select(`
+            *,
+            tasks (
+              id,
+              title,
+              description,
+              points,
+              category,
+              difficulty,
+              brand_name
+            ),
+            profiles (
+              display_name,
+              avatar_url
+            )
+          `)
+          .order('submitted_at', { ascending: false });
+
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
+        console.error('Error fetching admin submissions:', error);
+        return [];
+      }
+    },
+
+    async createTask(taskData: any) {
+      try {
+        const { data, error } = await supabase
+          .from('tasks')
+          .insert(taskData)
+          .select()
+          .single();
+
+        if (error) throw error;
+        toast.success('Task created successfully');
+        return data;
+      } catch (error) {
+        console.error('Error creating task:', error);
+        toast.error('Failed to create task');
+        throw error;
+      }
+    },
+
+    async deleteTask(taskId: string) {
+      try {
+        const { error } = await supabase
+          .from('tasks')
+          .delete()
+          .eq('id', taskId);
+
+        if (error) throw error;
+        return true;
+      } catch (error) {
+        console.error('Error deleting task:', error);
+        return false;
+      }
+    },
+
+    async updateSubmissionStatus(submissionId: string, status: 'approved' | 'rejected', notes?: string) {
+      try {
+        const { error } = await supabase
+          .from('task_submissions')
+          .update({
+            status,
+            admin_notes: notes,
+            reviewed_at: new Date().toISOString()
+          })
+          .eq('id', submissionId);
+
+        if (error) throw error;
+        return true;
+      } catch (error) {
+        console.error('Error updating submission status:', error);
+        throw error;
+      }
     }
   }
 };

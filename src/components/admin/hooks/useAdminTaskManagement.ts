@@ -4,7 +4,7 @@ import { taskService, Task } from "@/services/taskService";
 import { toast } from "sonner";
 
 export function useAdminTaskManagement() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
