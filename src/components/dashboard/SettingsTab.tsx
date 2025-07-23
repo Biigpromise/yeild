@@ -1,15 +1,27 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Moon, Sun, Monitor, User, Bell, Shield, Palette } from 'lucide-react';
 
 export const SettingsTab: React.FC = () => {
-  const { theme, setTheme } = useTheme();
+  // Add error handling for theme context
+  let theme = 'dark';
+  let setTheme = (newTheme: string) => {
+    console.log('Theme change requested:', newTheme);
+  };
+
+  try {
+    const themeContext = useTheme();
+    theme = themeContext.theme;
+    setTheme = themeContext.setTheme;
+  } catch (error) {
+    console.error('Theme context not available, using fallback');
+  }
 
   return (
     <div className="space-y-6">

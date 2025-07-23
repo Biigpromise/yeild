@@ -68,36 +68,56 @@ const Dashboard: React.FC = () => {
   }
 
   const renderTabContent = () => {
-    switch (activeTab) {
-      case 'tasks':
-        return <TasksTab userStats={userStats} />;
-      case 'wallet':
-        return <WalletTab />;
-      case 'referral':
-        return <ReferralsTab />;
-      case 'profile':
-        return <ProfileTab />;
-      case 'leaderboard':
-        return <LeaderboardTab />;
-      case 'social':
-        return <SocialTab />;
-      case 'stories':
-        return <StoriesTab />;
-      case 'settings':
-        return <SettingsTab />;
-      default:
-        return (
-          <>
-            {/* Stats Grid */}
-            <SimplifiedDashboardStats userStats={userStats} />
-            
-            {/* Central CTA */}
-            <DashboardCTA />
-            
-            {/* Progress Section */}
-            <DashboardProgress userStats={userStats} />
-          </>
-        );
+    try {
+      switch (activeTab) {
+        case 'tasks':
+          return <TasksTab userStats={userStats} />;
+        case 'wallet':
+          return <WalletTab />;
+        case 'referral':
+          return <ReferralsTab />;
+        case 'profile':
+          return <ProfileTab />;
+        case 'leaderboard':
+          return <LeaderboardTab />;
+        case 'social':
+          return <SocialTab />;
+        case 'stories':
+          return <StoriesTab />;
+        case 'settings':
+          return (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold text-white">Settings</h2>
+              <SettingsTab />
+            </div>
+          );
+        default:
+          return (
+            <>
+              {/* Stats Grid */}
+              <SimplifiedDashboardStats userStats={userStats} />
+              
+              {/* Central CTA */}
+              <DashboardCTA />
+              
+              {/* Progress Section */}
+              <DashboardProgress userStats={userStats} />
+            </>
+          );
+      }
+    } catch (error) {
+      console.error('Error rendering tab content:', error);
+      return (
+        <div className="text-center py-8">
+          <p className="text-red-400">Something went wrong loading this tab. Please try refreshing the page.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Refresh
+          </button>
+        </div>
+      );
     }
   };
 

@@ -1,214 +1,137 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAdminTaskManagement } from '../hooks/useAdminTaskManagement';
+import { enhancedTaskManagementService } from '@/services/admin/enhancedTaskManagementService';
+import { Search, Plus, Edit, Trash2, Eye, CheckCircle, XCircle, Clock, Image as ImageIcon, ExternalLink } from 'lucide-react';
+import { toast } from 'sonner';
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { TaskCreationForm } from "./TaskCreationForm";
-import { TaskCategoryManager } from "./TaskCategoryManager";
-import { TaskEditDialog } from "./TaskEditDialog";
-import { TaskTemplateManager } from "./TaskTemplateManager";
-import { BulkTaskOperations } from "./BulkTaskOperations";
-import { TaskScheduler } from "./TaskScheduler";
-import { enhancedTaskManagementService } from "@/services/admin/enhancedTaskManagementService";
-import { TaskPerformanceAnalytics } from "./TaskPerformanceAnalytics";
-import { TaskFilterBar } from "../TaskFilterBar";
-import { TaskOverviewStats } from "../TaskOverviewStats";
-import { Plus, RefreshCw, Edit, Trash2, Copy, ExternalLink } from "lucide-react";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-
-export const EnhancedTaskManagement = () => {
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [submissions, setSubmissions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
-  const [editingTask, setEditingTask] = useState<any>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [templateData, setTemplateData] = useState<any>(null);
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      console.log('Loading enhanced task management data...');
-      
-      const { supabase } = await import("@/integrations/supabase/client");
-      
-      // Get ALL tasks regardless of status to properly show them in admin
-      const { data: tasksData, error: tasksError } = await supabase
-        .from('tasks')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (tasksError) {
-        console.error('Error loading tasks:', tasksError);
-        toast.error('Failed to load tasks');
-        setTasks([]);
-      } else {
-        console.log('Raw tasks data from database:', tasksData);
-        console.log('Tasks loaded:', tasksData?.length || 0);
-        console.log('Task details:', tasksData?.map(t => ({ 
-          id: t.id, 
-          title: t.title, 
-          status: t.status,
-          created_at: t.created_at 
-        })));
-        setTasks(tasksData || []);
-      }
-
-      // Get submissions
-      const { data: submissionsData, error: submissionsError } = await supabase
-        .from('task_submissions')
-        .select('*')
-        .order('submitted_at', { ascending: false });
-
-      if (submissionsError) {
-        console.error('Error loading submissions:', submissionsError);
-        toast.error('Failed to load submissions');
-        setSubmissions([]);
-      } else {
-        console.log('Loaded submissions:', submissionsData?.length || 0);
-        setSubmissions(submissionsData || []);
-      }
-      
-    } catch (error) {
-      console.error("Error loading data:", error);
-      toast.error("Failed to load task management data");
-      setTasks([]);
-      setSubmissions([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteTask = async (taskId: string) => {
-    if (!window.confirm("Are you sure you want to delete this task? This action cannot be undone.")) return;
-    
-    try {
-      setDeleteLoading(taskId);
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', taskId);
-
-      if (error) {
-        console.error("Error deleting task:", error);
-        toast.error("Failed to delete task");
-      } else {
-        await loadData();
-        toast.success("Task deleted successfully");
-      }
-    } catch (error) {
-      console.error("Error deleting task:", error);
-      toast.error("Failed to delete task");
-    } finally {
-      setDeleteLoading(null);
-    }
-  };
-
-  const handleSubmissionUpdate = async () => {
-    await loadData();
-  };
-
-  const handleEditTask = (task: any) => {
-    console.log('Edit task clicked:', task);
-    setEditingTask(task);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleDuplicateTask = async (task: any) => {
-    try {
-      const duplicatedTask = {
-        ...task,
-        title: `${task.title} (Copy)`,
-        status: 'draft'
-      };
-      delete duplicatedTask.id;
-      delete duplicatedTask.created_at;
-      
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { error } = await supabase
-        .from('tasks')
-        .insert(duplicatedTask);
-
-      if (error) {
-        console.error("Error duplicating task:", error);
-        toast.error("Failed to duplicate task");
-      } else {
-        await loadData();
-        toast.success("Task duplicated successfully");
-      }
-    } catch (error) {
-      console.error("Error duplicating task:", error);
-      toast.error("Failed to duplicate task");
-    }
-  };
-
-  const handleTemplateSelected = (template: any) => {
-    setTemplateData(template);
-  };
-
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch = !searchTerm || 
-      task.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || task.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
-
-  const pendingSubmissions = submissions.filter(sub => sub.status === 'pending');
-  const activeTasksCount = tasks.filter(task => task.status === 'active').length;
-  const totalSubmissions = submissions.length;
-  const approvedSubmissions = submissions.filter(sub => sub.status === 'approved').length;
-
-  console.log('Current task counts:', {
-    totalTasks: tasks.length,
+export const EnhancedTaskManagement: React.FC = () => {
+  const {
+    tasks,
+    submissions,
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    loading,
+    showCreateForm,
+    setShowCreateForm,
+    deleteLoading,
+    handleDeleteTask,
+    handleSubmissionUpdate,
+    filteredTasks,
+    pendingSubmissions,
     activeTasksCount,
-    pendingSubmissions: pendingSubmissions.length,
     totalSubmissions,
-    approvedSubmissions
+    approvedSubmissions,
+    loadData,
+  } = useAdminTaskManagement();
+
+  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
+  const [newTask, setNewTask] = useState({
+    title: '',
+    description: '',
+    points: 100,
+    difficulty: 'medium',
+    category: 'general',
+    status: 'active'
   });
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty?.toLowerCase()) {
-      case 'easy': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'hard': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleCreateTask = async () => {
+    try {
+      const success = await enhancedTaskManagementService.createTask(newTask);
+      if (success) {
+        setNewTask({ title: '', description: '', points: 100, difficulty: 'medium', category: 'general', status: 'active' });
+        setShowCreateForm(false);
+        loadData();
+      }
+    } catch (error) {
+      console.error('Error creating task:', error);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      case 'inactive': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleViewSubmission = (submission: any) => {
+    setSelectedSubmission(submission);
+  };
+
+  const handleUpdateSubmission = async (submissionId: string, status: 'approved' | 'rejected', notes?: string) => {
+    try {
+      await handleSubmissionUpdate(submissionId, status, notes);
+      setSelectedSubmission(null);
+    } catch (error) {
+      console.error('Error updating submission:', error);
     }
+  };
+
+  const renderSubmissionEvidence = (submission: any) => {
+    if (!submission.evidence) return null;
+
+    let evidenceData;
+    try {
+      evidenceData = typeof submission.evidence === 'string' 
+        ? JSON.parse(submission.evidence) 
+        : submission.evidence;
+    } catch (error) {
+      console.error('Error parsing evidence:', error);
+      return <p className="text-sm text-gray-500">Evidence format error</p>;
+    }
+
+    if (evidenceData.images && evidenceData.images.length > 0) {
+      return (
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Photo Evidence:</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {evidenceData.images.map((imageUrl: string, index: number) => (
+              <div key={index} className="relative">
+                <img 
+                  src={imageUrl} 
+                  alt={`Evidence ${index + 1}`}
+                  className="w-full h-32 object-cover rounded-md border cursor-pointer hover:opacity-80"
+                  onClick={() => window.open(imageUrl, '_blank')}
+                />
+                <div className="absolute top-2 right-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => window.open(imageUrl, '_blank')}
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (evidenceData.description) {
+      return (
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Text Evidence:</Label>
+          <p className="text-sm bg-gray-50 p-3 rounded-md">{evidenceData.description}</p>
+        </div>
+      );
+    }
+
+    return <p className="text-sm text-gray-500">No evidence provided</p>;
   };
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-8 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading tasks...</p>
         </div>
       </div>
     );
@@ -216,339 +139,279 @@ export const EnhancedTaskManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Overview Stats */}
-      <TaskOverviewStats 
-        activeTasksCount={activeTasksCount}
-        pendingSubmissionsCount={pendingSubmissions.length}
-        totalSubmissions={totalSubmissions}
-        approvalRate={totalSubmissions > 0 ? Math.round((approvedSubmissions / totalSubmissions) * 100) : 0}
-      />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-blue-600">{activeTasksCount}</div>
+            <p className="text-sm text-gray-600">Active Tasks</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-orange-600">{pendingSubmissions.length}</div>
+            <p className="text-sm text-gray-600">Pending Submissions</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-gray-600">{totalSubmissions}</div>
+            <p className="text-sm text-gray-600">Total Submissions</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-green-600">{approvedSubmissions}</div>
+            <p className="text-sm text-gray-600">Approved Submissions</p>
+          </CardContent>
+        </Card>
+      </div>
 
-      <Tabs defaultValue="tasks" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="tasks">All Tasks ({tasks.length})</TabsTrigger>
-          <TabsTrigger value="submissions">
-            Submissions
-            {pendingSubmissions.length > 0 && (
-              <Badge variant="destructive" className="ml-2">
-                {pendingSubmissions.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="create">Create Task</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="bulk">Bulk Ops</TabsTrigger>
-          <TabsTrigger value="schedule">Schedule</TabsTrigger>
-          <TabsTrigger value="categories">Categories</TabsTrigger>
+      {/* Main Content */}
+      <Tabs defaultValue="tasks" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="tasks">Tasks Management</TabsTrigger>
+          <TabsTrigger value="submissions">Submissions Review</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview">
-          <TaskPerformanceAnalytics />
-        </TabsContent>
-
-        <TabsContent value="tasks" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Task Management ({tasks.length} tasks total)</CardTitle>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={loadData}>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
-                  </Button>
-                  <Button onClick={() => setTemplateData(null)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Task
-                  </Button>
-                </div>
+        <TabsContent value="tasks" className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search tasks..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-              <div className="text-sm text-muted-foreground">
-                Click the Edit or Delete buttons in the Actions column to manage individual tasks
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <TaskFilterBar
-                searchTerm={searchTerm}
-                statusFilter={statusFilter}
-                onSearchChange={setSearchTerm}
-                onStatusFilterChange={setStatusFilter}
-              />
-              
-              {/* Task Management Table */}
-              <div className="border rounded-lg overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Task Details</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Status & Info</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Points</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Created</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {filteredTasks.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                            {tasks.length === 0 ? "No tasks created yet. Click 'Create Task' to add your first task." : "No tasks found matching your filters"}
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredTasks.map((task) => (
-                          <tr key={task.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-4">
-                              <div>
-                                <div className="font-medium text-gray-900 mb-1">{task.title}</div>
-                                <div className="text-sm text-gray-500 line-clamp-2 max-w-xs">
-                                  {task.description}
-                                </div>
-                                {task.category && (
-                                  <div className="mt-1">
-                                    <Badge variant="outline" className="text-xs">
-                                      {task.category}
-                                    </Badge>
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-4 py-4">
-                              <div className="space-y-2">
-                                <Badge className={`${getStatusColor(task.status)} text-xs`}>
-                                  {task.status}
-                                </Badge>
-                                {task.difficulty && (
-                                  <Badge className={`${getDifficultyColor(task.difficulty)} text-xs`}>
-                                    {task.difficulty}
-                                  </Badge>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-4 py-4">
-                              <span className="text-lg font-bold text-blue-600">{task.points}</span>
-                            </td>
-                            <td className="px-4 py-4 text-sm text-gray-500">
-                              {new Date(task.created_at).toLocaleDateString()}
-                            </td>
-                            <td className="px-4 py-4">
-                              <div className="flex items-center justify-center gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleEditTask(task)}
-                                  className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                  title="Edit Task"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                  <span className="hidden sm:inline">Edit</span>
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleDuplicateTask(task)}
-                                  className="flex items-center gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                  title="Duplicate Task"
-                                >
-                                  <Copy className="h-4 w-4" />
-                                  <span className="hidden sm:inline">Copy</span>
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleDeleteTask(task.id)}
-                                  disabled={deleteLoading === task.id}
-                                  className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  title="Delete Task"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                  <span className="hidden sm:inline">
-                                    {deleteLoading === task.id ? "..." : "Delete"}
-                                  </span>
-                                </Button>
-                                {task.social_media_links && Object.values(task.social_media_links).some(link => link) && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="flex items-center gap-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                                    title="Has social media links"
-                                  >
-                                    <ExternalLink className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="submissions" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Task Submissions Review ({submissions.length} total)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {submissions.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No submissions to review.
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {submissions.map((submission) => (
-                      <Card key={submission.id} className="border-l-4 border-l-blue-500">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between mb-4">
-                            <div>
-                              <Badge className={`${getStatusColor(submission.status)} text-xs`}>
-                                {submission.status}
-                              </Badge>
-                              <div className="text-sm text-gray-500 mt-1">
-                                Task ID: {submission.task_id}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                User ID: {submission.user_id}
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-xs text-gray-400">
-                                {new Date(submission.submitted_at).toLocaleDateString()}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <div>
-                              <Label className="text-sm font-medium">Submission:</Label>
-                              <p className="text-sm mt-1 p-2 bg-gray-50 rounded">
-                                {submission.submission_text || submission.evidence || 'No description provided'}
-                              </p>
-                            </div>
-                            
-                            {(submission.image_url || submission.evidence_file_url) && (
-                              <div>
-                                <Label className="text-sm font-medium">Evidence:</Label>
-                                <div className="mt-1">
-                                  <img 
-                                    src={submission.image_url || submission.evidence_file_url} 
-                                    alt="Submission evidence" 
-                                    className="max-w-xs rounded border cursor-pointer hover:scale-105 transition-transform"
-                                    onClick={() => window.open(submission.image_url || submission.evidence_file_url, '_blank')}
-                                  />
-                                </div>
-                              </div>
-                            )}
-
-                            {submission.admin_notes && (
-                              <div>
-                                <Label className="text-sm font-medium">Admin Notes:</Label>
-                                <p className="text-sm mt-1 p-2 bg-blue-50 rounded">{submission.admin_notes}</p>
-                              </div>
-                            )}
-
-                            {submission.status === 'pending' && (
-                              <div className="flex gap-2 mt-4">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-green-600 hover:text-green-700"
-                                  onClick={async () => {
-                                    try {
-                                      const { supabase } = await import("@/integrations/supabase/client");
-                                      await supabase
-                                        .from('task_submissions')
-                                        .update({ status: 'approved', admin_notes: 'Approved by admin' })
-                                        .eq('id', submission.id);
-                                      await loadData();
-                                      toast.success('Submission approved');
-                                    } catch (error) {
-                                      toast.error('Failed to approve submission');
-                                    }
-                                  }}
-                                >
-                                  Approve
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-red-600 hover:text-red-700"
-                                  onClick={async () => {
-                                    try {
-                                      const { supabase } = await import("@/integrations/supabase/client");
-                                      await supabase
-                                        .from('task_submissions')
-                                        .update({ status: 'rejected', admin_notes: 'Rejected by admin' })
-                                        .eq('id', submission.id);
-                                      await loadData();
-                                      toast.success('Submission rejected');
-                                    } catch (error) {
-                                      toast.error('Failed to reject submission');
-                                    }
-                                  }}
-                                >
-                                  Reject
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="create" className="space-y-6">
-          <ErrorBoundary>
-            <div className="w-full">
-              <TaskCreationForm 
-                onTaskCreated={loadData}
-                onCancel={() => {
-                  console.log('Task creation cancelled');
-                }}
-                initialData={templateData}
-              />
             </div>
-          </ErrorBoundary>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={() => setShowCreateForm(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Task
+            </Button>
+          </div>
+
+          {/* Tasks List */}
+          <div className="space-y-4">
+            {filteredTasks.map((task) => (
+              <Card key={task.id}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{task.title}</h3>
+                      <p className="text-gray-600 mt-1">{task.description}</p>
+                      <div className="flex items-center gap-4 mt-2">
+                        <Badge variant={task.status === 'active' ? 'default' : 'secondary'}>
+                          {task.status}
+                        </Badge>
+                        <span className="text-sm text-gray-500">
+                          {task.points} points
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          {task.difficulty || 'Medium'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteTask(task.id)}
+                        disabled={deleteLoading === task.id}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </TabsContent>
 
-        <TabsContent value="templates" className="space-y-6">
-          <TaskTemplateManager onTemplateSelected={handleTemplateSelected} />
-        </TabsContent>
-
-        <TabsContent value="bulk" className="space-y-6">
-          <BulkTaskOperations tasks={tasks} onTasksUpdated={loadData} />
-        </TabsContent>
-
-        <TabsContent value="schedule" className="space-y-6">
-          <TaskScheduler tasks={tasks} onTasksUpdated={loadData} />
-        </TabsContent>
-
-        <TabsContent value="categories" className="space-y-6">
-          <TaskCategoryManager onCategoryUpdated={loadData} />
+        <TabsContent value="submissions" className="space-y-4">
+          <div className="space-y-4">
+            {submissions.map((submission) => (
+              <Card key={submission.id}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-semibold">
+                        {submission.tasks?.title || 'Task Title'}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Submitted by: {submission.profiles?.name || submission.profiles?.email || 'Unknown User'}
+                      </p>
+                      <div className="flex items-center gap-4 mt-2">
+                        <Badge 
+                          variant={
+                            submission.status === 'pending' ? 'secondary' :
+                            submission.status === 'approved' ? 'default' : 'destructive'
+                          }
+                        >
+                          {submission.status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
+                          {submission.status === 'approved' && <CheckCircle className="h-3 w-3 mr-1" />}
+                          {submission.status === 'rejected' && <XCircle className="h-3 w-3 mr-1" />}
+                          {submission.status}
+                        </Badge>
+                        <span className="text-sm text-gray-500">
+                          {submission.tasks?.points || 0} points
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          {new Date(submission.submitted_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewSubmission(submission)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl max-h-[80vh]">
+                          <DialogHeader>
+                            <DialogTitle>Submission Details</DialogTitle>
+                          </DialogHeader>
+                          <ScrollArea className="max-h-[60vh]">
+                            <div className="space-y-4">
+                              <div>
+                                <Label className="text-sm font-medium">Task:</Label>
+                                <p className="text-sm">{submission.tasks?.title}</p>
+                              </div>
+                              <div>
+                                <Label className="text-sm font-medium">User:</Label>
+                                <p className="text-sm">{submission.profiles?.name || submission.profiles?.email}</p>
+                              </div>
+                              <div>
+                                <Label className="text-sm font-medium">Status:</Label>
+                                <Badge className="ml-2">{submission.status}</Badge>
+                              </div>
+                              <div>
+                                <Label className="text-sm font-medium">Submitted:</Label>
+                                <p className="text-sm">{new Date(submission.submitted_at).toLocaleString()}</p>
+                              </div>
+                              {renderSubmissionEvidence(submission)}
+                              {submission.admin_notes && (
+                                <div>
+                                  <Label className="text-sm font-medium">Admin Notes:</Label>
+                                  <p className="text-sm bg-gray-50 p-3 rounded-md">{submission.admin_notes}</p>
+                                </div>
+                              )}
+                              {submission.status === 'pending' && (
+                                <div className="flex gap-2 pt-4">
+                                  <Button 
+                                    onClick={() => handleUpdateSubmission(submission.id, 'approved')}
+                                    className="flex-1"
+                                  >
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    Approve
+                                  </Button>
+                                  <Button 
+                                    variant="destructive"
+                                    onClick={() => handleUpdateSubmission(submission.id, 'rejected', 'Submission rejected by admin')}
+                                    className="flex-1"
+                                  >
+                                    <XCircle className="h-4 w-4 mr-1" />
+                                    Reject
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </ScrollArea>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </TabsContent>
       </Tabs>
 
-      {/* Edit Task Dialog */}
-      <TaskEditDialog
-        task={editingTask}
-        isOpen={isEditDialogOpen}
-        onClose={() => {
-          setIsEditDialogOpen(false);
-          setEditingTask(null);
-        }}
-        onTaskUpdated={loadData}
-      />
+      {/* Create Task Dialog */}
+      <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Task</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Task Title</Label>
+              <Input
+                id="title"
+                value={newTask.title}
+                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                placeholder="Enter task title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={newTask.description}
+                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                placeholder="Enter task description"
+                rows={4}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="points">Points</Label>
+                <Input
+                  id="points"
+                  type="number"
+                  value={newTask.points}
+                  onChange={(e) => setNewTask({ ...newTask, points: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="difficulty">Difficulty</Label>
+                <Select value={newTask.difficulty} onValueChange={(value) => setNewTask({ ...newTask, difficulty: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="easy">Easy</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="hard">Hard</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleCreateTask} className="flex-1">
+                Create Task
+              </Button>
+              <Button variant="outline" onClick={() => setShowCreateForm(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
