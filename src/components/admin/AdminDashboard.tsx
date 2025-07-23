@@ -11,7 +11,12 @@ import {
   TrendingUp, 
   DollarSign, 
   AlertCircle, 
-  Shield
+  Shield,
+  Building2,
+  Megaphone,
+  Settings,
+  BarChart3,
+  CreditCard
 } from 'lucide-react';
 import { AdminSignOutMenu } from './AdminSignOutMenu';
 import { EnhancedUserManagement } from './enhanced/EnhancedUserManagement';
@@ -20,6 +25,9 @@ import { EnhancedAnalytics } from './enhanced/EnhancedAnalytics';
 import { EnhancedFinanceManagement } from './enhanced/EnhancedFinanceManagement';
 import { FinancialDashboard } from './financial/FinancialDashboard';
 import { AdminSettings } from './AdminSettings';
+import { AdminBrands } from './AdminBrands';
+import { BrandCampaigns } from './BrandCampaigns';
+import { CampaignApprovalManager } from './CampaignApprovalManager';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { useRecentActivities } from '@/hooks/useRecentActivities';
 
@@ -57,12 +65,39 @@ export const AdminDashboard: React.FC = () => {
       {/* Admin Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-muted">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-background">Overview</TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-background">Users</TabsTrigger>
-            <TabsTrigger value="tasks" className="data-[state=active]:bg-background">Tasks</TabsTrigger>
-            <TabsTrigger value="analytics" className="data-[state=active]:bg-background">Analytics</TabsTrigger>
-            <TabsTrigger value="finance" className="data-[state=active]:bg-background">Finance</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-8 bg-muted">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-background">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="users" className="data-[state=active]:bg-background">
+              <Users className="h-4 w-4 mr-2" />
+              Users
+            </TabsTrigger>
+            <TabsTrigger value="brands" className="data-[state=active]:bg-background">
+              <Building2 className="h-4 w-4 mr-2" />
+              Brands
+            </TabsTrigger>
+            <TabsTrigger value="campaigns" className="data-[state=active]:bg-background">
+              <Megaphone className="h-4 w-4 mr-2" />
+              Campaigns
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="data-[state=active]:bg-background">
+              <Target className="h-4 w-4 mr-2" />
+              Tasks
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-background">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="finance" className="data-[state=active]:bg-background">
+              <CreditCard className="h-4 w-4 mr-2" />
+              Finance
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="data-[state=active]:bg-background">
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -187,6 +222,35 @@ export const AdminDashboard: React.FC = () => {
             <EnhancedUserManagement />
           </TabsContent>
 
+          <TabsContent value="brands">
+            <AdminBrands />
+          </TabsContent>
+
+          <TabsContent value="campaigns">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Megaphone className="h-5 w-5" />
+                    Campaign Management
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="font-semibold mb-2">Active Campaigns</h3>
+                      <BrandCampaigns />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-2">Pending Approvals</h3>
+                      <CampaignApprovalManager />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           <TabsContent value="tasks">
             <EnhancedTaskManagement />
           </TabsContent>
@@ -197,6 +261,10 @@ export const AdminDashboard: React.FC = () => {
 
           <TabsContent value="finance">
             <FinancialDashboard />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <AdminSettings />
           </TabsContent>
         </Tabs>
       </div>
