@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,12 +65,13 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         if (submission.tasks && 
             submission.tasks !== null &&
             typeof submission.tasks === 'object' && 
+            !Array.isArray(submission.tasks) &&
             !('error' in submission.tasks)) {
           const taskData = submission.tasks as any;
           if (taskData && 
-              taskData.title && 
-              taskData.description && 
-              taskData.points !== undefined) {
+              typeof taskData.title === 'string' && 
+              typeof taskData.description === 'string' && 
+              typeof taskData.points === 'number') {
             tasks = {
               title: taskData.title,
               description: taskData.description,
@@ -85,11 +85,12 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         if (submission.profiles && 
             submission.profiles !== null &&
             typeof submission.profiles === 'object' && 
+            !Array.isArray(submission.profiles) &&
             !('error' in submission.profiles)) {
           const profileData = submission.profiles as any;
           if (profileData && 
-              profileData.name && 
-              profileData.email) {
+              typeof profileData.name === 'string' && 
+              typeof profileData.email === 'string') {
             profiles = {
               name: profileData.name,
               email: profileData.email

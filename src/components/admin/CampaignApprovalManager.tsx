@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,11 +55,12 @@ export const CampaignApprovalManager: React.FC = () => {
         if (campaign.brand_profiles && 
             campaign.brand_profiles !== null &&
             typeof campaign.brand_profiles === 'object' && 
+            !Array.isArray(campaign.brand_profiles) &&
             !('error' in campaign.brand_profiles)) {
           const profiles = campaign.brand_profiles as any;
           if (profiles && 
-              profiles.company_name && 
-              profiles.industry) {
+              typeof profiles.company_name === 'string' && 
+              typeof profiles.industry === 'string') {
             brandProfiles = {
               company_name: profiles.company_name,
               industry: profiles.industry
