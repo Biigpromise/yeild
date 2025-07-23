@@ -4,9 +4,8 @@ import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Header } from '@/components/landing/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import Home from '@/pages/Home';
+import Welcome from '@/pages/Welcome';
 import About from '@/pages/About';
 import Login from '@/pages/Login';
 import SignUp from '@/pages/SignUp';
@@ -34,10 +33,9 @@ function App() {
         <AuthProvider>
           <OnboardingProvider>
             <div className="min-h-screen bg-background">
-              <Header />
-              <main className="pt-16">
+              <main>
                 <Routes>
-                  <Route path="/" element={<Home />} />
+                  <Route path="/" element={<Welcome />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<SignUp />} />
