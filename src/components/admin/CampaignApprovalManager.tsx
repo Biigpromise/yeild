@@ -56,7 +56,9 @@ export const CampaignApprovalManager: React.FC = () => {
             typeof campaign.brand_profiles === 'object' && 
             !('error' in campaign.brand_profiles)) {
           const profiles = campaign.brand_profiles as any;
-          if (profiles && 'company_name' in profiles && 'industry' in profiles) {
+          if (profiles && 
+              profiles.company_name && 
+              profiles.industry) {
             brandProfiles = {
               company_name: profiles.company_name,
               industry: profiles.industry

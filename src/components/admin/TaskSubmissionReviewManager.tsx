@@ -66,7 +66,10 @@ export const TaskSubmissionReviewManager: React.FC = () => {
             typeof submission.tasks === 'object' && 
             !('error' in submission.tasks)) {
           const taskData = submission.tasks as any;
-          if (taskData && 'title' in taskData && 'description' in taskData && 'points' in taskData) {
+          if (taskData && 
+              taskData.title && 
+              taskData.description && 
+              taskData.points !== undefined) {
             tasks = {
               title: taskData.title,
               description: taskData.description,
@@ -81,7 +84,9 @@ export const TaskSubmissionReviewManager: React.FC = () => {
             typeof submission.profiles === 'object' && 
             !('error' in submission.profiles)) {
           const profileData = submission.profiles as any;
-          if (profileData && 'name' in profileData && 'email' in profileData) {
+          if (profileData && 
+              profileData.name && 
+              profileData.email) {
             profiles = {
               name: profileData.name,
               email: profileData.email
