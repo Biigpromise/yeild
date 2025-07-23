@@ -1,19 +1,32 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { MessagingHub } from '@/components/messaging/MessagingHub';
 
 const Chat: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="max-w-4xl mx-auto p-4">
-        <Card className="bg-gray-900 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white">Chat</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-300">Chat feature coming soon...</p>
-          </CardContent>
-        </Card>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto p-4">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Button>
+          <h1 className="text-2xl font-bold">Messages</h1>
+        </div>
+
+        {/* Messaging Hub */}
+        <MessagingHub />
       </div>
     </div>
   );

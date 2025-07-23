@@ -82,6 +82,8 @@ const Dashboard: React.FC = () => {
         return <SocialTab />;
       case 'stories':
         return <StoriesTab />;
+      case 'tasks':
+        return <TasksTab />;
       default:
         return (
           <>

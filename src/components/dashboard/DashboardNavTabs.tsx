@@ -9,7 +9,10 @@ import {
   Users, 
   Trophy, 
   MessageCircle, 
-  User 
+  User,
+  Target,
+  Gift,
+  Camera
 } from 'lucide-react';
 
 interface DashboardNavTabsProps {
@@ -26,21 +29,15 @@ export const DashboardNavTabs: React.FC<DashboardNavTabsProps> = ({
   const tabs = [
     { 
       id: 'dashboard', 
-      label: 'Dashboard', 
+      label: 'Overview', 
       icon: Home,
       onClick: () => onTabChange?.('dashboard') 
     },
     { 
       id: 'tasks', 
       label: 'Tasks', 
-      icon: CheckSquare,
-      onClick: () => navigate('/tasks') 
-    },
-    { 
-      id: 'profile', 
-      label: 'Profile', 
-      icon: User,
-      onClick: () => onTabChange?.('profile') 
+      icon: Target,
+      onClick: () => onTabChange?.('tasks') 
     },
     { 
       id: 'wallet', 
@@ -49,10 +46,28 @@ export const DashboardNavTabs: React.FC<DashboardNavTabsProps> = ({
       onClick: () => onTabChange?.('wallet') 
     },
     { 
+      id: 'referral', 
+      label: 'Referrals', 
+      icon: Gift,
+      onClick: () => onTabChange?.('referral') 
+    },
+    { 
       id: 'social', 
       label: 'Social', 
-      icon: MessageCircle,
+      icon: Users,
       onClick: () => onTabChange?.('social') 
+    },
+    { 
+      id: 'stories', 
+      label: 'Stories', 
+      icon: Camera,
+      onClick: () => onTabChange?.('stories') 
+    },
+    { 
+      id: 'chat', 
+      label: 'Messages', 
+      icon: MessageCircle,
+      onClick: () => navigate('/chat') 
     },
     { 
       id: 'leaderboard', 
@@ -61,16 +76,10 @@ export const DashboardNavTabs: React.FC<DashboardNavTabsProps> = ({
       onClick: () => onTabChange?.('leaderboard') 
     },
     { 
-      id: 'referral', 
-      label: 'Referral', 
-      icon: Users,
-      onClick: () => onTabChange?.('referral') 
-    },
-    { 
-      id: 'stories', 
-      label: 'Stories', 
-      icon: BookOpen,
-      onClick: () => onTabChange?.('stories') 
+      id: 'profile', 
+      label: 'Profile', 
+      icon: User,
+      onClick: () => onTabChange?.('profile') 
     },
   ];
 

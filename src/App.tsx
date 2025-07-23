@@ -4,13 +4,16 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
-import LandingPage from '@/pages/LandingPage';
+import Welcome from '@/pages/Welcome';
 import Dashboard from '@/pages/Dashboard';
 import AdminDashboard from '@/pages/AdminDashboard';
 import AuthPage from '@/pages/AuthPage';
 import BrandDashboard from '@/pages/BrandDashboard';
 import CreateCampaign from '@/pages/CreateCampaign';
 import BrandPayment from '@/pages/BrandPayment';
+import Tasks from '@/pages/Tasks';
+import Chat from '@/pages/Chat';
+import Admin from '@/pages/Admin';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { RoleProtectedRoute } from '@/components/RoleProtectedRoute';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -25,7 +28,7 @@ function App() {
           <Router>
             <div className="min-h-screen bg-background">
               <Routes>
-                <Route path="/" element={<LandingPage />} />
+                <Route path="/" element={<Welcome />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route 
                   path="/dashboard" 
@@ -36,7 +39,27 @@ function App() {
                   } 
                 />
                 <Route 
+                  path="/tasks" 
+                  element={
+                    <ProtectedRoute>
+                      <Tasks />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/chat" 
+                  element={
+                    <ProtectedRoute>
+                      <Chat />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
                   path="/admin" 
+                  element={<Admin />}
+                />
+                <Route 
+                  path="/admin-dashboard" 
                   element={<AdminDashboard />}
                 />
                 <Route 

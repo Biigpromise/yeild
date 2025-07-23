@@ -6,9 +6,9 @@ import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BirdStatusDisplay } from '@/components/bird/BirdStatusDisplay';
 
-// Lazy load components to avoid potential loading issues
-const SocialHub = React.lazy(() => import('@/components/social/SocialHub').then(module => ({ default: module.SocialHub })));
-const StoriesBar = React.lazy(() => import('@/components/social/StoriesBar').then(module => ({ default: module.StoriesBar })));
+// Import components directly to avoid lazy loading issues
+import { SocialHub } from '@/components/social/SocialHub';
+import { StoriesBar } from '@/components/social/StoriesBar';
 
 const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) => (
   <div className="p-6">
@@ -53,18 +53,14 @@ export const SocialTab: React.FC = () => {
       <ErrorBoundary FallbackComponent={ErrorFallback}>
         <div className="flex-shrink-0 px-2 md:px-4 py-2 md:py-4">
           <h2 className="text-base md:text-lg font-semibold mb-2 md:mb-4 text-foreground">Stories</h2>
-          <React.Suspense fallback={<LoadingFallback />}>
-            <StoriesBar />
-          </React.Suspense>
+          <StoriesBar />
         </div>
       </ErrorBoundary>
       
       {/* Social Hub - Takes remaining space, no additional padding */}
       <ErrorBoundary FallbackComponent={ErrorFallback}>
         <div className="flex-1 min-h-0 overflow-hidden">
-          <React.Suspense fallback={<LoadingFallback />}>
-            <SocialHub />
-          </React.Suspense>
+          <SocialHub />
         </div>
       </ErrorBoundary>
     </div>
