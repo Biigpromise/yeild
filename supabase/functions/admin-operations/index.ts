@@ -1,3 +1,4 @@
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -37,7 +38,12 @@ Deno.serve(async (req) => {
           .eq('user_id', body.user_id)
           .eq('role', 'admin')
           .maybeSingle());
-        if (error) throw error;
+        
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error checking admin access:', error);
+          throw error;
+        }
+        
         return new Response(JSON.stringify({ has_admin_access: !!data }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -72,7 +78,7 @@ Deno.serve(async (req) => {
       case 'get_pending_submissions':
         ({ data, error } = await supabaseAdmin
           .from('task_submissions')
-          .select('*, tasks(title, points, category)')
+          .select('*, tasks(title, points, category), profiles(name, email)')
           .eq('status', 'pending')
           .order('submitted_at', { ascending: true }));
         if (error) throw error;
@@ -194,7 +200,6 @@ Deno.serve(async (req) => {
       }
 
       // Placeholder for other operations to avoid breaking the app
-      // I will implement these as we go
       case 'get_all_users':
       case 'update_user_status':
       case 'assign_user_role':

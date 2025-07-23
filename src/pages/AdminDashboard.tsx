@@ -20,10 +20,28 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     checkAdminAccess();
   }, [user]);
+
+  useEffect(() => {
+    // Listen for navigation events
+    const handleNavigateToSubmissions = () => setActiveTab('submissions');
+    const handleNavigateToCreateTask = () => setActiveTab('tasks');
+    const handleNavigateToUsers = () => setActiveTab('overview');
+
+    window.addEventListener('navigateToSubmissions', handleNavigateToSubmissions);
+    window.addEventListener('navigateToCreateTask', handleNavigateToCreateTask);
+    window.addEventListener('navigateToUsers', handleNavigateToUsers);
+
+    return () => {
+      window.removeEventListener('navigateToSubmissions', handleNavigateToSubmissions);
+      window.removeEventListener('navigateToCreateTask', handleNavigateToCreateTask);
+      window.removeEventListener('navigateToUsers', handleNavigateToUsers);
+    };
+  }, []);
 
   const checkAdminAccess = async () => {
     if (!user) {
@@ -32,27 +50,35 @@ const AdminDashboard = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .single();
+      setLoading(true);
+      
+      // Check admin role using the admin-operations function
+      const { data, error } = await supabase.functions.invoke('admin-operations', {
+        body: { 
+          action: 'check_admin_access',
+          user_id: user.id 
+        }
+      });
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error checking admin access:', error);
         toast.error('Error checking admin access');
         setIsAdmin(false);
+        navigate('/dashboard');
+        return;
+      }
+
+      if (data?.has_admin_access) {
+        setIsAdmin(true);
       } else {
-        setIsAdmin(!!data);
-        if (!data) {
-          toast.error('Access denied. Admin privileges required.');
-          navigate('/dashboard');
-        }
+        setIsAdmin(false);
+        toast.error('Access denied. Admin privileges required.');
+        navigate('/dashboard');
       }
     } catch (error) {
       console.error('Error checking admin access:', error);
       setIsAdmin(false);
+      toast.error('Error checking admin access');
       navigate('/dashboard');
     } finally {
       setLoading(false);
@@ -90,7 +116,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-7 bg-gray-800 border-gray-700">
             <TabsTrigger value="overview" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-black text-gray-300">
               Overview

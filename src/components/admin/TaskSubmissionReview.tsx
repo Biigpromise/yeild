@@ -4,353 +4,246 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, Eye, ExternalLink, Image, Video, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { CheckCircle, XCircle, Eye, Star } from "lucide-react";
 
-interface TaskSubmissionReviewProps {
-  submissions: any[];
-  onUpdate: (submissionId: string, status: 'approved' | 'rejected', notes?: string) => void;
+interface Submission {
+  id: string;
+  user_id: string;
+  task_id: string;
+  status: string;
+  submission_text: string;
+  image_url?: string;
+  submitted_at: string;
+  admin_notes?: string;
+  tasks: {
+    title: string;
+    points: number;
+    category: string;
+    difficulty: string;
+  };
+  profiles: {
+    name: string;
+    email: string;
+  };
 }
 
-export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
-  submissions,
-  onUpdate
+interface TaskSubmissionReviewProps {
+  submissions: Submission[];
+  onUpdate: (submissionId: string, status: 'approved' | 'rejected', notes?: string, qualityScore?: number) => void;
+  readOnly?: boolean;
+}
+
+export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({ 
+  submissions, 
+  onUpdate, 
+  readOnly = false 
 }) => {
-  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
-  const [actionType, setActionType] = useState<'approved' | 'rejected' | null>(null);
+  const [qualityScore, setQualityScore] = useState<number>(80);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleViewSubmission = (submission: any) => {
+  const handleApprove = (submission: Submission) => {
+    if (readOnly) return;
+    
     setSelectedSubmission(submission);
-    setAdminNotes(submission.admin_notes || "");
-    setIsModalOpen(true);
+    setAdminNotes("");
+    setQualityScore(80);
+    setIsDialogOpen(true);
   };
 
-  const handleAction = (type: 'approved' | 'rejected') => {
-    setActionType(type);
+  const handleReject = (submission: Submission) => {
+    if (readOnly) return;
+    
+    setSelectedSubmission(submission);
+    setAdminNotes("");
+    setIsDialogOpen(true);
   };
 
-  const confirmAction = () => {
-    if (selectedSubmission && actionType) {
-      onUpdate(selectedSubmission.id, actionType, adminNotes);
-      setIsModalOpen(false);
-      setSelectedSubmission(null);
-      setActionType(null);
-      setAdminNotes("");
-    }
+  const handleConfirmAction = () => {
+    if (!selectedSubmission) return;
+    
+    const action = selectedSubmission.status === 'pending' ? 'approved' : 'rejected';
+    onUpdate(selectedSubmission.id, action, adminNotes, qualityScore);
+    setIsDialogOpen(false);
+    setSelectedSubmission(null);
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "approved":
-        return "bg-green-100 text-green-800";
-      case "rejected":
-        return "bg-red-100 text-red-800";
-      case "flagged":
-        return "bg-orange-100 text-orange-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'approved': return 'bg-green-100 text-green-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const renderFilePreview = (url: string, isVideo: boolean = false) => {
-    if (isVideo) {
-      return (
-        <video
-          src={url}
-          controls
-          className="max-w-sm max-h-40 rounded border"
-        >
-          Your browser does not support the video tag.
-        </video>
-      );
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty?.toLowerCase()) {
+      case 'easy': return 'bg-green-100 text-green-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'hard': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  if (submissions.length === 0) {
     return (
-      <img
-        src={url}
-        alt="Evidence"
-        className="max-w-sm max-h-40 object-cover rounded border"
-      />
-    );
-  };
-
-  const renderMultipleFiles = (submission: any) => {
-    const evidenceFiles = submission.evidence_files || [];
-    const singleFile = submission.evidence_file_url;
-    
-    // Handle both old single file and new multiple files format
-    const allFiles = evidenceFiles.length > 0 ? evidenceFiles : (singleFile ? [singleFile] : []);
-    
-    if (allFiles.length === 0) {
-      return (
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <FileText className="h-4 w-4" />
-          <span>Text evidence only</span>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Image className="h-4 w-4" />
-          <span>{allFiles.length} file(s) submitted</span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {allFiles.map((url: string, index: number) => {
-            const isVideo = url.match(/\.(mp4|mov|avi|webm)$/i);
-            return (
-              <div key={index} className="relative group">
-                {renderFilePreview(url, !!isVideo)}
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button size="sm" variant="secondary" asChild>
-                    <a href={url} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </Button>
-                </div>
-                <div className="absolute bottom-2 left-2">
-                  <Badge variant="secondary" className="text-xs">
-                    {isVideo ? <Video className="h-3 w-3" /> : <Image className="h-3 w-3" />}
-                  </Badge>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <>
       <Card>
-        <CardHeader>
-          <CardTitle>Task Submissions Review</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto border rounded-md">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Task</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead>Files</TableHead>
-                  <TableHead>Points</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {submissions.map((submission) => {
-                  const fileCount = submission.evidence_files?.length || (submission.evidence_file_url ? 1 : 0);
-                  return (
-                    <TableRow key={submission.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">
-                            {submission.profiles?.name || 'Unknown User'}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {submission.profiles?.email}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{submission.tasks?.title}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {submission.tasks?.category}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(submission.submitted_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {fileCount > 0 ? (
-                            <>
-                              <Image className="h-4 w-4 text-primary" />
-                              <span className="text-sm">{fileCount} file(s)</span>
-                            </>
-                          ) : (
-                            <>
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm text-muted-foreground">Text only</span>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {submission.calculated_points || submission.tasks?.points} pts
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(submission.status)}>
-                          {submission.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleViewSubmission(submission)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {submission.status === 'pending' && (
-                            <>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
-                                onClick={() => {
-                                  onUpdate(submission.id, 'approved');
-                                }}
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-                                onClick={() => {
-                                  onUpdate(submission.id, 'rejected');
-                                }}
-                              >
-                                <XCircle className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {submissions.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                      No task submissions found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+        <CardContent className="p-6">
+          <div className="text-center py-8">
+            <div className="text-gray-500 mb-2">No submissions found</div>
+            <p className="text-sm text-gray-400">
+              {readOnly ? 'No submissions in this category' : 'No pending submissions to review'}
+            </p>
           </div>
         </CardContent>
       </Card>
+    );
+  }
 
-      {/* Review Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Review Task Submission</DialogTitle>
-          </DialogHeader>
-          
-          {selectedSubmission && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">User</label>
-                  <p className="text-sm">{selectedSubmission.profiles?.name}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Task</label>
-                  <p className="text-sm">{selectedSubmission.tasks?.title}</p>
+  return (
+    <div className="space-y-4">
+      {submissions.map((submission) => (
+        <Card key={submission.id} className="border-l-4 border-l-blue-500">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">{submission.tasks.title}</CardTitle>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className={getStatusColor(submission.status)}>
+                    {submission.status}
+                  </Badge>
+                  <Badge variant="outline" className={getDifficultyColor(submission.tasks.difficulty)}>
+                    {submission.tasks.difficulty}
+                  </Badge>
+                  <Badge variant="outline">
+                    {submission.tasks.points} points
+                  </Badge>
                 </div>
               </div>
-              
+              <div className="text-right">
+                <div className="text-sm font-medium">{submission.profiles.name}</div>
+                <div className="text-xs text-gray-500">{submission.profiles.email}</div>
+                <div className="text-xs text-gray-400">
+                  {new Date(submission.submitted_at).toLocaleDateString()}
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Task Description</label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {selectedSubmission.tasks?.description}
-                </p>
+                <Label className="text-sm font-medium">Submission:</Label>
+                <p className="text-sm mt-1 p-2 bg-gray-50 rounded">{submission.submission_text}</p>
               </div>
               
-              <div>
-                <label className="text-sm font-medium">Evidence Provided</label>
-                <div className="mt-2 p-3 bg-gray-50 rounded-md">
-                  {selectedSubmission.evidence && (
-                    <div className="mb-3">
-                      <h4 className="text-sm font-medium mb-2">Text Evidence:</h4>
-                      <p className="text-sm">{selectedSubmission.evidence}</p>
-                    </div>
-                  )}
-                  
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">File Evidence:</h4>
-                    {renderMultipleFiles(selectedSubmission)}
+              {submission.image_url && (
+                <div>
+                  <Label className="text-sm font-medium">Evidence:</Label>
+                  <div className="mt-1">
+                    <img 
+                      src={submission.image_url} 
+                      alt="Submission evidence" 
+                      className="max-w-xs rounded border"
+                    />
                   </div>
                 </div>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium">Admin Notes</label>
-                <Textarea
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Add notes about this submission..."
-                  rows={3}
-                  className="mt-1"
-                />
-              </div>
-              
-              {selectedSubmission.status === 'pending' && (
-                <div className="flex justify-end gap-3">
-                  <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-                    Close
-                  </Button>
-                  <Button 
+              )}
+
+              {submission.admin_notes && (
+                <div>
+                  <Label className="text-sm font-medium">Admin Notes:</Label>
+                  <p className="text-sm mt-1 p-2 bg-blue-50 rounded">{submission.admin_notes}</p>
+                </div>
+              )}
+
+              {!readOnly && submission.status === 'pending' && (
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
                     variant="outline"
-                    className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-                    onClick={() => handleAction('rejected')}
+                    className="text-green-600 hover:text-green-700"
+                    onClick={() => handleApprove(submission)}
                   >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Reject
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    Approve
                   </Button>
-                  <Button 
-                    className="bg-green-600 hover:bg-green-700"
-                    onClick={() => handleAction('approved')}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-red-600 hover:text-red-700"
+                    onClick={() => handleReject(submission)}
                   >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Approve & Award Points
+                    <XCircle className="w-4 h-4 mr-1" />
+                    Reject
                   </Button>
                 </div>
               )}
-              
-              {actionType && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-md">
-                  <p className="text-sm font-medium mb-2">
-                    Confirm {actionType === 'approved' ? 'Approval' : 'Rejection'}
-                  </p>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {actionType === 'approved' 
-                      ? `This will award ${selectedSubmission.calculated_points || selectedSubmission.tasks?.points} points to the user.`
-                      : 'This will reject the submission without awarding points.'
-                    }
-                  </p>
-                  <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setActionType(null)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={confirmAction}>
-                      Confirm {actionType === 'approved' ? 'Approval' : 'Rejection'}
-                    </Button>
-                  </div>
+
+              {readOnly && (
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    View Only
+                  </Button>
                 </div>
               )}
             </div>
-          )}
+          </CardContent>
+        </Card>
+      ))}
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {selectedSubmission?.status === 'pending' ? 'Approve' : 'Reject'} Submission
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedSubmission?.status === 'pending' && (
+              <div>
+                <Label htmlFor="quality-score">Quality Score (1-100)</Label>
+                <Input
+                  id="quality-score"
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={qualityScore}
+                  onChange={(e) => setQualityScore(parseInt(e.target.value))}
+                />
+              </div>
+            )}
+            
+            <div>
+              <Label htmlFor="admin-notes">Admin Notes</Label>
+              <Textarea
+                id="admin-notes"
+                placeholder="Add notes about your decision..."
+                value={adminNotes}
+                onChange={(e) => setAdminNotes(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmAction}>
+                {selectedSubmission?.status === 'pending' ? 'Approve' : 'Reject'}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };
