@@ -37,10 +37,10 @@ export const DashboardNavTabs: React.FC<DashboardNavTabsProps> = ({
       onClick: () => navigate('/tasks') 
     },
     { 
-      id: 'stories', 
-      label: 'Stories', 
-      icon: BookOpen,
-      onClick: () => onTabChange?.('stories') 
+      id: 'profile', 
+      label: 'Profile', 
+      icon: User,
+      onClick: () => onTabChange?.('profile') 
     },
     { 
       id: 'wallet', 
@@ -49,10 +49,10 @@ export const DashboardNavTabs: React.FC<DashboardNavTabsProps> = ({
       onClick: () => onTabChange?.('wallet') 
     },
     { 
-      id: 'referral', 
-      label: 'Referral', 
-      icon: Users,
-      onClick: () => onTabChange?.('referral') 
+      id: 'social', 
+      label: 'Social', 
+      icon: MessageCircle,
+      onClick: () => onTabChange?.('social') 
     },
     { 
       id: 'leaderboard', 
@@ -61,21 +61,21 @@ export const DashboardNavTabs: React.FC<DashboardNavTabsProps> = ({
       onClick: () => onTabChange?.('leaderboard') 
     },
     { 
-      id: 'social', 
-      label: 'Social', 
-      icon: MessageCircle,
-      onClick: () => onTabChange?.('social') 
+      id: 'referral', 
+      label: 'Referral', 
+      icon: Users,
+      onClick: () => onTabChange?.('referral') 
     },
     { 
-      id: 'profile', 
-      label: 'Profile', 
-      icon: User,
-      onClick: () => onTabChange?.('profile') 
+      id: 'stories', 
+      label: 'Stories', 
+      icon: BookOpen,
+      onClick: () => onTabChange?.('stories') 
     },
   ];
 
   return (
-    <div className="flex overflow-x-auto gap-1 mb-6 pb-2 px-2">
+    <div className="flex overflow-x-auto gap-1 mb-4 pb-2 px-2">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
@@ -84,14 +84,14 @@ export const DashboardNavTabs: React.FC<DashboardNavTabsProps> = ({
           <button
             key={tab.id}
             onClick={tab.onClick}
-            className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-3 rounded-lg transition-colors ${
+            className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-2 rounded-lg transition-colors ${
               isActive
                 ? 'text-yellow-400'
                 : 'text-gray-400 hover:text-gray-300'
             }`}
           >
             <Icon 
-              size={24} 
+              size={20} 
               className={`mb-1 ${isActive ? 'text-yellow-400' : 'text-gray-400'}`}
             />
             <span className="text-xs font-medium text-center leading-tight">
