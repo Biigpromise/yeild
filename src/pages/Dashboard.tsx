@@ -52,7 +52,7 @@ const Dashboard: React.FC = () => {
           <SimplifiedDashboardStats userStats={userStats} />
           
           {/* Navigation Tabs */}
-          <DashboardNavTabs activeTab="tasks" />
+          <DashboardNavTabs activeTab="dashboard" />
           
           {/* Central CTA */}
           <DashboardCTA />
