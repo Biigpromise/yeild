@@ -23,6 +23,66 @@ export interface NextBirdLevel extends BirdLevel {
   points_needed: number;
 }
 
+// Default bird levels as fallback
+const DEFAULT_BIRD_LEVELS: BirdLevel[] = [
+  {
+    id: 1,
+    name: 'Sparrow',
+    icon: '🐦',
+    emoji: '🐦',
+    min_referrals: 0,
+    min_points: 0,
+    description: 'Starting your journey',
+    color: '#10b981',
+    benefits: ['Basic community access'],
+    animation_type: 'static',
+    glow_effect: false,
+    earningRate: 1.0
+  },
+  {
+    id: 2,
+    name: 'Robin',
+    icon: '🐦',
+    emoji: '🐦',
+    min_referrals: 5,
+    min_points: 100,
+    description: 'Growing your network',
+    color: '#3b82f6',
+    benefits: ['Enhanced task visibility', '+5% referral bonus'],
+    animation_type: 'static',
+    glow_effect: false,
+    earningRate: 1.05
+  },
+  {
+    id: 3,
+    name: 'Eagle',
+    icon: '🦅',
+    emoji: '🦅',
+    min_referrals: 15,
+    min_points: 500,
+    description: 'Soaring high',
+    color: '#8b5cf6',
+    benefits: ['Exclusive task access', '+10% referral bonus'],
+    animation_type: 'static',
+    glow_effect: true,
+    earningRate: 1.1
+  },
+  {
+    id: 4,
+    name: 'Phoenix',
+    icon: '🔥',
+    emoji: '🔥',
+    min_referrals: 50,
+    min_points: 2000,
+    description: 'Legendary status',
+    color: '#f59e0b',
+    benefits: ['VIP access', '+15% referral bonus', 'Priority support'],
+    animation_type: 'glow',
+    glow_effect: true,
+    earningRate: 1.15
+  }
+];
+
 export const useBirdLevel = () => {
   const { user } = useAuth();
   const [currentBird, setCurrentBird] = useState<BirdLevel | null>(null);
@@ -34,6 +94,33 @@ export const useBirdLevel = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const getCurrentBirdLevel = (stats: { referrals: number; points: number }) => {
+    // Find the highest level the user qualifies for
+    let currentLevel = DEFAULT_BIRD_LEVELS[0];
+    for (const level of DEFAULT_BIRD_LEVELS) {
+      if (stats.referrals >= level.min_referrals && stats.points >= level.min_points) {
+        currentLevel = level;
+      } else {
+        break;
+      }
+    }
+    return currentLevel;
+  };
+
+  const getNextBirdLevel = (stats: { referrals: number; points: number }): NextBirdLevel | null => {
+    // Find the next level the user can achieve
+    for (const level of DEFAULT_BIRD_LEVELS) {
+      if (stats.referrals < level.min_referrals || stats.points < level.min_points) {
+        return {
+          ...level,
+          referrals_needed: Math.max(0, level.min_referrals - stats.referrals),
+          points_needed: Math.max(0, level.min_points - stats.points)
+        };
+      }
+    }
+    return null; // User has reached the highest level
+  };
 
   useEffect(() => {
     if (!user) {
@@ -56,110 +143,94 @@ export const useBirdLevel = () => {
         if (profileError) {
           console.error('Error fetching profile:', profileError);
           setError('Failed to load profile data');
+          
+          // Use default stats if profile fetch fails
+          const defaultStats = { referrals: 0, points: 0, tasksCompleted: 0 };
+          setUserStats(defaultStats);
+          setCurrentBird(getCurrentBirdLevel(defaultStats));
+          setNextBird(getNextBirdLevel(defaultStats));
           return;
         }
 
-        if (profile) {
-          const stats = {
-            referrals: profile.active_referrals_count || 0,
-            points: profile.points || 0,
-            tasksCompleted: profile.tasks_completed || 0
-          };
-          setUserStats(stats);
+        const stats = {
+          referrals: profile?.active_referrals_count || 0,
+          points: profile?.points || 0,
+          tasksCompleted: profile?.tasks_completed || 0
+        };
+        setUserStats(stats);
 
-          // Get current bird level - fallback to basic data if RPC doesn't work
-          try {
-            const { data: currentBirdData, error: currentError } = await supabase
-              .rpc('get_user_bird_level', { user_id_param: user.id });
+        // Calculate current and next bird levels using fallback logic
+        const current = getCurrentBirdLevel(stats);
+        const next = getNextBirdLevel(stats);
 
-            if (currentError) {
-              console.error('Error fetching current bird level:', currentError);
-              // Set default bird level
-              setCurrentBird({
-                id: 1,
-                name: 'Starter Bird',
-                icon: '🐥',
-                emoji: '🐥',
-                min_referrals: 0,
-                min_points: 0,
-                description: 'Just getting started',
-                color: '#10b981',
-                benefits: ['Basic rewards'],
-                animation_type: 'static',
-                glow_effect: false,
-                earningRate: 1.0
-              });
-            } else if (currentBirdData && currentBirdData.length > 0) {
-              const rawBird = currentBirdData[0];
-              const birdWithDefaults: BirdLevel = {
-                id: rawBird.id,
-                name: rawBird.name,
-                icon: rawBird.icon,
-                emoji: rawBird.emoji,
-                min_referrals: rawBird.min_referrals,
-                min_points: rawBird.min_points,
-                description: rawBird.description,
-                color: rawBird.color,
-                benefits: rawBird.benefits || ['Basic rewards'],
-                animation_type: rawBird.animation_type || 'static',
-                glow_effect: rawBird.glow_effect || false,
-                earningRate: 1.0
-              };
-              setCurrentBird(birdWithDefaults);
-            }
-          } catch (rpcError) {
-            console.error('RPC error:', rpcError);
-            // Set default bird level
-            setCurrentBird({
-              id: 1,
-              name: 'Starter Bird',
-              icon: '🐥',
-              emoji: '🐥',
-              min_referrals: 0,
-              min_points: 0,
-              description: 'Just getting started',
-              color: '#10b981',
-              benefits: ['Basic rewards'],
-              animation_type: 'static',
-              glow_effect: false,
-              earningRate: 1.0
-            });
+        setCurrentBird(current);
+        setNextBird(next);
+
+        // Try to get bird levels from database, but don't fail if it doesn't work
+        try {
+          const { data: currentBirdData, error: currentError } = await supabase
+            .rpc('get_user_bird_level', { user_id_param: user.id });
+
+          if (!currentError && currentBirdData && currentBirdData.length > 0) {
+            const rawBird = currentBirdData[0];
+            const enhancedBird: BirdLevel = {
+              id: rawBird.id,
+              name: rawBird.name,
+              icon: rawBird.icon,
+              emoji: rawBird.emoji,
+              min_referrals: rawBird.min_referrals,
+              min_points: rawBird.min_points,
+              description: rawBird.description,
+              color: rawBird.color,
+              benefits: rawBird.benefits || current.benefits,
+              animation_type: rawBird.animation_type || current.animation_type,
+              glow_effect: rawBird.glow_effect || current.glow_effect,
+              earningRate: current.earningRate
+            };
+            setCurrentBird(enhancedBird);
           }
-
-          // Get next bird level - with fallback
-          try {
-            const { data: nextBirdData, error: nextError } = await supabase
-              .rpc('get_next_bird_level', { user_id_param: user.id });
-
-            if (nextError) {
-              console.error('Error fetching next bird level:', nextError);
-            } else if (nextBirdData && nextBirdData.length > 0) {
-              const rawNextBird = nextBirdData[0] as any; // Type assertion to access all properties
-              const nextBirdLevel: NextBirdLevel = {
-                id: rawNextBird.id,
-                name: rawNextBird.name,
-                icon: rawNextBird.icon,
-                emoji: rawNextBird.emoji,
-                min_referrals: rawNextBird.min_referrals,
-                min_points: rawNextBird.min_points,
-                description: rawNextBird.description,
-                color: rawNextBird.color,
-                referrals_needed: rawNextBird.referrals_needed,
-                points_needed: rawNextBird.points_needed,
-                benefits: ['Enhanced rewards'], // Default since not returned by RPC
-                animation_type: 'static', // Default since not returned by RPC
-                glow_effect: false, // Default since not returned by RPC
-                earningRate: 1.0
-              };
-              setNextBird(nextBirdLevel);
-            }
-          } catch (nextRpcError) {
-            console.error('Next RPC error:', nextRpcError);
-          }
+        } catch (rpcError) {
+          console.error('RPC error for current bird level:', rpcError);
         }
+
+        // Try to get next bird level from database
+        try {
+          const { data: nextBirdData, error: nextError } = await supabase
+            .rpc('get_next_bird_level', { user_id_param: user.id });
+
+          if (!nextError && nextBirdData && nextBirdData.length > 0) {
+            const rawNextBird = nextBirdData[0] as any;
+            const enhancedNextBird: NextBirdLevel = {
+              id: rawNextBird.id,
+              name: rawNextBird.name,
+              icon: rawNextBird.icon,
+              emoji: rawNextBird.emoji,
+              min_referrals: rawNextBird.min_referrals,
+              min_points: rawNextBird.min_points,
+              description: rawNextBird.description,
+              color: rawNextBird.color,
+              referrals_needed: rawNextBird.referrals_needed,
+              points_needed: rawNextBird.points_needed,
+              benefits: next?.benefits || ['Enhanced rewards'],
+              animation_type: next?.animation_type || 'static',
+              glow_effect: next?.glow_effect || false,
+              earningRate: next?.earningRate || 1.0
+            };
+            setNextBird(enhancedNextBird);
+          }
+        } catch (rpcError) {
+          console.error('RPC error for next bird level:', rpcError);
+        }
+
       } catch (error) {
-        console.error('Error fetching bird level:', error);
-        setError('Failed to load bird data');
+        console.error('Error in fetchBirdLevel:', error);
+        setError('Failed to load bird level data');
+        
+        // Provide fallback data
+        const defaultStats = { referrals: 0, points: 0, tasksCompleted: 0 };
+        setUserStats(defaultStats);
+        setCurrentBird(getCurrentBirdLevel(defaultStats));
+        setNextBird(getNextBirdLevel(defaultStats));
       } finally {
         setLoading(false);
       }

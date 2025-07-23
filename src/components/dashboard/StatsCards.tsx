@@ -13,13 +13,23 @@ interface StatsCardsProps {
     followers: number;
     following: number;
   };
-  totalPointsEarned: number;
-  withdrawalStats: {
+  totalPointsEarned?: number;
+  withdrawalStats?: {
     pendingWithdrawals: number;
     completedWithdrawals: number;
   };
 }
 
-export const StatsCards: React.FC<StatsCardsProps> = ({ userStats }) => {
-  return <DashboardStats userStats={userStats} />;
+export const StatsCards: React.FC<StatsCardsProps> = ({ 
+  userStats, 
+  totalPointsEarned,
+  withdrawalStats
+}) => {
+  return (
+    <DashboardStats 
+      userStats={userStats}
+      totalPointsEarned={totalPointsEarned}
+      withdrawalStats={withdrawalStats}
+    />
+  );
 };

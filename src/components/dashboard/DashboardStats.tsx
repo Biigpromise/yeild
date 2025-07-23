@@ -10,7 +10,8 @@ import {
   TrendingUp, 
   Star,
   Award,
-  Flame
+  Flame,
+  Wallet
 } from 'lucide-react';
 
 interface DashboardStatsProps {
@@ -24,9 +25,18 @@ interface DashboardStatsProps {
     followers: number;
     following: number;
   };
+  totalPointsEarned?: number;
+  withdrawalStats?: {
+    pendingWithdrawals: number;
+    completedWithdrawals: number;
+  };
 }
 
-export const DashboardStats: React.FC<DashboardStatsProps> = ({ userStats }) => {
+export const DashboardStats: React.FC<DashboardStatsProps> = ({ 
+  userStats, 
+  totalPointsEarned,
+  withdrawalStats
+}) => {
   const statCards = [
     {
       title: 'Total Points',
@@ -77,6 +87,18 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ userStats }) => 
       badge: userStats.rank ? `#${userStats.rank}` : 'Unranked'
     }
   ];
+
+  // Add withdrawal stats if available
+  if (withdrawalStats) {
+    statCards.push({
+      title: 'Pending Withdrawals',
+      value: `$${withdrawalStats.pendingWithdrawals.toLocaleString()}`,
+      icon: Wallet,
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-50',
+      badge: withdrawalStats.pendingWithdrawals > 0 ? 'Pending' : 'None'
+    });
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">

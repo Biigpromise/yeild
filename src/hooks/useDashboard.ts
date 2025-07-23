@@ -39,7 +39,7 @@ export const useDashboard = () => {
       setLoading(true);
       setError(null);
       
-      // Load profile data
+      // Load profile data with better error handling
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -48,15 +48,55 @@ export const useDashboard = () => {
       
       if (profileError) {
         console.error('Error fetching profile:', profileError);
-        setError('Failed to load profile data');
+        
+        // If profile doesn't exist, create it
+        if (profileError.code === 'PGRST116') {
+          console.log('Profile not found, creating new profile...');
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert({
+              id: user.id,
+              email: user.email,
+              name: user.email?.split('@')[0] || 'User',
+              points: 0,
+              level: 1,
+              tasks_completed: 0,
+              active_referrals_count: 0,
+              total_referrals_count: 0,
+              followers_count: 0,
+              following_count: 0
+            })
+            .select()
+            .single();
+          
+          if (createError) {
+            console.error('Error creating profile:', createError);
+            setError('Failed to create user profile');
+          } else {
+            setUserProfile(newProfile);
+            setUserStats({
+              points: 0,
+              level: 1,
+              tasksCompleted: 0,
+              currentStreak: 0,
+              rank: 0,
+              referrals: 0,
+              followers: 0,
+              following: 0
+            });
+            setTotalPointsEarned(0);
+          }
+        } else {
+          setError('Failed to load profile data');
+        }
       } else if (profile) {
         setUserProfile(profile);
         setUserStats({
           points: profile.points || 0,
           level: profile.level || 1,
           tasksCompleted: profile.tasks_completed || 0,
-          currentStreak: 0, // Default value since property doesn't exist
-          rank: 0, // Default value since property doesn't exist
+          currentStreak: 0,
+          rank: 0,
           referrals: profile.active_referrals_count || 0,
           followers: profile.followers_count || 0,
           following: profile.following_count || 0,
@@ -64,11 +104,17 @@ export const useDashboard = () => {
         setTotalPointsEarned(profile.points || 0);
       }
 
-      // Load tasks and submissions
+      // Load tasks and submissions with better error handling
       try {
         const [tasksData, submissionsData] = await Promise.all([
-          taskService.getUserTasks().catch(() => []),
-          taskService.getUserSubmissions().catch(() => [])
+          taskService.getUserTasks().catch((error) => {
+            console.error('Error loading user tasks:', error);
+            return [];
+          }),
+          taskService.getUserSubmissions().catch((error) => {
+            console.error('Error loading user submissions:', error);
+            return [];
+          })
         ]);
         
         setUserTasks(tasksData || []);
@@ -79,10 +125,10 @@ export const useDashboard = () => {
         setCompletedTasks(completed);
       } catch (taskError) {
         console.error('Error loading tasks:', taskError);
-        setError('Failed to load tasks data');
+        // Don't set error state for tasks, just log it
       }
 
-      // Load withdrawal data
+      // Load withdrawal data with better error handling
       try {
         const { data: withdrawals, error: withdrawalError } = await supabase
           .from('withdrawal_requests')
