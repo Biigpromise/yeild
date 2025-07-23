@@ -47,7 +47,7 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
       title: campaign?.title || "",
       description: campaign?.description || "",
       budget: campaign?.budget || 10,
-      status: campaign?.status || 'draft',
+      status: (campaign?.status as 'draft' | 'active' | 'paused' | 'completed' | 'cancelled') || 'draft',
       start_date: campaign?.start_date || "",
       end_date: campaign?.end_date || "",
     }
@@ -59,7 +59,7 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
         title: campaign.title,
         description: campaign.description || "",
         budget: campaign.budget,
-        status: campaign.status,
+        status: campaign.status as 'draft' | 'active' | 'paused' | 'completed' | 'cancelled',
         start_date: campaign.start_date || "",
         end_date: campaign.end_date || "",
       });

@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const BrandCampaignsTab: React.FC = () => {
-  const { campaigns, loading, refreshCampaigns } = useBrandCampaigns();
+  const { campaigns, loading, fetchBrandCampaigns } = useBrandCampaigns();
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [showFundingDialog, setShowFundingDialog] = useState(false);
   const navigate = useNavigate();
@@ -78,7 +78,7 @@ export const BrandCampaignsTab: React.FC = () => {
       if (error) throw error;
 
       toast.success('Campaign deleted successfully');
-      refreshCampaigns();
+      fetchBrandCampaigns();
     } catch (error: any) {
       console.error('Error deleting campaign:', error);
       toast.error('Failed to delete campaign. Please try again.');
@@ -260,7 +260,7 @@ export const BrandCampaignsTab: React.FC = () => {
         campaign={selectedCampaign}
         onFundingComplete={() => {
           setShowFundingDialog(false);
-          refreshCampaigns();
+          fetchBrandCampaigns();
         }}
       />
     </div>
