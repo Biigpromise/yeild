@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import Welcome from '@/pages/Welcome';
 import About from '@/pages/About';
 import Login from '@/pages/Login';
