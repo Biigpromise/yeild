@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -34,7 +35,56 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({ onStoryView }) => {
 
   useEffect(() => {
     fetchStories();
+    
+    // Set up realtime subscription with proper cleanup
+    let channel: any = null;
+    
+    const setupRealtimeSubscription = () => {
+      channel = supabase
+        .channel('stories_updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'stories'
+          },
+          async (payload) => {
+            // Fetch the complete story with profile data
+            const { data } = await supabase
+              .from('stories')
+              .select(`
+                id,
+                user_id,
+                media_url,
+                media_type,
+                caption,
+                created_at,
+                expires_at,
+                view_count,
+                profiles:user_id (
+                  name,
+                  profile_picture_url
+                )
+              `)
+              .eq('id', payload.new.id)
+              .single();
+
+            if (data) {
+              setStories(prev => [data as Story, ...prev]);
+            }
+          }
+        )
+        .subscribe();
+    };
+
     setupRealtimeSubscription();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const fetchStories = async () => {
@@ -66,49 +116,6 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({ onStoryView }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const setupRealtimeSubscription = () => {
-    const channel = supabase
-      .channel('stories_updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'stories'
-        },
-        async (payload) => {
-          // Fetch the complete story with profile data
-          const { data } = await supabase
-            .from('stories')
-            .select(`
-              id,
-              user_id,
-              media_url,
-              media_type,
-              caption,
-              created_at,
-              expires_at,
-              view_count,
-              profiles:user_id (
-                name,
-                profile_picture_url
-              )
-            `)
-            .eq('id', payload.new.id)
-            .single();
-
-          if (data) {
-            setStories(prev => [data as Story, ...prev]);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   };
 
   const handleStoryClick = async (story: Story) => {

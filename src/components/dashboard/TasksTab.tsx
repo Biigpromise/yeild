@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Target, Gift, Wallet, ArrowRight, Plus, CheckCircle, Trophy, Clock, AlertCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDashboard } from '@/hooks/useDashboard';
 
 interface TasksTabProps {
   userStats?: { tasksCompleted: number; points: number };
@@ -14,20 +15,17 @@ interface TasksTabProps {
   loadUserData?: () => void;
 }
 
-export const TasksTab: React.FC<TasksTabProps> = ({
-  userStats = { tasksCompleted: 0, points: 0 },
-  userTasks = [],
-  userSubmissions = [],
-}) => {
+export const TasksTab: React.FC<TasksTabProps> = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { userStats, userTasks, userSubmissions, loading } = useDashboard();
 
-  const completedTasksCount = userTasks.filter(task => task.status === 'completed').length;
-  const pendingSubmissionsCount = userSubmissions.filter(sub => sub.status === 'pending').length;
-  const approvedSubmissionsCount = userSubmissions.filter(sub => sub.status === 'approved').length;
-  const rejectedSubmissionsCount = userSubmissions.filter(sub => sub.status === 'rejected').length;
+  const completedTasksCount = userTasks?.filter(task => task.status === 'completed').length || 0;
+  const pendingSubmissionsCount = userSubmissions?.filter(sub => sub.status === 'pending').length || 0;
+  const approvedSubmissionsCount = userSubmissions?.filter(sub => sub.status === 'approved').length || 0;
+  const rejectedSubmissionsCount = userSubmissions?.filter(sub => sub.status === 'rejected').length || 0;
 
-  const recentSubmissions = userSubmissions.slice(0, 5);
+  const recentSubmissions = userSubmissions?.slice(0, 5) || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -46,6 +44,20 @@ export const TasksTab: React.FC<TasksTabProps> = ({
       default: return <Clock className="h-4 w-4" />;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="animate-pulse">
+          <div className="h-32 bg-gray-200 rounded-lg mb-4"></div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="h-16 bg-gray-200 rounded-lg"></div>
+            <div className="h-16 bg-gray-200 rounded-lg"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isMobile) {
     return (
@@ -75,7 +87,7 @@ export const TasksTab: React.FC<TasksTabProps> = ({
                 <div className="text-xs text-red-500">Rejected</div>
               </div>
               <div className="text-center p-2 bg-blue-50 rounded-lg">
-                <div className="text-lg font-bold text-blue-600">{userStats.points}</div>
+                <div className="text-lg font-bold text-blue-600">{userStats?.points || 0}</div>
                 <div className="text-xs text-blue-500">Points</div>
               </div>
             </div>
@@ -147,7 +159,7 @@ export const TasksTab: React.FC<TasksTabProps> = ({
                 <div className="text-sm text-red-500">Rejected</div>
               </div>
               <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">{userStats.points}</div>
+                <div className="text-2xl font-bold text-blue-600">{userStats?.points || 0}</div>
                 <div className="text-sm text-blue-500">Total Points</div>
               </div>
             </div>
