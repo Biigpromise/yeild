@@ -8,6 +8,7 @@ import { DuplicateImageManager } from './DuplicateImageManager';
 import { toast } from "sonner";
 import { TaskSubmissionReview } from "./TaskSubmissionReview";
 import { TaskAnalytics } from "./TaskAnalytics";
+import type { TaskSubmission } from "@/services/types/taskTypes";
 
 interface TaskStats {
   pendingApproval: number;
@@ -17,25 +18,18 @@ interface TaskStats {
   total: number;
 }
 
-interface Submission {
-  id: string;
-  user_id: string;
-  task_id: string;
-  status: string;
-  submission_text: string;
-  image_url?: string;
-  submitted_at: string;
-  admin_notes?: string;
+// Updated interface to match the actual Supabase response
+interface SubmissionWithDetails extends TaskSubmission {
   tasks: {
     title: string;
     points: number;
     category: string;
     difficulty: string;
-  };
+  } | null;
   profiles: {
     name: string;
     email: string;
-  };
+  } | null;
 }
 
 export const AdminTaskOverview = () => {
@@ -46,7 +40,7 @@ export const AdminTaskOverview = () => {
     rejected: 0, 
     total: 0 
   });
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [submissions, setSubmissions] = useState<SubmissionWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -142,7 +136,16 @@ export const AdminTaskOverview = () => {
         return;
       }
 
-      setSubmissions(data || []);
+      // Transform the data to match our interface
+      const transformedSubmissions: SubmissionWithDetails[] = (data || []).map(submission => ({
+        ...submission,
+        // Ensure submission_text is always present (use evidence as fallback)
+        submission_text: submission.submission_text || submission.evidence || '',
+        tasks: submission.tasks,
+        profiles: submission.profiles
+      }));
+
+      setSubmissions(transformedSubmissions);
     } catch (error) {
       console.error('Error loading submissions:', error);
       toast.error('Failed to load submissions');
@@ -158,15 +161,21 @@ export const AdminTaskOverview = () => {
     window.dispatchEvent(new CustomEvent('navigateToCreateTask'));
   };
 
-  const handleUpdateSubmission = async (submissionId: string, status: 'approved' | 'rejected', notes?: string) => {
+  const handleUpdateSubmission = async (submissionId: string, status: 'approved' | 'rejected', notes?: string, qualityScore?: number) => {
     try {
+      const updateData: any = {
+        status,
+        admin_notes: notes,
+        reviewed_at: new Date().toISOString()
+      };
+
+      if (qualityScore !== undefined) {
+        updateData.calculated_points = qualityScore;
+      }
+
       const { error } = await supabase
         .from('task_submissions')
-        .update({
-          status,
-          admin_notes: notes,
-          reviewed_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', submissionId);
 
       if (error) throw error;

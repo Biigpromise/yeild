@@ -9,29 +9,32 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle, XCircle, Eye, Star } from "lucide-react";
 
-interface Submission {
+interface SubmissionDetails {
   id: string;
   user_id: string;
   task_id: string;
   status: string;
   submission_text: string;
+  evidence?: string;
   image_url?: string;
+  evidence_file_url?: string;
   submitted_at: string;
   admin_notes?: string;
+  calculated_points?: number;
   tasks: {
     title: string;
     points: number;
     category: string;
     difficulty: string;
-  };
+  } | null;
   profiles: {
     name: string;
     email: string;
-  };
+  } | null;
 }
 
 interface TaskSubmissionReviewProps {
-  submissions: Submission[];
+  submissions: SubmissionDetails[];
   onUpdate: (submissionId: string, status: 'approved' | 'rejected', notes?: string, qualityScore?: number) => void;
   readOnly?: boolean;
 }
@@ -41,24 +44,27 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
   onUpdate, 
   readOnly = false 
 }) => {
-  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
+  const [selectedSubmission, setSelectedSubmission] = useState<SubmissionDetails | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [qualityScore, setQualityScore] = useState<number>(80);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [actionType, setActionType] = useState<'approve' | 'reject'>('approve');
 
-  const handleApprove = (submission: Submission) => {
+  const handleApprove = (submission: SubmissionDetails) => {
     if (readOnly) return;
     
     setSelectedSubmission(submission);
+    setActionType('approve');
     setAdminNotes("");
     setQualityScore(80);
     setIsDialogOpen(true);
   };
 
-  const handleReject = (submission: Submission) => {
+  const handleReject = (submission: SubmissionDetails) => {
     if (readOnly) return;
     
     setSelectedSubmission(submission);
+    setActionType('reject');
     setAdminNotes("");
     setIsDialogOpen(true);
   };
@@ -66,8 +72,7 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
   const handleConfirmAction = () => {
     if (!selectedSubmission) return;
     
-    const action = selectedSubmission.status === 'pending' ? 'approved' : 'rejected';
-    onUpdate(selectedSubmission.id, action, adminNotes, qualityScore);
+    onUpdate(selectedSubmission.id, actionType, adminNotes, actionType === 'approve' ? qualityScore : undefined);
     setIsDialogOpen(false);
     setSelectedSubmission(null);
   };
@@ -112,22 +117,22 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg">{submission.tasks.title}</CardTitle>
+                <CardTitle className="text-lg">{submission.tasks?.title || 'Unknown Task'}</CardTitle>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant="outline" className={getStatusColor(submission.status)}>
                     {submission.status}
                   </Badge>
-                  <Badge variant="outline" className={getDifficultyColor(submission.tasks.difficulty)}>
-                    {submission.tasks.difficulty}
+                  <Badge variant="outline" className={getDifficultyColor(submission.tasks?.difficulty || '')}>
+                    {submission.tasks?.difficulty || 'Unknown'}
                   </Badge>
                   <Badge variant="outline">
-                    {submission.tasks.points} points
+                    {submission.tasks?.points || 0} points
                   </Badge>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-sm font-medium">{submission.profiles.name}</div>
-                <div className="text-xs text-gray-500">{submission.profiles.email}</div>
+                <div className="text-sm font-medium">{submission.profiles?.name || 'Unknown User'}</div>
+                <div className="text-xs text-gray-500">{submission.profiles?.email || 'No email'}</div>
                 <div className="text-xs text-gray-400">
                   {new Date(submission.submitted_at).toLocaleDateString()}
                 </div>
@@ -138,15 +143,17 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
             <div className="space-y-4">
               <div>
                 <Label className="text-sm font-medium">Submission:</Label>
-                <p className="text-sm mt-1 p-2 bg-gray-50 rounded">{submission.submission_text}</p>
+                <p className="text-sm mt-1 p-2 bg-gray-50 rounded">
+                  {submission.submission_text || submission.evidence || 'No description provided'}
+                </p>
               </div>
               
-              {submission.image_url && (
+              {(submission.image_url || submission.evidence_file_url) && (
                 <div>
                   <Label className="text-sm font-medium">Evidence:</Label>
                   <div className="mt-1">
                     <img 
-                      src={submission.image_url} 
+                      src={submission.image_url || submission.evidence_file_url} 
                       alt="Submission evidence" 
                       className="max-w-xs rounded border"
                     />
@@ -205,11 +212,11 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {selectedSubmission?.status === 'pending' ? 'Approve' : 'Reject'} Submission
+              {actionType === 'approve' ? 'Approve' : 'Reject'} Submission
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {selectedSubmission?.status === 'pending' && (
+            {actionType === 'approve' && (
               <div>
                 <Label htmlFor="quality-score">Quality Score (1-100)</Label>
                 <Input
@@ -238,7 +245,7 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
                 Cancel
               </Button>
               <Button onClick={handleConfirmAction}>
-                {selectedSubmission?.status === 'pending' ? 'Approve' : 'Reject'}
+                {actionType === 'approve' ? 'Approve' : 'Reject'}
               </Button>
             </div>
           </div>
