@@ -1,10 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent } from '@/components/ui/card';
+import { useDashboard } from '@/hooks/useDashboard';
 
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { TasksTab } from '@/components/dashboard/TasksTab';
@@ -13,113 +12,25 @@ import { ReferralTab } from '@/components/dashboard/ReferralTab';
 import { SocialTab } from '@/components/dashboard/SocialTab';
 import { Target, Wallet, Users, MessageCircle } from 'lucide-react';
 
-interface UserStats {
-  points: number;
-  level: number;
-  tasksCompleted: number;
-  activeReferrals: number;
-  totalReferrals: number;
-  currentStreak: number;
-  rank: number;
-  referrals: number;
-  followers: number;
-  following: number;
-}
-
-
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [userStats, setUserStats] = useState<UserStats>({
-    points: 0,
-    level: 1,
-    tasksCompleted: 0,
-    activeReferrals: 0,
-    totalReferrals: 0,
-    currentStreak: 0,
-    rank: 0,
-    referrals: 0,
-    followers: 0,
-    following: 0
-  });
-  const [userTasks, setUserTasks] = useState<any[]>([]);
-  const [userSubmissions, setUserSubmissions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    user,
+    userStats,
+    userTasks,
+    userSubmissions,
+    totalPointsEarned,
+    withdrawalStats,
+    loading,
+    error,
+    loadUserData
+  } = useDashboard();
 
   // Get active tab from URL params, default to 'tasks'
   const activeTab = searchParams.get('tab') || 'tasks';
 
   const handleTabChange = (tab: string) => {
     setSearchParams({ tab });
-  };
-
-  useEffect(() => {
-    if (user) {
-      loadUserData();
-    }
-  }, [user]);
-
-  const loadUserData = async () => {
-    if (!user) return;
-
-    try {
-      setLoading(true);
-      
-      // Load user profile data
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (profile) {
-        const newStats: UserStats = {
-          points: profile.points || 0,
-          level: profile.level || 1,
-          tasksCompleted: profile.tasks_completed || 0,
-          activeReferrals: profile.active_referrals_count || 0,
-          totalReferrals: profile.total_referrals_count || 0,
-          currentStreak: 0,
-          rank: 0,
-          referrals: profile.active_referrals_count || 0,
-          followers: profile.followers_count || 0,
-          following: profile.following_count || 0
-        };
-        setUserStats(newStats);
-      }
-
-      // Load user tasks
-      const { data: tasks } = await supabase
-        .from('tasks')
-        .select('id, title, description, points, status, created_at')
-        .eq('brand_user_id', user.id);
-
-      if (tasks) {
-        setUserTasks(tasks);
-      }
-
-      // Load user submissions
-      const { data: submissions } = await supabase
-        .from('task_submissions')
-        .select(`
-          *,
-          tasks (
-            title,
-            points,
-            description
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (submissions) {
-        setUserSubmissions(submissions);
-      }
-    } catch (error) {
-      console.error('Error loading user data:', error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   if (!user) {
@@ -131,6 +42,25 @@ const Dashboard: React.FC = () => {
             <p className="text-muted-foreground">
               You need to be signed in to access your dashboard.
             </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <h2 className="text-xl font-semibold mb-2">Error</h2>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <button 
+              onClick={loadUserData}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Try Again
+            </button>
           </CardContent>
         </Card>
       </div>
@@ -149,11 +79,8 @@ const Dashboard: React.FC = () => {
 
         <DashboardStats 
           userStats={userStats} 
-          totalPointsEarned={userStats.points}
-          withdrawalStats={{
-            pendingWithdrawals: 0,
-            completedWithdrawals: 0
-          }}
+          totalPointsEarned={totalPointsEarned}
+          withdrawalStats={withdrawalStats}
         />
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
