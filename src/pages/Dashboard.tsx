@@ -8,7 +8,7 @@ import { StatsCards } from '@/components/dashboard/StatsCards';
 import { TasksTab } from '@/components/dashboard/TasksTab';
 import { ProfileTab } from '@/components/dashboard/ProfileTab';
 import { WalletTab } from '@/components/dashboard/WalletTab';
-import { ReferralTab } from '@/components/dashboard/ReferralTab';
+import { ReferralsTab } from '@/components/dashboard/ReferralsTab';
 import { LeaderboardTab } from '@/components/dashboard/LeaderboardTab';
 import { SocialTab } from '@/components/dashboard/SocialTab';
 import { ChatTab } from '@/components/dashboard/ChatTab';
@@ -86,23 +86,17 @@ const Dashboard = () => {
 
           <TabsContent value="tasks" className="mt-6">
             <TasksTab 
+              userStats={userStats}
               userTasks={userTasks}
-              userSubmissions={userSubmissions}
-              completedTasks={completedTasks}
-              onTaskUpdate={loadUserData}
             />
           </TabsContent>
 
           <TabsContent value="wallet" className="mt-6">
-            <WalletTab 
-              userStats={userStats}
-              withdrawalStats={withdrawalStats}
-              onWithdrawalUpdate={loadUserData}
-            />
+            <WalletTab />
           </TabsContent>
 
           <TabsContent value="referral" className="mt-6">
-            <ReferralTab userId={user?.id} />
+            <ReferralsTab />
           </TabsContent>
 
           <TabsContent value="leaderboard" className="mt-6">
@@ -114,10 +108,7 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="profile" className="mt-6">
-            <ProfileTab 
-              userProfile={userProfile}
-              onProfileUpdate={loadUserData}
-            />
+            <ProfileTab />
           </TabsContent>
         </Tabs>
       </div>
