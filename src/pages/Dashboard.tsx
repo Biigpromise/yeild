@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { TasksTab } from '@/components/dashboard/TasksTab';
 import { WalletTab } from '@/components/dashboard/WalletTab';
-import { ReferralsTab } from '@/components/dashboard/ReferralsTab';
+import { ReferralTab } from '@/components/dashboard/ReferralTab';
 import { SocialTab } from '@/components/dashboard/SocialTab';
 import { Target, Wallet, Users, MessageCircle } from 'lucide-react';
 
@@ -23,6 +23,26 @@ interface UserStats {
   referrals: number;
   followers: number;
   following: number;
+}
+
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+  status: string;
+  created_at: string;
+  [key: string]: any;
+}
+
+interface TaskSubmission {
+  id: string;
+  task_id: string;
+  user_id: string;
+  status: string;
+  submitted_at: string;
+  tasks?: Task;
+  [key: string]: any;
 }
 
 const Dashboard: React.FC = () => {
@@ -40,8 +60,8 @@ const Dashboard: React.FC = () => {
     followers: 0,
     following: 0
   });
-  const [userTasks, setUserTasks] = useState<any[]>([]);
-  const [userSubmissions, setUserSubmissions] = useState<any[]>([]);
+  const [userTasks, setUserTasks] = useState<Task[]>([]);
+  const [userSubmissions, setUserSubmissions] = useState<TaskSubmission[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Get active tab from URL params, default to 'tasks'
@@ -92,7 +112,9 @@ const Dashboard: React.FC = () => {
         .select('*')
         .eq('user_id', user.id);
 
-      setUserTasks(tasks || []);
+      if (tasks) {
+        setUserTasks(tasks);
+      }
 
       // Load user submissions
       const { data: submissions } = await supabase
@@ -108,7 +130,9 @@ const Dashboard: React.FC = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      setUserSubmissions(submissions || []);
+      if (submissions) {
+        setUserSubmissions(submissions);
+      }
     } catch (error) {
       console.error('Error loading user data:', error);
     } finally {
@@ -184,7 +208,7 @@ const Dashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="referral" className="mt-6">
-            <ReferralsTab />
+            <ReferralTab />
           </TabsContent>
 
           <TabsContent value="social" className="mt-6">
