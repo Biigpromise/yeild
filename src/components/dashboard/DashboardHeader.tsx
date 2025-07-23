@@ -24,15 +24,14 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
           <span className="text-gray-400">Dashboard</span>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onTabChange('profile')}
             className="text-gray-300 hover:text-white hover:bg-gray-700"
           >
-            <User className="h-4 w-4 mr-2" />
-            Profile
+            <User className="h-4 w-4" />
           </Button>
           
           <Button
@@ -57,8 +56,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
             onClick={handleSignOut}
             className="text-gray-300 hover:text-white hover:bg-gray-700"
           >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </div>
