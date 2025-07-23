@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,7 @@ interface Campaign {
   budget: number;
   funded_amount: number;
   status: string;
-  admin_approval_status: string;
+  admin_approval_status: 'pending' | 'approved' | 'rejected';
   payment_status: string;
   created_at: string;
   brand_id: string;
@@ -45,7 +44,17 @@ export const CampaignApprovalManager: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setCampaigns(data as Campaign[] || []);
+      
+      // Transform data to match our interface
+      const transformedCampaigns = (data || []).map(campaign => ({
+        ...campaign,
+        admin_approval_status: campaign.admin_approval_status as 'pending' | 'approved' | 'rejected',
+        brand_profiles: campaign.brand_profiles && typeof campaign.brand_profiles === 'object' && 'company_name' in campaign.brand_profiles 
+          ? campaign.brand_profiles 
+          : null
+      }));
+      
+      setCampaigns(transformedCampaigns);
     } catch (error) {
       console.error('Error loading campaigns:', error);
       toast.error('Failed to load campaigns');
@@ -148,7 +157,7 @@ export const CampaignApprovalManager: React.FC = () => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{campaign.brand_profiles?.company_name}</TableCell>
+                      <TableCell>{campaign.brand_profiles?.company_name || 'Unknown'}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <DollarSign className="h-4 w-4" />

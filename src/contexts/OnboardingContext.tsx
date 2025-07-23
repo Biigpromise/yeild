@@ -8,6 +8,8 @@ interface OnboardingContextType {
   userType: 'user' | 'brand';
   completeOnboarding: () => void;
   setShowOnboarding: (show: boolean) => void;
+  skipOnboarding: () => void;
+  startOnboarding: () => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
@@ -44,6 +46,15 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
+  const skipOnboarding = () => {
+    completeOnboarding();
+  };
+
+  const startOnboarding = () => {
+    setShowOnboarding(true);
+    setIsOnboardingComplete(false);
+  };
+
   return (
     <OnboardingContext.Provider 
       value={{ 
@@ -51,7 +62,9 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         showOnboarding, 
         userType, 
         completeOnboarding,
-        setShowOnboarding 
+        setShowOnboarding,
+        skipOnboarding,
+        startOnboarding
       }}
     >
       {children}

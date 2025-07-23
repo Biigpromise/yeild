@@ -34,7 +34,12 @@ const Dashboard = () => {
   }
 
   if (!isOnboardingComplete && showOnboarding) {
-    return <OnboardingFlow userType={userType} onComplete={completeOnboarding} />;
+    return (
+      <OnboardingFlow 
+        userType={userType} 
+        onComplete={completeOnboarding} 
+      />
+    );
   }
 
   if (loading) {
@@ -79,7 +84,6 @@ const Dashboard = () => {
           <TabsContent value="tasks" className="mt-6">
             <TasksTab 
               userTasks={userTasks}
-              onTaskUpdate={loadUserData}
             />
           </TabsContent>
 

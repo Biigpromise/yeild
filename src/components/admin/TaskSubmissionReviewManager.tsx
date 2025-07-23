@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,8 +71,8 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         reviewed_at: item.reviewed_at,
         reviewer_feedback: item.admin_notes,
         admin_notes: item.admin_notes,
-        tasks: item.tasks,
-        profiles: item.profiles
+        tasks: item.tasks && typeof item.tasks === 'object' && 'title' in item.tasks ? item.tasks : null,
+        profiles: item.profiles && typeof item.profiles === 'object' && 'name' in item.profiles ? item.profiles : null
       }));
       
       setSubmissions(transformedData);
@@ -181,18 +180,18 @@ export const TaskSubmissionReviewManager: React.FC = () => {
                     {filteredSubmissions.map((submission) => (
                       <TableRow key={submission.id}>
                         <TableCell>
-                          <div className="font-medium">{submission.tasks?.title}</div>
+                          <div className="font-medium">{submission.tasks?.title || 'Unknown Task'}</div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4" />
                             <div>
-                              <div className="font-medium">{submission.profiles?.name}</div>
-                              <div className="text-sm text-muted-foreground">{submission.profiles?.email}</div>
+                              <div className="font-medium">{submission.profiles?.name || 'Unknown User'}</div>
+                              <div className="text-sm text-muted-foreground">{submission.profiles?.email || 'No email'}</div>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>{submission.tasks?.points}</TableCell>
+                        <TableCell>{submission.tasks?.points || 0}</TableCell>
                         <TableCell>
                           <Badge className={`${getStatusColor(submission.status)} text-white`}>
                             {getStatusIcon(submission.status)}
@@ -233,11 +232,11 @@ export const TaskSubmissionReviewManager: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Task</Label>
-                  <p className="font-medium">{selectedSubmission.tasks?.title}</p>
+                  <p className="font-medium">{selectedSubmission.tasks?.title || 'Unknown Task'}</p>
                 </div>
                 <div>
                   <Label>User</Label>
-                  <p className="font-medium">{selectedSubmission.profiles?.name}</p>
+                  <p className="font-medium">{selectedSubmission.profiles?.name || 'Unknown User'}</p>
                 </div>
               </div>
               
