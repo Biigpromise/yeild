@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,6 +8,9 @@ import { AdminOverview } from '@/components/admin/AdminOverview';
 import { TaskManagement } from '@/components/admin/TaskManagement';
 import { AdminFinancialManagement } from '@/components/admin/AdminFinancialManagement';
 import { AdminWallet } from '@/components/admin/AdminWallet';
+import { BrandApplicationsManager } from '@/components/admin/BrandApplicationsManager';
+import { CampaignApprovalManager } from '@/components/admin/CampaignApprovalManager';
+import { TaskSubmissionReviewManager } from '@/components/admin/TaskSubmissionReviewManager';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { LoadingState } from '@/components/ui/loading-state';
@@ -61,13 +65,13 @@ const AdminDashboard = () => {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Card className="w-full max-w-md bg-gray-800 border-gray-700">
           <CardHeader>
-            <CardTitle className="text-destructive">Access Denied</CardTitle>
+            <CardTitle className="text-red-500">Access Denied</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">
+            <p className="text-gray-300">
               You don't have admin privileges to access this page.
             </p>
           </CardContent>
@@ -77,25 +81,54 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black">
       <div className="max-w-7xl mx-auto p-4 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Manage your platform operations</p>
+            <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
+            <p className="text-gray-400">Manage your platform operations</p>
           </div>
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="tasks">Tasks</TabsTrigger>
-            <TabsTrigger value="finances">Finances</TabsTrigger>
-            <TabsTrigger value="wallet">Wallet</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-7 bg-gray-800 border-gray-700">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-black text-gray-300">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="brands" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-black text-gray-300">
+              Brands
+            </TabsTrigger>
+            <TabsTrigger value="campaigns" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-black text-gray-300">
+              Campaigns
+            </TabsTrigger>
+            <TabsTrigger value="submissions" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-black text-gray-300">
+              Submissions
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-black text-gray-300">
+              Tasks
+            </TabsTrigger>
+            <TabsTrigger value="finances" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-black text-gray-300">
+              Finances
+            </TabsTrigger>
+            <TabsTrigger value="wallet" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-black text-gray-300">
+              Wallet
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
             <AdminOverview />
+          </TabsContent>
+
+          <TabsContent value="brands" className="mt-6">
+            <BrandApplicationsManager />
+          </TabsContent>
+
+          <TabsContent value="campaigns" className="mt-6">
+            <CampaignApprovalManager />
+          </TabsContent>
+
+          <TabsContent value="submissions" className="mt-6">
+            <TaskSubmissionReviewManager />
           </TabsContent>
 
           <TabsContent value="tasks" className="mt-6">

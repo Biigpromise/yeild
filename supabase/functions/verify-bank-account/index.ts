@@ -1,6 +1,10 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { corsHeaders } from '../_shared/cors.ts'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 const FLUTTERWAVE_SECRET_KEY = Deno.env.get('FLUTTERWAVE_SECRET_KEY')
 
@@ -25,7 +29,7 @@ serve(async (req) => {
       )
     }
 
-    console.log('Verifying account:', { account_number, account_bank })
+    console.log('Verifying account (LIVE):', { account_number, account_bank })
 
     const response = await fetch('https://api.flutterwave.com/v3/accounts/resolve', {
       method: 'POST',
@@ -42,7 +46,8 @@ serve(async (req) => {
     const data = await response.json()
     console.log('Flutterwave response:', data)
 
-    if (data.status === 'success' && data.data) {
+    // Handle both successful and unsuccessful responses properly
+    if (response.ok && data.status === 'success' && data.data) {
       return new Response(
         JSON.stringify({
           success: true,
@@ -55,10 +60,14 @@ serve(async (req) => {
         }
       )
     } else {
+      // Handle non-2xx responses and unsuccessful data
+      const errorMessage = data.message || 'Account verification failed'
+      console.error('Account verification failed:', errorMessage)
+      
       return new Response(
         JSON.stringify({
           success: false,
-          error: data.message || 'Account verification failed'
+          error: errorMessage
         }),
         { 
           status: 400,

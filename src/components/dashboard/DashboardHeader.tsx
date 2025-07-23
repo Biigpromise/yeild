@@ -1,158 +1,94 @@
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Bell, LogOut, Settings, User, Search } from "lucide-react";
-import { CompactBirdBatch } from "@/components/ui/CompactBirdBatch";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { EnhancedBirdBadge } from "@/components/referral/EnhancedBirdBadge";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { GlobalSearch } from "@/components/GlobalSearch";
-import { useAuth } from "@/contexts/AuthContext";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Bell, Settings, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { BirdStatusDisplay } from '@/components/bird/BirdStatusDisplay';
+import { BirdProgressionModal } from '@/components/bird/BirdProgressionModal';
+import { useBirdLevel } from '@/hooks/useBirdLevel';
 
 interface DashboardHeaderProps {
   user: any;
-  onTabChange?: (tab: string) => void;
+  onTabChange: (tab: string) => void;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabChange }) => {
   const { signOut } = useAuth();
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showBirdModal, setShowBirdModal] = useState(false);
+  const { currentBird, userStats } = useBirdLevel();
 
-  const handleProfileClick = () => {
-    if (onTabChange) {
-      onTabChange('profile');
-    }
+  const handleSignOut = async () => {
+    await signOut();
   };
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
+  const handleBirdClick = () => {
+    setShowBirdModal(true);
   };
 
   return (
-    <div className="flex items-center justify-between p-2 sm:p-4 bg-background border-b">
-      <div className="flex items-center space-x-4">
-        {/* YEILD Logo */}
-        <div className="flex items-center">
-          <img 
-            src="/lovable-uploads/54ccebd1-9d4c-452f-b0a9-0b9de0fcfebf.png" 
-            alt="YEILD" 
-            className="w-10 h-10 object-contain"
-          />
-        </div>
-        
-        {/* User Avatar and Bird Badge */}
-        <div className="flex items-center space-x-3">
-          <Avatar 
-            className="h-12 w-12 border-2 border-primary/20 cursor-pointer hover:scale-105 transition-transform"
-            onClick={handleProfileClick}
-          >
-            <AvatarImage 
-              src={user?.profile_picture_url} 
-              alt={user?.name || user?.email?.split('@')[0] || 'User'} 
-            />
-            <AvatarFallback className="text-lg font-semibold">
-              {(user?.name || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+    <>
+      <div className="bg-gray-800 border-b border-gray-700 p-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-yeild-yellow">YIELD</h1>
+            <span className="text-gray-400">Dashboard</span>
+          </div>
           
-        <div className="flex items-center gap-3 flex-wrap">
-          {user?.id && (
-            <EnhancedBirdBadge userId={user.id} size="sm" showName={false} />
-          )}
-          {user && (
-            <CompactBirdBatch 
-              count={user.tasks_completed || 0} 
-              className="scale-90 sm:scale-100"
-            />
-          )}
-        </div>
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        {/* Global Search */}
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => setIsSearchOpen(true)}
-          className="relative"
-        >
-          <Search className="h-4 w-4" />
-        </Button>
-
-        {/* Theme Toggle */}
-        <ThemeToggle />
-
-        {/* Notifications */}
-        <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="relative">
-              <Bell className="h-4 w-4" />
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-              >
-                0
-              </Badge>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80">
-            <div className="space-y-3">
-              <h4 className="font-medium">Notifications</h4>
-              <div className="text-sm text-muted-foreground">
-                No new notifications
-              </div>
+          <div className="flex items-center gap-4">
+            {/* Clickable Bird Status */}
+            <div 
+              onClick={handleBirdClick}
+              className="cursor-pointer transition-transform hover:scale-105"
+            >
+              <BirdStatusDisplay />
             </div>
-          </PopoverContent>
-        </Popover>
-
-        {/* User Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <User className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleProfileClick}>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onTabChange('profile')}
+              className="text-gray-300 hover:text-white hover:bg-gray-700"
+            >
               <User className="h-4 w-4 mr-2" />
               Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onTabChange && onTabChange('wallet')}>
-              <Settings className="h-4 w-4 mr-2" />
-              Wallet
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-300 hover:text-white hover:bg-gray-700"
+            >
+              <Bell className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-300 hover:text-white hover:bg-gray-700"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className="text-gray-300 hover:text-white hover:bg-gray-700"
+            >
               <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              Sign Out
+            </Button>
+          </div>
+        </div>
       </div>
 
-      <GlobalSearch 
-        isOpen={isSearchOpen} 
-        onClose={() => setIsSearchOpen(false)} 
+      {/* Bird Progression Modal */}
+      <BirdProgressionModal
+        isOpen={showBirdModal}
+        onClose={() => setShowBirdModal(false)}
+        currentBird={currentBird}
+        userStats={userStats}
       />
-    </div>
+    </>
   );
 };

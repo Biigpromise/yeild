@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -37,7 +38,6 @@ serve(async (req) => {
       );
     }
 
-    // Create Supabase client for user verification
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
@@ -55,7 +55,6 @@ serve(async (req) => {
 
     const paymentData: PaymentRequest = await req.json();
 
-    // Validate required fields
     if (!paymentData.amount || !paymentData.currency || !paymentData.email || !paymentData.name) {
       return new Response(
         JSON.stringify({ error: "Missing required payment fields" }),
@@ -63,7 +62,6 @@ serve(async (req) => {
       );
     }
 
-    // Generate unique transaction reference
     const tx_ref = `flw_${Date.now()}_${user.id.slice(0, 8)}`;
 
     const flutterwavePayload = {
@@ -71,7 +69,7 @@ serve(async (req) => {
       amount: paymentData.amount,
       currency: paymentData.currency,
       redirect_url: paymentData.redirect_url,
-      payment_options: "card,mobilemoney,ussd",
+      payment_options: "card,mobilemoney,ussd,banktransfer",
       customer: {
         email: paymentData.email,
         phone_number: paymentData.phone_number,
@@ -80,7 +78,7 @@ serve(async (req) => {
       customizations: {
         title: paymentData.title,
         description: paymentData.description,
-        logo: "https://your-logo-url.com/logo.png",
+        logo: "https://stehjqdbncykevpokcvj.supabase.co/storage/v1/object/public/profile-pictures/logo.png",
       },
       meta: {
         user_id: user.id,
@@ -90,9 +88,9 @@ serve(async (req) => {
       },
     };
 
-    console.log("Initiating Flutterwave payment:", { tx_ref, amount: paymentData.amount });
+    console.log("Initiating Flutterwave payment (LIVE):", { tx_ref, amount: paymentData.amount });
 
-    // Use live Flutterwave API for production
+    // Use live Flutterwave API
     const response = await fetch("https://api.flutterwave.com/v3/payments", {
       method: "POST",
       headers: {
@@ -115,7 +113,6 @@ serve(async (req) => {
       );
     }
 
-    // Store payment record in database
     const supabaseService = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -142,7 +139,7 @@ serve(async (req) => {
         message: "Payment initiated successfully",
         data: {
           link: flutterwaveResponse.data.link,
-          payment_link: flutterwaveResponse.data.link, // Also include payment_link for backward compatibility
+          payment_link: flutterwaveResponse.data.link,
           tx_ref,
           amount: paymentData.amount,
           currency: paymentData.currency,
