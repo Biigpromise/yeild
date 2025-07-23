@@ -118,9 +118,13 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* Ensure dark theme is applied by default */
+  /* Dark theme by default */
   html {
-    @apply dark;
+    color-scheme: dark;
+  }
+  
+  html.dark {
+    color-scheme: dark;
   }
 }
 

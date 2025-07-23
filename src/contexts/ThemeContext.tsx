@@ -66,7 +66,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Ensure dark theme is applied on initial load
   useEffect(() => {
-    document.documentElement.classList.add('dark');
+    if (!document.documentElement.classList.contains('dark') && !document.documentElement.classList.contains('light')) {
+      document.documentElement.classList.add('dark');
+    }
   }, []);
 
   return (
