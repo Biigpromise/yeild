@@ -74,8 +74,14 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         tasks: item.tasks && typeof item.tasks === 'object' && 'title' in item.tasks 
           ? { title: item.tasks.title, points: item.tasks.points }
           : null,
-        profiles: item.profiles && typeof item.profiles === 'object' && 'name' in item.profiles 
-          ? { name: item.profiles.name, email: item.profiles.email }
+        profiles: item.profiles && 
+          typeof item.profiles === 'object' && 
+          !Array.isArray(item.profiles) &&
+          'name' in item.profiles 
+          ? { 
+              name: (item.profiles as any).name, 
+              email: (item.profiles as any).email 
+            }
           : null
       }));
       

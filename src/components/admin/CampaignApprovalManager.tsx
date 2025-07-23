@@ -49,8 +49,11 @@ export const CampaignApprovalManager: React.FC = () => {
       const transformedCampaigns = (data || []).map(campaign => ({
         ...campaign,
         admin_approval_status: (campaign.admin_approval_status as 'pending' | 'approved' | 'rejected') || 'pending',
-        brand_profiles: campaign.brand_profiles && typeof campaign.brand_profiles === 'object' && 'company_name' in campaign.brand_profiles 
-          ? { company_name: campaign.brand_profiles.company_name }
+        brand_profiles: campaign.brand_profiles && 
+          typeof campaign.brand_profiles === 'object' && 
+          !Array.isArray(campaign.brand_profiles) &&
+          'company_name' in campaign.brand_profiles 
+          ? { company_name: (campaign.brand_profiles as any).company_name }
           : null
       }));
       
