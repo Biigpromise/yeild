@@ -198,7 +198,7 @@ const Tasks = () => {
                       <CardTitle className="text-base leading-tight">{task.title}</CardTitle>
                     </div>
                     <div className="flex flex-col gap-1 ml-2">
-                      <Badge className={getDifficultyColor(task.difficulty)} size="sm">
+                      <Badge className={getDifficultyColor(task.difficulty)}>
                         {task.difficulty}
                       </Badge>
                       {isSubmitted && (
