@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { TasksTab } from '@/components/dashboard/TasksTab';
 import { WalletTab } from '@/components/dashboard/WalletTab';
@@ -25,25 +26,6 @@ interface UserStats {
   following: number;
 }
 
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  points: number;
-  status: string;
-  created_at: string;
-  [key: string]: any;
-}
-
-interface TaskSubmission {
-  id: string;
-  task_id: string;
-  user_id: string;
-  status: string;
-  submitted_at: string;
-  tasks?: Task;
-  [key: string]: any;
-}
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -60,8 +42,8 @@ const Dashboard: React.FC = () => {
     followers: 0,
     following: 0
   });
-  const [userTasks, setUserTasks] = useState<Task[]>([]);
-  const [userSubmissions, setUserSubmissions] = useState<TaskSubmission[]>([]);
+  const [userTasks, setUserTasks] = useState<any[]>([]);
+  const [userSubmissions, setUserSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Get active tab from URL params, default to 'tasks'
@@ -109,8 +91,8 @@ const Dashboard: React.FC = () => {
       // Load user tasks
       const { data: tasks } = await supabase
         .from('tasks')
-        .select('*')
-        .eq('user_id', user.id);
+        .select('id, title, description, points, status, created_at')
+        .eq('brand_user_id', user.id);
 
       if (tasks) {
         setUserTasks(tasks);
