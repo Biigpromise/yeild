@@ -1,4 +1,3 @@
-
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 
@@ -34,7 +33,7 @@ serve(async (req) => {
 
     console.log('Processing transfer:', { account_bank, account_number, amount, beneficiary_name })
 
-    // Use live Flutterwave API
+    // Call Flutterwave transfer API
     const transferResponse = await fetch('https://api.flutterwave.com/v3/transfers', {
       method: 'POST',
       headers: {
@@ -44,10 +43,10 @@ serve(async (req) => {
       body: JSON.stringify({
         account_bank,
         account_number,
-        amount: parseFloat(amount),
+        amount,
         narration: narration || 'Withdrawal from Yield Platform',
         currency: 'NGN',
-        reference: reference || `YIELD_TRANSFER_${Date.now()}`,
+        reference: reference || `YIELD_${Date.now()}`,
         beneficiary_name,
         debit_currency: 'NGN'
       })

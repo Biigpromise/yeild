@@ -1,141 +1,164 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { corsHeaders } from '../_shared/cors.ts'
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
-const FLUTTERWAVE_SECRET_KEY = Deno.env.get('FLUTTERWAVE_SECRET_KEY')
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+interface PaymentRequest {
+  amount: number;
+  currency: string;
+  email: string;
+  phone_number?: string;
+  name: string;
+  title: string;
+  description: string;
+  redirect_url: string;
+  meta?: {
+    user_id?: string;
+    payment_type?: string;
+    campaign_id?: string;
+    task_id?: string;
+  };
+}
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { 
-      amount, 
-      currency, 
-      customer_name, 
-      customer_email,
-      payment_type,
-      campaign_id,
-      redirect_url 
-    } = await req.json()
-
-    if (!amount || !customer_email || !customer_name) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Missing required fields' 
-        }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
+        JSON.stringify({ error: "Authorization header required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    console.log('Processing payment:', { amount, currency, customer_email, payment_type })
+    // Create Supabase client for user verification
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Invalid authentication" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const paymentData: PaymentRequest = await req.json();
+
+    // Validate required fields
+    if (!paymentData.amount || !paymentData.currency || !paymentData.email || !paymentData.name) {
+      return new Response(
+        JSON.stringify({ error: "Missing required payment fields" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Generate unique transaction reference
-    const tx_ref = `YIELD_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const tx_ref = `flw_${Date.now()}_${user.id.slice(0, 8)}`;
 
-    // Create Flutterwave payment
-    const paymentData = {
+    const flutterwavePayload = {
       tx_ref,
-      amount: parseFloat(amount),
-      currency: currency || 'USD',
-      redirect_url: redirect_url || `${req.headers.get('origin')}/payment-success`,
+      amount: paymentData.amount,
+      currency: paymentData.currency,
+      redirect_url: paymentData.redirect_url,
+      payment_options: "card,mobilemoney,ussd",
       customer: {
-        email: customer_email,
-        name: customer_name
-      },
-      meta: {
-        payment_type,
-        campaign_id
+        email: paymentData.email,
+        phone_number: paymentData.phone_number,
+        name: paymentData.name,
       },
       customizations: {
-        title: 'YIELD Payment',
-        description: payment_type === 'campaign_funding' ? 'Campaign Funding' : 'Payment',
-        logo: 'https://your-logo-url.com/logo.png'
-      }
-    }
-
-    // Use live Flutterwave API
-    const response = await fetch('https://api.flutterwave.com/v3/payments', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${FLUTTERWAVE_SECRET_KEY}`,
-        'Content-Type': 'application/json',
+        title: paymentData.title,
+        description: paymentData.description,
+        logo: "https://your-logo-url.com/logo.png",
       },
-      body: JSON.stringify(paymentData)
-    })
+      meta: {
+        user_id: user.id,
+        payment_type: paymentData.meta?.payment_type || "general",
+        campaign_id: paymentData.meta?.campaign_id,
+        task_id: paymentData.meta?.task_id,
+      },
+    };
 
-    const data = await response.json()
-    console.log('Flutterwave payment response:', data)
+    console.log("Initiating Flutterwave payment:", { tx_ref, amount: paymentData.amount });
 
-    if (data.status === 'success') {
-      // Store transaction in database
-      const transactionData = {
-        transaction_ref: tx_ref,
-        amount: parseFloat(amount),
-        currency: currency || 'USD',
-        customer_email,
-        customer_name,
-        payment_type,
-        campaign_id,
-        flutterwave_id: data.data.id,
-        status: 'pending'
-      }
+    // Use live Flutterwave API for production
+    const response = await fetch("https://api.flutterwave.com/v3/payments", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${Deno.env.get("FLUTTERWAVE_SECRET_KEY")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(flutterwavePayload),
+    });
 
-      // Store in database using Supabase
-      const dbResponse = await fetch(`${SUPABASE_URL}/rest/v1/payment_transactions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_SERVICE_ROLE_KEY
-        },
-        body: JSON.stringify(transactionData)
-      })
+    const flutterwaveResponse = await response.json();
 
-      if (!dbResponse.ok) {
-        console.error('Failed to store transaction in database')
-      }
-
+    if (!response.ok) {
+      console.error("Flutterwave API error:", flutterwaveResponse);
       return new Response(
-        JSON.stringify({
-          success: true,
-          payment_link: data.data.link,
-          transaction_ref: tx_ref
+        JSON.stringify({ 
+          error: "Payment initialization failed", 
+          details: flutterwaveResponse.message || "Unknown error" 
         }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
-    } else {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: data.message || 'Payment initialization failed'
-        }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+
+    // Store payment record in database
+    const supabaseService = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    await supabaseService.from("payment_transactions").insert({
+      user_id: user.id,
+      transaction_ref: tx_ref,
+      amount: paymentData.amount,
+      currency: paymentData.currency,
+      payment_type: paymentData.meta?.payment_type || "general",
+      status: "pending",
+      flutterwave_id: flutterwaveResponse.data?.id,
+      campaign_id: paymentData.meta?.campaign_id,
+      task_id: paymentData.meta?.task_id,
+      customer_email: paymentData.email,
+      customer_name: paymentData.name,
+      created_at: new Date().toISOString(),
+    });
+
+    return new Response(
+      JSON.stringify({
+        status: "success",
+        message: "Payment initiated successfully",
+        data: {
+          link: flutterwaveResponse.data.link,
+          payment_link: flutterwaveResponse.data.link, // Also include payment_link for backward compatibility
+          tx_ref,
+          amount: paymentData.amount,
+          currency: paymentData.currency,
+        },
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+
   } catch (error) {
-    console.error('Error processing payment:', error)
+    console.error("Payment initialization error:", error);
     return new Response(
       JSON.stringify({ 
-        success: false, 
-        error: 'Internal server error' 
+        error: "Internal server error", 
+        message: error.message 
       }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    )
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
-})
+});

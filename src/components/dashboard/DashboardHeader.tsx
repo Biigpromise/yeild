@@ -1,128 +1,158 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { BirdProgressionModal } from '@/components/referral/BirdProgressionModal';
-import { RealisticPhoenixBird } from '@/components/referral/RealisticPhoenixBird';
-import { userService } from '@/services/userService';
-import { useAuth } from '@/contexts/AuthContext';
-import { Users, Trophy, DollarSign, TrendingUp } from 'lucide-react';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Bell, LogOut, Settings, User, Search } from "lucide-react";
+import { CompactBirdBatch } from "@/components/ui/CompactBirdBatch";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { EnhancedBirdBadge } from "@/components/referral/EnhancedBirdBadge";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { GlobalSearch } from "@/components/GlobalSearch";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardHeaderProps {
-  userStats: {
-    points: number;
-    level: number;
-    tasksCompleted: number;
-    referrals: number;
-  };
-  userProfile: any;
+  user: any;
+  onTabChange?: (tab: string) => void;
 }
 
-export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ 
-  userStats, 
-  userProfile 
-}) => {
-  const { user } = useAuth();
-  const [showBirdModal, setShowBirdModal] = useState(false);
+export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabChange }) => {
+  const { signOut } = useAuth();
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const activeReferrals = userProfile?.active_referrals_count || 0;
-  const currentBirdLevel = userService.getBirdLevel(activeReferrals, userStats.points);
-
-  const getBirdEmoji = (level: any) => {
-    if (level.icon === 'phoenix') {
-      return <RealisticPhoenixBird size="md" animate={true} />;
+  const handleProfileClick = () => {
+    if (onTabChange) {
+      onTabChange('profile');
     }
-    switch (level.name) {
-      case 'Falcon': return '🦅';
-      case 'Eagle': return '🦅';
-      case 'Hawk': return '🦅';
-      default: return '🕊️';
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
     }
   };
 
   return (
-    <>
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  onClick={() => setShowBirdModal(true)}
-                  className="p-2 hover:bg-blue-100 rounded-full"
-                  title="Click to view bird progression"
-                >
-                  {getBirdEmoji(currentBirdLevel)}
-                </Button>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h2 className="text-2xl font-bold">
-                      Welcome back, {userProfile?.name || 'User'}!
-                    </h2>
-                    <Badge 
-                      className="text-white"
-                      style={{ backgroundColor: currentBirdLevel.color }}
-                    >
-                      {currentBirdLevel.name}
-                    </Badge>
-                  </div>
-                  <p className="text-muted-foreground">
-                    {currentBirdLevel.description}
-                  </p>
-                </div>
-              </div>
-            </div>
+    <div className="flex items-center justify-between p-2 sm:p-4 bg-background border-b">
+      <div className="flex items-center space-x-4">
+        {/* YEILD Logo */}
+        <div className="flex items-center">
+          <img 
+            src="/lovable-uploads/54ccebd1-9d4c-452f-b0a9-0b9de0fcfebf.png" 
+            alt="YEILD" 
+            className="w-10 h-10 object-contain"
+          />
+        </div>
+        
+        {/* User Avatar and Bird Badge */}
+        <div className="flex items-center space-x-3">
+          <Avatar 
+            className="h-12 w-12 border-2 border-primary/20 cursor-pointer hover:scale-105 transition-transform"
+            onClick={handleProfileClick}
+          >
+            <AvatarImage 
+              src={user?.profile_picture_url} 
+              alt={user?.name || user?.email?.split('@')[0] || 'User'} 
+            />
+            <AvatarFallback className="text-lg font-semibold">
+              {(user?.name || user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          
+        <div className="flex items-center gap-3 flex-wrap">
+          {user?.id && (
+            <EnhancedBirdBadge userId={user.id} size="sm" showName={false} />
+          )}
+          {user && (
+            <CompactBirdBatch 
+              count={user.tasks_completed || 0} 
+              className="scale-90 sm:scale-100"
+            />
+          )}
+        </div>
+        </div>
+      </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-white rounded-lg">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Users className="h-4 w-4 text-blue-600" />
-                  <span className="text-2xl font-bold text-blue-600">{activeReferrals}</span>
-                </div>
-                <div className="text-sm text-muted-foreground">Active Referrals</div>
-              </div>
-              <div className="text-center p-3 bg-white rounded-lg">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Trophy className="h-4 w-4 text-purple-600" />
-                  <span className="text-2xl font-bold text-purple-600">{userStats.points}</span>
-                </div>
-                <div className="text-sm text-muted-foreground">Total Points</div>
-              </div>
-            </div>
-          </div>
+      <div className="flex items-center space-x-2">
+        {/* Global Search */}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setIsSearchOpen(true)}
+          className="relative"
+        >
+          <Search className="h-4 w-4" />
+        </Button>
 
-          <div className="mt-4 flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1">
-              <TrendingUp className="h-4 w-4 text-green-600" />
-              <span className="text-green-600 font-medium">
-                Level {userStats.level}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <DollarSign className="h-4 w-4 text-green-600" />
-              <span className="text-green-600 font-medium">
-                ${(userStats.points * 0.1).toFixed(2)} earned
-              </span>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowBirdModal(true)}
-              className="ml-auto"
-            >
-              View Progression
+        {/* Theme Toggle */}
+        <ThemeToggle />
+
+        {/* Notifications */}
+        <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="sm" className="relative">
+              <Bell className="h-4 w-4" />
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+              >
+                0
+              </Badge>
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </PopoverTrigger>
+          <PopoverContent className="w-80">
+            <div className="space-y-3">
+              <h4 className="font-medium">Notifications</h4>
+              <div className="text-sm text-muted-foreground">
+                No new notifications
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
 
-      <BirdProgressionModal 
-        open={showBirdModal} 
-        onOpenChange={setShowBirdModal} 
+        {/* User Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm">
+              <User className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleProfileClick}>
+              <User className="h-4 w-4 mr-2" />
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onTabChange && onTabChange('wallet')}>
+              <Settings className="h-4 w-4 mr-2" />
+              Wallet
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <GlobalSearch 
+        isOpen={isSearchOpen} 
+        onClose={() => setIsSearchOpen(false)} 
       />
-    </>
+    </div>
   );
 };

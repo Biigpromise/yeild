@@ -1,194 +1,139 @@
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { BrandWalletCard } from '@/components/brand/BrandWalletCard';
-import { CampaignManager } from '@/components/brand/CampaignManager';
-import { Plus, Building, Megaphone, DollarSign, BarChart3 } from 'lucide-react';
+import React from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BrandCampaignsTab } from "@/components/brand/BrandCampaignsTab";
+import { BrandAnalyticsTab } from "@/components/brand/BrandAnalyticsTab";
+import { BrandProfileTab } from "@/components/brand/BrandProfileTab";
+import { BrandBillingTab } from "@/components/brand/BrandBillingTab";
+import { BrandPerformanceTab } from "@/components/brand/BrandPerformanceTab";
+import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
+import { EmailConfirmationGuard } from "@/components/brand/EmailConfirmationGuard";
+import { BrandWalletCard } from "@/components/brand/BrandWalletCard";
+import { useOnboarding } from "@/hooks/useOnboarding";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { LifeBuoy, LogOut, Building, Plus, CreditCard } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const BrandDashboard = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [isBrand, setIsBrand] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [brandProfile, setBrandProfile] = useState<any>(null);
-
-  useEffect(() => {
-    checkBrandAccess();
-  }, [user]);
-
-  const checkBrandAccess = async () => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'brand')
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking brand access:', error);
-        toast.error('Error checking brand access');
-        setIsBrand(false);
-      } else {
-        setIsBrand(!!data);
-        if (data) {
-          loadBrandProfile();
-        } else {
-          toast.error('Access denied. Brand privileges required.');
-          navigate('/dashboard');
+const BrandDashboard: React.FC = () => {
+    const { user, signOut } = useAuth();
+    const navigate = useNavigate();
+    const { showOnboarding, userType, completeOnboarding } = useOnboarding();
+    
+    const getBrandDisplayName = () => {
+        if (user?.user_metadata?.company_name?.trim()) {
+            return user.user_metadata.company_name.trim();
         }
-      }
-    } catch (error) {
-      console.error('Error checking brand access:', error);
-      setIsBrand(false);
-      navigate('/dashboard');
-    } finally {
-      setLoading(false);
+        if (user?.user_metadata?.name?.trim()) {
+            return user.user_metadata.name.trim();
+        }
+        if (user?.email) {
+            const emailName = user.email.split('@')[0];
+            return emailName.charAt(0).toUpperCase() + emailName.slice(1) + ' Company';
+        }
+        return 'Brand Partner';
+    };
+
+    const getGreetingMessage = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good morning';
+        if (hour < 17) return 'Good afternoon';
+        return 'Good evening';
+    };
+    
+    if (showOnboarding) {
+        return (
+            <OnboardingFlow 
+                userType={userType} 
+                onComplete={completeOnboarding}
+            />
+        );
     }
-  };
-
-  const loadBrandProfile = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('brand_profiles')
-        .select('*')
-        .eq('user_id', user!.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading brand profile:', error);
-      } else {
-        setBrandProfile(data);
-      }
-    } catch (error) {
-      console.error('Error loading brand profile:', error);
-    }
-  };
-
-  if (loading) {
+    
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+        <EmailConfirmationGuard>
+            <div className="min-h-screen bg-yeild-black">
+                <div className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+                    <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-6 border-b border-gray-800">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                                <Building className="w-8 h-8 text-yeild-yellow" />
+                                <h1 className="text-3xl font-bold text-white">Brand Dashboard</h1>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xl font-medium text-white">
+                                    {getGreetingMessage()}, {getBrandDisplayName()}! 🚀
+                                </p>
+                                <p className="text-gray-300">
+                                    Create campaigns, manage tasks, and track your marketing performance
+                                </p>
+                                <div className="flex items-center gap-2 text-sm text-gray-400 mt-2">
+                                    <span className="inline-block w-2 h-2 bg-yeild-yellow rounded-full"></span>
+                                    <span>Brand Account Active</span>
+                                    {user?.email_confirmed_at && (
+                                        <>
+                                            <span>•</span>
+                                            <span className="text-yeild-yellow">Email Verified</span>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button 
+                                onClick={() => navigate('/campaigns/create')} 
+                                className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark font-semibold"
+                            >
+                                <Plus className="mr-2 h-4 w-4" /> 
+                                Create Campaign
+                            </Button>
+                            <Button 
+                                onClick={() => navigate('/brand/payment')} 
+                                className="bg-green-600 text-white hover:bg-green-700"
+                            >
+                                <CreditCard className="mr-2 h-4 w-4" /> 
+                                Fund Account
+                            </Button>
+                            <Button onClick={() => navigate('/support')} variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-800">
+                                <LifeBuoy className="mr-2 h-4 w-4" /> Support
+                            </Button>
+                            <Button onClick={signOut} variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-800">
+                                <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                            </Button>
+                        </div>
+                    </header>
+                    
+                    <Tabs defaultValue="campaigns" className="w-full">
+                        <TabsList className="grid w-full grid-cols-5 bg-gray-800 border-gray-700">
+                            <TabsTrigger value="campaigns" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-yeild-black text-gray-300">Campaigns</TabsTrigger>
+                            <TabsTrigger value="performance" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-yeild-black text-gray-300">Performance</TabsTrigger>
+                            <TabsTrigger value="analytics" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-yeild-black text-gray-300">Analytics</TabsTrigger>
+                            <TabsTrigger value="billing" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-yeild-black text-gray-300">Billing</TabsTrigger>
+                            <TabsTrigger value="profile" className="data-[state=active]:bg-yeild-yellow data-[state=active]:text-yeild-black text-gray-300">Profile</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="campaigns" className="mt-6">
+                            <BrandCampaignsTab />
+                        </TabsContent>
+                        <TabsContent value="performance" className="mt-6">
+                            <BrandPerformanceTab />
+                        </TabsContent>
+                        <TabsContent value="analytics" className="mt-6">
+                            <BrandAnalyticsTab />
+                        </TabsContent>
+                        <TabsContent value="billing" className="mt-6">
+                            <div className="space-y-6">
+                                <BrandWalletCard onBalanceUpdate={() => {}} />
+                                <BrandBillingTab />
+                            </div>
+                        </TabsContent>
+                        <TabsContent value="profile" className="mt-6">
+                            <BrandProfileTab />
+                        </TabsContent>
+                    </Tabs>
+                </div>
+            </div>
+        </EmailConfirmationGuard>
     );
-  }
-
-  if (!isBrand) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-destructive">Access Denied</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              You don't have brand privileges to access this page.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto p-4 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Building className="h-8 w-8" />
-              Brand Dashboard
-            </h1>
-            <p className="text-muted-foreground">
-              Welcome back, {brandProfile?.company_name || 'Brand'}
-            </p>
-          </div>
-          <Button onClick={() => navigate('/campaigns/create')} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Create Campaign
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <BrandWalletCard />
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Megaphone className="h-5 w-5" />
-                Active Campaigns
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">0</div>
-              <p className="text-sm text-muted-foreground">Currently running</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Total Reach
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">0</div>
-              <p className="text-sm text-muted-foreground">Users reached</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="campaigns" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="wallet">Wallet</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="campaigns" className="mt-6">
-            <CampaignManager />
-          </TabsContent>
-
-          <TabsContent value="analytics" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Campaign analytics will be displayed here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="wallet" className="mt-6">
-            <BrandWalletCard />
-          </TabsContent>
-
-          <TabsContent value="profile" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Brand Profile</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Brand profile settings will be displayed here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  );
-};
+}
 
 export default BrandDashboard;

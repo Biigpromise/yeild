@@ -27,7 +27,6 @@ serve(async (req) => {
 
     console.log('Verifying account:', { account_number, account_bank })
 
-    // Use live Flutterwave API endpoint
     const response = await fetch('https://api.flutterwave.com/v3/accounts/resolve', {
       method: 'POST',
       headers: {
@@ -43,7 +42,7 @@ serve(async (req) => {
     const data = await response.json()
     console.log('Flutterwave response:', data)
 
-    if (data.status === 'success' && data.data && data.data.account_name) {
+    if (data.status === 'success' && data.data) {
       return new Response(
         JSON.stringify({
           success: true,
@@ -52,7 +51,6 @@ serve(async (req) => {
           bank_code: account_bank
         }),
         { 
-          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
@@ -60,7 +58,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: data.message || 'Account verification failed. Please check your account details.'
+          error: data.message || 'Account verification failed'
         }),
         { 
           status: 400,
@@ -73,7 +71,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: 'Bank verification service is temporarily unavailable. Please try again later.' 
+        error: 'Internal server error' 
       }),
       { 
         status: 500,

@@ -1,81 +1,97 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 
 interface OnboardingContextType {
-  isOnboardingComplete: boolean;
   showOnboarding: boolean;
   userType: 'user' | 'brand';
   completeOnboarding: () => void;
-  setShowOnboarding: (show: boolean) => void;
   skipOnboarding: () => void;
   startOnboarding: () => void;
+  setUserType: (type: 'user' | 'brand') => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
-export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const useOnboarding = () => {
+  const context = useContext(OnboardingContext);
+  if (!context) {
+    throw new Error('useOnboarding must be used within OnboardingProvider');
+  }
+  return context;
+};
+
+interface OnboardingProviderProps {
+  children: ReactNode;
+}
+
+export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children }) => {
   const { user } = useAuth();
-  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [userType, setUserType] = useState<'user' | 'brand'>('user');
 
+  console.log('OnboardingProvider: Initializing...');
+
   useEffect(() => {
     if (user) {
+      console.log('OnboardingProvider: User found, checking onboarding status');
+      
+      // Check if user has seen onboarding
       const hasSeenOnboarding = localStorage.getItem(`onboarding_${user.id}`);
       
       if (!hasSeenOnboarding) {
+        console.log('OnboardingProvider: Starting onboarding timer');
+        
+        // Determine user type based on user metadata or role
         const isBrand = user.user_metadata?.user_type === 'brand' || 
                        user.user_metadata?.company_name;
         
         setUserType(isBrand ? 'brand' : 'user');
-        setShowOnboarding(true);
-        setIsOnboardingComplete(false);
-      } else {
-        setIsOnboardingComplete(true);
-        setShowOnboarding(false);
+        
+        // Show onboarding after a short delay to allow page to load
+        const timer = setTimeout(() => {
+          console.log('OnboardingProvider: Showing onboarding');
+          setShowOnboarding(true);
+        }, 1000);
+        
+        return () => clearTimeout(timer);
       }
     }
   }, [user]);
 
   const completeOnboarding = () => {
+    console.log('OnboardingProvider: Completing onboarding');
     if (user) {
       localStorage.setItem(`onboarding_${user.id}`, 'completed');
-      setIsOnboardingComplete(true);
       setShowOnboarding(false);
     }
   };
 
   const skipOnboarding = () => {
-    completeOnboarding();
+    console.log('OnboardingProvider: Skipping onboarding');
+    if (user) {
+      localStorage.setItem(`onboarding_${user.id}`, 'completed');
+      setShowOnboarding(false);
+    }
   };
 
   const startOnboarding = () => {
+    console.log('OnboardingProvider: Starting onboarding manually');
     setShowOnboarding(true);
-    setIsOnboardingComplete(false);
+  };
+
+  const value = {
+    showOnboarding,
+    userType,
+    completeOnboarding,
+    skipOnboarding,
+    startOnboarding,
+    setUserType
   };
 
   return (
-    <OnboardingContext.Provider 
-      value={{ 
-        isOnboardingComplete, 
-        showOnboarding, 
-        userType, 
-        completeOnboarding,
-        setShowOnboarding,
-        skipOnboarding,
-        startOnboarding
-      }}
-    >
+    <OnboardingContext.Provider value={value}>
       {children}
     </OnboardingContext.Provider>
   );
-};
-
-export const useOnboarding = () => {
-  const context = useContext(OnboardingContext);
-  if (context === undefined) {
-    throw new Error('useOnboarding must be used within an OnboardingProvider');
-  }
-  return context;
 };
