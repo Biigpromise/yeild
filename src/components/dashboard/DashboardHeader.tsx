@@ -19,11 +19,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
   };
 
   return (
-    <div className="bg-gray-800 border-b border-gray-700 p-4">
+    <div className="bg-background border-b border-border p-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold text-yeild-yellow">YIELD</h1>
-          <span className="text-gray-400">Dashboard</span>
+          <span className="text-muted-foreground">Dashboard</span>
         </div>
         
         <div className="flex items-center gap-2">
@@ -31,7 +31,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
             variant="ghost"
             size="sm"
             onClick={() => onTabChange('profile')}
-            className="text-gray-300 hover:text-white hover:bg-gray-700"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent"
           >
             <User className="h-4 w-4" />
           </Button>
@@ -41,7 +41,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-300 hover:text-white hover:bg-gray-700"
+                className="text-muted-foreground hover:text-foreground hover:bg-accent"
               >
                 <Bell className="h-4 w-4" />
               </Button>
@@ -55,7 +55,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
             variant="ghost"
             size="sm"
             onClick={() => onTabChange('settings')}
-            className="text-gray-300 hover:text-white hover:bg-gray-700"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent"
           >
             <Settings className="h-4 w-4" />
           </Button>
@@ -64,7 +64,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
             variant="ghost"
             size="sm"
             onClick={handleSignOut}
-            className="text-gray-300 hover:text-white hover:bg-gray-700"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent"
           >
             <LogOut className="h-4 w-4" />
           </Button>

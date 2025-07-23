@@ -9,6 +9,7 @@ import { DashboardCTA } from '@/components/dashboard/DashboardCTA';
 import { DashboardProgress } from '@/components/dashboard/DashboardProgress';
 import { DashboardErrorBoundary, DashboardErrorFallback } from '@/components/dashboard/DashboardErrorBoundary';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import { WalletTab } from '@/components/dashboard/WalletTab';
 import { ReferralsTab } from '@/components/dashboard/ReferralsTab';
 import { ProfileTab } from '@/components/dashboard/ProfileTab';
@@ -104,7 +105,7 @@ const Dashboard: React.FC = () => {
   return (
     <DashboardErrorBoundary>
       <div className="bg-background min-h-screen text-foreground">
-        {/* Dashboard Header with Bird Status and Logout */}
+        {/* Dashboard Header */}
         <DashboardHeader user={user} onTabChange={handleTabChange} />
         
         <div className="max-w-md mx-auto px-4 py-6">
@@ -114,6 +115,9 @@ const Dashboard: React.FC = () => {
           {/* Tab Content */}
           {renderTabContent()}
         </div>
+        
+        {/* Onboarding Tutorial */}
+        <OnboardingTutorial />
       </div>
     </DashboardErrorBoundary>
   );

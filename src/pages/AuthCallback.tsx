@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -79,13 +80,25 @@ const AuthCallback = () => {
           }
         }
 
+        // Check if this is a new user (no profile or incomplete profile)
+        const isNewUser = !profile || !profile.name;
+        
         // If user has no profile or incomplete profile, go to progressive auth
-        if (!profile || !profile.name) {
+        if (isNewUser) {
           navigate('/auth/progressive?step=1');
           return;
         }
 
-        // User is complete, redirect to dashboard
+        // Check if user has seen onboarding
+        const hasSeenOnboarding = localStorage.getItem(`onboarding_${session.user.id}`);
+        
+        if (!hasSeenOnboarding) {
+          // New user who hasn't seen onboarding - redirect to onboarding page
+          navigate('/onboarding');
+          return;
+        }
+
+        // User is complete and has seen onboarding, redirect to dashboard
         navigate('/dashboard');
       } catch (error) {
         console.error('Unexpected error in auth callback:', error);
@@ -97,9 +110,9 @@ const AuthCallback = () => {
   }, [navigate, searchParams]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-yeild-yellow" />
         <p className="text-muted-foreground">Completing sign in...</p>
       </div>
     </div>
