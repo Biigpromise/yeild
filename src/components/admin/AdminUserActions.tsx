@@ -195,7 +195,13 @@ export const AdminUserActions = () => {
       </Dialog>
 
       {/* View All Users */}
-      <Card className="cursor-pointer hover:shadow-md transition-shadow">
+      <Card 
+        className="cursor-pointer hover:shadow-md transition-shadow"
+        onClick={() => {
+          // Dispatch custom event to navigate to users section
+          window.dispatchEvent(new CustomEvent('navigateToUsers'));
+        }}
+      >
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <Users className="h-5 w-5" />

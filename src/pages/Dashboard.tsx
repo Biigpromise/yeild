@@ -8,15 +8,19 @@ import { DashboardNavTabs } from '@/components/dashboard/DashboardNavTabs';
 import { DashboardCTA } from '@/components/dashboard/DashboardCTA';
 import { DashboardProgress } from '@/components/dashboard/DashboardProgress';
 import { DashboardErrorBoundary, DashboardErrorFallback } from '@/components/dashboard/DashboardErrorBoundary';
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { WalletTab } from '@/components/dashboard/WalletTab';
 import { ReferralsTab } from '@/components/dashboard/ReferralsTab';
 import { ProfileTab } from '@/components/dashboard/ProfileTab';
 import { LeaderboardTab } from '@/components/dashboard/LeaderboardTab';
 import { SocialTab } from '@/components/dashboard/SocialTab';
+import { StoriesTab } from '@/components/dashboard/StoriesTab';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const { user } = useAuth();
   
   const {
     userStats,
@@ -73,6 +77,8 @@ const Dashboard: React.FC = () => {
         return <LeaderboardTab />;
       case 'social':
         return <SocialTab />;
+      case 'stories':
+        return <StoriesTab />;
       default:
         return (
           <>
@@ -92,13 +98,10 @@ const Dashboard: React.FC = () => {
   return (
     <DashboardErrorBoundary>
       <div className="bg-gray-900 min-h-screen text-white">
+        {/* Dashboard Header with Bird Status and Logout */}
+        <DashboardHeader user={user} onTabChange={handleTabChange} />
+        
         <div className="max-w-md mx-auto px-4 py-6">
-          {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-white mb-1">Dashboard</h1>
-            <p className="text-gray-400 text-sm">Welcome back! Here's your progress overview.</p>
-          </div>
-          
           {/* Navigation Tabs */}
           <DashboardNavTabs activeTab={activeTab} onTabChange={handleTabChange} />
           

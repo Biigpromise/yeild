@@ -117,7 +117,16 @@ export const AdminPlatformStats = () => {
           <div className="space-y-2">
             <h4 className="font-medium">Total Payouts</h4>
             <div className="text-3xl font-bold">${stats.totalPayouts.toFixed(2)}</div>
-            <Button variant="outline" className="w-full">View All Payouts</Button>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => {
+                // Navigate to financial management
+                window.dispatchEvent(new CustomEvent('navigateToFinancial'));
+              }}
+            >
+              View All Payouts
+            </Button>
           </div>
 
           <div className="space-y-2">
@@ -136,6 +145,16 @@ export const AdminPlatformStats = () => {
                 <span className="font-medium">{stats.supportTickets.resolvedToday}</span>
               </div>
             </div>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => {
+                // Navigate to support section
+                window.dispatchEvent(new CustomEvent('navigateToSupport'));
+              }}
+            >
+              Manage Tickets
+            </Button>
           </div>
         </div>
       </CardContent>

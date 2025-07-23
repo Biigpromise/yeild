@@ -16,6 +16,7 @@ export const DashboardNavTabs: React.FC<DashboardNavTabsProps> = ({
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', onClick: () => onTabChange?.('dashboard') },
     { id: 'tasks', label: 'Tasks', onClick: () => navigate('/tasks') },
+    { id: 'stories', label: 'Stories', onClick: () => onTabChange?.('stories') },
     { id: 'wallet', label: 'Wallet', onClick: () => onTabChange?.('wallet') },
     { id: 'referral', label: 'Referral', onClick: () => onTabChange?.('referral') },
     { id: 'leaderboard', label: 'Leaderboard', onClick: () => onTabChange?.('leaderboard') },

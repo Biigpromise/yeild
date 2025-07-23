@@ -118,7 +118,12 @@ export const AdminOverview = () => {
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
-            <Button onClick={() => setShowUserManagement(true)}>
+            <Button 
+              onClick={() => {
+                // Navigate to users section
+                window.dispatchEvent(new CustomEvent('navigateToUsers'));
+              }}
+            >
               <Users className="h-4 w-4 mr-2" />
               Manage Users
             </Button>
@@ -166,7 +171,14 @@ export const AdminOverview = () => {
               <p className="text-sm text-muted-foreground mb-2">
                 Comprehensive fraud detection system monitoring referrals, images, and user behavior
               </p>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  // Navigate to fraud detection section
+                  window.dispatchEvent(new CustomEvent('navigateToFraud'));
+                }}
+              >
                 <AlertTriangle className="h-4 w-4 mr-2" />
                 View All Fraud Flags
               </Button>

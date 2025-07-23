@@ -51,13 +51,31 @@ const Admin = () => {
     // Listen for navigation events from child components
     const handleNavigateToSubmissions = () => setActiveSection("tasks");
     const handleNavigateToCreateTask = () => setActiveSection("tasks");
+    const handleNavigateToUsers = () => setActiveSection("users");
+    const handleNavigateToFinancial = () => setActiveSection("wallet");
+    const handleNavigateToSupport = () => setActiveSection("support");
+    const handleNavigateToSecurity = () => setActiveSection("security");
+    const handleNavigateToNotifications = () => setActiveSection("notifications");
+    const handleNavigateToFraud = () => setActiveSection("fraud");
 
     window.addEventListener('navigateToSubmissions', handleNavigateToSubmissions);
     window.addEventListener('navigateToCreateTask', handleNavigateToCreateTask);
+    window.addEventListener('navigateToUsers', handleNavigateToUsers);
+    window.addEventListener('navigateToFinancial', handleNavigateToFinancial);
+    window.addEventListener('navigateToSupport', handleNavigateToSupport);
+    window.addEventListener('navigateToSecurity', handleNavigateToSecurity);
+    window.addEventListener('navigateToNotifications', handleNavigateToNotifications);
+    window.addEventListener('navigateToFraud', handleNavigateToFraud);
 
     return () => {
       window.removeEventListener('navigateToSubmissions', handleNavigateToSubmissions);
       window.removeEventListener('navigateToCreateTask', handleNavigateToCreateTask);
+      window.removeEventListener('navigateToUsers', handleNavigateToUsers);
+      window.removeEventListener('navigateToFinancial', handleNavigateToFinancial);
+      window.removeEventListener('navigateToSupport', handleNavigateToSupport);
+      window.removeEventListener('navigateToSecurity', handleNavigateToSecurity);
+      window.removeEventListener('navigateToNotifications', handleNavigateToNotifications);
+      window.removeEventListener('navigateToFraud', handleNavigateToFraud);
     };
   }, []);
   
