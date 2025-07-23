@@ -15,6 +15,7 @@ export interface BirdLevel {
   benefits: string[];
   animation_type: string;
   glow_effect: boolean;
+  earningRate: number;
 }
 
 export interface NextBirdLevel extends BirdLevel {
@@ -61,7 +62,15 @@ export const useBirdLevel = () => {
             .rpc('get_user_bird_level', { user_id_param: user.id });
 
           if (currentBirdData && currentBirdData.length > 0) {
-            setCurrentBird(currentBirdData[0]);
+            // Add missing properties with defaults
+            const birdWithDefaults: BirdLevel = {
+              ...currentBirdData[0],
+              benefits: [],
+              animation_type: 'static',
+              glow_effect: false,
+              earningRate: 1.0 // Default earning rate
+            };
+            setCurrentBird(birdWithDefaults);
           }
 
           // Get next bird level
@@ -74,7 +83,8 @@ export const useBirdLevel = () => {
               ...nextBirdData[0],
               benefits: [],
               animation_type: 'static',
-              glow_effect: false
+              glow_effect: false,
+              earningRate: 1.0 // Default earning rate
             };
             setNextBird(nextBirdLevel);
           }

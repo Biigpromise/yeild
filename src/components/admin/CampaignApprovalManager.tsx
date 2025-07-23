@@ -61,8 +61,11 @@ export const CampaignApprovalManager: React.FC = () => {
         admin_approval_status: campaign.admin_approval_status as 'pending' | 'approved' | 'rejected',
         brand_id: campaign.brand_id,
         created_at: campaign.created_at,
-        brand_profiles: campaign.brand_profiles && typeof campaign.brand_profiles === 'object' && !('error' in campaign.brand_profiles)
-          ? campaign.brand_profiles
+        brand_profiles: campaign.brand_profiles && 
+          typeof campaign.brand_profiles === 'object' && 
+          !('error' in campaign.brand_profiles) &&
+          campaign.brand_profiles !== null
+          ? campaign.brand_profiles as { company_name: string; industry: string; }
           : null
       }));
       

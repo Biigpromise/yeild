@@ -73,11 +73,17 @@ export const TaskSubmissionReviewManager: React.FC = () => {
           ? submission.evidence_files.map(file => String(file))
           : [],
         reviewer_notes: submission.admin_notes,
-        tasks: submission.tasks && typeof submission.tasks === 'object' && !('error' in submission.tasks)
-          ? submission.tasks
+        tasks: submission.tasks && 
+          typeof submission.tasks === 'object' && 
+          !('error' in submission.tasks) &&
+          submission.tasks !== null
+          ? submission.tasks as { title: string; description: string; points: number; }
           : null,
-        profiles: submission.profiles && typeof submission.profiles === 'object' && !('error' in submission.profiles)
-          ? submission.profiles
+        profiles: submission.profiles && 
+          typeof submission.profiles === 'object' && 
+          !('error' in submission.profiles) &&
+          submission.profiles !== null
+          ? submission.profiles as { name: string; email: string; }
           : null
       }));
       

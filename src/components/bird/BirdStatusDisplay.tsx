@@ -147,12 +147,14 @@ export const BirdStatusDisplay: React.FC = () => {
         </Card>
       </motion.div>
 
-      <BirdProgressionModal
-        isOpen={showProgression}
-        onClose={() => setShowProgression(false)}
-        currentBird={currentBird}
-        userStats={userStats}
-      />
+      {currentBird && (
+        <BirdProgressionModal
+          isOpen={showProgression}
+          onClose={() => setShowProgression(false)}
+          currentBird={currentBird}
+          userStats={userStats}
+        />
+      )}
     </>
   );
 };
