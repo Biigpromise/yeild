@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useDashboard } from '@/hooks/useDashboard';
@@ -15,10 +14,8 @@ import { ProfileTab } from '@/components/dashboard/ProfileTab';
 import { LeaderboardTab } from '@/components/dashboard/LeaderboardTab';
 import { SocialTab } from '@/components/dashboard/SocialTab';
 import { StoriesTab } from '@/components/dashboard/StoriesTab';
-import { SettingsTab } from '@/components/dashboard/SettingsTab';
 import { TasksTab } from '@/components/dashboard/TasksTab';
 import { useAuth } from '@/contexts/AuthContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
 
 const Dashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,20 +34,39 @@ const Dashboard: React.FC = () => {
     setActiveTab(tab);
   }, [searchParams]);
 
-  const handleTabChange = useCallback((tabId: string) => {
+  const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
     if (tabId === 'dashboard') {
       setSearchParams({});
     } else {
       setSearchParams({ tab: tabId });
     }
-  }, [setSearchParams]);
+  };
 
-  // Memoize tab content to prevent unnecessary re-renders
-  const tabContent = useMemo(() => {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-yellow-400" />
+          <p className="text-gray-400">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-gray-900 min-h-screen">
+        <DashboardErrorFallback 
+          error={error} 
+          onRetry={loadUserData}
+        />
+      </div>
+    );
+  }
+
+  const renderTabContent = () => {
     switch (activeTab) {
-      case 'tasks':
-        return <TasksTab userStats={userStats} />;
       case 'wallet':
         return <WalletTab />;
       case 'referral':
@@ -63,59 +79,39 @@ const Dashboard: React.FC = () => {
         return <SocialTab />;
       case 'stories':
         return <StoriesTab />;
-      case 'settings':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-foreground">Settings</h2>
-            <SettingsTab />
-          </div>
-        );
+      case 'tasks':
+        return <TasksTab userStats={userStats} />;
       default:
         return (
           <>
+            {/* Stats Grid */}
             <SimplifiedDashboardStats userStats={userStats} />
+            
+            {/* Central CTA */}
             <DashboardCTA />
+            
+            {/* Progress Section */}
             <DashboardProgress userStats={userStats} />
           </>
         );
     }
-  }, [activeTab, userStats]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-background min-h-screen">
-        <DashboardErrorFallback 
-          error={error} 
-          onRetry={loadUserData}
-        />
-      </div>
-    );
-  }
+  };
 
   return (
-    <ThemeProvider>
-      <DashboardErrorBoundary>
-        <div className="bg-background min-h-screen text-foreground">
-          <DashboardHeader user={user} onTabChange={handleTabChange} />
+    <DashboardErrorBoundary>
+      <div className="bg-gray-900 min-h-screen text-white">
+        {/* Dashboard Header with Bird Status and Logout */}
+        <DashboardHeader user={user} onTabChange={handleTabChange} />
+        
+        <div className="max-w-md mx-auto px-4 py-6">
+          {/* Navigation Tabs */}
+          <DashboardNavTabs activeTab={activeTab} onTabChange={handleTabChange} />
           
-          <div className="max-w-md mx-auto px-4 py-6">
-            <DashboardNavTabs activeTab={activeTab} onTabChange={handleTabChange} />
-            {tabContent}
-          </div>
+          {/* Tab Content */}
+          {renderTabContent()}
         </div>
-      </DashboardErrorBoundary>
-    </ThemeProvider>
+      </div>
+    </DashboardErrorBoundary>
   );
 };
 
