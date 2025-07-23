@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DashboardStats } from './DashboardStats';
+import { SimplifiedDashboardStats } from './SimplifiedDashboardStats';
 
 interface StatsCardsProps {
   userStats: {
@@ -20,16 +20,8 @@ interface StatsCardsProps {
   };
 }
 
-export const StatsCards: React.FC<StatsCardsProps> = ({ 
-  userStats, 
-  totalPointsEarned,
-  withdrawalStats
-}) => {
+export const StatsCards: React.FC<StatsCardsProps> = ({ userStats }) => {
   return (
-    <DashboardStats 
-      userStats={userStats}
-      totalPointsEarned={totalPointsEarned}
-      withdrawalStats={withdrawalStats}
-    />
+    <SimplifiedDashboardStats userStats={userStats} />
   );
 };
