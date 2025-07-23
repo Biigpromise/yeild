@@ -30,7 +30,7 @@ export const SocialFeed: React.FC = () => {
 
   const fetchFeedItems = async () => {
     try {
-      // Fetch recent task completions with proper profile joins
+      // Fetch recent task completions without complex joins
       const { data: submissions, error } = await supabase
         .from('task_submissions')
         .select(`
@@ -38,63 +38,32 @@ export const SocialFeed: React.FC = () => {
           user_id,
           status,
           submitted_at,
-          tasks (title, points),
-          profiles!task_submissions_user_id_fkey (name, profile_picture_url)
+          tasks (title, points)
         `)
         .eq('status', 'approved')
         .order('submitted_at', { ascending: false })
         .limit(20);
 
-      if (error) {
-        console.error('Error fetching submissions:', error);
-        // Fallback to a simpler query if the join fails
-        const { data: simpleSubmissions, error: simpleError } = await supabase
-          .from('task_submissions')
-          .select(`
-            id,
-            user_id,
-            status,
-            submitted_at,
-            tasks (title, points)
-          `)
-          .eq('status', 'approved')
-          .order('submitted_at', { ascending: false })
-          .limit(20);
+      if (error) throw error;
 
-        if (simpleError) throw simpleError;
+      // Manually fetch profiles for each submission to ensure type safety
+      const feedData: FeedItem[] = [];
+      for (const submission of submissions || []) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name, profile_picture_url')
+          .eq('id', submission.user_id)
+          .maybeSingle();
 
-        // Manually fetch profiles for each submission
-        const feedData: FeedItem[] = [];
-        for (const submission of simpleSubmissions || []) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('name, profile_picture_url')
-            .eq('id', submission.user_id)
-            .single();
-
-          feedData.push({
-            id: submission.id,
-            type: 'task_completion' as const,
-            user_id: submission.user_id,
-            content: `completed the task "${submission.tasks?.title}" and earned ${submission.tasks?.points || 0} points!`,
-            created_at: submission.submitted_at,
-            profiles: profile || { name: 'Anonymous User' }
-          });
-        }
-
-        setFeedItems(feedData);
-        return;
+        feedData.push({
+          id: submission.id,
+          type: 'task_completion' as const,
+          user_id: submission.user_id,
+          content: `completed the task "${submission.tasks?.title}" and earned ${submission.tasks?.points || 0} points!`,
+          created_at: submission.submitted_at,
+          profiles: profile || { name: 'Anonymous User' }
+        });
       }
-
-      // Transform submissions into feed items
-      const feedData: FeedItem[] = (submissions || []).map(submission => ({
-        id: submission.id,
-        type: 'task_completion' as const,
-        user_id: submission.user_id,
-        content: `completed the task "${submission.tasks?.title}" and earned ${submission.tasks?.points || 0} points!`,
-        created_at: submission.submitted_at,
-        profiles: submission.profiles || { name: 'Anonymous User' }
-      }));
 
       setFeedItems(feedData);
     } catch (error) {
