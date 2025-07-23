@@ -127,113 +127,115 @@ export const SocialHub: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-2">Social Hub</h1>
-          <p className="text-muted-foreground">
-            Connect with the community, share your journey, and discover amazing content.
-          </p>
-        </div>
+    <div className="h-full bg-background">
+      <div className="max-w-6xl mx-auto h-full">
+        <div className="p-3 md:p-6">
+          <div className="mb-4 md:mb-6">
+            <h1 className="text-xl md:text-2xl font-bold mb-2">Social Hub</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              Connect with the community, share your journey, and discover amazing content.
+            </p>
+          </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-3">
-            <TabsTrigger value="feed" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Feed
-            </TabsTrigger>
-            <TabsTrigger value="discover" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Discover
-            </TabsTrigger>
-            <TabsTrigger value="following" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Following
-            </TabsTrigger>
-          </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3 mb-4 md:mb-6">
+              <TabsTrigger value="feed" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+                <Calendar className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="hidden sm:inline">Feed</span>
+              </TabsTrigger>
+              <TabsTrigger value="discover" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+                <TrendingUp className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="hidden sm:inline">Discover</span>
+              </TabsTrigger>
+              <TabsTrigger value="following" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+                <Users className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="hidden sm:inline">Following</span>
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="feed" className="mt-6">
-            <SocialFeed />
-          </TabsContent>
+            <TabsContent value="feed" className="mt-0">
+              <SocialFeed />
+            </TabsContent>
 
-          <TabsContent value="discover" className="mt-6">
-            <div className="space-y-4">
-              {/* Search Bar */}
-              <Card className="p-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search users..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </Card>
-
-              {/* Discovery Grid */}
-              <div className="grid gap-4 md:grid-cols-2">
-                {loading ? (
-                  <div className="col-span-full text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Finding amazing users...</p>
+            <TabsContent value="discover" className="mt-0">
+              <div className="space-y-4">
+                {/* Search Bar */}
+                <div className="p-3 md:p-4 bg-card rounded-lg border">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search users..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
-                ) : discoveryUsers.length === 0 ? (
-                  <div className="col-span-full text-center py-8">
-                    <p className="text-muted-foreground">No users found</p>
+                </div>
+
+                {/* Discovery Grid */}
+                <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
+                  {loading ? (
+                    <div className="col-span-full text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                      <p className="text-muted-foreground">Finding amazing users...</p>
+                    </div>
+                  ) : discoveryUsers.length === 0 ? (
+                    <div className="col-span-full text-center py-8">
+                      <p className="text-muted-foreground">No users found</p>
+                    </div>
+                  ) : (
+                    discoveryUsers
+                      .filter(u => 
+                        !searchQuery || 
+                        u.name?.toLowerCase().includes(searchQuery.toLowerCase())
+                      )
+                      .map(userProfile => (
+                        <UserCard
+                          key={userProfile.id}
+                          profile={userProfile}
+                          isFollowing={userProfile.isFollowing}
+                          onFollowUpdate={handleFollowUpdate}
+                        />
+                      ))
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="following" className="mt-0">
+              <div className="space-y-4">
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Loading your following...</p>
+                  </div>
+                ) : followingUsers.length === 0 ? (
+                  <div className="p-6 md:p-8 text-center bg-card rounded-lg border">
+                    <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No Following Yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Start following users to see their updates here.
+                    </p>
+                    <Button onClick={() => setActiveTab('discover')}>
+                      Discover Users
+                    </Button>
                   </div>
                 ) : (
-                  discoveryUsers
-                    .filter(u => 
-                      !searchQuery || 
-                      u.name?.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map(userProfile => (
+                  <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
+                    {followingUsers.map(userProfile => (
                       <UserCard
                         key={userProfile.id}
                         profile={userProfile}
-                        isFollowing={userProfile.isFollowing}
+                        isFollowing={true}
                         onFollowUpdate={handleFollowUpdate}
                       />
-                    ))
+                    ))}
+                  </div>
                 )}
               </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="following" className="mt-6">
-            <div className="space-y-4">
-              {loading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p className="text-muted-foreground">Loading your following...</p>
-                </div>
-              ) : followingUsers.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Following Yet</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Start following users to see their updates here.
-                  </p>
-                  <Button onClick={() => setActiveTab('discover')}>
-                    Discover Users
-                  </Button>
-                </Card>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {followingUsers.map(userProfile => (
-                    <UserCard
-                      key={userProfile.id}
-                      profile={userProfile}
-                      isFollowing={true}
-                      onFollowUpdate={handleFollowUpdate}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );

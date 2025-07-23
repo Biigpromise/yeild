@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { MessageItem } from './MessageItem';
 import { MessageInput } from './MessageInput';
+import { PublicProfileModal } from '@/components/PublicProfileModal';
 
 interface Message {
   id: string;
@@ -39,6 +41,8 @@ export const ChatInterface: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [eligibility, setEligibility] = useState<ChatEligibility | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -164,40 +168,45 @@ export const ChatInterface: React.FC = () => {
     }
   };
 
+  const handleProfileClick = (userId: string) => {
+    setSelectedUserId(userId);
+    setShowProfileModal(true);
+  };
+
   if (loading) {
     return (
-      <Card className="h-[600px] flex items-center justify-center">
+      <div className="h-full flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading chat...</p>
         </div>
-      </Card>
+      </div>
     );
   }
 
   if (!user) {
     return (
-      <Card className="h-[600px] flex items-center justify-center">
+      <div className="h-full flex items-center justify-center bg-background">
         <div className="text-center">
           <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">Join the Conversation</h3>
           <p className="text-muted-foreground">Sign in to participate in the chat</p>
         </div>
-      </Card>
+      </div>
     );
   }
 
   return (
-    <Card className="h-[600px] flex flex-col">
+    <div className="h-full flex flex-col bg-background">
       {/* Chat Header */}
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
+      <div className="p-3 md:p-4 border-b bg-card">
+        <h2 className="text-base md:text-lg font-semibold flex items-center gap-2">
+          <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
           Community Chat
         </h2>
         {eligibility && !eligibility.canPost && (
           <Alert className="mt-2">
-            <AlertDescription>
+            <AlertDescription className="text-xs md:text-sm">
               To post in chat, you need {eligibility.requiredTasks} completed task(s) 
               and {eligibility.requiredReferrals} active referrals. 
               You have {eligibility.tasksCompleted} task(s) and {eligibility.activeReferrals} referrals.
@@ -207,30 +216,42 @@ export const ChatInterface: React.FC = () => {
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
-          {messages.map((message) => (
-            <MessageItem
-              key={message.id}
-              message={message}
-              currentUserId={user.id}
-              onView={() => trackMessageView(message.id)}
-            />
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-2 md:p-4 space-y-3 md:space-y-4">
+            {messages.map((message) => (
+              <MessageItem
+                key={message.id}
+                message={message}
+                currentUserId={user.id}
+                onView={() => trackMessageView(message.id)}
+                onProfileClick={() => handleProfileClick(message.user_id)}
+              />
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+      </div>
 
       {/* Message Input */}
-      {eligibility?.canPost ? (
-        <MessageInput onMessageSent={fetchMessages} />
-      ) : (
-        <div className="p-4 border-t bg-muted/50">
-          <div className="text-center text-sm text-muted-foreground">
-            Complete tasks and get referrals to unlock chat posting
+      <div className="border-t bg-card">
+        {eligibility?.canPost ? (
+          <MessageInput onMessageSent={fetchMessages} />
+        ) : (
+          <div className="p-3 md:p-4 bg-muted/50">
+            <div className="text-center text-xs md:text-sm text-muted-foreground">
+              Complete tasks and get referrals to unlock chat posting
+            </div>
           </div>
-        </div>
-      )}
-    </Card>
+        )}
+      </div>
+
+      {/* Profile Modal */}
+      <PublicProfileModal
+        userId={selectedUserId}
+        isOpen={showProfileModal}
+        onOpenChange={setShowProfileModal}
+      />
+    </div>
   );
 };
