@@ -36,10 +36,10 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     if (user) {
       console.log('OnboardingProvider: User found, checking onboarding status');
       
-      // Check if user has seen onboarding
+      // Check if user has seen onboarding and email is confirmed
       const hasSeenOnboarding = localStorage.getItem(`onboarding_${user.id}`);
       
-      if (!hasSeenOnboarding) {
+      if (!hasSeenOnboarding && user.email_confirmed_at) {
         console.log('OnboardingProvider: Starting onboarding timer');
         
         // Determine user type based on user metadata or role
@@ -51,10 +51,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         // Show onboarding after a short delay to allow page to load
         const timer = setTimeout(() => {
           console.log('OnboardingProvider: Showing onboarding');
-          // Only show onboarding if user has confirmed email or email confirmation is disabled
-          if (user.email_confirmed_at || !user.email_confirmed_at) {
-            setShowOnboarding(true);
-          }
+          setShowOnboarding(true);
         }, 1000);
         
         return () => clearTimeout(timer);

@@ -18,6 +18,7 @@ import Rewards from '@/pages/Rewards';
 import Withdrawal from '@/pages/Withdrawal';
 import Chat from '@/pages/Chat';
 import AdminDashboard from '@/pages/AdminDashboard';
+import EmailConfirmation from '@/pages/EmailConfirmation';
 import BrandDashboard from '@/pages/BrandDashboard';
 import BrandCampaignDashboard from '@/pages/BrandCampaignDashboard';
 import BrandApplication from '@/pages/BrandApplication';
