@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Toaster } from '@/components/ui/sonner';
 import Welcome from '@/pages/Welcome';
 import Dashboard from '@/pages/Dashboard';
@@ -16,14 +17,13 @@ import Chat from '@/pages/Chat';
 import Admin from '@/pages/Admin';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { RoleProtectedRoute } from '@/components/RoleProtectedRoute';
-import { ThemeProvider } from '@/components/theme-provider';
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <ThemeProvider>
         <AuthProvider>
           <Router>
             <div className="min-h-screen bg-background">

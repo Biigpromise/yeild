@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -7,9 +7,57 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Moon, Sun, Monitor, User, Bell, Shield, Palette } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const SettingsTab: React.FC = () => {
   const { theme, setTheme } = useTheme();
+  
+  // State for notification settings
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [taskNotifications, setTaskNotifications] = useState(true);
+  const [achievementNotifications, setAchievementNotifications] = useState(true);
+  
+  // State for account settings
+  const [profileVisibility, setProfileVisibility] = useState(true);
+  const [showOnlineStatus, setShowOnlineStatus] = useState(true);
+
+  const handleNotificationToggle = (type: string, value: boolean) => {
+    switch (type) {
+      case 'email':
+        setEmailNotifications(value);
+        toast.success(`Email notifications ${value ? 'enabled' : 'disabled'}`);
+        break;
+      case 'task':
+        setTaskNotifications(value);
+        toast.success(`Task notifications ${value ? 'enabled' : 'disabled'}`);
+        break;
+      case 'achievement':
+        setAchievementNotifications(value);
+        toast.success(`Achievement notifications ${value ? 'enabled' : 'disabled'}`);
+        break;
+    }
+  };
+
+  const handleAccountToggle = (type: string, value: boolean) => {
+    switch (type) {
+      case 'profile':
+        setProfileVisibility(value);
+        toast.success(`Profile visibility ${value ? 'enabled' : 'disabled'}`);
+        break;
+      case 'online':
+        setShowOnlineStatus(value);
+        toast.success(`Online status ${value ? 'enabled' : 'disabled'}`);
+        break;
+    }
+  };
+
+  const handleSetup2FA = () => {
+    toast.info('Two-factor authentication setup coming soon!');
+  };
+
+  const handleDataExport = () => {
+    toast.info('Data export feature coming soon!');
+  };
 
   return (
     <div className="space-y-6">
@@ -71,7 +119,10 @@ export const SettingsTab: React.FC = () => {
                 Receive email updates about your account
               </div>
             </div>
-            <Switch defaultChecked />
+            <Switch 
+              checked={emailNotifications}
+              onCheckedChange={(value) => handleNotificationToggle('email', value)}
+            />
           </div>
           
           <Separator />
@@ -83,7 +134,10 @@ export const SettingsTab: React.FC = () => {
                 Get notified about new tasks and opportunities
               </div>
             </div>
-            <Switch defaultChecked />
+            <Switch 
+              checked={taskNotifications}
+              onCheckedChange={(value) => handleNotificationToggle('task', value)}
+            />
           </div>
           
           <Separator />
@@ -95,7 +149,10 @@ export const SettingsTab: React.FC = () => {
                 Celebrate your achievements and milestones
               </div>
             </div>
-            <Switch defaultChecked />
+            <Switch 
+              checked={achievementNotifications}
+              onCheckedChange={(value) => handleNotificationToggle('achievement', value)}
+            />
           </div>
         </CardContent>
       </Card>
@@ -115,7 +172,10 @@ export const SettingsTab: React.FC = () => {
                 Allow others to see your profile
               </div>
             </div>
-            <Switch defaultChecked />
+            <Switch 
+              checked={profileVisibility}
+              onCheckedChange={(value) => handleAccountToggle('profile', value)}
+            />
           </div>
           
           <Separator />
@@ -127,7 +187,10 @@ export const SettingsTab: React.FC = () => {
                 Let others know when you're online
               </div>
             </div>
-            <Switch defaultChecked />
+            <Switch 
+              checked={showOnlineStatus}
+              onCheckedChange={(value) => handleAccountToggle('online', value)}
+            />
           </div>
         </CardContent>
       </Card>
@@ -147,7 +210,7 @@ export const SettingsTab: React.FC = () => {
                 Add an extra layer of security to your account
               </div>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleSetup2FA}>
               Setup
             </Button>
           </div>
@@ -161,7 +224,7 @@ export const SettingsTab: React.FC = () => {
                 Download a copy of your data
               </div>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleDataExport}>
               Download
             </Button>
           </div>

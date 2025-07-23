@@ -23,11 +23,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [theme, setTheme] = useState<Theme>('dark');
   const [effectiveTheme, setEffectiveTheme] = useState<'dark' | 'light'>('dark');
 
-  // Initialize theme from localStorage
+  // Initialize theme from localStorage or default to dark
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as Theme;
     if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
       setTheme(savedTheme);
+    } else {
+      // Default to dark theme
+      setTheme('dark');
+      localStorage.setItem('theme', 'dark');
     }
   }, []);
 
@@ -56,8 +60,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     
     setEffectiveTheme(resolvedTheme);
+    // Always ensure dark class is applied for dark theme
     document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
   }, [theme]);
+
+  // Ensure dark theme is applied on initial load
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, effectiveTheme }}>
