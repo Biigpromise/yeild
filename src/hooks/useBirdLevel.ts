@@ -90,11 +90,19 @@ export const useBirdLevel = () => {
                 earningRate: 1.0
               });
             } else if (currentBirdData && currentBirdData.length > 0) {
+              const rawBird = currentBirdData[0];
               const birdWithDefaults: BirdLevel = {
-                ...currentBirdData[0],
-                benefits: currentBirdData[0].benefits || [],
-                animation_type: currentBirdData[0].animation_type || 'static',
-                glow_effect: currentBirdData[0].glow_effect || false,
+                id: rawBird.id,
+                name: rawBird.name,
+                icon: rawBird.icon,
+                emoji: rawBird.emoji,
+                min_referrals: rawBird.min_referrals,
+                min_points: rawBird.min_points,
+                description: rawBird.description,
+                color: rawBird.color,
+                benefits: rawBird.benefits || ['Basic rewards'],
+                animation_type: rawBird.animation_type || 'static',
+                glow_effect: rawBird.glow_effect || false,
                 earningRate: 1.0
               };
               setCurrentBird(birdWithDefaults);
@@ -126,11 +134,21 @@ export const useBirdLevel = () => {
             if (nextError) {
               console.error('Error fetching next bird level:', nextError);
             } else if (nextBirdData && nextBirdData.length > 0) {
+              const rawNextBird = nextBirdData[0];
               const nextBirdLevel: NextBirdLevel = {
-                ...nextBirdData[0],
-                benefits: nextBirdData[0].benefits || [],
-                animation_type: nextBirdData[0].animation_type || 'static',
-                glow_effect: nextBirdData[0].glow_effect || false,
+                id: rawNextBird.id,
+                name: rawNextBird.name,
+                icon: rawNextBird.icon,
+                emoji: rawNextBird.emoji,
+                min_referrals: rawNextBird.min_referrals,
+                min_points: rawNextBird.min_points,
+                description: rawNextBird.description,
+                color: rawNextBird.color,
+                referrals_needed: rawNextBird.referrals_needed,
+                points_needed: rawNextBird.points_needed,
+                benefits: rawNextBird.benefits || ['Enhanced rewards'],
+                animation_type: rawNextBird.animation_type || 'static',
+                glow_effect: rawNextBird.glow_effect || false,
                 earningRate: 1.0
               };
               setNextBird(nextBirdLevel);

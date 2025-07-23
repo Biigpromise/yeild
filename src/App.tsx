@@ -17,7 +17,7 @@ import Chat from "./pages/Chat";
 import Social from "./pages/Social";
 import Leaderboard from "./pages/Leaderboard";
 import Referrals from "./pages/Referrals";
-import Profile from "./pages/Profile";
+import { Profile } from "./pages/Profile";
 import Wallet from "./pages/Wallet";
 import Support from "./pages/Support";
 import BrandApplication from "./pages/BrandApplication";

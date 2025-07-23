@@ -55,8 +55,8 @@ export const useDashboard = () => {
           points: profile.points || 0,
           level: profile.level || 1,
           tasksCompleted: profile.tasks_completed || 0,
-          currentStreak: profile.current_streak || 0, // This might not exist in DB
-          rank: profile.rank || 0, // This might not exist in DB
+          currentStreak: 0, // Default value since property doesn't exist
+          rank: 0, // Default value since property doesn't exist
           referrals: profile.active_referrals_count || 0,
           followers: profile.followers_count || 0,
           following: profile.following_count || 0,
