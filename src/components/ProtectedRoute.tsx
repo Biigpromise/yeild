@@ -1,94 +1,61 @@
 
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, Shield } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  allowedRoles?: string[];
+  fallback?: React.ReactNode;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  allowedRoles,
+  fallback
+}) => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkAuthAndRedirect = async () => {
-      if (loading) return;
-      
-      if (!user) {
-        console.log("User not authenticated, redirecting to auth");
-        navigate("/auth");
-        return;
-      }
-
-      // Check if user has confirmed their email
-      if (!user.email_confirmed_at) {
-        console.log("Email not confirmed");
-        // Don't redirect, let them access the dashboard but show a notice
-      }
-
-      // Check user roles to determine proper redirect
-      try {
-        // Check if admin first
-        if (user.email === 'yeildsocials@gmail.com') {
-          // Admin can access any protected route
-          return;
-        }
-
-        const { data: roleData, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id);
-
-        if (error) {
-          console.error("Error checking user roles:", error);
-        }
-
-        const roles = roleData?.map(r => r.role) || [];
-        console.log("User roles:", roles);
-
-        // If accessing admin routes without admin role, redirect
-        if (window.location.pathname.includes('/admin') && !roles.includes('admin') && user.email !== 'yeildsocials@gmail.com') {
-          if (roles.includes('brand')) {
-            navigate('/brand-dashboard');
-          } else {
-            navigate('/dashboard');
-          }
-          return;
-        }
-
-        // If accessing brand routes without brand role, redirect
-        if (window.location.pathname.includes('/brand') && !roles.includes('brand')) {
-          if (user.email === 'yeildsocials@gmail.com') {
-            navigate('/admin');
-          } else {
-            navigate('/dashboard');
-          }
-          return;
-        }
-
-      } catch (error) {
-        console.error("Error in auth check:", error);
-      }
-    };
-
-    checkAuthAndRedirect();
-  }, [user, loading, navigate]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-yeild-black">
-        <div className="text-white flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-          <div>Loading...</div>
-        </div>
+    return fallback || (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <Card className="bg-gray-900 border-gray-700">
+          <CardContent className="p-8 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-white" />
+            <p className="text-gray-300">Verifying access...</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (!user) {
-    return null;
+    return <Navigate to="/login" replace />;
+  }
+
+  // Check role-based access if allowedRoles is specified
+  if (allowedRoles && allowedRoles.length > 0) {
+    // For now, we'll assume basic role checking
+    // This would need to be implemented based on your user role system
+    const userRole = user.user_metadata?.role || 'user';
+    
+    if (!allowedRoles.includes(userRole)) {
+      return fallback || (
+        <div className="min-h-screen flex items-center justify-center bg-black">
+          <Card className="bg-gray-900 border-gray-700">
+            <CardContent className="p-8 text-center">
+              <Shield className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <h2 className="text-xl font-semibold mb-2 text-white">Access Denied</h2>
+              <p className="text-gray-300">
+                You don't have permission to access this page.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
   }
 
   return <>{children}</>;

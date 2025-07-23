@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Target, Gift, Wallet, ArrowRight, Plus, CheckCircle } from 'lucide-react';
+import { Target, Gift, Wallet, ArrowRight, Plus, CheckCircle, Trophy } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TasksTabProps {

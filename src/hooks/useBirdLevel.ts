@@ -67,39 +67,76 @@ export const useBirdLevel = () => {
           };
           setUserStats(stats);
 
-          // Get current bird level
-          const { data: currentBirdData, error: currentError } = await supabase
-            .rpc('get_user_bird_level', { user_id_param: user.id });
+          // Get current bird level - fallback to basic data if RPC doesn't work
+          try {
+            const { data: currentBirdData, error: currentError } = await supabase
+              .rpc('get_user_bird_level', { user_id_param: user.id });
 
-          if (currentError) {
-            console.error('Error fetching current bird level:', currentError);
-            setError('Failed to load bird level');
-          } else if (currentBirdData && currentBirdData.length > 0) {
-            const birdWithDefaults: BirdLevel = {
-              ...currentBirdData[0],
-              benefits: currentBirdData[0].benefits || [],
-              animation_type: currentBirdData[0].animation_type || 'static',
-              glow_effect: currentBirdData[0].glow_effect || false,
+            if (currentError) {
+              console.error('Error fetching current bird level:', currentError);
+              // Set default bird level
+              setCurrentBird({
+                id: 1,
+                name: 'Starter Bird',
+                icon: '🐥',
+                emoji: '🐥',
+                min_referrals: 0,
+                min_points: 0,
+                description: 'Just getting started',
+                color: '#10b981',
+                benefits: ['Basic rewards'],
+                animation_type: 'static',
+                glow_effect: false,
+                earningRate: 1.0
+              });
+            } else if (currentBirdData && currentBirdData.length > 0) {
+              const birdWithDefaults: BirdLevel = {
+                ...currentBirdData[0],
+                benefits: currentBirdData[0].benefits || [],
+                animation_type: currentBirdData[0].animation_type || 'static',
+                glow_effect: currentBirdData[0].glow_effect || false,
+                earningRate: 1.0
+              };
+              setCurrentBird(birdWithDefaults);
+            }
+          } catch (rpcError) {
+            console.error('RPC error:', rpcError);
+            // Set default bird level
+            setCurrentBird({
+              id: 1,
+              name: 'Starter Bird',
+              icon: '🐥',
+              emoji: '🐥',
+              min_referrals: 0,
+              min_points: 0,
+              description: 'Just getting started',
+              color: '#10b981',
+              benefits: ['Basic rewards'],
+              animation_type: 'static',
+              glow_effect: false,
               earningRate: 1.0
-            };
-            setCurrentBird(birdWithDefaults);
+            });
           }
 
-          // Get next bird level
-          const { data: nextBirdData, error: nextError } = await supabase
-            .rpc('get_next_bird_level', { user_id_param: user.id });
+          // Get next bird level - with fallback
+          try {
+            const { data: nextBirdData, error: nextError } = await supabase
+              .rpc('get_next_bird_level', { user_id_param: user.id });
 
-          if (nextError) {
-            console.error('Error fetching next bird level:', nextError);
-          } else if (nextBirdData && nextBirdData.length > 0) {
-            const nextBirdLevel: NextBirdLevel = {
-              ...nextBirdData[0],
-              benefits: nextBirdData[0].benefits || [],
-              animation_type: nextBirdData[0].animation_type || 'static',
-              glow_effect: nextBirdData[0].glow_effect || false,
-              earningRate: 1.0
-            };
-            setNextBird(nextBirdLevel);
+            if (nextError) {
+              console.error('Error fetching next bird level:', nextError);
+            } else if (nextBirdData && nextBirdData.length > 0) {
+              const nextBirdLevel: NextBirdLevel = {
+                ...nextBirdData[0],
+                benefits: nextBirdData[0].benefits || [],
+                animation_type: nextBirdData[0].animation_type || 'static',
+                glow_effect: nextBirdData[0].glow_effect || false,
+                earningRate: 1.0
+              };
+              setNextBird(nextBirdLevel);
+            }
+          } catch (nextRpcError) {
+            console.error('Next RPC error:', nextRpcError);
           }
         }
       } catch (error) {
