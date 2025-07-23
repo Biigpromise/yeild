@@ -134,7 +134,7 @@ export const useBirdLevel = () => {
             if (nextError) {
               console.error('Error fetching next bird level:', nextError);
             } else if (nextBirdData && nextBirdData.length > 0) {
-              const rawNextBird = nextBirdData[0];
+              const rawNextBird = nextBirdData[0] as any; // Type assertion to access all properties
               const nextBirdLevel: NextBirdLevel = {
                 id: rawNextBird.id,
                 name: rawNextBird.name,
@@ -146,9 +146,9 @@ export const useBirdLevel = () => {
                 color: rawNextBird.color,
                 referrals_needed: rawNextBird.referrals_needed,
                 points_needed: rawNextBird.points_needed,
-                benefits: rawNextBird.benefits || ['Enhanced rewards'],
-                animation_type: rawNextBird.animation_type || 'static',
-                glow_effect: rawNextBird.glow_effect || false,
+                benefits: ['Enhanced rewards'], // Default since not returned by RPC
+                animation_type: 'static', // Default since not returned by RPC
+                glow_effect: false, // Default since not returned by RPC
                 earningRate: 1.0
               };
               setNextBird(nextBirdLevel);
