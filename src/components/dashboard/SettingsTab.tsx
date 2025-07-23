@@ -1,109 +1,76 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { useTheme } from '@/contexts/ThemeContext';
-import { Moon, Sun, Monitor, User, Bell, Shield, Palette } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { User, Bell, Shield, LogOut } from 'lucide-react';
 
 export const SettingsTab: React.FC = () => {
-  const { theme, setTheme } = useTheme();
-  
-  // State for notification settings
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [taskNotifications, setTaskNotifications] = useState(true);
-  const [achievementNotifications, setAchievementNotifications] = useState(true);
-  
-  // State for account settings
-  const [profileVisibility, setProfileVisibility] = useState(true);
-  const [showOnlineStatus, setShowOnlineStatus] = useState(true);
+  const { user, signOut } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [emailUpdates, setEmailUpdates] = useState(true);
 
-  const handleNotificationToggle = (type: string, value: boolean) => {
-    switch (type) {
-      case 'email':
-        setEmailNotifications(value);
-        toast.success(`Email notifications ${value ? 'enabled' : 'disabled'}`);
-        break;
-      case 'task':
-        setTaskNotifications(value);
-        toast.success(`Task notifications ${value ? 'enabled' : 'disabled'}`);
-        break;
-      case 'achievement':
-        setAchievementNotifications(value);
-        toast.success(`Achievement notifications ${value ? 'enabled' : 'disabled'}`);
-        break;
+  const handleSignOut = async () => {
+    try {
+      setLoading(true);
+      await signOut();
+      toast.success('Signed out successfully');
+    } catch (error) {
+      toast.error('Failed to sign out');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAccountToggle = (type: string, value: boolean) => {
-    switch (type) {
-      case 'profile':
-        setProfileVisibility(value);
-        toast.success(`Profile visibility ${value ? 'enabled' : 'disabled'}`);
-        break;
-      case 'online':
-        setShowOnlineStatus(value);
-        toast.success(`Online status ${value ? 'enabled' : 'disabled'}`);
-        break;
-    }
-  };
-
-  const handleSetup2FA = () => {
-    toast.info('Two-factor authentication setup coming soon!');
-  };
-
-  const handleDataExport = () => {
-    toast.info('Data export feature coming soon!');
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    toast.info('Profile update feature coming soon');
   };
 
   return (
     <div className="space-y-6">
+      {/* Account Settings */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Palette className="h-5 w-5" />
-            Appearance
+            <User className="h-5 w-5" />
+            Account Settings
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <Label className="text-sm font-medium">Theme</Label>
-            <div className="flex items-center space-x-4">
-              <Button
-                variant={theme === 'light' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setTheme('light')}
-                className="flex items-center gap-2"
-              >
-                <Sun className="h-4 w-4" />
-                Light
-              </Button>
-              <Button
-                variant={theme === 'dark' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setTheme('dark')}
-                className="flex items-center gap-2"
-              >
-                <Moon className="h-4 w-4" />
-                Dark
-              </Button>
-              <Button
-                variant={theme === 'system' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setTheme('system')}
-                className="flex items-center gap-2"
-              >
-                <Monitor className="h-4 w-4" />
-                System
-              </Button>
-            </div>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={user?.email || ''}
+              disabled
+              className="bg-muted"
+            />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              type="text"
+              value={user?.user_metadata?.name || ''}
+              placeholder="Your full name"
+            />
+          </div>
+          <Button onClick={handleUpdateProfile} className="w-full">
+            Update Profile
+          </Button>
         </CardContent>
       </Card>
 
+      {/* Notification Settings */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -114,87 +81,33 @@ export const SettingsTab: React.FC = () => {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-sm font-medium">Email Notifications</Label>
-              <div className="text-sm text-muted-foreground">
-                Receive email updates about your account
-              </div>
+              <Label>Push Notifications</Label>
+              <p className="text-sm text-muted-foreground">
+                Receive notifications about new tasks and updates
+              </p>
             </div>
-            <Switch 
-              checked={emailNotifications}
-              onCheckedChange={(value) => handleNotificationToggle('email', value)}
+            <Switch
+              checked={notificationsEnabled}
+              onCheckedChange={setNotificationsEnabled}
             />
           </div>
-          
           <Separator />
-          
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-sm font-medium">Task Notifications</Label>
-              <div className="text-sm text-muted-foreground">
-                Get notified about new tasks and opportunities
-              </div>
+              <Label>Email Updates</Label>
+              <p className="text-sm text-muted-foreground">
+                Receive weekly summaries and important updates
+              </p>
             </div>
-            <Switch 
-              checked={taskNotifications}
-              onCheckedChange={(value) => handleNotificationToggle('task', value)}
-            />
-          </div>
-          
-          <Separator />
-          
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label className="text-sm font-medium">Achievement Notifications</Label>
-              <div className="text-sm text-muted-foreground">
-                Celebrate your achievements and milestones
-              </div>
-            </div>
-            <Switch 
-              checked={achievementNotifications}
-              onCheckedChange={(value) => handleNotificationToggle('achievement', value)}
+            <Switch
+              checked={emailUpdates}
+              onCheckedChange={setEmailUpdates}
             />
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Account
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label className="text-sm font-medium">Profile Visibility</Label>
-              <div className="text-sm text-muted-foreground">
-                Allow others to see your profile
-              </div>
-            </div>
-            <Switch 
-              checked={profileVisibility}
-              onCheckedChange={(value) => handleAccountToggle('profile', value)}
-            />
-          </div>
-          
-          <Separator />
-          
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label className="text-sm font-medium">Show Online Status</Label>
-              <div className="text-sm text-muted-foreground">
-                Let others know when you're online
-              </div>
-            </div>
-            <Switch 
-              checked={showOnlineStatus}
-              onCheckedChange={(value) => handleAccountToggle('online', value)}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
+      {/* Privacy & Security */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -203,31 +116,30 @@ export const SettingsTab: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label className="text-sm font-medium">Two-Factor Authentication</Label>
-              <div className="text-sm text-muted-foreground">
-                Add an extra layer of security to your account
-              </div>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleSetup2FA}>
-              Setup
-            </Button>
-          </div>
-          
-          <Separator />
-          
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label className="text-sm font-medium">Data Export</Label>
-              <div className="text-sm text-muted-foreground">
-                Download a copy of your data
-              </div>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleDataExport}>
-              Download
-            </Button>
-          </div>
+          <Button variant="outline" className="w-full">
+            Change Password
+          </Button>
+          <Button variant="outline" className="w-full">
+            Download My Data
+          </Button>
+          <Button variant="outline" className="w-full">
+            Delete Account
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Sign Out */}
+      <Card>
+        <CardContent className="pt-6">
+          <Button
+            variant="destructive"
+            onClick={handleSignOut}
+            disabled={loading}
+            className="w-full flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            {loading ? 'Signing out...' : 'Sign Out'}
+          </Button>
         </CardContent>
       </Card>
     </div>
