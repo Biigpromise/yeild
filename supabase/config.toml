@@ -6,7 +6,21 @@ project_id = "stehjqdbncykevpokcvj"
 site_url = "https://yeildsocials.com"
 enabled = true
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://lovable.dev", "https://yeild.lovable.app", "https://yeildsocials.com", "https://yeildsocials.com/auth/callback", "https://yeildsocials.com/dashboard", "https://yeildsocials.com/brand-dashboard", "https://yeildsocials.com/admin", "https://yeildsocials.com/login"]
+additional_redirect_urls = [
+  "https://yeildsocials.com", 
+  "https://yeildsocials.com/auth/callback", 
+  "https://yeildsocials.com/dashboard", 
+  "https://yeildsocials.com/brand-dashboard", 
+  "https://yeildsocials.com/admin", 
+  "https://yeildsocials.com/login",
+  "https://yeild.lovable.app", 
+  "https://yeild.lovable.app/auth/callback", 
+  "https://yeild.lovable.app/dashboard", 
+  "https://yeild.lovable.app/brand-dashboard", 
+  "https://yeild.lovable.app/admin", 
+  "https://yeild.lovable.app/login",
+  "https://lovable.dev"
+]
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
