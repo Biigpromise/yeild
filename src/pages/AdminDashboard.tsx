@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,6 +8,9 @@ import { AdminOverview } from '@/components/admin/AdminOverview';
 import { TaskManagement } from '@/components/admin/TaskManagement';
 import { AdminFinancialManagement } from '@/components/admin/AdminFinancialManagement';
 import { AdminWallet } from '@/components/admin/AdminWallet';
+import { BrandApplicationsManager } from '@/components/admin/BrandApplicationsManager';
+import { CampaignApprovalManager } from '@/components/admin/CampaignApprovalManager';
+import { TaskSubmissionReviewManager } from '@/components/admin/TaskSubmissionReviewManager';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { LoadingState } from '@/components/ui/loading-state';
@@ -87,9 +91,12 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsTrigger value="submissions">Submissions</TabsTrigger>
+            <TabsTrigger value="brands">Brands</TabsTrigger>
+            <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
             <TabsTrigger value="finances">Finances</TabsTrigger>
             <TabsTrigger value="wallet">Wallet</TabsTrigger>
           </TabsList>
@@ -100,6 +107,18 @@ const AdminDashboard = () => {
 
           <TabsContent value="tasks" className="mt-6">
             <TaskManagement />
+          </TabsContent>
+
+          <TabsContent value="submissions" className="mt-6">
+            <TaskSubmissionReviewManager />
+          </TabsContent>
+
+          <TabsContent value="brands" className="mt-6">
+            <BrandApplicationsManager />
+          </TabsContent>
+
+          <TabsContent value="campaigns" className="mt-6">
+            <CampaignApprovalManager />
           </TabsContent>
 
           <TabsContent value="finances" className="mt-6">
