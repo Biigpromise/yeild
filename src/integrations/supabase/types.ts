@@ -297,6 +297,13 @@ export type Database = {
             referencedRelation: "brand_wallet_transactions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_brand_campaigns_brand_profiles"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brand_profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       brand_payment_methods: {

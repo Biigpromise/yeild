@@ -41,7 +41,7 @@ export const useBrandCampaigns = () => {
         .from('brand_campaigns')
         .select(`
           *,
-          brand_profiles(company_name)
+          brand_profiles!brand_campaigns_brand_id_fkey(company_name)
         `)
         .order('created_at', { ascending: false });
 

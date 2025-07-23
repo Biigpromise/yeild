@@ -79,7 +79,7 @@ const BrandDashboard: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                             <Button 
                                 onClick={() => navigate('/campaigns/create')} 
                                 className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark font-semibold"
@@ -93,12 +93,6 @@ const BrandDashboard: React.FC = () => {
                             >
                                 <CreditCard className="mr-2 h-4 w-4" /> 
                                 Fund Account
-                            </Button>
-                            <Button onClick={() => navigate('/support')} variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-800">
-                                <LifeBuoy className="mr-2 h-4 w-4" /> Support
-                            </Button>
-                            <Button onClick={signOut} variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-800">
-                                <LogOut className="mr-2 h-4 w-4" /> Sign Out
                             </Button>
                         </div>
                     </header>
@@ -127,7 +121,28 @@ const BrandDashboard: React.FC = () => {
                             </div>
                         </TabsContent>
                         <TabsContent value="profile" className="mt-6">
-                            <BrandProfileTab />
+                            <div className="space-y-6">
+                                <BrandProfileTab />
+                                <div className="flex justify-center pt-6 border-t border-gray-700">
+                                    <div className="flex gap-3">
+                                        <Button onClick={() => navigate('/support')} variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800">
+                                            <LifeBuoy className="mr-2 h-4 w-4" /> 
+                                            Support
+                                        </Button>
+                                        <Button 
+                                            onClick={async () => {
+                                                await signOut();
+                                                navigate('/');
+                                            }} 
+                                            variant="outline" 
+                                            className="border-red-600 text-red-400 hover:bg-red-900/20"
+                                        >
+                                            <LogOut className="mr-2 h-4 w-4" /> 
+                                            Sign Out
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
                         </TabsContent>
                     </Tabs>
                 </div>

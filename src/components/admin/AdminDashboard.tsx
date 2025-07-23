@@ -15,41 +15,15 @@ import {
   LogOut,
   Home
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { AdminSignOutMenu } from './AdminSignOutMenu';
 import { EnhancedUserManagement } from './enhanced/EnhancedUserManagement';
 import { EnhancedTaskManagement } from './enhanced/EnhancedTaskManagement';
 import { EnhancedAnalytics } from './enhanced/EnhancedAnalytics';
 import { EnhancedFinanceManagement } from './enhanced/EnhancedFinanceManagement';
 import { AdminSettings } from './AdminSettings';
-import { toast } from '@/hooks/use-toast';
 
 export const AdminDashboard: React.FC = () => {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast({
-        title: "Signed out successfully",
-        description: "You have been logged out of the admin dashboard.",
-      });
-      navigate('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
-      toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleGoToDashboard = () => {
-    navigate('/dashboard');
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -67,28 +41,11 @@ export const AdminDashboard: React.FC = () => {
               </Badge>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">
-                Welcome, {user?.email}
+                Welcome to Admin Panel
               </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleGoToDashboard}
-                className="flex items-center gap-2"
-              >
-                <Home className="h-4 w-4" />
-                Dashboard
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSignOut}
-                className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </Button>
+              <AdminSignOutMenu />
             </div>
           </div>
         </div>

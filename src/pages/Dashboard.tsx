@@ -18,6 +18,7 @@ import { StoriesTab } from '@/components/dashboard/StoriesTab';
 import { SettingsTab } from '@/components/dashboard/SettingsTab';
 import { TasksTab } from '@/components/dashboard/TasksTab';
 import { useAuth } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 const Dashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -103,16 +104,18 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <DashboardErrorBoundary>
-      <div className="bg-gray-900 min-h-screen text-white">
-        <DashboardHeader user={user} onTabChange={handleTabChange} />
-        
-        <div className="max-w-md mx-auto px-4 py-6">
-          <DashboardNavTabs activeTab={activeTab} onTabChange={handleTabChange} />
-          {tabContent}
+    <ThemeProvider>
+      <DashboardErrorBoundary>
+        <div className="bg-gray-900 min-h-screen text-white">
+          <DashboardHeader user={user} onTabChange={handleTabChange} />
+          
+          <div className="max-w-md mx-auto px-4 py-6">
+            <DashboardNavTabs activeTab={activeTab} onTabChange={handleTabChange} />
+            {tabContent}
+          </div>
         </div>
-      </div>
-    </DashboardErrorBoundary>
+      </DashboardErrorBoundary>
+    </ThemeProvider>
   );
 };
 
