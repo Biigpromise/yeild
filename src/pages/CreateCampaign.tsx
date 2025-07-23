@@ -167,21 +167,21 @@ const CreateCampaign = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <Button
             variant="outline"
             onClick={() => navigate('/brand-dashboard')}
-            className="border-gray-300"
+            className="border-border"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-black">Create New Campaign</h1>
-            <p className="text-gray-600">Set up your marketing campaign and fund it to get started</p>
+            <h1 className="text-3xl font-bold text-foreground">Create New Campaign</h1>
+            <p className="text-muted-foreground">Set up your marketing campaign and fund it to get started</p>
           </div>
         </div>
 
@@ -190,7 +190,7 @@ const CreateCampaign = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Wallet Balance Warning */}
             {wallet && formData.budget && parseFloat(formData.budget) > wallet.balance && (
-              <Card className="border border-destructive/50 bg-destructive/5">
+              <Card className="border-destructive/50 bg-destructive/5">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 text-destructive">
                     <AlertCircle className="w-4 h-4" />
@@ -203,36 +203,37 @@ const CreateCampaign = () => {
                 </CardContent>
               </Card>
             )}
-            <Card className="border border-gray-200">
+            
+            <Card className="border-border">
               <CardHeader>
-                <CardTitle className="text-black">Campaign Details</CardTitle>
+                <CardTitle className="text-foreground">Campaign Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="title" className="text-black">Campaign Title *</Label>
+                  <Label htmlFor="title" className="text-foreground">Campaign Title *</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
                     placeholder="Enter a compelling campaign title"
-                    className="border-gray-300"
+                    className="border-border bg-background text-foreground"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="description" className="text-black">Description *</Label>
+                  <Label htmlFor="description" className="text-foreground">Description *</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
                     placeholder="Describe your campaign objectives and what you want to achieve"
                     rows={4}
-                    className="border-gray-300"
+                    className="border-border bg-background text-foreground"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="budget" className="text-black">Budget (NGN) *</Label>
+                  <Label htmlFor="budget" className="text-foreground">Budget (NGN) *</Label>
                   <Input
                     id="budget"
                     type="number"
@@ -241,55 +242,55 @@ const CreateCampaign = () => {
                     placeholder="Enter your campaign budget"
                     min="1000"
                     step="100"
-                    className="border-gray-300"
+                    className="border-border bg-background text-foreground"
                   />
-                  <p className="text-sm text-gray-500 mt-1">Minimum budget: ₦1,000</p>
+                  <p className="text-sm text-muted-foreground mt-1">Minimum budget: ₦1,000</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="startDate" className="text-black">Start Date (Optional)</Label>
+                    <Label htmlFor="startDate" className="text-foreground">Start Date (Optional)</Label>
                     <Input
                       id="startDate"
                       type="date"
                       value={formData.startDate}
                       onChange={(e) => handleInputChange('startDate', e.target.value)}
-                      className="border-gray-300"
+                      className="border-border bg-background text-foreground"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="endDate" className="text-black">End Date (Optional)</Label>
+                    <Label htmlFor="endDate" className="text-foreground">End Date (Optional)</Label>
                     <Input
                       id="endDate"
                       type="date"
                       value={formData.endDate}
                       onChange={(e) => handleInputChange('endDate', e.target.value)}
-                      className="border-gray-300"
+                      className="border-border bg-background text-foreground"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="targetAudience" className="text-black">Target Audience (Optional)</Label>
+                  <Label htmlFor="targetAudience" className="text-foreground">Target Audience (Optional)</Label>
                   <Textarea
                     id="targetAudience"
                     value={formData.targetAudience}
                     onChange={(e) => handleInputChange('targetAudience', e.target.value)}
                     placeholder="Describe your target audience demographics and interests"
                     rows={3}
-                    className="border-gray-300"
+                    className="border-border bg-background text-foreground"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="requirements" className="text-black">Task Requirements (Optional)</Label>
+                  <Label htmlFor="requirements" className="text-foreground">Task Requirements (Optional)</Label>
                   <Textarea
                     id="requirements"
                     value={formData.requirements}
                     onChange={(e) => handleInputChange('requirements', e.target.value)}
                     placeholder="Specific requirements for users completing tasks in this campaign"
                     rows={3}
-                    className="border-gray-300"
+                    className="border-border bg-background text-foreground"
                   />
                 </div>
               </CardContent>
@@ -300,9 +301,10 @@ const CreateCampaign = () => {
           <div className="space-y-6">
             {/* Wallet Card */}
             <BrandWalletCard onBalanceUpdate={loadWallet} />
-            <Card className="border border-gray-200">
+            
+            <Card className="border-border">
               <CardHeader>
-                <CardTitle className="text-black flex items-center gap-2">
+                <CardTitle className="text-foreground flex items-center gap-2">
                   <DollarSign className="w-5 h-5" />
                   Payment Summary
                 </CardTitle>
@@ -310,21 +312,21 @@ const CreateCampaign = () => {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Campaign Budget:</span>
-                    <span className="font-medium text-black">
+                    <span className="text-muted-foreground">Campaign Budget:</span>
+                    <span className="font-medium text-foreground">
                       ₦{formData.budget ? parseFloat(formData.budget).toLocaleString() : '0'}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Processing Fee (1.5%):</span>
-                    <span className="font-medium text-black">
+                    <span className="text-muted-foreground">Processing Fee (1.5%):</span>
+                    <span className="font-medium text-foreground">
                       ₦{formData.budget ? (parseFloat(formData.budget) * 0.015).toLocaleString() : '0'}
                     </span>
                   </div>
-                  <div className="border-t border-gray-200 pt-3">
+                  <div className="border-t border-border pt-3">
                     <div className="flex justify-between">
-                      <span className="font-medium text-black">Total Amount:</span>
-                      <span className="font-bold text-black">
+                      <span className="font-medium text-foreground">Total Amount:</span>
+                      <span className="font-bold text-foreground">
                         ₦{formData.budget ? (parseFloat(formData.budget) * 1.015).toLocaleString() : '0'}
                       </span>
                     </div>
@@ -333,12 +335,12 @@ const CreateCampaign = () => {
               </CardContent>
             </Card>
 
-            <Card className="border border-gray-200">
+            <Card className="border-border">
               <CardHeader>
-                <CardTitle className="text-black">What happens next?</CardTitle>
+                <CardTitle className="text-foreground">What happens next?</CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <ul className="space-y-2 text-sm text-muted-foreground">
                   <li>• Campaign budget is deducted from your wallet</li>
                   <li>• Your campaign is submitted for admin approval</li>
                   <li>• Once approved, users can start working on your tasks</li>
@@ -351,12 +353,12 @@ const CreateCampaign = () => {
               <Button
                 onClick={handleCreateFromWallet}
                 disabled={loading || !wallet || (formData.budget && parseFloat(formData.budget) > wallet?.balance)}
-                className="w-full bg-black text-white hover:bg-gray-800"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                 size="lg"
               >
                 {loading ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                     Creating Campaign...
                   </div>
                 ) : (
@@ -371,7 +373,7 @@ const CreateCampaign = () => {
                 onClick={handleSaveDraft}
                 disabled={loading}
                 variant="outline"
-                className="w-full border-gray-300"
+                className="w-full border-border"
                 size="lg"
               >
                 Save as Draft

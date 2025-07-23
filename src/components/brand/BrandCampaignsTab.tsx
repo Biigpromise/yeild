@@ -19,43 +19,43 @@ export const BrandCampaignsTab: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
       case 'draft':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800';
       case 'paused':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
       case 'completed':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800';
       case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800';
     }
   };
 
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
       case 'paid':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
       case 'failed':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800';
     }
   };
 
   const getApprovalStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
       case 'rejected':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800';
     }
   };
 
@@ -89,18 +89,18 @@ export const BrandCampaignsTab: React.FC = () => {
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-xl sm:text-2xl font-bold text-white">Your Campaigns</h2>
-          <Button className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark w-full sm:w-auto">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Your Campaigns</h2>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Create Campaign
           </Button>
         </div>
         <div className="grid gap-4">
           {[...Array(3)].map((_, i) => (
-            <Card key={i} className="animate-pulse bg-gray-800 border-gray-700">
+            <Card key={i} className="animate-pulse bg-card border-border">
               <CardContent className="p-4 sm:p-6">
-                <div className="h-6 bg-gray-700 rounded mb-4"></div>
-                <div className="h-4 bg-gray-700 rounded w-3/4"></div>
+                <div className="h-6 bg-muted rounded mb-4"></div>
+                <div className="h-4 bg-muted rounded w-3/4"></div>
               </CardContent>
             </Card>
           ))}
@@ -113,12 +113,12 @@ export const BrandCampaignsTab: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="w-full sm:w-auto">
-          <h2 className="text-xl sm:text-2xl font-bold text-white">Your Campaigns</h2>
-          <p className="text-gray-300 text-sm sm:text-base">Create and manage your marketing campaigns</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Your Campaigns</h2>
+          <p className="text-muted-foreground text-sm sm:text-base">Create and manage your marketing campaigns</p>
         </div>
         <Button 
           onClick={() => navigate('/campaigns/create')}
-          className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark font-semibold w-full sm:w-auto"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold w-full sm:w-auto"
         >
           <Plus className="mr-2 h-4 w-4" />
           Create Campaign
@@ -126,16 +126,16 @@ export const BrandCampaignsTab: React.FC = () => {
       </div>
 
       {campaigns.length === 0 ? (
-        <Card className="border-gray-700 bg-gray-800">
+        <Card className="border-border bg-card">
           <CardContent className="p-8 sm:p-12 text-center">
-            <TrendingUp className="w-12 h-12 sm:w-16 sm:h-16 text-gray-500 mx-auto mb-4" />
-            <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">No campaigns yet</h3>
-            <p className="text-gray-400 mb-6 text-sm sm:text-base">
+            <TrendingUp className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">No campaigns yet</h3>
+            <p className="text-muted-foreground mb-6 text-sm sm:text-base">
               Start by creating your first campaign to reach our engaged community
             </p>
             <Button 
               onClick={() => navigate('/campaigns/create')}
-              className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark font-semibold w-full sm:w-auto"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold w-full sm:w-auto"
             >
               <Plus className="mr-2 h-4 w-4" />
               Create Your First Campaign
@@ -145,12 +145,12 @@ export const BrandCampaignsTab: React.FC = () => {
       ) : (
         <div className="grid gap-4 sm:gap-6">
           {campaigns.map((campaign) => (
-            <Card key={campaign.id} className="border-gray-700 bg-gray-800 hover:shadow-md transition-shadow">
+            <Card key={campaign.id} className="border-border bg-card hover:shadow-md transition-shadow">
               <CardHeader className="pb-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                   <div className="flex-1 w-full sm:w-auto">
-                    <CardTitle className="text-lg sm:text-xl text-white mb-2 break-words">{campaign.title}</CardTitle>
-                    <p className="text-gray-400 text-sm break-words">{campaign.description}</p>
+                    <CardTitle className="text-lg sm:text-xl text-foreground mb-2 break-words">{campaign.title}</CardTitle>
+                    <p className="text-muted-foreground text-sm break-words">{campaign.description}</p>
                   </div>
                   <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                     <Badge className={getStatusColor(campaign.status)}>
@@ -168,46 +168,46 @@ export const BrandCampaignsTab: React.FC = () => {
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                   <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                    <span className="text-sm text-gray-400">Budget:</span>
-                    <span className="font-medium text-white">₦{campaign.budget?.toLocaleString()}</span>
+                    <DollarSign className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">Budget:</span>
+                    <span className="font-medium text-foreground">₦{campaign.budget?.toLocaleString()}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                    <span className="text-sm text-gray-400">Funded:</span>
-                    <span className="font-medium text-white">₦{campaign.funded_amount?.toLocaleString() || 0}</span>
+                    <Users className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">Funded:</span>
+                    <span className="font-medium text-foreground">₦{campaign.funded_amount?.toLocaleString() || 0}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                    <span className="text-sm text-gray-400">Created:</span>
-                    <span className="font-medium text-white">{new Date(campaign.created_at).toLocaleDateString()}</span>
+                    <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">Created:</span>
+                    <span className="font-medium text-foreground">{new Date(campaign.created_at).toLocaleDateString()}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                    <span className="text-sm text-gray-400">Status:</span>
-                    <span className="font-medium text-white">{campaign.admin_approval_status || 'pending'}</span>
+                    <TrendingUp className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">Status:</span>
+                    <span className="font-medium text-foreground">{campaign.admin_approval_status || 'pending'}</span>
                   </div>
                 </div>
 
                 {campaign.rejection_reason && (
-                  <div className="mb-4 p-3 bg-red-900/20 border border-red-800 rounded-lg">
+                  <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                     <div className="flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-red-400 text-sm font-medium">Rejection Reason:</p>
-                        <p className="text-red-400 text-sm">{campaign.rejection_reason}</p>
+                        <p className="text-destructive text-sm font-medium">Rejection Reason:</p>
+                        <p className="text-destructive text-sm">{campaign.rejection_reason}</p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-gray-700">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-border">
                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => navigate(`/campaigns/${campaign.id}`)}
-                      className="border-gray-600 text-white hover:bg-gray-700 flex-1 sm:flex-none"
+                      className="border-border text-foreground hover:bg-muted flex-1 sm:flex-none"
                     >
                       <Eye className="mr-2 h-4 w-4" />
                       View Details
@@ -218,7 +218,7 @@ export const BrandCampaignsTab: React.FC = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => navigate(`/campaigns/${campaign.id}/edit`)}
-                          className="border-gray-600 text-white hover:bg-gray-700 flex-1 sm:flex-none"
+                          className="border-border text-foreground hover:bg-muted flex-1 sm:flex-none"
                         >
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
@@ -227,7 +227,7 @@ export const BrandCampaignsTab: React.FC = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => handleDeleteCampaign(campaign.id)}
-                          className="border-red-600 text-red-400 hover:bg-red-900/20 flex-1 sm:flex-none"
+                          className="border-destructive text-destructive hover:bg-destructive/10 flex-1 sm:flex-none"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
@@ -239,7 +239,7 @@ export const BrandCampaignsTab: React.FC = () => {
                   {campaign.payment_status !== 'paid' && (
                     <Button
                       onClick={() => handleFundCampaign(campaign)}
-                      className="bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow-dark font-semibold w-full sm:w-auto"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold w-full sm:w-auto"
                       size="sm"
                     >
                       <DollarSign className="mr-2 h-4 w-4" />

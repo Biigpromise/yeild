@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -37,22 +38,45 @@ export const useBrandCampaigns = () => {
       setLoading(true);
       console.log('Fetching brand campaigns...');
       
-      const { data, error } = await supabase
+      // First get the campaigns
+      const { data: campaignsData, error: campaignsError } = await supabase
         .from('brand_campaigns')
-        .select(`
-          *,
-          brand_profiles!brand_campaigns_brand_id_fkey(company_name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error("Error fetching brand campaigns:", error);
-        toast.error("Failed to load brand campaigns: " + error.message);
+      if (campaignsError) {
+        console.error("Error fetching brand campaigns:", campaignsError);
+        toast.error("Failed to load brand campaigns: " + campaignsError.message);
         setCampaigns([]);
-      } else {
-        console.log('Brand campaigns fetched:', data);
-        setCampaigns(data as any); // Use any to bypass strict type checking for now
+        return;
       }
+
+      // Then get the brand profiles separately
+      const brandIds = campaignsData.map(campaign => campaign.brand_id).filter(Boolean);
+      
+      let brandProfiles: any[] = [];
+      if (brandIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('brand_profiles')
+          .select('user_id, company_name')
+          .in('user_id', brandIds);
+
+        if (profilesError) {
+          console.error("Error fetching brand profiles:", profilesError);
+          // Don't fail the entire query if brand profiles fail
+        } else {
+          brandProfiles = profilesData || [];
+        }
+      }
+
+      // Combine the data
+      const combinedData = campaignsData.map(campaign => ({
+        ...campaign,
+        brand_profiles: brandProfiles.find(profile => profile.user_id === campaign.brand_id) || null
+      }));
+
+      console.log('Brand campaigns fetched:', combinedData);
+      setCampaigns(combinedData);
     } catch (error) {
       console.error("Unexpected error:", error);
       toast.error("An unexpected error occurred");
@@ -73,7 +97,7 @@ export const useBrandCampaigns = () => {
         (payload) => {
           console.log('New brand campaign received:', payload);
           toast.info("New brand campaign created!");
-          fetchBrandCampaigns(); // Refetch to get complete data with joins
+          fetchBrandCampaigns(); // Refetch to get complete data
         }
       )
       .on(
@@ -81,7 +105,7 @@ export const useBrandCampaigns = () => {
         { event: 'UPDATE', schema: 'public', table: 'brand_campaigns' },
         (payload) => {
           console.log('Brand campaign updated:', payload);
-          fetchBrandCampaigns(); // Refetch to get complete data with joins
+          fetchBrandCampaigns(); // Refetch to get complete data
         }
       )
       .subscribe();

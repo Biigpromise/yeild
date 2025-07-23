@@ -88,13 +88,31 @@ serve(async (req) => {
       },
     };
 
-    console.log("Initiating Flutterwave payment (LIVE):", { tx_ref, amount: paymentData.amount });
+    // Get the Flutterwave secret key
+    const flutterwaveSecretKey = Deno.env.get("FLUTTERWAVE_SECRET_KEY");
+    
+    if (!flutterwaveSecretKey) {
+      console.error("Flutterwave secret key not found");
+      return new Response(
+        JSON.stringify({ error: "Payment service configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    // Use live Flutterwave API
-    const response = await fetch("https://api.flutterwave.com/v3/payments", {
+    // Check if we're using live or test mode based on the key
+    const isLiveMode = flutterwaveSecretKey.startsWith("FLWSECK-");
+    const apiUrl = "https://api.flutterwave.com/v3/payments";
+
+    console.log(`Initiating Flutterwave payment (${isLiveMode ? 'LIVE' : 'TEST'} mode):`, { 
+      tx_ref, 
+      amount: paymentData.amount,
+      mode: isLiveMode ? 'LIVE' : 'TEST'
+    });
+
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${Deno.env.get("FLUTTERWAVE_SECRET_KEY")}`,
+        "Authorization": `Bearer ${flutterwaveSecretKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(flutterwavePayload),
@@ -137,6 +155,7 @@ serve(async (req) => {
       JSON.stringify({
         status: "success",
         message: "Payment initiated successfully",
+        mode: isLiveMode ? 'LIVE' : 'TEST',
         data: {
           link: flutterwaveResponse.data.link,
           payment_link: flutterwaveResponse.data.link,

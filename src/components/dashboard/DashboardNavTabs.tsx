@@ -11,8 +11,7 @@ import {
   MessageCircle, 
   User,
   Target,
-  Gift,
-  Camera
+  Gift
 } from 'lucide-react';
 
 interface DashboardNavTabsProps {
@@ -58,12 +57,6 @@ const DashboardNavTabs: React.FC<DashboardNavTabsProps> = memo(({
       onClick: () => onTabChange?.('social') 
     },
     { 
-      id: 'stories', 
-      label: 'Stories', 
-      icon: Camera,
-      onClick: () => onTabChange?.('stories') 
-    },
-    { 
       id: 'leaderboard', 
       label: 'Leaderboard', 
       icon: Trophy,
@@ -89,13 +82,13 @@ const DashboardNavTabs: React.FC<DashboardNavTabsProps> = memo(({
             onClick={tab.onClick}
             className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-2 rounded-lg transition-colors ${
               isActive
-                ? 'text-yellow-400'
-                : 'text-gray-400 hover:text-gray-300'
+                ? 'text-primary bg-primary/10'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
             }`}
           >
             <Icon 
               size={20} 
-              className={`mb-1 ${isActive ? 'text-yellow-400' : 'text-gray-400'}`}
+              className={`mb-1 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
             />
             <span className="text-xs font-medium text-center leading-tight">
               {tab.label}
