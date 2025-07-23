@@ -85,8 +85,8 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
         expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null,
         status: 'active',
         // Optional fields - only include if they have values
-        ...(formData.category_id && { category_id: formData.category_id }),
-        ...(formData.difficulty && { difficulty: formData.difficulty }),
+        ...(formData.category_id && formData.category_id !== 'none' && { category_id: formData.category_id }),
+        ...(formData.difficulty && formData.difficulty !== 'none' && { difficulty: formData.difficulty }),
         ...(formData.brand_name?.trim() && { brand_name: formData.brand_name.trim() }),
         ...(formData.brand_logo_url?.trim() && { brand_logo_url: formData.brand_logo_url.trim() }),
         ...(formData.estimated_time?.trim() && { estimated_time: formData.estimated_time.trim() })
@@ -188,7 +188,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                       } />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No Category</SelectItem>
+                      <SelectItem value="none">No Category</SelectItem>
                       {categoriesLoading ? (
                         <SelectItem value="loading-placeholder" disabled>
                           Loading categories...
@@ -218,7 +218,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                       <SelectValue placeholder="Select difficulty (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No Difficulty</SelectItem>
+                      <SelectItem value="none">No Difficulty</SelectItem>
                       <SelectItem value="easy">Easy</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="hard">Hard</SelectItem>
