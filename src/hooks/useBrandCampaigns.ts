@@ -1,80 +1,99 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
-
-export interface BrandCampaign {
+export type BrandCampaign = {
   id: string;
+  brand_id: string;
   title: string;
-  description?: string;
+  description: string | null;
   budget: number;
-  funded_amount: number;
-  status: 'draft' | 'active' | 'paused' | 'completed' | 'cancelled';
-  payment_status: 'unpaid' | 'pending' | 'paid' | 'failed';
-  admin_approval_status: 'pending' | 'approved' | 'rejected';
-  start_date?: string;
-  end_date?: string;
-  target_audience?: any;
-  requirements?: any;
+  status: string;
+  start_date: string | null;
+  end_date: string | null;
   created_at: string;
-  updated_at: string;
-  payment_transaction_id?: string;
-  approved_by?: string;
+  admin_approval_status?: string;
   approved_at?: string;
+  approved_by?: string;
+  funded_amount?: number;
+  payment_status?: string;
+  payment_transaction_id?: string;
   rejection_reason?: string;
-}
+  requirements?: any;
+  target_audience?: any;
+  updated_at?: string;
+  wallet_transaction_id?: string;
+  brand_profiles?: {
+    company_name: string;
+  } | null;
+};
 
 export const useBrandCampaigns = () => {
-  const { user } = useAuth();
   const [campaigns, setCampaigns] = useState<BrandCampaign[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchCampaigns = useCallback(async () => {
-    if (!user) {
-      setLoading(false);
-      setCampaigns([]);
-      return;
-    }
-    
-    setLoading(true);
+  const fetchBrandCampaigns = async () => {
     try {
-      console.log('Fetching campaigns for user:', user.id);
+      setLoading(true);
+      console.log('Fetching brand campaigns...');
       
       const { data, error } = await supabase
         .from('brand_campaigns')
-        .select('*')
-        .eq('brand_id', user.id)
+        .select(`
+          *,
+          brand_profiles(company_name)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching campaigns:', error);
-        throw error;
+        console.error("Error fetching brand campaigns:", error);
+        toast.error("Failed to load brand campaigns: " + error.message);
+        setCampaigns([]);
+      } else {
+        console.log('Brand campaigns fetched:', data);
+        setCampaigns(data as any); // Use any to bypass strict type checking for now
       }
-      
-      console.log('Fetched campaigns:', data);
-      
-      // Type cast the data to ensure status fields match our interface
-      const typedData = (data || []).map(campaign => ({
-        ...campaign,
-        status: campaign.status as 'draft' | 'active' | 'paused' | 'completed' | 'cancelled',
-        payment_status: campaign.payment_status as 'unpaid' | 'pending' | 'paid' | 'failed',
-        admin_approval_status: campaign.admin_approval_status as 'pending' | 'approved' | 'rejected'
-      }));
-      
-      setCampaigns(typedData);
-    } catch (error: any) {
-      console.error('Error fetching campaigns:', error);
-      toast.error('Failed to fetch campaigns: ' + error.message);
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      toast.error("An unexpected error occurred");
       setCampaigns([]);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  };
 
   useEffect(() => {
-    fetchCampaigns();
-  }, [fetchCampaigns]);
-  
-  return { campaigns, loading, refreshCampaigns: fetchCampaigns };
+    fetchBrandCampaigns();
+
+    const channel = supabase
+      .channel('admin-brand-campaigns')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'brand_campaigns' },
+        (payload) => {
+          console.log('New brand campaign received:', payload);
+          toast.info("New brand campaign created!");
+          fetchBrandCampaigns(); // Refetch to get complete data with joins
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'brand_campaigns' },
+        (payload) => {
+          console.log('Brand campaign updated:', payload);
+          fetchBrandCampaigns(); // Refetch to get complete data with joins
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  return {
+    campaigns,
+    loading,
+    fetchBrandCampaigns
+  };
 };

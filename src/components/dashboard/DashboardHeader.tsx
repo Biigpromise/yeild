@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Bell, Settings, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { NotificationCenter } from './NotificationCenter';
 
 interface DashboardHeaderProps {
   user: any;
@@ -34,13 +36,20 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
             <User className="h-4 w-4" />
           </Button>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-300 hover:text-white hover:bg-gray-700"
-          >
-            <Bell className="h-4 w-4" />
-          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-300 hover:text-white hover:bg-gray-700"
+              >
+                <Bell className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-0" align="end">
+              <NotificationCenter />
+            </PopoverContent>
+          </Popover>
           
           <Button
             variant="ghost"
