@@ -272,6 +272,9 @@ export const TaskSubmissionReviewManager: React.FC = () => {
                     disabled={processingId === submission.id}
                     variant="outline"
                     className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                  >
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Reject
                   </Button>
                 </div>
               )}
