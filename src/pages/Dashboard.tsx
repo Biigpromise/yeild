@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
       case 'settings':
         return (
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-white">Settings</h2>
+            <h2 className="text-xl font-semibold text-foreground">Settings</h2>
             <SettingsTab />
           </div>
         );
@@ -83,10 +83,10 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-yellow-400" />
-          <p className="text-gray-400">Loading your dashboard...</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -94,7 +94,7 @@ const Dashboard: React.FC = () => {
 
   if (error) {
     return (
-      <div className="bg-gray-900 min-h-screen">
+      <div className="bg-background min-h-screen">
         <DashboardErrorFallback 
           error={error} 
           onRetry={loadUserData}
@@ -106,7 +106,7 @@ const Dashboard: React.FC = () => {
   return (
     <ThemeProvider>
       <DashboardErrorBoundary>
-        <div className="bg-gray-900 min-h-screen text-white">
+        <div className="bg-background min-h-screen text-foreground">
           <DashboardHeader user={user} onTabChange={handleTabChange} />
           
           <div className="max-w-md mx-auto px-4 py-6">
