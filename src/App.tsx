@@ -1,105 +1,113 @@
-import React from 'react';
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
-import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { Toaster } from '@/components/ui/sonner';
-import Welcome from '@/pages/Welcome';
-import Dashboard from '@/pages/Dashboard';
-import AdminDashboard from '@/pages/AdminDashboard';
-import AuthPage from '@/pages/AuthPage';
-import BrandDashboard from '@/pages/BrandDashboard';
-import CreateCampaign from '@/pages/CreateCampaign';
-import BrandPayment from '@/pages/BrandPayment';
-import Tasks from '@/pages/Tasks';
-import Chat from '@/pages/Chat';
-import Admin from '@/pages/Admin';
-import Onboarding from '@/pages/Onboarding';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { RoleProtectedRoute } from '@/components/RoleProtectedRoute';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { OnboardingProvider } from '@/contexts/OnboardingContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Header } from '@/components/layout/Header';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { Home } from '@/pages/Home';
+import { About } from '@/pages/About';
+import { Login } from '@/pages/Login';
+import { Signup } from '@/pages/Signup';
+import { Dashboard } from '@/pages/Dashboard';
+import { Profile } from '@/pages/Profile';
+import { Tasks } from '@/pages/Tasks';
+import TaskDetail from '@/pages/TaskDetail';
+import { Leaderboard } from '@/pages/Leaderboard';
+import { Rewards } from '@/pages/Rewards';
+import { Withdrawal } from '@/pages/Withdrawal';
+import { Chat } from '@/pages/Chat';
+import { AdminDashboard } from '@/pages/AdminDashboard';
+import { BrandDashboard } from '@/pages/BrandDashboard';
+import BrandCampaignDashboard from '@/pages/BrandCampaignDashboard';
+import { BrandApplication } from '@/pages/BrandApplication';
+import { AuthCallback } from '@/pages/AuthCallback';
+import { Onboarding } from '@/pages/Onboarding';
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
+      <Router>
         <AuthProvider>
           <OnboardingProvider>
-            <Router>
-              <div className="min-h-screen bg-background">
+            <div className="min-h-screen bg-background">
+              <Header />
+              <main className="pt-16">
                 <Routes>
-                  <Route path="/" element={<Welcome />} />
-                  <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/onboarding" element={
+                  <Route path="/" element={<Home />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
+                  <Route path="/brand-application" element={<BrandApplication />} />
+                  <Route path="/onboarding" element={<Onboarding />} />
+                  
+                  {/* Protected Routes */}
+                  <Route path="/dashboard" element={
                     <ProtectedRoute>
-                      <Onboarding />
+                      <Dashboard />
                     </ProtectedRoute>
                   } />
-                  <Route 
-                    path="/dashboard" 
-                    element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/tasks" 
-                    element={
-                      <ProtectedRoute>
-                        <Tasks />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/chat" 
-                    element={
-                      <ProtectedRoute>
-                        <Chat />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin" 
-                    element={<Admin />}
-                  />
-                  <Route 
-                    path="/admin-dashboard" 
-                    element={<AdminDashboard />}
-                  />
-                  <Route 
-                    path="/brand-dashboard" 
-                    element={
-                      <RoleProtectedRoute requiredRole="brand">
-                        <BrandDashboard />
-                      </RoleProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/campaigns/create" 
-                    element={
-                      <RoleProtectedRoute requiredRole="brand">
-                        <CreateCampaign />
-                      </RoleProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/brand/payment" 
-                    element={
-                      <RoleProtectedRoute requiredRole="brand">
-                        <BrandPayment />
-                      </RoleProtectedRoute>
-                    } 
-                  />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/tasks" element={
+                    <ProtectedRoute>
+                      <Tasks />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/tasks/:id" element={
+                    <ProtectedRoute>
+                      <TaskDetail />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/leaderboard" element={
+                    <ProtectedRoute>
+                      <Leaderboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/rewards" element={
+                    <ProtectedRoute>
+                      <Rewards />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/withdrawal" element={
+                    <ProtectedRoute>
+                      <Withdrawal />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/chat" element={
+                    <ProtectedRoute>
+                      <Chat />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin" element={
+                    <ProtectedRoute>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/brand-dashboard" element={
+                    <ProtectedRoute>
+                      <BrandDashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/brand-campaigns" element={
+                    <ProtectedRoute>
+                      <BrandCampaignDashboard />
+                    </ProtectedRoute>
+                  } />
                 </Routes>
-                <Toaster />
-              </div>
-            </Router>
+              </main>
+              <Toaster />
+            </div>
           </OnboardingProvider>
         </AuthProvider>
-      </ThemeProvider>
+      </Router>
     </QueryClientProvider>
   );
 }
