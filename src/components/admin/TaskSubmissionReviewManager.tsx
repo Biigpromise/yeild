@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -59,7 +58,7 @@ export const TaskSubmissionReviewManager: React.FC = () => {
 
       if (error) throw error;
       
-      // Transform the data to match our interface
+      // Transform the data to match our interface with proper type conversion
       const transformedData: TaskSubmission[] = (data || []).map(submission => ({
         id: submission.id,
         task_id: submission.task_id,
@@ -70,10 +69,16 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         reviewed_at: submission.reviewed_at,
         admin_notes: submission.admin_notes,
         submission_text: submission.evidence || '', // Use evidence as submission_text
-        submission_files: Array.isArray(submission.evidence_files) ? submission.evidence_files : [],
+        submission_files: Array.isArray(submission.evidence_files) 
+          ? submission.evidence_files.map(file => String(file))
+          : [],
         reviewer_notes: submission.admin_notes,
-        tasks: submission.tasks,
-        profiles: submission.profiles
+        tasks: submission.tasks && typeof submission.tasks === 'object' && !('error' in submission.tasks)
+          ? submission.tasks
+          : null,
+        profiles: submission.profiles && typeof submission.profiles === 'object' && !('error' in submission.profiles)
+          ? submission.profiles
+          : null
       }));
       
       setSubmissions(transformedData);

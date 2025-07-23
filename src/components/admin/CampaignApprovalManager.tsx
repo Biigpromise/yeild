@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,7 +48,7 @@ export const CampaignApprovalManager: React.FC = () => {
 
       if (error) throw error;
       
-      // Transform the data to match our interface
+      // Transform the data to match our interface with proper null handling
       const transformedData: Campaign[] = (data || []).map(campaign => ({
         id: campaign.id,
         title: campaign.title,
@@ -62,7 +61,9 @@ export const CampaignApprovalManager: React.FC = () => {
         admin_approval_status: campaign.admin_approval_status as 'pending' | 'approved' | 'rejected',
         brand_id: campaign.brand_id,
         created_at: campaign.created_at,
-        brand_profiles: campaign.brand_profiles
+        brand_profiles: campaign.brand_profiles && typeof campaign.brand_profiles === 'object' && !('error' in campaign.brand_profiles)
+          ? campaign.brand_profiles
+          : null
       }));
       
       setCampaigns(transformedData);

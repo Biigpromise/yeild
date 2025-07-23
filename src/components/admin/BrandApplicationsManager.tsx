@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,7 +39,7 @@ export const BrandApplicationsManager: React.FC = () => {
 
       if (error) throw error;
       
-      // Transform the data to match our interface
+      // Transform the data to match our interface with proper type conversion
       const transformedData: BrandApplication[] = (data || []).map(app => ({
         id: app.id,
         user_id: app.user_id,
@@ -48,7 +47,9 @@ export const BrandApplicationsManager: React.FC = () => {
         website: app.website,
         company_size: app.company_size,
         industry: app.industry,
-        task_types: Array.isArray(app.task_types) ? app.task_types : [],
+        task_types: Array.isArray(app.task_types) 
+          ? app.task_types.map(item => String(item))
+          : [],
         budget: app.budget,
         goals: app.goals,
         status: app.status as 'pending' | 'approved' | 'rejected',

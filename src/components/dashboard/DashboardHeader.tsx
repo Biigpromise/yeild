@@ -83,12 +83,14 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
       </div>
 
       {/* Bird Progression Modal */}
-      <BirdProgressionModal
-        isOpen={showBirdModal}
-        onClose={() => setShowBirdModal(false)}
-        currentBird={currentBird}
-        userStats={userStats}
-      />
+      {currentBird && (
+        <BirdProgressionModal
+          isOpen={showBirdModal}
+          onClose={() => setShowBirdModal(false)}
+          currentBird={currentBird}
+          userStats={userStats}
+        />
+      )}
     </>
   );
 };
