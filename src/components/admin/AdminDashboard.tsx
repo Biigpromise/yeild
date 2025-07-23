@@ -20,9 +20,13 @@ import { EnhancedAnalytics } from './enhanced/EnhancedAnalytics';
 import { EnhancedFinanceManagement } from './enhanced/EnhancedFinanceManagement';
 import { FinancialDashboard } from './financial/FinancialDashboard';
 import { AdminSettings } from './AdminSettings';
+import { useAdminStats } from '@/hooks/useAdminStats';
+import { useRecentActivities } from '@/hooks/useRecentActivities';
 
 export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const { stats, loading: statsLoading } = useAdminStats();
+  const { activities, loading: activitiesLoading } = useRecentActivities();
 
   return (
     <div className="min-h-screen bg-background">
@@ -69,8 +73,12 @@ export const AdminDashboard: React.FC = () => {
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-foreground">1,234</div>
-                  <p className="text-xs text-muted-foreground">+12% from last month</p>
+                  <div className="text-2xl font-bold text-foreground">
+                    {statsLoading ? '...' : stats?.totalUsers.toLocaleString() || '0'}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {statsLoading ? '...' : `${stats?.userGrowth > 0 ? '+' : ''}${stats?.userGrowth}% from last month`}
+                  </p>
                 </CardContent>
               </Card>
 
@@ -80,8 +88,12 @@ export const AdminDashboard: React.FC = () => {
                   <Target className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-foreground">89</div>
-                  <p className="text-xs text-muted-foreground">+5% from last week</p>
+                  <div className="text-2xl font-bold text-foreground">
+                    {statsLoading ? '...' : stats?.activeTasks || '0'}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {statsLoading ? '...' : `${stats?.taskGrowth > 0 ? '+' : ''}${stats?.taskGrowth}% from last month`}
+                  </p>
                 </CardContent>
               </Card>
 
@@ -91,8 +103,12 @@ export const AdminDashboard: React.FC = () => {
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-foreground">73%</div>
-                  <p className="text-xs text-muted-foreground">+2% from last month</p>
+                  <div className="text-2xl font-bold text-foreground">
+                    {statsLoading ? '...' : `${stats?.engagementRate}%`}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {statsLoading ? '...' : `+${stats?.engagementGrowth}% from last month`}
+                  </p>
                 </CardContent>
               </Card>
 
@@ -102,8 +118,12 @@ export const AdminDashboard: React.FC = () => {
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-foreground">$45,231</div>
-                  <p className="text-xs text-muted-foreground">+18% from last month</p>
+                  <div className="text-2xl font-bold text-foreground">
+                    ₦{statsLoading ? '...' : stats?.totalRevenue.toLocaleString() || '0'}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {statsLoading ? '...' : `+${stats?.revenueGrowth}% from last month`}
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -115,27 +135,23 @@ export const AdminDashboard: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-foreground">New user registration</p>
-                        <p className="text-xs text-muted-foreground">2 minutes ago</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-foreground">Task submitted for review</p>
-                        <p className="text-xs text-muted-foreground">5 minutes ago</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-foreground">Payment processed</p>
-                        <p className="text-xs text-muted-foreground">10 minutes ago</p>
-                      </div>
-                    </div>
+                    {activitiesLoading ? (
+                      <div className="text-center text-muted-foreground">Loading activities...</div>
+                    ) : activities.length > 0 ? (
+                      activities.map((activity) => (
+                        <div key={activity.id} className="flex items-center gap-3">
+                          <div className={`w-2 h-2 rounded-full ${activity.color}`}></div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-foreground">{activity.title}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(activity.timestamp).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-muted-foreground">No recent activities</div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

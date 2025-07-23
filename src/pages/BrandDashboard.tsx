@@ -17,10 +17,12 @@ import {
   LogOut
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useBrandCampaignStats } from '@/hooks/useBrandCampaignStats';
 
 const BrandDashboard = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { stats, loading: statsLoading } = useBrandCampaignStats();
 
   if (loading) {
     return (
@@ -81,8 +83,12 @@ const BrandDashboard = () => {
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">3</div>
-              <p className="text-xs text-muted-foreground">+1 from last month</p>
+              <div className="text-2xl font-bold text-foreground">
+                {statsLoading ? '...' : stats?.activeCampaigns || '0'}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {statsLoading ? '...' : `+${stats?.campaignGrowth || 0} from last month`}
+              </p>
             </CardContent>
           </Card>
 
@@ -92,8 +98,12 @@ const BrandDashboard = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">12.5K</div>
-              <p className="text-xs text-muted-foreground">+15% from last month</p>
+              <div className="text-2xl font-bold text-foreground">
+                {statsLoading ? '...' : `${(stats?.totalReach || 0).toLocaleString()}`}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {statsLoading ? '...' : `+${stats?.reachGrowth || 0}% from last month`}
+              </p>
             </CardContent>
           </Card>
 
@@ -103,8 +113,12 @@ const BrandDashboard = () => {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">8.2%</div>
-              <p className="text-xs text-muted-foreground">+2.1% from last month</p>
+              <div className="text-2xl font-bold text-foreground">
+                {statsLoading ? '...' : `${stats?.engagementRate || 0}%`}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {statsLoading ? '...' : `+${stats?.engagementGrowth || 0}% from last month`}
+              </p>
             </CardContent>
           </Card>
 
@@ -114,8 +128,12 @@ const BrandDashboard = () => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">$2,450</div>
-              <p className="text-xs text-muted-foreground">+12% from last month</p>
+              <div className="text-2xl font-bold text-foreground">
+                ₦{statsLoading ? '...' : (stats?.totalSpent || 0).toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {statsLoading ? '...' : `+${stats?.spentGrowth || 0}% from last month`}
+              </p>
             </CardContent>
           </Card>
         </div>

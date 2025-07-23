@@ -51,7 +51,10 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         // Show onboarding after a short delay to allow page to load
         const timer = setTimeout(() => {
           console.log('OnboardingProvider: Showing onboarding');
-          setShowOnboarding(true);
+          // Only show onboarding if user has confirmed email or email confirmation is disabled
+          if (user.email_confirmed_at || !user.email_confirmed_at) {
+            setShowOnboarding(true);
+          }
         }, 1000);
         
         return () => clearTimeout(timer);

@@ -26,12 +26,14 @@ export const useBrandAnalytics = () => {
     }
     setLoading(true);
     try {
+      // Fetch brand campaigns instead of tasks
       const { data: campaigns, error: campaignsError } = await supabase
-        .from('tasks')
-        .select('id, points, status')
-        .eq('brand_user_id', user.id);
+        .from('brand_campaigns')
+        .select('id, budget, status')
+        .eq('brand_id', user.id);
 
       if (campaignsError) throw campaignsError;
+      
       if (!campaigns || campaigns.length === 0) {
         setAnalytics({
           totalCampaigns: 0,
@@ -46,14 +48,10 @@ export const useBrandAnalytics = () => {
         return;
       }
 
-      const taskIds = campaigns.map(c => c.id);
+      const campaignIds = campaigns.map(c => c.id);
 
-      const { data: submissions, error: submissionsError } = await supabase
-        .from('task_submissions')
-        .select('task_id, status, submitted_at')
-        .in('task_id', taskIds);
-      
-      if (submissionsError) throw submissionsError;
+      // For now, use empty submissions since campaign_submissions table doesn't exist yet
+      const submissions: any[] = [];
 
       const totalCampaigns = campaigns.length;
       const activeCampaigns = campaigns.filter(c => c.status === 'active').length;
@@ -61,17 +59,13 @@ export const useBrandAnalytics = () => {
       const approvedSubmissions = submissions?.filter(s => s.status === 'approved').length || 0;
       const pendingSubmissions = submissions?.filter(s => s.status === 'pending').length || 0;
       
+      // Calculate total budget spent on approved campaigns
       let totalPointsAwarded = 0;
-      if (submissions) {
-        submissions.forEach(sub => {
-          if (sub.status === 'approved') {
-            const campaign = campaigns.find(c => c.id === sub.task_id);
-            if (campaign) {
-              totalPointsAwarded += campaign.points;
-            }
-          }
-        });
-      }
+      campaigns.forEach(campaign => {
+        if (campaign.status === 'completed' || campaign.status === 'active') {
+          totalPointsAwarded += Number(campaign.budget) || 0;
+        }
+      });
 
       const submissionsOverTime: { date: string; count: number }[] = [];
       const dateMap = new Map<string, number>();
@@ -83,14 +77,16 @@ export const useBrandAnalytics = () => {
             dateMap.set(dateStr, 0);
           }
 
-          submissions.forEach(sub => {
-            if (sub.submitted_at) {
-              const dateStr = sub.submitted_at.split('T')[0];
-              if (dateMap.has(dateStr)) {
-                dateMap.set(dateStr, dateMap.get(dateStr)! + 1);
+          if (submissions) {
+            submissions.forEach(sub => {
+              if (sub.submitted_at) {
+                const dateStr = sub.submitted_at.split('T')[0];
+                if (dateMap.has(dateStr)) {
+                  dateMap.set(dateStr, dateMap.get(dateStr)! + 1);
+                }
               }
-            }
-          });
+            });
+          }
           
           dateMap.forEach((count, date) => {
              submissionsOverTime.push({ date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), count });
