@@ -64,12 +64,6 @@ export const DashboardNavTabs: React.FC<DashboardNavTabsProps> = ({
       onClick: () => onTabChange?.('stories') 
     },
     { 
-      id: 'chat', 
-      label: 'Messages', 
-      icon: MessageCircle,
-      onClick: () => navigate('/chat') 
-    },
-    { 
       id: 'leaderboard', 
       label: 'Leaderboard', 
       icon: Trophy,

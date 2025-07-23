@@ -45,6 +45,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
           <Button
             variant="ghost"
             size="sm"
+            onClick={() => onTabChange('settings')}
             className="text-gray-300 hover:text-white hover:bg-gray-700"
           >
             <Settings className="h-4 w-4" />

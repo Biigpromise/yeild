@@ -391,11 +391,117 @@ export const EnhancedTaskManagement = () => {
         <TabsContent value="submissions" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Task Submissions Review</CardTitle>
+              <CardTitle>Task Submissions Review ({submissions.length} total)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Submission review interface will be implemented here.
+              <div className="space-y-4">
+                {submissions.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No submissions to review.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {submissions.map((submission) => (
+                      <Card key={submission.id} className="border-l-4 border-l-blue-500">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <div>
+                              <Badge className={`${getStatusColor(submission.status)} text-xs`}>
+                                {submission.status}
+                              </Badge>
+                              <div className="text-sm text-gray-500 mt-1">
+                                Task ID: {submission.task_id}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                User ID: {submission.user_id}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-xs text-gray-400">
+                                {new Date(submission.submitted_at).toLocaleDateString()}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div>
+                              <Label className="text-sm font-medium">Submission:</Label>
+                              <p className="text-sm mt-1 p-2 bg-gray-50 rounded">
+                                {submission.submission_text || submission.evidence || 'No description provided'}
+                              </p>
+                            </div>
+                            
+                            {(submission.image_url || submission.evidence_file_url) && (
+                              <div>
+                                <Label className="text-sm font-medium">Evidence:</Label>
+                                <div className="mt-1">
+                                  <img 
+                                    src={submission.image_url || submission.evidence_file_url} 
+                                    alt="Submission evidence" 
+                                    className="max-w-xs rounded border cursor-pointer hover:scale-105 transition-transform"
+                                    onClick={() => window.open(submission.image_url || submission.evidence_file_url, '_blank')}
+                                  />
+                                </div>
+                              </div>
+                            )}
+
+                            {submission.admin_notes && (
+                              <div>
+                                <Label className="text-sm font-medium">Admin Notes:</Label>
+                                <p className="text-sm mt-1 p-2 bg-blue-50 rounded">{submission.admin_notes}</p>
+                              </div>
+                            )}
+
+                            {submission.status === 'pending' && (
+                              <div className="flex gap-2 mt-4">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-green-600 hover:text-green-700"
+                                  onClick={async () => {
+                                    try {
+                                      const { supabase } = await import("@/integrations/supabase/client");
+                                      await supabase
+                                        .from('task_submissions')
+                                        .update({ status: 'approved', admin_notes: 'Approved by admin' })
+                                        .eq('id', submission.id);
+                                      await loadData();
+                                      toast.success('Submission approved');
+                                    } catch (error) {
+                                      toast.error('Failed to approve submission');
+                                    }
+                                  }}
+                                >
+                                  Approve
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-red-600 hover:text-red-700"
+                                  onClick={async () => {
+                                    try {
+                                      const { supabase } = await import("@/integrations/supabase/client");
+                                      await supabase
+                                        .from('task_submissions')
+                                        .update({ status: 'rejected', admin_notes: 'Rejected by admin' })
+                                        .eq('id', submission.id);
+                                      await loadData();
+                                      toast.success('Submission rejected');
+                                    } catch (error) {
+                                      toast.error('Failed to reject submission');
+                                    }
+                                  }}
+                                >
+                                  Reject
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
