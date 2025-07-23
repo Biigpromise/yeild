@@ -33,6 +33,7 @@ export const useBirdLevel = () => {
     tasksCompleted: 0
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -42,12 +43,21 @@ export const useBirdLevel = () => {
 
     const fetchBirdLevel = async () => {
       try {
+        setLoading(true);
+        setError(null);
+
         // Get user's current stats
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('active_referrals_count, points, tasks_completed')
           .eq('id', user.id)
           .single();
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          setError('Failed to load profile data');
+          return;
+        }
 
         if (profile) {
           const stats = {
@@ -58,39 +68,43 @@ export const useBirdLevel = () => {
           setUserStats(stats);
 
           // Get current bird level
-          const { data: currentBirdData } = await supabase
+          const { data: currentBirdData, error: currentError } = await supabase
             .rpc('get_user_bird_level', { user_id_param: user.id });
 
-          if (currentBirdData && currentBirdData.length > 0) {
-            // Add missing properties with defaults
+          if (currentError) {
+            console.error('Error fetching current bird level:', currentError);
+            setError('Failed to load bird level');
+          } else if (currentBirdData && currentBirdData.length > 0) {
             const birdWithDefaults: BirdLevel = {
               ...currentBirdData[0],
-              benefits: [],
-              animation_type: 'static',
-              glow_effect: false,
-              earningRate: 1.0 // Default earning rate
+              benefits: currentBirdData[0].benefits || [],
+              animation_type: currentBirdData[0].animation_type || 'static',
+              glow_effect: currentBirdData[0].glow_effect || false,
+              earningRate: 1.0
             };
             setCurrentBird(birdWithDefaults);
           }
 
           // Get next bird level
-          const { data: nextBirdData } = await supabase
+          const { data: nextBirdData, error: nextError } = await supabase
             .rpc('get_next_bird_level', { user_id_param: user.id });
 
-          if (nextBirdData && nextBirdData.length > 0) {
-            // Transform the next bird data to match our interface
+          if (nextError) {
+            console.error('Error fetching next bird level:', nextError);
+          } else if (nextBirdData && nextBirdData.length > 0) {
             const nextBirdLevel: NextBirdLevel = {
               ...nextBirdData[0],
-              benefits: [],
-              animation_type: 'static',
-              glow_effect: false,
-              earningRate: 1.0 // Default earning rate
+              benefits: nextBirdData[0].benefits || [],
+              animation_type: nextBirdData[0].animation_type || 'static',
+              glow_effect: nextBirdData[0].glow_effect || false,
+              earningRate: 1.0
             };
             setNextBird(nextBirdLevel);
           }
         }
       } catch (error) {
         console.error('Error fetching bird level:', error);
+        setError('Failed to load bird data');
       } finally {
         setLoading(false);
       }
@@ -103,6 +117,7 @@ export const useBirdLevel = () => {
     currentBird,
     nextBird,
     userStats,
-    loading
+    loading,
+    error
   };
 };

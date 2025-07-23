@@ -26,80 +26,72 @@ export const useDashboard = () => {
     pendingWithdrawals: 0,
     completedWithdrawals: 0
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadUserData = async () => {
     if (!user) {
-        return;
+      setLoading(false);
+      return;
     }
     
     try {
+      setLoading(true);
+      setError(null);
       
-      // Load profile data with better error handling
-      try {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        
-        if (profileError && profileError.code !== 'PGRST116') {
-          console.error('Error fetching profile:', profileError);
-        } else if (profile) {
-          setUserProfile(profile);
-          setUserStats(prev => ({
-            ...prev,
-            points: profile.points || 0,
-            level: profile.level || 1,
-            tasksCompleted: profile.tasks_completed || 0,
-            followers: profile.followers_count || 0,
-            following: profile.following_count || 0,
-          }));
-          setTotalPointsEarned(profile.points || 0);
-        }
-      } catch (profileError) {
-        console.error('Profile fetch exception:', profileError);
+      // Load profile data
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        setError('Failed to load profile data');
+      } else if (profile) {
+        setUserProfile(profile);
+        setUserStats({
+          points: profile.points || 0,
+          level: profile.level || 1,
+          tasksCompleted: profile.tasks_completed || 0,
+          currentStreak: profile.current_streak || 0,
+          rank: profile.rank || 0,
+          referrals: profile.active_referrals_count || 0,
+          followers: profile.followers_count || 0,
+          following: profile.following_count || 0,
+        });
+        setTotalPointsEarned(profile.points || 0);
       }
 
-      // Load tasks and submissions with better error handling
+      // Load tasks and submissions
       try {
-        const [tasksData, submissionsData] = await Promise.allSettled([
+        const [tasksData, submissionsData] = await Promise.all([
           taskService.getUserTasks(),
           taskService.getUserSubmissions()
         ]);
         
-        if (tasksData.status === 'fulfilled') {
-          setUserTasks(tasksData.value || []);
-        } else {
-          console.error('Failed to load user tasks:', tasksData.reason);
-          setUserTasks([]);
-        }
-
-        if (submissionsData.status === 'fulfilled') {
-          setUserSubmissions(submissionsData.value || []);
-          // Filter completed tasks from submissions
-          const completed = (submissionsData.value || []).filter((sub: any) => sub.status === 'approved');
-          setCompletedTasks(completed);
-        } else {
-          console.error('Failed to load user submissions:', submissionsData.reason);
-          setUserSubmissions([]);
-          setCompletedTasks([]);
-        }
+        setUserTasks(tasksData || []);
+        setUserSubmissions(submissionsData || []);
+        
+        // Filter completed tasks
+        const completed = (submissionsData || []).filter((sub: any) => sub.status === 'approved');
+        setCompletedTasks(completed);
       } catch (taskError) {
-        console.error('Tasks fetch exception:', taskError);
-        setUserTasks([]);
-        setUserSubmissions([]);
-        setCompletedTasks([]);
+        console.error('Error loading tasks:', taskError);
+        setError('Failed to load tasks data');
       }
 
-      // Load withdrawal data with better error handling
+      // Load withdrawal data
       try {
-        const { data: withdrawals } = await supabase
+        const { data: withdrawals, error: withdrawalError } = await supabase
           .from('withdrawal_requests')
           .select('amount, status')
           .eq('user_id', user.id);
 
-        if (withdrawals) {
+        if (withdrawalError) {
+          console.error('Error loading withdrawals:', withdrawalError);
+        } else if (withdrawals) {
           const pending = withdrawals
             .filter(w => w.status === 'pending' || w.status === 'approved')
             .reduce((sum, w) => sum + w.amount, 0);
@@ -113,23 +105,19 @@ export const useDashboard = () => {
           });
         }
       } catch (withdrawalError) {
-        console.error('Withdrawal fetch exception:', withdrawalError);
-        setWithdrawalStats({
-          pendingWithdrawals: 0,
-          completedWithdrawals: 0
-        });
+        console.error('Error loading withdrawal data:', withdrawalError);
       }
       
     } catch (error) {
       console.error('Error loading user data:', error);
-      // Don't show toast error as it might be a temporary issue
+      setError('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user) {
-      loadUserData();
-    }
+    loadUserData();
   }, [user]);
   
   return {
@@ -142,6 +130,7 @@ export const useDashboard = () => {
     totalPointsEarned,
     withdrawalStats,
     loading,
+    error,
     loadUserData
   };
 };

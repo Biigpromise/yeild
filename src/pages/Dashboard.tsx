@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboard } from '@/hooks/useDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,9 +11,12 @@ import { WalletTab } from '@/components/dashboard/WalletTab';
 import { ReferralsTab } from '@/components/dashboard/ReferralsTab';
 import { LeaderboardTab } from '@/components/dashboard/LeaderboardTab';
 import { SocialTab } from '@/components/dashboard/SocialTab';
-import { ChatTab } from '@/components/dashboard/ChatTab';
 import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { BirdStatusDisplay } from '@/components/bird/BirdStatusDisplay';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -28,8 +31,18 @@ const Dashboard = () => {
     totalPointsEarned,
     withdrawalStats,
     loading,
+    error,
     loadUserData
   } = useDashboard();
+
+  // Set active tab from URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, []);
 
   if (showOnboarding) {
     return (
@@ -40,7 +53,7 @@ const Dashboard = () => {
     );
   }
 
-  if (loading && !user) {
+  if (loading && !userProfile) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-white flex flex-col items-center gap-4">
@@ -51,16 +64,53 @@ const Dashboard = () => {
     );
   }
 
+  if (error && !userProfile) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <Alert className="bg-red-900/20 border-red-500/30 text-red-100">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="mt-2">
+              {error}
+            </AlertDescription>
+          </Alert>
+          <Button 
+            onClick={loadUserData} 
+            className="mt-4"
+            variant="outline"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white">
       <DashboardHeader user={user} onTabChange={setActiveTab} />
       
       <div className="max-w-7xl mx-auto p-4 space-y-6">
+        {/* Bird Status Display */}
+        <BirdStatusDisplay />
+        
+        {/* Stats Cards */}
         <StatsCards 
           userStats={userStats}
           totalPointsEarned={totalPointsEarned}
           withdrawalStats={withdrawalStats}
         />
+        
+        {/* Error Alert */}
+        {error && (
+          <Alert className="bg-yellow-900/20 border-yellow-500/30 text-yellow-100">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error} - Some features may not work correctly.
+            </AlertDescription>
+          </Alert>
+        )}
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-gray-800 border-gray-700">
@@ -88,6 +138,7 @@ const Dashboard = () => {
             <TasksTab 
               userStats={userStats}
               userTasks={userTasks}
+              loadUserData={loadUserData}
             />
           </TabsContent>
 

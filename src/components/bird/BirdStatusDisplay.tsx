@@ -5,12 +5,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Crown, Users, Trophy, Target, Zap, Eye } from 'lucide-react';
+import { Crown, Users, Trophy, Target, Zap, Eye, AlertCircle } from 'lucide-react';
 import { useBirdLevel } from '@/hooks/useBirdLevel';
 import { BirdProgressionModal } from './BirdProgressionModal';
 
 export const BirdStatusDisplay: React.FC = () => {
-  const { currentBird, nextBird, userStats, loading } = useBirdLevel();
+  const { currentBird, nextBird, userStats, loading, error } = useBirdLevel();
   const [showProgression, setShowProgression] = useState(false);
 
   if (loading) {
@@ -27,14 +27,42 @@ export const BirdStatusDisplay: React.FC = () => {
     );
   }
 
-  if (!currentBird) {
-    return null;
+  if (error) {
+    return (
+      <Card className="bg-gradient-to-br from-red-900/20 via-gray-900/20 to-gray-900/20 border-red-500/30 shadow-xl">
+        <CardContent className="p-6 text-center">
+          <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" />
+          <h3 className="text-lg font-semibold text-white mb-2">Unable to Load Bird Status</h3>
+          <p className="text-gray-400 text-sm">{error}</p>
+        </CardContent>
+      </Card>
+    );
   }
+
+  // Default bird for new users
+  const defaultBird = {
+    id: 1,
+    name: 'Hatchling',
+    emoji: '🐣',
+    color: '#10B981',
+    min_referrals: 0,
+    min_points: 0,
+    description: 'Welcome to Yield! Start completing tasks to grow.',
+    benefits: ['Access to basic tasks', 'Point earning'],
+    animation_type: 'static' as const,
+    glow_effect: false,
+    earningRate: 1.0,
+    icon: 'hatchling'
+  };
+
+  const displayBird = currentBird || defaultBird;
 
   // Calculate progress to next level
   const progressToNext = nextBird ? Math.min(100, 
-    (userStats.referrals / (nextBird.min_referrals - currentBird.min_referrals)) * 50 + 
-    (userStats.points / (nextBird.min_points - currentBird.min_points)) * 50
+    Math.max(
+      (userStats.referrals / Math.max(1, nextBird.min_referrals - displayBird.min_referrals)) * 50,
+      (userStats.points / Math.max(1, nextBird.min_points - displayBird.min_points)) * 50
+    )
   ) : 100;
 
   return (
@@ -47,7 +75,7 @@ export const BirdStatusDisplay: React.FC = () => {
       >
         <Card className="bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-green-900/20 border-purple-500/30 shadow-xl overflow-hidden">
           <CardContent className="p-4">
-            {/* Simplified Header */}
+            {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-bold text-white">Your Bird Status</h3>
@@ -65,12 +93,12 @@ export const BirdStatusDisplay: React.FC = () => {
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <div 
-                    className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl shadow-2xl border-4 border-purple-500/50 ${currentBird.glow_effect ? 'animate-pulse' : ''}`}
-                    style={{ backgroundColor: currentBird.color + '20' }}
+                    className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl shadow-2xl border-4 border-purple-500/50 ${displayBird.glow_effect ? 'animate-pulse' : ''}`}
+                    style={{ backgroundColor: displayBird.color + '20' }}
                   >
-                    {currentBird.emoji}
+                    {displayBird.emoji}
                   </div>
-                  {currentBird.glow_effect && (
+                  {displayBird.glow_effect && (
                     <motion.div
                       className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20"
                       animate={{ rotate: 360 }}
@@ -81,9 +109,9 @@ export const BirdStatusDisplay: React.FC = () => {
 
                 <Badge 
                   className="text-white mb-2 px-3 py-1 text-sm"
-                  style={{ backgroundColor: currentBird.color }}
+                  style={{ backgroundColor: displayBird.color }}
                 >
-                  {currentBird.name}
+                  {displayBird.name}
                 </Badge>
                 
                 <Button
@@ -141,17 +169,24 @@ export const BirdStatusDisplay: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                {!nextBird && (
+                  <div className="text-center py-2">
+                    <Trophy className="h-6 w-6 mx-auto mb-1 text-yellow-500" />
+                    <div className="text-xs text-yellow-500">Max Level Reached!</div>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
       </motion.div>
 
-      {currentBird && (
+      {displayBird && (
         <BirdProgressionModal
           isOpen={showProgression}
           onClose={() => setShowProgression(false)}
-          currentBird={currentBird}
+          currentBird={displayBird}
           userStats={userStats}
         />
       )}

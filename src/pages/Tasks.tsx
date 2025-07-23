@@ -1,236 +1,283 @@
 
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import TaskCategories from "@/components/TaskCategories";
-import TaskFilter from "@/components/TaskFilter";
-import { TaskCard } from "@/components/TaskCard";
-import { TaskSubmissionModal } from "@/components/TaskSubmissionModal";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Target } from "lucide-react";
-import { taskService, Task } from "@/services/taskService";
-import { toast } from "sonner";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  ArrowLeft, 
+  Search, 
+  Filter, 
+  Clock, 
+  DollarSign,
+  Target,
+  CheckCircle,
+  ExternalLink,
+  AlertCircle
+} from 'lucide-react';
+import { taskService } from '@/services/taskService';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
-const Tasks = () => {
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+  category: string;
+  difficulty: string;
+  estimated_time?: string;
+  brand_name?: string;
+  brand_logo_url?: string;
+  expires_at?: string;
+  status: string;
+  created_at: string;
+}
+
+const Tasks: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [userSubmissions, setUserSubmissions] = useState<any[]>([]);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showFiltered, setShowFiltered] = useState(false);
-
-  // Task filter state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedDifficulty, setSelectedDifficulty] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('');
 
   useEffect(() => {
-    loadData();
+    loadTasks();
+    loadCategories();
   }, []);
 
-  const loadData = async () => {
+  const loadTasks = async () => {
     try {
       setLoading(true);
-      const [tasksData, submissionsData] = await Promise.all([
-        taskService.getTasks(),
-        taskService.getUserSubmissions()
-      ]);
-      console.log('Tasks loaded:', tasksData);
+      setError(null);
+      const tasksData = await taskService.getTasks();
       setTasks(tasksData);
-      setUserSubmissions(submissionsData);
     } catch (error) {
-      console.error('Error loading data:', error);
-      toast.error("Failed to load task data");
+      console.error('Error loading tasks:', error);
+      setError('Failed to load tasks');
+      toast.error('Failed to load tasks');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleTaskSubmit = (task: Task) => {
-    setSelectedTask(task);
-    setIsSubmissionModalOpen(true);
-  };
-
-  const handleTaskSubmitted = () => {
-    loadData(); // Reload data to update submission status
-    toast.success("Task submitted successfully!");
-  };
-
-  const isTaskSubmitted = (taskId: string) => {
-    return userSubmissions.some(sub => sub.task_id === taskId);
-  };
-
-  const handleCategorySelect = (categoryId: string) => {
-    setSelectedCategory(categoryId);
-    setShowFiltered(true);
-  };
-
-  const handleClearFilters = () => {
-    setSearchQuery("");
-    setSelectedCategory("all");
-    setSelectedDifficulty("all");
-    setSelectedStatus("all");
-    setShowFiltered(false);
-  };
-
-  // Filter tasks based on current filters
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch = searchQuery === "" || 
-      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesCategory = selectedCategory === "all" || task.category === selectedCategory;
-    const matchesDifficulty = selectedDifficulty === "all" || task.difficulty === selectedDifficulty;
-    
-    let matchesStatus = true;
-    if (selectedStatus === "available") {
-      matchesStatus = !isTaskSubmitted(task.id);
-    } else if (selectedStatus === "submitted") {
-      matchesStatus = isTaskSubmitted(task.id);
+  const loadCategories = async () => {
+    try {
+      const categoriesData = await taskService.getCategories();
+      setCategories(categoriesData);
+    } catch (error) {
+      console.error('Error loading categories:', error);
     }
+  };
+
+  const filteredTasks = tasks.filter(task => {
+    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         task.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = !selectedCategory || task.category === selectedCategory;
+    const matchesDifficulty = !selectedDifficulty || task.difficulty === selectedDifficulty;
     
-    return matchesSearch && matchesCategory && matchesDifficulty && matchesStatus;
+    return matchesSearch && matchesCategory && matchesDifficulty;
   });
 
-  // Check if any filters are active
-  const hasActiveFilters = searchQuery !== "" || selectedCategory !== "all" || 
-                          selectedDifficulty !== "all" || selectedStatus !== "all";
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty?.toLowerCase()) {
+      case 'easy': return 'bg-green-100 text-green-700';
+      case 'medium': return 'bg-yellow-100 text-yellow-700';
+      case 'hard': return 'bg-red-100 text-red-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
 
-  if (loading) {
+  const handleTaskClick = (taskId: string) => {
+    navigate(`/tasks/${taskId}`);
+  };
+
+  if (!user) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          <div className="animate-pulse space-y-8">
-            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-            <div className="grid grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-40 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          </div>
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" />
+          <h2 className="text-xl font-bold mb-2">Authentication Required</h2>
+          <p className="text-gray-400 mb-4">Please log in to view available tasks</p>
+          <Button onClick={() => navigate('/login')}>
+            Go to Login
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="min-h-screen bg-background pb-20">
-        <div className="container mx-auto px-4 py-4 max-w-7xl">
-          {/* Header */}
-          <div className="mb-6">
-            <div className="flex items-center gap-4 mb-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Dashboard
-              </Button>
-              
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold">Browse Tasks</h1>
-                <p className="text-sm text-muted-foreground">
-                  Complete tasks to earn points and rewards
-                </p>
-              </div>
-
-              {tasks.length > 0 && (
-                <Badge variant="outline" className="text-sm">
-                  {tasks.length} tasks available
-                </Badge>
-              )}
+    <div className="min-h-screen bg-black text-white">
+      <div className="max-w-7xl mx-auto p-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/dashboard')}
+              className="text-white hover:bg-gray-800"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold">Available Tasks</h1>
+              <p className="text-gray-400">Complete tasks to earn points and rewards</p>
             </div>
-          </div>
-
-          {/* Show filters only if there are tasks */}
-          {tasks.length > 0 && (
-            <div className="mb-6">
-              <TaskFilter
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                selectedCategory={selectedCategory}
-                onCategoryChange={setSelectedCategory}
-                selectedDifficulty={selectedDifficulty}
-                onDifficultyChange={setSelectedDifficulty}
-                selectedStatus={selectedStatus}
-                onStatusChange={setSelectedStatus}
-                taskCounts={{
-                  available: tasks.filter(t => !isTaskSubmitted(t.id)).length,
-                  in_progress: userSubmissions.filter(s => s.status === 'pending').length,
-                  completed: userSubmissions.filter(s => s.status === 'approved').length,
-                  total: tasks.length
-                }}
-                onClearFilters={handleClearFilters}
-              />
-            </div>
-          )}
-
-          {/* Main Content */}
-          <div className="space-y-6">
-            {/* Show filtered results if filters are active */}
-            {hasActiveFilters || showFiltered ? (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold">
-                    {selectedCategory !== "all" ? `${selectedCategory} Tasks` : "Filtered Tasks"}
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-sm">
-                      {filteredTasks.length} tasks found
-                    </Badge>
-                    {hasActiveFilters && (
-                      <Button variant="outline" size="sm" onClick={handleClearFilters}>
-                        Clear Filters
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                
-                {filteredTasks.length === 0 ? (
-                  <Card>
-                    <CardContent className="p-8 text-center">
-                      <Target className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
-                      <p className="text-muted-foreground mb-4">No tasks match your current filters.</p>
-                      <Button variant="outline" onClick={handleClearFilters}>
-                        Clear Filters
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredTasks.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onSubmit={handleTaskSubmit}
-                        isSubmitted={isTaskSubmitted(task.id)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              /* Show main task categories view */
-              <TaskCategories onCategorySelect={handleCategorySelect} />
-            )}
           </div>
         </div>
-      </div>
 
-      {/* Task Submission Modal */}
-      <TaskSubmissionModal
-        task={selectedTask}
-        isOpen={isSubmissionModalOpen}
-        onClose={() => setIsSubmissionModalOpen(false)}
-        onSubmitted={handleTaskSubmitted}
-      />
-    </>
+        {/* Filters */}
+        <Card className="mb-6 bg-gray-900 border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filter Tasks
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search tasks..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-gray-800 border-gray-600 text-white"
+                />
+              </div>
+              
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Categories</SelectItem>
+                  {categories.map(category => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+                <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                  <SelectValue placeholder="All Difficulties" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Difficulties</SelectItem>
+                  <SelectItem value="easy">Easy</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tasks Grid */}
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yeild-yellow mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading tasks...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" />
+            <h3 className="text-lg font-semibold mb-2 text-white">Error Loading Tasks</h3>
+            <p className="text-gray-400 mb-4">{error}</p>
+            <Button onClick={loadTasks} variant="outline">
+              Try Again
+            </Button>
+          </div>
+        ) : filteredTasks.length === 0 ? (
+          <div className="text-center py-12">
+            <Target className="h-12 w-12 mx-auto mb-4 text-gray-500" />
+            <h3 className="text-lg font-semibold mb-2 text-white">No Tasks Found</h3>
+            <p className="text-gray-400">
+              {searchQuery || selectedCategory || selectedDifficulty 
+                ? 'Try adjusting your filters to find more tasks'
+                : 'No tasks are currently available'
+              }
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTasks.map((task) => (
+              <Card 
+                key={task.id} 
+                className="bg-gray-900 border-gray-700 hover:bg-gray-800 transition-colors cursor-pointer"
+                onClick={() => handleTaskClick(task.id)}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-white text-lg mb-2 line-clamp-2">
+                        {task.title}
+                      </CardTitle>
+                      {task.brand_name && (
+                        <p className="text-sm text-gray-400 mb-1">
+                          by {task.brand_name}
+                        </p>
+                      )}
+                    </div>
+                    <ExternalLink className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  <p className="text-gray-300 text-sm mb-4 line-clamp-3">
+                    {task.description}
+                  </p>
+                  
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-yeild-yellow" />
+                      <span className="text-yeild-yellow font-semibold">
+                        {task.points} points
+                      </span>
+                    </div>
+                    
+                    {task.estimated_time && (
+                      <div className="flex items-center gap-1 text-gray-400 text-sm">
+                        <Clock className="h-3 w-3" />
+                        {task.estimated_time}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {task.category}
+                      </Badge>
+                      <Badge className={`text-xs ${getDifficultyColor(task.difficulty)}`}>
+                        {task.difficulty}
+                      </Badge>
+                    </div>
+                    
+                    {task.expires_at && (
+                      <div className="text-xs text-gray-400">
+                        Expires: {new Date(task.expires_at).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
