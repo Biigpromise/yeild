@@ -30,7 +30,7 @@ export const SocialFeed: React.FC = () => {
 
   const fetchFeedItems = async () => {
     try {
-      // For now, we'll create mock feed items based on recent task completions
+      // Fetch recent task completions with proper profile joins
       const { data: submissions, error } = await supabase
         .from('task_submissions')
         .select(`
@@ -39,13 +39,52 @@ export const SocialFeed: React.FC = () => {
           status,
           submitted_at,
           tasks (title, points),
-          profiles:user_id (name, profile_picture_url)
+          profiles!task_submissions_user_id_fkey (name, profile_picture_url)
         `)
         .eq('status', 'approved')
         .order('submitted_at', { ascending: false })
         .limit(20);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching submissions:', error);
+        // Fallback to a simpler query if the join fails
+        const { data: simpleSubmissions, error: simpleError } = await supabase
+          .from('task_submissions')
+          .select(`
+            id,
+            user_id,
+            status,
+            submitted_at,
+            tasks (title, points)
+          `)
+          .eq('status', 'approved')
+          .order('submitted_at', { ascending: false })
+          .limit(20);
+
+        if (simpleError) throw simpleError;
+
+        // Manually fetch profiles for each submission
+        const feedData: FeedItem[] = [];
+        for (const submission of simpleSubmissions || []) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, profile_picture_url')
+            .eq('id', submission.user_id)
+            .single();
+
+          feedData.push({
+            id: submission.id,
+            type: 'task_completion' as const,
+            user_id: submission.user_id,
+            content: `completed the task "${submission.tasks?.title}" and earned ${submission.tasks?.points || 0} points!`,
+            created_at: submission.submitted_at,
+            profiles: profile || { name: 'Anonymous User' }
+          });
+        }
+
+        setFeedItems(feedData);
+        return;
+      }
 
       // Transform submissions into feed items
       const feedData: FeedItem[] = (submissions || []).map(submission => ({
@@ -54,12 +93,13 @@ export const SocialFeed: React.FC = () => {
         user_id: submission.user_id,
         content: `completed the task "${submission.tasks?.title}" and earned ${submission.tasks?.points || 0} points!`,
         created_at: submission.submitted_at,
-        profiles: submission.profiles
+        profiles: submission.profiles || { name: 'Anonymous User' }
       }));
 
       setFeedItems(feedData);
     } catch (error) {
       console.error('Error fetching feed items:', error);
+      setFeedItems([]);
     } finally {
       setLoading(false);
     }
@@ -90,7 +130,7 @@ export const SocialFeed: React.FC = () => {
         <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
         <h3 className="text-lg font-semibold mb-2">No Activity Yet</h3>
         <p className="text-muted-foreground">
-          Follow users or complete tasks to see activity in your feed.
+          Complete tasks to see activity in your feed.
         </p>
       </div>
     );
@@ -108,7 +148,7 @@ export const SocialFeed: React.FC = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-medium">
-                    {item.profiles.name || 'Anonymous'}
+                    {item.profiles.name || 'Anonymous User'}
                   </span>
                   <span className="text-sm text-muted-foreground">
                     {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
