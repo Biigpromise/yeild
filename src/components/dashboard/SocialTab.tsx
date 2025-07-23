@@ -1,72 +1,54 @@
 
 import React from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BirdStatusDisplay } from '@/components/bird/BirdStatusDisplay';
-
-// Lazy load components to avoid potential loading issues
-const SocialHub = React.lazy(() => import('@/components/social/SocialHub').then(module => ({ default: module.SocialHub })));
-const StoriesBar = React.lazy(() => import('@/components/social/StoriesBar').then(module => ({ default: module.StoriesBar })));
-
-const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) => (
-  <div className="p-6">
-    <Alert variant="destructive">
-      <AlertTriangle className="h-4 w-4" />
-      <AlertDescription className="flex items-center justify-between">
-        <span>Something went wrong loading the social features. Please try refreshing.</span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={resetErrorBoundary}
-          className="ml-4"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Retry
-        </Button>
-      </AlertDescription>
-    </Alert>
-  </div>
-);
-
-const LoadingFallback = () => (
-  <div className="flex items-center justify-center h-64">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-      <p className="text-muted-foreground">Loading social features...</p>
-    </div>
-  </div>
-);
+import { MessageCircle, Users, Heart, Share2 } from 'lucide-react';
 
 export const SocialTab: React.FC = () => {
   return (
-    <div className="h-full flex flex-col bg-background">
-      {/* Bird Status Display - Full width, no padding */}
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <div className="flex-shrink-0">
-          <BirdStatusDisplay />
-        </div>
-      </ErrorBoundary>
-      
-      {/* Stories Section - Full width with minimal padding */}
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <div className="flex-shrink-0 px-2 md:px-4 py-2 md:py-4">
-          <h2 className="text-base md:text-lg font-semibold mb-2 md:mb-4 text-foreground">Stories</h2>
-          <React.Suspense fallback={<LoadingFallback />}>
-            <StoriesBar />
-          </React.Suspense>
-        </div>
-      </ErrorBoundary>
-      
-      {/* Social Hub - Takes remaining space, no additional padding */}
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <React.Suspense fallback={<LoadingFallback />}>
-            <SocialHub />
-          </React.Suspense>
-        </div>
-      </ErrorBoundary>
+    <div className="space-y-6">
+      {/* Social Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageCircle className="h-5 w-5" />
+            Social Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <Users className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+              <div className="text-2xl font-bold text-blue-600">0</div>
+              <div className="text-sm text-blue-500">Followers</div>
+            </div>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <Heart className="h-8 w-8 mx-auto mb-2 text-green-500" />
+              <div className="text-2xl font-bold text-green-600">0</div>
+              <div className="text-sm text-green-500">Following</div>
+            </div>
+            <div className="text-center p-4 bg-purple-50 rounded-lg">
+              <Share2 className="h-8 w-8 mx-auto mb-2 text-purple-500" />
+              <div className="text-2xl font-bold text-purple-600">0</div>
+              <div className="text-sm text-purple-500">Posts</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Social Features Coming Soon */}
+      <Card>
+        <CardContent className="p-8 text-center">
+          <MessageCircle className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-xl font-semibold mb-2">Social Features Coming Soon</h3>
+          <p className="text-muted-foreground mb-4">
+            Connect with other users, share your achievements, and build your network.
+          </p>
+          <Button disabled>
+            Join Beta
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };

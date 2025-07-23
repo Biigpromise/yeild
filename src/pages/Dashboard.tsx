@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { TasksTab } from '@/components/dashboard/TasksTab';
 import { WalletTab } from '@/components/dashboard/WalletTab';
-import { ReferralTab } from '@/components/dashboard/ReferralTab';
+import { ReferralsTab } from '@/components/dashboard/ReferralsTab';
 import { SocialTab } from '@/components/dashboard/SocialTab';
 import { Target, Wallet, Users, MessageCircle } from 'lucide-react';
 
@@ -21,7 +21,11 @@ const Dashboard: React.FC = () => {
     tasksCompleted: 0,
     activeReferrals: 0,
     totalReferrals: 0,
-    walletBalance: 0
+    currentStreak: 0,
+    rank: 0,
+    referrals: 0,
+    followers: 0,
+    following: 0
   });
   const [userTasks, setUserTasks] = useState([]);
   const [userSubmissions, setUserSubmissions] = useState([]);
@@ -60,7 +64,11 @@ const Dashboard: React.FC = () => {
           tasksCompleted: profile.tasks_completed || 0,
           activeReferrals: profile.active_referrals_count || 0,
           totalReferrals: profile.total_referrals_count || 0,
-          walletBalance: profile.wallet_balance || 0
+          currentStreak: 0,
+          rank: 0,
+          referrals: profile.active_referrals_count || 0,
+          followers: profile.followers_count || 0,
+          following: profile.following_count || 0
         });
       }
 
@@ -119,7 +127,14 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
 
-        <DashboardStats stats={userStats} loading={loading} />
+        <DashboardStats 
+          userStats={userStats} 
+          totalPointsEarned={userStats.points}
+          withdrawalStats={{
+            pendingWithdrawals: 0,
+            completedWithdrawals: 0
+          }}
+        />
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
           <TabsList className="grid w-full grid-cols-4">
@@ -151,11 +166,11 @@ const Dashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="wallet" className="mt-6">
-            <WalletTab userStats={userStats} />
+            <WalletTab />
           </TabsContent>
 
           <TabsContent value="referral" className="mt-6">
-            <ReferralTab userStats={userStats} />
+            <ReferralsTab />
           </TabsContent>
 
           <TabsContent value="social" className="mt-6">
