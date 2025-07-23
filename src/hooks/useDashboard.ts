@@ -39,57 +39,60 @@ export const useDashboard = () => {
       setLoading(true);
       setError(null);
       
-      // Load profile data with better error handling
+      console.log('Loading user data for:', user.id);
+      
+      // Load profile data with comprehensive error handling
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       
       if (profileError) {
         console.error('Error fetching profile:', profileError);
+        setError('Failed to load profile data');
+        return;
+      }
+
+      if (!profile) {
+        console.log('No profile found, creating one...');
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email,
+            name: user.email?.split('@')[0] || 'User',
+            points: 0,
+            level: 1,
+            tasks_completed: 0,
+            active_referrals_count: 0,
+            total_referrals_count: 0,
+            followers_count: 0,
+            following_count: 0
+          })
+          .select()
+          .single();
         
-        // If profile doesn't exist, create it
-        if (profileError.code === 'PGRST116') {
-          console.log('Profile not found, creating new profile...');
-          const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
-            .insert({
-              id: user.id,
-              email: user.email,
-              name: user.email?.split('@')[0] || 'User',
-              points: 0,
-              level: 1,
-              tasks_completed: 0,
-              active_referrals_count: 0,
-              total_referrals_count: 0,
-              followers_count: 0,
-              following_count: 0
-            })
-            .select()
-            .single();
-          
-          if (createError) {
-            console.error('Error creating profile:', createError);
-            setError('Failed to create user profile');
-          } else {
-            setUserProfile(newProfile);
-            setUserStats({
-              points: 0,
-              level: 1,
-              tasksCompleted: 0,
-              currentStreak: 0,
-              rank: 0,
-              referrals: 0,
-              followers: 0,
-              following: 0
-            });
-            setTotalPointsEarned(0);
-          }
-        } else {
-          setError('Failed to load profile data');
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          setError('Failed to create user profile');
+          return;
         }
-      } else if (profile) {
+        
+        setUserProfile(newProfile);
+        setUserStats({
+          points: 0,
+          level: 1,
+          tasksCompleted: 0,
+          currentStreak: 0,
+          rank: 0,
+          referrals: 0,
+          followers: 0,
+          following: 0
+        });
+        setTotalPointsEarned(0);
+      } else {
+        console.log('Profile loaded:', profile);
         setUserProfile(profile);
         setUserStats({
           points: profile.points || 0,
@@ -104,32 +107,68 @@ export const useDashboard = () => {
         setTotalPointsEarned(profile.points || 0);
       }
 
-      // Load tasks and submissions with better error handling
+      // Load user tasks and submissions
       try {
-        const [tasksData, submissionsData] = await Promise.all([
-          taskService.getUserTasks().catch((error) => {
-            console.error('Error loading user tasks:', error);
-            return [];
-          }),
-          taskService.getUserSubmissions().catch((error) => {
-            console.error('Error loading user submissions:', error);
-            return [];
-          })
-        ]);
-        
-        setUserTasks(tasksData || []);
-        setUserSubmissions(submissionsData || []);
-        
-        // Filter completed tasks
-        const completed = (submissionsData || []).filter((sub: any) => sub.status === 'approved');
-        setCompletedTasks(completed);
+        console.log('Loading user tasks...');
+        const { data: userTasksData, error: tasksError } = await supabase
+          .from('user_tasks')
+          .select(`
+            *,
+            tasks (
+              id,
+              title,
+              description,
+              points,
+              category,
+              difficulty
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (tasksError) {
+          console.error('Error loading user tasks:', tasksError);
+        } else {
+          console.log('User tasks loaded:', userTasksData);
+          setUserTasks(userTasksData || []);
+        }
+
+        console.log('Loading user submissions...');
+        const { data: submissionsData, error: submissionsError } = await supabase
+          .from('task_submissions')
+          .select(`
+            *,
+            tasks (
+              id,
+              title,
+              description,
+              points,
+              category,
+              difficulty
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('submitted_at', { ascending: false });
+
+        if (submissionsError) {
+          console.error('Error loading user submissions:', submissionsError);
+        } else {
+          console.log('User submissions loaded:', submissionsData);
+          setUserSubmissions(submissionsData || []);
+          
+          // Filter approved submissions as completed tasks
+          const approvedSubmissions = (submissionsData || []).filter(
+            (sub: any) => sub.status === 'approved'
+          );
+          setCompletedTasks(approvedSubmissions);
+        }
       } catch (taskError) {
-        console.error('Error loading tasks:', taskError);
-        // Don't set error state for tasks, just log it
+        console.error('Error loading task data:', taskError);
       }
 
-      // Load withdrawal data with better error handling
+      // Load withdrawal data
       try {
+        console.log('Loading withdrawal data...');
         const { data: withdrawals, error: withdrawalError } = await supabase
           .from('withdrawal_requests')
           .select('amount, status')

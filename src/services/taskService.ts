@@ -1,191 +1,136 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { taskSubmissionService } from "./tasks/taskSubmissionService";
-import { adminTaskService } from "./tasks/adminTaskService";
-import { taskQueries } from "./tasks/taskQueries";
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-export interface Task {
+export interface TaskSubmission {
   id: string;
-  title: string;
-  description: string;
-  points: number;
-  category: string;
-  difficulty: string;
-  estimated_time?: string;
-  brand_name?: string;
-  brand_logo_url?: string;
-  expires_at?: string;
-  status: string;
-  created_at: string;
-  brand_user_id?: string;
-  social_media_links?: Record<string, string> | null;
+  user_id: string;
+  task_id: string;
+  submission_text: string;
+  image_url?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  submitted_at: string;
+  reviewed_at?: string;
+  admin_notes?: string;
 }
-
-export interface TaskCategory {
-  id: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  color?: string;
-  created_at?: string;
-}
-
-export interface CreateCampaignPayload {
-  title: string;
-  description: string;
-  points?: number;
-  category: string;
-  difficulty: string;
-  estimated_time?: string;
-  expires_at?: string;
-}
-
-// Helper function to safely transform social_media_links
-const transformSocialMediaLinks = (links: any): Record<string, string> | null => {
-  if (!links) return null;
-  if (typeof links === 'string') {
-    try {
-      return JSON.parse(links);
-    } catch {
-      return null;
-    }
-  }
-  if (typeof links === 'object') {
-    return links as Record<string, string>;
-  }
-  return null;
-};
-
-// Helper function to transform database task to Task interface
-const transformTask = (dbTask: any): Task => ({
-  ...dbTask,
-  social_media_links: transformSocialMediaLinks(dbTask.social_media_links)
-});
 
 export const taskService = {
-  // Get all active tasks for users
-  async getTasks(): Promise<Task[]> {
-    console.log('TaskService: Getting tasks...');
-    const tasks = await taskQueries.getTasks();
-    console.log('TaskService: Retrieved tasks:', tasks.length);
-    return tasks.map(transformTask);
-  },
-
-  // Get task categories
-  async getCategories(): Promise<TaskCategory[]> {
-    console.log('TaskService: Getting categories...');
-    const categories = await taskQueries.getCategories();
-    console.log('TaskService: Retrieved categories:', categories.length);
-    return categories;
-  },
-
-  // Submit a task with enhanced logging
-  async submitTask(taskId: string, evidence: string, timeSpent?: number): Promise<boolean> {
-    console.log('TaskService: Submitting task...', { taskId, evidenceLength: evidence?.length });
-    
+  async submitTask(taskId: string, submissionText: string, imageUrl?: string) {
     try {
-      const result = await taskSubmissionService.submitTask(taskId, evidence, timeSpent);
-      console.log('TaskService: Submission result:', result);
-      return result;
+      const { data, error } = await supabase
+        .from('task_submissions')
+        .insert({
+          task_id: taskId,
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          submission_text: submissionText,
+          image_url: imageUrl,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      toast.success('Task submitted successfully! Please wait for admin approval.');
+      return data;
     } catch (error) {
-      console.error('TaskService: Submission failed:', error);
+      console.error('Error submitting task:', error);
+      toast.error('Failed to submit task');
       throw error;
     }
   },
 
-  // Check if user has submitted a task
-  async hasUserSubmittedTask(taskId: string): Promise<boolean> {
-    return await taskSubmissionService.hasUserSubmittedTask(taskId);
+  async getUserTasks() {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return [];
+
+      const { data, error } = await supabase
+        .from('user_tasks')
+        .select(`
+          *,
+          tasks (
+            id,
+            title,
+            description,
+            points,
+            category,
+            difficulty,
+            brand_name,
+            estimated_time
+          )
+        `)
+        .eq('user_id', user.user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching user tasks:', error);
+      return [];
+    }
   },
 
-  // Get user's task submissions with enhanced logging
-  async getUserSubmissions(): Promise<any[]> {
+  async getUserSubmissions() {
     try {
-      console.log('TaskService: Getting user submissions...');
-      const user = (await supabase.auth.getUser()).data.user;
-      if (!user) {
-        console.log('TaskService: No authenticated user');
-        return [];
-      }
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return [];
 
       const { data, error } = await supabase
         .from('task_submissions')
         .select(`
           *,
-          tasks(title, points, category)
+          tasks (
+            id,
+            title,
+            description,
+            points,
+            category,
+            difficulty,
+            brand_name,
+            estimated_time
+          )
         `)
-        .eq('user_id', user.id)
+        .eq('user_id', user.user.id)
         .order('submitted_at', { ascending: false });
 
-      if (error) {
-        console.error('TaskService: Error fetching submissions:', error);
-        throw error;
-      }
-      
-      console.log('TaskService: Retrieved submissions:', data?.length || 0);
+      if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('TaskService: Error in getUserSubmissions:', error);
+      console.error('Error fetching user submissions:', error);
       return [];
     }
   },
 
-  // Get user's completed tasks
-  async getUserTasks(): Promise<any[]> {
-    return await taskQueries.getUserTasks();
+  async getAllTasks() {
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      return [];
+    }
   },
 
-  // Admin functions
-  admin: adminTaskService,
+  async getTaskById(taskId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('id', taskId)
+        .single();
 
-  // Brand functions
-  async createCampaign(campaignData: CreateCampaignPayload): Promise<Task | null> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("You must be logged in to create a campaign.");
-      return null;
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching task:', error);
+      throw error;
     }
-
-    const campaignToInsert = {
-      ...campaignData,
-      points: campaignData.points ?? 0,
-      brand_user_id: user.id,
-      brand_name: user.user_metadata?.company_name,
-      status: 'active'
-    };
-
-    const { data, error } = await supabase
-      .from('tasks')
-      .insert(campaignToInsert)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error creating campaign:", error);
-      toast.error(`Failed to create campaign: ${error.message}`);
-      return null;
-    }
-
-    toast.success("Campaign created successfully!");
-    return transformTask(data);
-  },
-
-  async updateCampaign(campaignId: string, campaignData: Partial<Task>): Promise<Task | null> {
-    const { data, error } = await supabase
-      .from('tasks')
-      .update(campaignData)
-      .eq('id', campaignId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error updating campaign:", error);
-      toast.error(`Failed to update campaign: ${error.message}`);
-      return null;
-    }
-
-    toast.success("Campaign updated successfully!");
-    return transformTask(data);
   }
 };

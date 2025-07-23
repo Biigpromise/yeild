@@ -4,25 +4,48 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Target, Gift, Wallet, ArrowRight, Plus, CheckCircle, Trophy } from 'lucide-react';
+import { Target, Gift, Wallet, ArrowRight, Plus, CheckCircle, Trophy, Clock, AlertCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TasksTabProps {
   userStats?: { tasksCompleted: number; points: number };
   userTasks?: any[];
+  userSubmissions?: any[];
   loadUserData?: () => void;
 }
 
 export const TasksTab: React.FC<TasksTabProps> = ({
   userStats = { tasksCompleted: 0, points: 0 },
   userTasks = [],
+  userSubmissions = [],
 }) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  const recentTasks = userTasks.slice(0, 3);
   const completedTasksCount = userTasks.filter(task => task.status === 'completed').length;
-  const pendingTasksCount = userTasks.filter(task => task.status === 'pending').length;
+  const pendingSubmissionsCount = userSubmissions.filter(sub => sub.status === 'pending').length;
+  const approvedSubmissionsCount = userSubmissions.filter(sub => sub.status === 'approved').length;
+  const rejectedSubmissionsCount = userSubmissions.filter(sub => sub.status === 'rejected').length;
+
+  const recentSubmissions = userSubmissions.slice(0, 5);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved': return 'bg-green-100 text-green-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'approved': return <CheckCircle className="h-4 w-4" />;
+      case 'rejected': return <AlertCircle className="h-4 w-4" />;
+      case 'pending': return <Clock className="h-4 w-4" />;
+      default: return <Clock className="h-4 w-4" />;
+    }
+  };
 
   if (isMobile) {
     return (
@@ -38,14 +61,18 @@ export const TasksTab: React.FC<TasksTabProps> = ({
               </p>
             </div>
             
-            <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="grid grid-cols-2 gap-2 mb-4">
               <div className="text-center p-2 bg-green-50 rounded-lg">
-                <div className="text-lg font-bold text-green-600">{completedTasksCount}</div>
-                <div className="text-xs text-green-500">Completed</div>
+                <div className="text-lg font-bold text-green-600">{approvedSubmissionsCount}</div>
+                <div className="text-xs text-green-500">Approved</div>
               </div>
               <div className="text-center p-2 bg-yellow-50 rounded-lg">
-                <div className="text-lg font-bold text-yellow-600">{pendingTasksCount}</div>
+                <div className="text-lg font-bold text-yellow-600">{pendingSubmissionsCount}</div>
                 <div className="text-xs text-yellow-500">Pending</div>
+              </div>
+              <div className="text-center p-2 bg-red-50 rounded-lg">
+                <div className="text-lg font-bold text-red-600">{rejectedSubmissionsCount}</div>
+                <div className="text-xs text-red-500">Rejected</div>
               </div>
               <div className="text-center p-2 bg-blue-50 rounded-lg">
                 <div className="text-lg font-bold text-blue-600">{userStats.points}</div>
@@ -60,22 +87,22 @@ export const TasksTab: React.FC<TasksTabProps> = ({
           </CardContent>
         </Card>
 
-        {/* Recent Tasks */}
-        {recentTasks.length > 0 && (
+        {/* Recent Submissions */}
+        {recentSubmissions.length > 0 && (
           <Card className="border-0 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">Recent Activity</CardTitle>
+              <CardTitle className="text-base">Recent Submissions</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="space-y-2">
-                {recentTasks.map((task, index) => (
+                {recentSubmissions.map((submission, index) => (
                   <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm truncate">{task.tasks?.title || 'Task completed'}</span>
+                      {getStatusIcon(submission.status)}
+                      <span className="text-sm truncate">{submission.tasks?.title || 'Task'}</span>
                     </div>
-                    <Badge variant="outline" className="text-xs">
-                      +{task.points_earned || 0} pts
+                    <Badge className={getStatusColor(submission.status)}>
+                      {submission.status}
                     </Badge>
                   </div>
                 ))}
@@ -106,14 +133,18 @@ export const TasksTab: React.FC<TasksTabProps> = ({
             </div>
 
             {/* Task Statistics */}
-            <div className="grid grid-cols-3 gap-4 mt-6">
+            <div className="grid grid-cols-4 gap-4 mt-6">
               <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">{completedTasksCount}</div>
-                <div className="text-sm text-green-500">Completed</div>
+                <div className="text-2xl font-bold text-green-600">{approvedSubmissionsCount}</div>
+                <div className="text-sm text-green-500">Approved</div>
               </div>
               <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">{pendingTasksCount}</div>
-                <div className="text-sm text-yellow-500">Under Review</div>
+                <div className="text-2xl font-bold text-yellow-600">{pendingSubmissionsCount}</div>
+                <div className="text-sm text-yellow-500">Pending Review</div>
+              </div>
+              <div className="text-center p-4 bg-red-50 rounded-lg">
+                <div className="text-2xl font-bold text-red-600">{rejectedSubmissionsCount}</div>
+                <div className="text-sm text-red-500">Rejected</div>
               </div>
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">{userStats.points}</div>
@@ -123,28 +154,35 @@ export const TasksTab: React.FC<TasksTabProps> = ({
           </CardContent>
         </Card>
 
-        {/* Recent Tasks */}
-        {recentTasks.length > 0 && (
+        {/* Recent Submissions */}
+        {recentSubmissions.length > 0 && (
           <Card className="border-0 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-lg">Recent Activity</CardTitle>
+              <CardTitle className="text-lg">Recent Submissions</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {recentTasks.map((task, index) => (
+                {recentSubmissions.map((submission, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      {getStatusIcon(submission.status)}
                       <div>
-                        <div className="font-medium">{task.tasks?.title || 'Task completed'}</div>
+                        <div className="font-medium">{submission.tasks?.title || 'Task'}</div>
                         <div className="text-sm text-muted-foreground">
-                          {task.completed_at ? new Date(task.completed_at).toLocaleDateString() : 'Recently'}
+                          Submitted {new Date(submission.submitted_at).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
-                    <Badge variant="outline">
-                      +{task.points_earned || 0} points
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getStatusColor(submission.status)}>
+                        {submission.status}
+                      </Badge>
+                      {submission.status === 'approved' && (
+                        <Badge variant="outline">
+                          +{submission.tasks?.points || 0} pts
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -181,12 +219,12 @@ export const TasksTab: React.FC<TasksTabProps> = ({
             <Trophy className="h-8 w-8 mx-auto mb-2 text-blue-500" />
             <h4 className="font-semibold mb-1">Keep Going!</h4>
             <p className="text-sm text-muted-foreground mb-3">
-              Complete {Math.max(0, 10 - userStats.tasksCompleted)} more tasks to unlock new features
+              Complete {Math.max(0, 10 - approvedSubmissionsCount)} more tasks to unlock new features
             </p>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
                 className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(100, (userStats.tasksCompleted / 10) * 100)}%` }}
+                style={{ width: `${Math.min(100, (approvedSubmissionsCount / 10) * 100)}%` }}
               />
             </div>
           </CardContent>

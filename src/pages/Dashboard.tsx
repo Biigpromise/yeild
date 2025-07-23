@@ -3,11 +3,15 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { useDashboard } from '@/hooks/useDashboard';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
+import { TasksTab } from '@/components/dashboard/TasksTab';
 import { DashboardErrorBoundary, DashboardErrorFallback } from '@/components/dashboard/DashboardErrorBoundary';
 
 const Dashboard: React.FC = () => {
   const {
     userStats,
+    userTasks,
+    userSubmissions,
+    completedTasks,
     totalPointsEarned,
     withdrawalStats,
     loading,
@@ -39,7 +43,10 @@ const Dashboard: React.FC = () => {
     <DashboardErrorBoundary>
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <div>
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground">Welcome back! Here's your progress overview.</p>
+          </div>
         </div>
         
         <DashboardStats 
@@ -48,7 +55,12 @@ const Dashboard: React.FC = () => {
           withdrawalStats={withdrawalStats}
         />
         
-        {/* Additional dashboard content can be added here */}
+        <TasksTab 
+          userStats={userStats}
+          userTasks={userTasks}
+          userSubmissions={userSubmissions}
+          loadUserData={loadUserData}
+        />
       </div>
     </DashboardErrorBoundary>
   );
