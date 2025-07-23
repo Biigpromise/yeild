@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
@@ -15,6 +16,7 @@ import { LeaderboardTab } from '@/components/dashboard/LeaderboardTab';
 import { SocialTab } from '@/components/dashboard/SocialTab';
 import { StoriesTab } from '@/components/dashboard/StoriesTab';
 import { TasksTab } from '@/components/dashboard/TasksTab';
+import { SettingsTab } from '@/components/dashboard/SettingsTab';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard: React.FC = () => {
@@ -45,10 +47,10 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-yellow-400" />
-          <p className="text-gray-400">Loading your dashboard...</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-yeild-yellow" />
+          <p className="text-muted-foreground">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -56,7 +58,7 @@ const Dashboard: React.FC = () => {
 
   if (error) {
     return (
-      <div className="bg-gray-900 min-h-screen">
+      <div className="bg-background min-h-screen">
         <DashboardErrorFallback 
           error={error} 
           onRetry={loadUserData}
@@ -81,6 +83,8 @@ const Dashboard: React.FC = () => {
         return <StoriesTab />;
       case 'tasks':
         return <TasksTab userStats={userStats} />;
+      case 'settings':
+        return <SettingsTab />;
       default:
         return (
           <>
@@ -99,7 +103,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <DashboardErrorBoundary>
-      <div className="bg-gray-900 min-h-screen text-white">
+      <div className="bg-background min-h-screen text-foreground">
         {/* Dashboard Header with Bird Status and Logout */}
         <DashboardHeader user={user} onTabChange={handleTabChange} />
         

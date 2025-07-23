@@ -29,7 +29,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
       setTheme(savedTheme);
     } else {
-      // Default to dark theme
       setTheme('dark');
       localStorage.setItem('theme', 'dark');
     }
@@ -45,30 +44,29 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       resolvedTheme = mediaQuery.matches ? 'dark' : 'light';
       
-      // Listen for system theme changes
       const handleChange = (e: MediaQueryListEvent) => {
         setEffectiveTheme(e.matches ? 'dark' : 'light');
         document.documentElement.classList.toggle('dark', e.matches);
+        document.documentElement.classList.toggle('light', !e.matches);
       };
       
       mediaQuery.addEventListener('change', handleChange);
       
-      // Cleanup listener
       return () => mediaQuery.removeEventListener('change', handleChange);
     } else {
       resolvedTheme = theme;
     }
     
     setEffectiveTheme(resolvedTheme);
-    // Always ensure dark class is applied for dark theme
-    document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
+    
+    // Apply theme classes to document
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(resolvedTheme);
   }, [theme]);
 
   // Ensure dark theme is applied on initial load
   useEffect(() => {
-    if (!document.documentElement.classList.contains('dark') && !document.documentElement.classList.contains('light')) {
-      document.documentElement.classList.add('dark');
-    }
+    document.documentElement.classList.add('dark');
   }, []);
 
   return (

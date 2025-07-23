@@ -15,9 +15,9 @@ export const MediaModal: React.FC<MediaModalProps> = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] bg-black border-gray-700">
+      <DialogContent className="max-w-4xl max-h-[90vh] bg-background border-border">
         <DialogHeader>
-          <DialogTitle className="text-white">Media Viewer</DialogTitle>
+          <DialogTitle className="text-foreground">Media Viewer</DialogTitle>
         </DialogHeader>
         <div className="flex items-center justify-center p-4">
           {mediaUrl && (
