@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -152,7 +151,8 @@ export const AdminTaskOverview = () => {
         const profile = profilesData?.find(p => p.id === submission.user_id);
         return {
           ...submission,
-          submission_text: submission.submission_text || submission.evidence || '',
+          // Use evidence as the primary field and create submission_text for compatibility
+          submission_text: submission.evidence || '',
           tasks: submission.tasks,
           profiles: profile ? { name: profile.name || 'Unknown User', email: profile.email || 'No email' } : null
         };
