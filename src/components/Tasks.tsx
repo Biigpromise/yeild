@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { TaskSubmissionModal } from "./TaskSubmissionModal";
 import { taskService, Task, TaskCategory } from "@/services/taskService";
 import { taskSubmissionService } from "@/services/tasks/taskSubmissionService";
-import { Search, Filter, Calendar, Star, Trophy, Target } from "lucide-react";
+import { Search, Filter, Calendar, Star, Trophy, Target, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const Tasks = () => {
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<TaskCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,142 +103,155 @@ const Tasks = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
-          <div className="h-64 bg-muted rounded"></div>
+      <div className="min-h-screen bg-background p-4">
+        <div className="max-w-md mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
+            <div className="h-64 bg-muted rounded"></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Horizontal Header Section */}
-      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10 rounded-lg p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Browse Tasks</h1>
-            <p className="text-muted-foreground text-lg">Complete tasks to earn points and rewards</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-lg px-4 py-2">
-              <Trophy className="h-5 w-5 text-primary" />
-              <span className="font-medium">{tasks.length} Available Tasks</span>
-            </div>
-            <div className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-lg px-4 py-2">
-              <Target className="h-5 w-5 text-green-600" />
-              <span className="font-medium">{userSubmissions.size} Completed</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Search and Filter Section */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search tasks..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <div className="flex gap-2">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-md mx-auto p-4 space-y-6">
+        {/* Back Button and Header */}
+        <div className="flex items-center gap-4">
           <Button
-            variant={selectedCategory === "all" ? "default" : "outline"}
-            onClick={() => setSelectedCategory("all")}
+            variant="ghost"
             size="sm"
+            onClick={() => navigate('/dashboard')}
+            className="p-2"
           >
-            <Filter className="h-4 w-4 mr-2" />
-            All
+            <ArrowLeft className="h-4 w-4" />
           </Button>
-          {categories.map((category) => (
+          <h1 className="text-2xl font-bold text-foreground">Browse Tasks</h1>
+        </div>
+
+        {/* Stats Section - Mobile Optimized */}
+        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10 rounded-lg p-4">
+          <p className="text-muted-foreground mb-3">Complete tasks to earn points and rewards</p>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2">
+              <Trophy className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">{tasks.length} Available</span>
+            </div>
+            <div className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2">
+              <Target className="h-4 w-4 text-green-600" />
+              <span className="text-sm font-medium">{userSubmissions.size} Completed</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Search and Filter Section */}
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search tasks..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-2">
             <Button
-              key={category.id}
-              variant={selectedCategory === category.name ? "default" : "outline"}
-              onClick={() => setSelectedCategory(category.name)}
+              variant={selectedCategory === "all" ? "default" : "outline"}
+              onClick={() => setSelectedCategory("all")}
               size="sm"
+              className="whitespace-nowrap"
             >
-              {category.name.replace('_', ' ')}
+              All
             </Button>
-          ))}
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                variant={selectedCategory === category.name ? "default" : "outline"}
+                onClick={() => setSelectedCategory(category.name)}
+                size="sm"
+                className="whitespace-nowrap"
+              >
+                {category.name.replace('_', ' ')}
+              </Button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Tasks Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredTasks.map((task) => {
-          const isSubmitted = userSubmissions.has(task.id);
-          return (
-            <Card 
-              key={task.id} 
-              className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 ${
-                isSubmitted ? 'opacity-60 cursor-not-allowed' : 'hover:border-primary/50'
-              }`}
-              onClick={() => !isSubmitted && handleTaskClick(task)}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    {getCategoryIcon(task.category)}
-                    <CardTitle className="text-lg">{task.title}</CardTitle>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <Badge className={getDifficultyColor(task.difficulty)}>
-                      {task.difficulty}
-                    </Badge>
-                    {isSubmitted && (
-                      <Badge variant="secondary" className="text-xs">
-                        Submitted
+        {/* Tasks Grid - Mobile Optimized */}
+        <div className="space-y-4">
+          {filteredTasks.map((task) => {
+            const isSubmitted = userSubmissions.has(task.id);
+            return (
+              <Card 
+                key={task.id} 
+                className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
+                  isSubmitted ? 'opacity-60 cursor-not-allowed' : 'hover:border-primary/50'
+                }`}
+                onClick={() => !isSubmitted && handleTaskClick(task)}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2 flex-1">
+                      {getCategoryIcon(task.category)}
+                      <CardTitle className="text-base leading-tight">{task.title}</CardTitle>
+                    </div>
+                    <div className="flex flex-col gap-1 ml-2">
+                      <Badge className={getDifficultyColor(task.difficulty)} size="sm">
+                        {task.difficulty}
                       </Badge>
-                    )}
+                      {isSubmitted && (
+                        <Badge variant="secondary" className="text-xs">
+                          Submitted
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
-                  {task.description}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="h-4 w-4 text-yellow-500" />
-                    <span className="font-bold text-primary">{task.points} points</span>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                    {task.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="h-4 w-4 text-yellow-500" />
+                      <span className="font-bold text-primary text-sm">{task.points} points</span>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      disabled={isSubmitted}
+                      className={isSubmitted ? "cursor-not-allowed" : ""}
+                    >
+                      {isSubmitted ? "Submitted" : "Start Task"}
+                    </Button>
                   </div>
-                  <Button 
-                    size="sm" 
-                    disabled={isSubmitted}
-                    className={isSubmitted ? "cursor-not-allowed" : ""}
-                  >
-                    {isSubmitted ? "Submitted" : "Start Task"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {filteredTasks.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-          <h3 className="text-lg font-semibold mb-2">No tasks found</h3>
-          <p className="text-muted-foreground">
-            {searchTerm || selectedCategory !== "all" 
-              ? "Try adjusting your search or filters"
-              : "Check back later for new tasks"
-            }
-          </p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
-      )}
 
-      <TaskSubmissionModal
-        task={selectedTask}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmitted={handleTaskSubmitted}
-      />
+        {filteredTasks.length === 0 && !loading && (
+          <div className="text-center py-12">
+            <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <h3 className="text-lg font-semibold mb-2">No tasks found</h3>
+            <p className="text-muted-foreground">
+              {searchTerm || selectedCategory !== "all" 
+                ? "Try adjusting your search or filters"
+                : "Check back later for new tasks"
+              }
+            </p>
+          </div>
+        )}
+
+        <TaskSubmissionModal
+          task={selectedTask}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmitted={handleTaskSubmitted}
+        />
+      </div>
     </div>
   );
 };

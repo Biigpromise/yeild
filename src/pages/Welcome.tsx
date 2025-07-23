@@ -68,14 +68,14 @@ const Welcome = () => {
           className="flex flex-col sm:flex-row gap-4 items-center justify-center"
         >
           <Button
-            onClick={() => navigate('/auth?type=user&mode=signup')}
+            onClick={() => navigate('/login?type=user')}
             className="bg-yeild-yellow text-black hover:bg-yeild-yellow/90 px-8 py-4 text-lg font-bold rounded-full transition-all duration-300 transform hover:scale-105 w-full sm:w-auto"
           >
             Join as Creator
           </Button>
           
           <Button
-            onClick={() => navigate('/auth?type=brand&mode=signup')}
+            onClick={() => navigate('/login?type=brand')}
             variant="outline"
             className="border-yeild-yellow text-yeild-yellow hover:bg-yeild-yellow hover:text-black px-8 py-4 text-lg font-bold rounded-full transition-all duration-300 transform hover:scale-105 w-full sm:w-auto"
           >
@@ -91,7 +91,7 @@ const Welcome = () => {
           className="mt-6"
         >
           <button
-            onClick={() => navigate('/auth?mode=signin')}
+            onClick={() => navigate('/login')}
             className="text-gray-400 hover:text-white transition-colors underline"
           >
             Already have an account? Sign in
