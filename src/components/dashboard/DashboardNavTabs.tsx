@@ -4,18 +4,23 @@ import { useNavigate } from 'react-router-dom';
 
 interface DashboardNavTabsProps {
   activeTab?: string;
+  onTabChange?: (tabId: string) => void;
 }
 
-export const DashboardNavTabs: React.FC<DashboardNavTabsProps> = ({ activeTab = 'tasks' }) => {
+export const DashboardNavTabs: React.FC<DashboardNavTabsProps> = ({ 
+  activeTab = 'dashboard', 
+  onTabChange 
+}) => {
   const navigate = useNavigate();
 
   const tabs = [
+    { id: 'dashboard', label: 'Dashboard', onClick: () => onTabChange?.('dashboard') },
     { id: 'tasks', label: 'Tasks', onClick: () => navigate('/tasks') },
-    { id: 'wallet', label: 'Wallet', onClick: () => navigate('/dashboard?tab=wallet') },
-    { id: 'referral', label: 'Referral', onClick: () => navigate('/dashboard?tab=referral') },
-    { id: 'leaderboard', label: 'Leaderboard', onClick: () => navigate('/leaderboard') },
-    { id: 'social', label: 'Social', onClick: () => navigate('/dashboard?tab=social') },
-    { id: 'profile', label: 'Profile', onClick: () => navigate('/dashboard?tab=profile') },
+    { id: 'wallet', label: 'Wallet', onClick: () => onTabChange?.('wallet') },
+    { id: 'referral', label: 'Referral', onClick: () => onTabChange?.('referral') },
+    { id: 'leaderboard', label: 'Leaderboard', onClick: () => onTabChange?.('leaderboard') },
+    { id: 'social', label: 'Social', onClick: () => onTabChange?.('social') },
+    { id: 'profile', label: 'Profile', onClick: () => onTabChange?.('profile') },
   ];
 
   return (
