@@ -59,45 +59,54 @@ export const TaskSubmissionReviewManager: React.FC = () => {
       if (error) throw error;
       
       // Transform the data to match our interface with proper type conversion
-      const transformedData: TaskSubmission[] = (data || []).map(submission => ({
-        id: submission.id,
-        task_id: submission.task_id,
-        user_id: submission.user_id,
-        evidence: submission.evidence,
-        status: submission.status as 'pending' | 'approved' | 'rejected',
-        submitted_at: submission.submitted_at,
-        reviewed_at: submission.reviewed_at,
-        admin_notes: submission.admin_notes,
-        submission_text: submission.evidence || '', // Use evidence as submission_text
-        submission_files: Array.isArray(submission.evidence_files) 
-          ? submission.evidence_files.map(file => String(file))
-          : [],
-        reviewer_notes: submission.admin_notes,
-        tasks: submission.tasks && 
-          typeof submission.tasks === 'object' && 
-          !('error' in submission.tasks) &&
-          submission.tasks !== null &&
-          'title' in submission.tasks &&
-          'description' in submission.tasks &&
-          'points' in submission.tasks
-          ? {
-              title: submission.tasks.title,
-              description: submission.tasks.description,
-              points: submission.tasks.points
-            }
-          : null,
-        profiles: submission.profiles && 
-          typeof submission.profiles === 'object' && 
-          !('error' in submission.profiles) &&
-          submission.profiles !== null &&
-          'name' in submission.profiles &&
-          'email' in submission.profiles
-          ? {
-              name: submission.profiles.name,
-              email: submission.profiles.email
-            }
-          : null
-      }));
+      const transformedData: TaskSubmission[] = (data || []).map(submission => {
+        // Handle tasks with proper null checking
+        let tasks: { title: string; description: string; points: number; } | null = null;
+        if (submission.tasks && 
+            typeof submission.tasks === 'object' && 
+            !('error' in submission.tasks)) {
+          const taskData = submission.tasks as any;
+          if (taskData && 'title' in taskData && 'description' in taskData && 'points' in taskData) {
+            tasks = {
+              title: taskData.title,
+              description: taskData.description,
+              points: taskData.points
+            };
+          }
+        }
+
+        // Handle profiles with proper null checking
+        let profiles: { name: string; email: string; } | null = null;
+        if (submission.profiles && 
+            typeof submission.profiles === 'object' && 
+            !('error' in submission.profiles)) {
+          const profileData = submission.profiles as any;
+          if (profileData && 'name' in profileData && 'email' in profileData) {
+            profiles = {
+              name: profileData.name,
+              email: profileData.email
+            };
+          }
+        }
+
+        return {
+          id: submission.id,
+          task_id: submission.task_id,
+          user_id: submission.user_id,
+          evidence: submission.evidence,
+          status: submission.status as 'pending' | 'approved' | 'rejected',
+          submitted_at: submission.submitted_at,
+          reviewed_at: submission.reviewed_at,
+          admin_notes: submission.admin_notes,
+          submission_text: submission.evidence || '', // Use evidence as submission_text
+          submission_files: Array.isArray(submission.evidence_files) 
+            ? submission.evidence_files.map(file => String(file))
+            : [],
+          reviewer_notes: submission.admin_notes,
+          tasks: tasks,
+          profiles: profiles
+        };
+      });
       
       setSubmissions(transformedData);
     } catch (error) {

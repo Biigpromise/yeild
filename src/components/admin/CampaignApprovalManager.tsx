@@ -49,30 +49,36 @@ export const CampaignApprovalManager: React.FC = () => {
       if (error) throw error;
       
       // Transform the data to match our interface with proper null handling
-      const transformedData: Campaign[] = (data || []).map(campaign => ({
-        id: campaign.id,
-        title: campaign.title,
-        description: campaign.description,
-        budget: campaign.budget,
-        funded_amount: campaign.funded_amount,
-        start_date: campaign.start_date,
-        end_date: campaign.end_date,
-        status: campaign.status,
-        admin_approval_status: campaign.admin_approval_status as 'pending' | 'approved' | 'rejected',
-        brand_id: campaign.brand_id,
-        created_at: campaign.created_at,
-        brand_profiles: campaign.brand_profiles && 
-          typeof campaign.brand_profiles === 'object' && 
-          !('error' in campaign.brand_profiles) &&
-          campaign.brand_profiles !== null &&
-          'company_name' in campaign.brand_profiles &&
-          'industry' in campaign.brand_profiles
-          ? {
-              company_name: campaign.brand_profiles.company_name,
-              industry: campaign.brand_profiles.industry
-            }
-          : null
-      }));
+      const transformedData: Campaign[] = (data || []).map(campaign => {
+        // Handle brand_profiles with proper null checking
+        let brandProfiles: { company_name: string; industry: string; } | null = null;
+        if (campaign.brand_profiles && 
+            typeof campaign.brand_profiles === 'object' && 
+            !('error' in campaign.brand_profiles)) {
+          const profiles = campaign.brand_profiles as any;
+          if (profiles && 'company_name' in profiles && 'industry' in profiles) {
+            brandProfiles = {
+              company_name: profiles.company_name,
+              industry: profiles.industry
+            };
+          }
+        }
+
+        return {
+          id: campaign.id,
+          title: campaign.title,
+          description: campaign.description,
+          budget: campaign.budget,
+          funded_amount: campaign.funded_amount,
+          start_date: campaign.start_date,
+          end_date: campaign.end_date,
+          status: campaign.status,
+          admin_approval_status: campaign.admin_approval_status as 'pending' | 'approved' | 'rejected',
+          brand_id: campaign.brand_id,
+          created_at: campaign.created_at,
+          brand_profiles: brandProfiles
+        };
+      });
       
       setCampaigns(transformedData);
     } catch (error) {
