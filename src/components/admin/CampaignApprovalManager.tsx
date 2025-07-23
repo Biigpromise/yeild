@@ -53,6 +53,7 @@ export const CampaignApprovalManager: React.FC = () => {
         // Handle brand_profiles with proper null checking
         let brandProfiles: { company_name: string; industry: string; } | null = null;
         if (campaign.brand_profiles && 
+            campaign.brand_profiles !== null &&
             typeof campaign.brand_profiles === 'object' && 
             !('error' in campaign.brand_profiles)) {
           const profiles = campaign.brand_profiles as any;

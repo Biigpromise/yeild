@@ -63,6 +63,7 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         // Handle tasks with proper null checking
         let tasks: { title: string; description: string; points: number; } | null = null;
         if (submission.tasks && 
+            submission.tasks !== null &&
             typeof submission.tasks === 'object' && 
             !('error' in submission.tasks)) {
           const taskData = submission.tasks as any;
@@ -81,6 +82,7 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         // Handle profiles with proper null checking
         let profiles: { name: string; email: string; } | null = null;
         if (submission.profiles && 
+            submission.profiles !== null &&
             typeof submission.profiles === 'object' && 
             !('error' in submission.profiles)) {
           const profileData = submission.profiles as any;
