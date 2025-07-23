@@ -1,10 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { CheckCircle, XCircle, Clock, FileText, User, Calendar } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, FileText, User, Calendar, AlertCircle, ExternalLink } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 interface TaskSubmission {
   id: string;
@@ -18,21 +22,38 @@ interface TaskSubmission {
   submission_text: string;
   submission_files: string[];
   reviewer_notes: string | null;
-  tasks: {
+  tasks?: {
     title: string;
     description: string;
     points: number;
   } | null;
-  profiles: {
+  profiles?: {
     name: string;
     email: string;
   } | null;
+}
+
+interface ReviewDialog {
+  open: boolean;
+  submissionId: string;
+  action: 'approve' | 'reject';
+  notes: string;
+  userName: string;
+  taskTitle: string;
 }
 
 export const TaskSubmissionReviewManager: React.FC = () => {
   const [submissions, setSubmissions] = useState<TaskSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [reviewDialog, setReviewDialog] = useState<ReviewDialog>({
+    open: false,
+    submissionId: '',
+    action: 'approve',
+    notes: '',
+    userName: '',
+    taskTitle: ''
+  });
 
   useEffect(() => {
     loadSubmissions();
@@ -40,6 +61,7 @@ export const TaskSubmissionReviewManager: React.FC = () => {
 
   const loadSubmissions = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('task_submissions')
         .select(`
@@ -56,12 +78,17 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         `)
         .order('submitted_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       
-      // Transform the data to match our interface with proper type conversion
+      // Transform and validate the data
       const transformedData: TaskSubmission[] = (data || []).map(submission => {
-        // Handle tasks with proper null checking
         let tasks: { title: string; description: string; points: number; } | null = null;
+        let profiles: { name: string; email: string; } | null = null;
+
+        // Safe handling of tasks with comprehensive type checking
         if (submission.tasks && 
             submission.tasks !== null &&
             typeof submission.tasks === 'object' && 
@@ -80,8 +107,7 @@ export const TaskSubmissionReviewManager: React.FC = () => {
           }
         }
 
-        // Handle profiles with proper null checking
-        let profiles: { name: string; email: string; } | null = null;
+        // Safe handling of profiles with comprehensive type checking
         if (submission.profiles && 
             submission.profiles !== null &&
             typeof submission.profiles === 'object' && 
@@ -99,19 +125,19 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         }
 
         return {
-          id: submission.id,
-          task_id: submission.task_id,
-          user_id: submission.user_id,
-          evidence: submission.evidence,
-          status: submission.status as 'pending' | 'approved' | 'rejected',
-          submitted_at: submission.submitted_at,
-          reviewed_at: submission.reviewed_at,
-          admin_notes: submission.admin_notes,
-          submission_text: submission.evidence || '', // Use evidence as submission_text
+          id: submission.id || '',
+          task_id: submission.task_id || '',
+          user_id: submission.user_id || '',
+          evidence: submission.evidence || '',
+          status: (submission.status as 'pending' | 'approved' | 'rejected') || 'pending',
+          submitted_at: submission.submitted_at || '',
+          reviewed_at: submission.reviewed_at || null,
+          admin_notes: submission.admin_notes || null,
+          submission_text: submission.evidence || '',
           submission_files: Array.isArray(submission.evidence_files) 
-            ? submission.evidence_files.map(file => String(file))
+            ? submission.evidence_files.map(file => String(file)).filter(Boolean)
             : [],
-          reviewer_notes: submission.admin_notes,
+          reviewer_notes: submission.admin_notes || null,
           tasks: tasks,
           profiles: profiles
         };
@@ -120,31 +146,50 @@ export const TaskSubmissionReviewManager: React.FC = () => {
       setSubmissions(transformedData);
     } catch (error) {
       console.error('Error loading submissions:', error);
-      toast.error('Failed to load submissions');
+      toast.error('Failed to load submissions. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleReview = async (submissionId: string, approved: boolean, notes?: string) => {
+  const handleReviewAction = (submissionId: string, action: 'approve' | 'reject', userName: string, taskTitle: string) => {
+    setReviewDialog({
+      open: true,
+      submissionId,
+      action,
+      notes: '',
+      userName,
+      taskTitle
+    });
+  };
+
+  const handleReview = async () => {
+    const { submissionId, action, notes } = reviewDialog;
+    
     setProcessingId(submissionId);
     try {
+      const updateData: any = {
+        status: action,
+        reviewed_at: new Date().toISOString(),
+        admin_notes: notes.trim() || null
+      };
+
       const { error } = await supabase
         .from('task_submissions')
-        .update({ 
-          status: approved ? 'approved' : 'rejected',
-          reviewed_at: new Date().toISOString(),
-          admin_notes: notes || null
-        })
+        .update(updateData)
         .eq('id', submissionId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
 
-      toast.success(`Submission ${approved ? 'approved' : 'rejected'} successfully`);
+      toast.success(`Submission ${action}d successfully`);
+      setReviewDialog({ open: false, submissionId: '', action: 'approve', notes: '', userName: '', taskTitle: '' });
       loadSubmissions();
     } catch (error) {
       console.error('Error updating submission:', error);
-      toast.error('Failed to update submission');
+      toast.error(`Failed to ${action} submission. Please try again.`);
     } finally {
       setProcessingId(null);
     }
@@ -207,12 +252,12 @@ export const TaskSubmissionReviewManager: React.FC = () => {
             <CardContent className="space-y-4">
               <div>
                 <p className="text-sm text-gray-400">Task Description</p>
-                <p className="text-gray-300">{submission.tasks?.description || 'No description'}</p>
+                <p className="text-gray-300">{submission.tasks?.description || 'No description available'}</p>
               </div>
 
               <div>
                 <p className="text-sm text-gray-400">User Submission</p>
-                <p className="text-white">{submission.submission_text}</p>
+                <p className="text-white">{submission.submission_text || 'No submission text provided'}</p>
               </div>
 
               {submission.submission_files && submission.submission_files.length > 0 && (
@@ -225,8 +270,9 @@ export const TaskSubmissionReviewManager: React.FC = () => {
                         href={file}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-yeild-yellow hover:underline block"
+                        className="text-yeild-yellow hover:underline flex items-center gap-1"
                       >
+                        <ExternalLink className="h-3 w-3" />
                         View File {index + 1}
                       </a>
                     ))}
@@ -239,7 +285,9 @@ export const TaskSubmissionReviewManager: React.FC = () => {
                   <Calendar className="h-4 w-4 text-yeild-yellow" />
                   <div>
                     <p className="text-sm text-gray-400">Submitted</p>
-                    <p className="text-white">{new Date(submission.submitted_at).toLocaleDateString()}</p>
+                    <p className="text-white">
+                      {submission.submitted_at ? new Date(submission.submitted_at).toLocaleDateString() : 'Unknown'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -261,7 +309,12 @@ export const TaskSubmissionReviewManager: React.FC = () => {
               {submission.status === 'pending' && (
                 <div className="flex gap-2 pt-4">
                   <Button
-                    onClick={() => handleReview(submission.id, true)}
+                    onClick={() => handleReviewAction(
+                      submission.id, 
+                      'approve', 
+                      submission.profiles?.name || 'Unknown User',
+                      submission.tasks?.title || 'Unknown Task'
+                    )}
                     disabled={processingId === submission.id}
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
@@ -269,7 +322,12 @@ export const TaskSubmissionReviewManager: React.FC = () => {
                     Approve
                   </Button>
                   <Button
-                    onClick={() => handleReview(submission.id, false)}
+                    onClick={() => handleReviewAction(
+                      submission.id, 
+                      'reject', 
+                      submission.profiles?.name || 'Unknown User',
+                      submission.tasks?.title || 'Unknown Task'
+                    )}
                     disabled={processingId === submission.id}
                     variant="outline"
                     className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
@@ -290,6 +348,78 @@ export const TaskSubmissionReviewManager: React.FC = () => {
           <p className="text-gray-400">No task submissions found</p>
         </div>
       )}
+
+      {/* Review Dialog */}
+      <Dialog open={reviewDialog.open} onOpenChange={(open) => setReviewDialog({ ...reviewDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {reviewDialog.action === 'approve' ? 'Approve Submission' : 'Reject Submission'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Task: {reviewDialog.taskTitle}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                User: {reviewDialog.userName}
+              </p>
+            </div>
+            
+            <div>
+              <Label htmlFor="notes">
+                {reviewDialog.action === 'approve' ? 'Approval Notes (Optional)' : 'Rejection Reason (Optional)'}
+              </Label>
+              <Textarea
+                id="notes"
+                value={reviewDialog.notes}
+                onChange={(e) => setReviewDialog({ ...reviewDialog, notes: e.target.value })}
+                placeholder={reviewDialog.action === 'approve' 
+                  ? "Add any notes about this approval..."
+                  : "Explain why this submission is being rejected..."
+                }
+                rows={3}
+              />
+            </div>
+
+            {reviewDialog.action === 'approve' && (
+              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <p className="text-sm text-green-800">
+                  User will receive points and the task will be marked as completed.
+                </p>
+              </div>
+            )}
+
+            {reviewDialog.action === 'reject' && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                <AlertCircle className="h-5 w-5 text-red-600" />
+                <p className="text-sm text-red-800">
+                  User will not receive points and can resubmit if desired.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setReviewDialog({ ...reviewDialog, open: false })}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleReview}
+              disabled={processingId === reviewDialog.submissionId}
+              className={reviewDialog.action === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+            >
+              {processingId === reviewDialog.submissionId ? 'Processing...' : 
+               reviewDialog.action === 'approve' ? 'Approve' : 'Reject'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

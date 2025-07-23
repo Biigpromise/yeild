@@ -1,10 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { CheckCircle, XCircle, Clock, DollarSign, Calendar, Target } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, DollarSign, Calendar, Target, AlertCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 interface Campaign {
   id: string;
@@ -18,16 +22,31 @@ interface Campaign {
   admin_approval_status: 'pending' | 'approved' | 'rejected';
   brand_id: string;
   created_at: string;
-  brand_profiles: {
+  brand_profiles?: {
     company_name: string;
     industry: string;
   } | null;
+}
+
+interface ApprovalDialog {
+  open: boolean;
+  campaignId: string;
+  campaignTitle: string;
+  action: 'approve' | 'reject';
+  reason: string;
 }
 
 export const CampaignApprovalManager: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [approvalDialog, setApprovalDialog] = useState<ApprovalDialog>({
+    open: false,
+    campaignId: '',
+    campaignTitle: '',
+    action: 'approve',
+    reason: ''
+  });
 
   useEffect(() => {
     loadCampaigns();
@@ -35,6 +54,7 @@ export const CampaignApprovalManager: React.FC = () => {
 
   const loadCampaigns = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('brand_campaigns')
         .select(`
@@ -46,12 +66,16 @@ export const CampaignApprovalManager: React.FC = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       
-      // Transform the data to match our interface with proper null handling
+      // Transform and validate the data
       const transformedData: Campaign[] = (data || []).map(campaign => {
-        // Handle brand_profiles with proper null checking
         let brandProfiles: { company_name: string; industry: string; } | null = null;
+        
+        // Safe handling of brand_profiles with comprehensive type checking
         if (campaign.brand_profiles && 
             campaign.brand_profiles !== null &&
             typeof campaign.brand_profiles === 'object' && 
@@ -69,17 +93,17 @@ export const CampaignApprovalManager: React.FC = () => {
         }
 
         return {
-          id: campaign.id,
-          title: campaign.title,
-          description: campaign.description,
-          budget: campaign.budget,
-          funded_amount: campaign.funded_amount,
-          start_date: campaign.start_date,
-          end_date: campaign.end_date,
-          status: campaign.status,
-          admin_approval_status: campaign.admin_approval_status as 'pending' | 'approved' | 'rejected',
-          brand_id: campaign.brand_id,
-          created_at: campaign.created_at,
+          id: campaign.id || '',
+          title: campaign.title || 'Untitled Campaign',
+          description: campaign.description || 'No description provided',
+          budget: Number(campaign.budget) || 0,
+          funded_amount: Number(campaign.funded_amount) || 0,
+          start_date: campaign.start_date || '',
+          end_date: campaign.end_date || '',
+          status: campaign.status || 'draft',
+          admin_approval_status: (campaign.admin_approval_status as 'pending' | 'approved' | 'rejected') || 'pending',
+          brand_id: campaign.brand_id || '',
+          created_at: campaign.created_at || '',
           brand_profiles: brandProfiles
         };
       });
@@ -87,30 +111,57 @@ export const CampaignApprovalManager: React.FC = () => {
       setCampaigns(transformedData);
     } catch (error) {
       console.error('Error loading campaigns:', error);
-      toast.error('Failed to load campaigns');
+      toast.error('Failed to load campaigns. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleApproval = async (campaignId: string, approved: boolean) => {
+  const handleApprovalAction = (campaignId: string, campaignTitle: string, action: 'approve' | 'reject') => {
+    setApprovalDialog({
+      open: true,
+      campaignId,
+      campaignTitle,
+      action,
+      reason: ''
+    });
+  };
+
+  const handleApproval = async () => {
+    const { campaignId, action, reason } = approvalDialog;
+    
+    if (action === 'reject' && !reason.trim()) {
+      toast.error('Please provide a reason for rejection');
+      return;
+    }
+
     setProcessingId(campaignId);
     try {
+      const updateData: any = {
+        admin_approval_status: action === 'approve' ? 'approved' : 'rejected',
+        status: action === 'approve' ? 'active' : 'rejected'
+      };
+
+      if (action === 'reject' && reason.trim()) {
+        updateData.rejection_reason = reason.trim();
+      }
+
       const { error } = await supabase
         .from('brand_campaigns')
-        .update({ 
-          admin_approval_status: approved ? 'approved' : 'rejected',
-          status: approved ? 'active' : 'rejected'
-        })
+        .update(updateData)
         .eq('id', campaignId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
 
-      toast.success(`Campaign ${approved ? 'approved' : 'rejected'} successfully`);
+      toast.success(`Campaign ${action === 'approve' ? 'approved' : 'rejected'} successfully`);
+      setApprovalDialog({ open: false, campaignId: '', campaignTitle: '', action: 'approve', reason: '' });
       loadCampaigns();
     } catch (error) {
       console.error('Error updating campaign:', error);
-      toast.error('Failed to update campaign');
+      toast.error(`Failed to ${action} campaign. Please try again.`);
     } finally {
       setProcessingId(null);
     }
@@ -181,26 +232,28 @@ export const CampaignApprovalManager: React.FC = () => {
                   <Calendar className="h-4 w-4 text-yeild-yellow" />
                   <div>
                     <p className="text-sm text-gray-400">Start Date</p>
-                    <p className="text-white">{new Date(campaign.start_date).toLocaleDateString()}</p>
+                    <p className="text-white">
+                      {campaign.start_date ? new Date(campaign.start_date).toLocaleDateString() : 'Not set'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Target className="h-4 w-4 text-yeild-yellow" />
                   <div>
                     <p className="text-sm text-gray-400">Industry</p>
-                    <p className="text-white">{campaign.brand_profiles?.industry || 'N/A'}</p>
+                    <p className="text-white">{campaign.brand_profiles?.industry || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
 
               <div className="text-sm text-gray-400">
-                Created: {new Date(campaign.created_at).toLocaleDateString()}
+                Created: {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : 'Unknown'}
               </div>
 
               {campaign.admin_approval_status === 'pending' && (
                 <div className="flex gap-2 pt-4">
                   <Button
-                    onClick={() => handleApproval(campaign.id, true)}
+                    onClick={() => handleApprovalAction(campaign.id, campaign.title, 'approve')}
                     disabled={processingId === campaign.id}
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
@@ -208,7 +261,7 @@ export const CampaignApprovalManager: React.FC = () => {
                     Approve Campaign
                   </Button>
                   <Button
-                    onClick={() => handleApproval(campaign.id, false)}
+                    onClick={() => handleApprovalAction(campaign.id, campaign.title, 'reject')}
                     disabled={processingId === campaign.id}
                     variant="outline"
                     className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
@@ -229,6 +282,61 @@ export const CampaignApprovalManager: React.FC = () => {
           <p className="text-gray-400">No campaigns found</p>
         </div>
       )}
+
+      {/* Approval Dialog */}
+      <Dialog open={approvalDialog.open} onOpenChange={(open) => setApprovalDialog({ ...approvalDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {approvalDialog.action === 'approve' ? 'Approve Campaign' : 'Reject Campaign'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Campaign: {approvalDialog.campaignTitle}</p>
+            </div>
+            
+            {approvalDialog.action === 'reject' && (
+              <div>
+                <Label htmlFor="reason">Reason for rejection *</Label>
+                <Textarea
+                  id="reason"
+                  value={approvalDialog.reason}
+                  onChange={(e) => setApprovalDialog({ ...approvalDialog, reason: e.target.value })}
+                  placeholder="Please provide a reason for rejecting this campaign..."
+                  rows={3}
+                />
+              </div>
+            )}
+
+            {approvalDialog.action === 'approve' && (
+              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <p className="text-sm text-green-800">
+                  This campaign will be approved and made active.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setApprovalDialog({ ...approvalDialog, open: false })}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleApproval}
+              disabled={processingId === approvalDialog.campaignId}
+              className={approvalDialog.action === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+            >
+              {processingId === approvalDialog.campaignId ? 'Processing...' : 
+               approvalDialog.action === 'approve' ? 'Approve' : 'Reject'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
