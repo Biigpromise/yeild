@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
+import { useUserDisplay } from '@/utils/userDisplayUtils';
 
 interface Message {
   id: string;
@@ -36,6 +37,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   onProfileClick 
 }) => {
   const { user } = useAuth();
+  const { getDisplayName, getAvatarFallback } = useUserDisplay();
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [reactionsCount, setReactionsCount] = useState(0);
@@ -150,7 +152,11 @@ export const MessageItem: React.FC<MessageItemProps> = ({
         <Avatar className="h-8 w-8 md:h-10 md:w-10 cursor-pointer">
           <AvatarImage src={message.profiles.profile_picture_url} />
           <AvatarFallback className="text-xs md:text-sm">
-            {message.profiles.name?.charAt(0).toUpperCase() || 'U'}
+            {getAvatarFallback({ 
+              id: message.user_id, 
+              name: message.profiles.name, 
+              profile_picture_url: message.profiles.profile_picture_url 
+            })}
           </AvatarFallback>
         </Avatar>
       </button>
@@ -161,7 +167,11 @@ export const MessageItem: React.FC<MessageItemProps> = ({
             onClick={onProfileClick}
             className="text-xs md:text-sm font-medium hover:underline cursor-pointer"
           >
-            {message.profiles.name || 'Anonymous'}
+            {getDisplayName({ 
+              id: message.user_id, 
+              name: message.profiles.name, 
+              profile_picture_url: message.profiles.profile_picture_url 
+            })}
           </button>
           <span className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}

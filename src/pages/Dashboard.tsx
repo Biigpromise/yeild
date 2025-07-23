@@ -15,6 +15,7 @@ import { ProfileTab } from '@/components/dashboard/ProfileTab';
 import { LeaderboardTab } from '@/components/dashboard/LeaderboardTab';
 import { SocialTab } from '@/components/dashboard/SocialTab';
 import { StoriesTab } from '@/components/dashboard/StoriesTab';
+import { TasksTab } from '@/components/dashboard/TasksTab';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard: React.FC = () => {
@@ -67,6 +68,8 @@ const Dashboard: React.FC = () => {
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case 'tasks':
+        return <TasksTab userStats={userStats} />;
       case 'wallet':
         return <WalletTab />;
       case 'referral':
