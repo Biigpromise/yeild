@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Search, TrendingUp, Users, Calendar } from 'lucide-react';
+import { Search, TrendingUp, Users, Calendar, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { SocialFeed } from './SocialFeed';
@@ -27,6 +29,7 @@ export const SocialHub: React.FC = () => {
   const [discoveryUsers, setDiscoveryUsers] = useState<UserProfile[]>([]);
   const [followingUsers, setFollowingUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (activeTab === 'discover') {
@@ -37,13 +40,17 @@ export const SocialHub: React.FC = () => {
   }, [activeTab]);
 
   const fetchDiscoveryUsers = async () => {
+    if (!user) return;
+    
     setLoading(true);
+    setError(null);
+    
     try {
       // Get users with most followers and activity
       const { data, error } = await supabase
         .from('profiles')
         .select('id, name, profile_picture_url, followers_count, following_count, tasks_completed, points')
-        .neq('id', user?.id || '')
+        .neq('id', user.id)
         .order('followers_count', { ascending: false })
         .order('points', { ascending: false })
         .limit(20);
@@ -51,7 +58,7 @@ export const SocialHub: React.FC = () => {
       if (error) throw error;
 
       // Check follow status for each user
-      if (user && data) {
+      if (data) {
         const userIds = data.map(u => u.id);
         const { data: followData } = await supabase
           .from('user_followers')
@@ -68,10 +75,11 @@ export const SocialHub: React.FC = () => {
 
         setDiscoveryUsers(usersWithFollowStatus);
       } else {
-        setDiscoveryUsers(data || []);
+        setDiscoveryUsers([]);
       }
     } catch (error) {
       console.error('Error fetching discovery users:', error);
+      setError('Failed to load discovery users. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -81,6 +89,8 @@ export const SocialHub: React.FC = () => {
     if (!user) return;
 
     setLoading(true);
+    setError(null);
+    
     try {
       // First get following relationships
       const { data: followData, error: followError } = await supabase
@@ -113,6 +123,7 @@ export const SocialHub: React.FC = () => {
       setFollowingUsers(followingUsersData);
     } catch (error) {
       console.error('Error fetching following users:', error);
+      setError('Failed to load following users. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -125,6 +136,32 @@ export const SocialHub: React.FC = () => {
       fetchFollowingUsers();
     }
   };
+
+  const handleRetry = () => {
+    setError(null);
+    if (activeTab === 'discover') {
+      fetchDiscoveryUsers();
+    } else if (activeTab === 'following') {
+      fetchFollowingUsers();
+    }
+  };
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="h-full bg-background p-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>{error}</span>
+            <Button variant="outline" size="sm" onClick={handleRetry}>
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full bg-background">
