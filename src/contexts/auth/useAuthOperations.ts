@@ -54,7 +54,7 @@ export const useAuthOperations = () => {
       // Handle referral code after successful signup
       if (refCode && data.user) {
         try {
-          await supabase.rpc('handle_referral_signup', {
+          await supabase.rpc('handle_referral_signup_improved', {
             new_user_id: data.user.id,
             referral_code_param: refCode
           });
@@ -197,12 +197,11 @@ export const useAuthOperations = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref');
       
-      // Always redirect to OAuth callback handler
+      // Always redirect to OAuth callback handler with all params
       const redirectUrl = `${window.location.origin}/auth/callback`;
       
       const queryParams: Record<string, string> = {
-        user_type: userType || 'user',
-        next: '/auth/progressive'
+        user_type: userType || 'user'
       };
       
       // Include referral code if present
@@ -345,12 +344,11 @@ export const useAuthOperations = () => {
         const urlParams = new URLSearchParams(window.location.search);
         const refCode = urlParams.get('ref');
         
-        // Always redirect to OAuth callback handler
+        // Always redirect to OAuth callback handler with all params  
         const redirectUrl = `${window.location.origin}/auth/callback`;
         
         const queryParams: Record<string, string> = {
-          user_type: userType || 'user',
-          next: '/auth/progressive'
+          user_type: userType || 'user'
         };
         
         // Include referral code if present

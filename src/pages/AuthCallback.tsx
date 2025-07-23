@@ -16,13 +16,13 @@ const AuthCallback = () => {
         
         if (error) {
           console.error('Auth callback error:', error);
-          navigate('/auth?error=callback_failed');
+          navigate('/login?error=callback_failed');
           return;
         }
 
         if (!session) {
-          console.log('No session found, redirecting to auth');
-          navigate('/auth');
+          console.log('No session found, redirecting to login');
+          navigate('/login');
           return;
         }
 
@@ -68,15 +68,15 @@ const AuthCallback = () => {
 
         // Check for referral code and handle it
         const refCode = searchParams.get('ref');
-        if (refCode && profile) {
+        if (refCode) {
           try {
-            await supabase.rpc('handle_referral_signup', {
+            await supabase.rpc('handle_referral_signup_improved', {
               new_user_id: session.user.id,
               referral_code_param: refCode
             });
-            console.log('Referral code processed:', refCode);
+            console.log('Referral code processed during OAuth:', refCode);
           } catch (error) {
-            console.error('Error processing referral:', error);
+            console.error('Error processing referral during OAuth:', error);
           }
         }
 

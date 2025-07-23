@@ -24,7 +24,15 @@ export const APP_CONFIG = {
   
   // Get the display domain (what users see in referral links)
   getDisplayDomain: () => {
-    return APP_CONFIG.customDomain;
+    // For development environments, use the current origin to ensure functionality
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+    
+    if (currentOrigin.includes('localhost') || currentOrigin.includes('.lovableproject.com')) {
+      return currentOrigin;
+    }
+    
+    // For production, use the custom domain
+    return APP_CONFIG.customDomain || currentOrigin;
   },
   
   // Application name and branding
@@ -46,7 +54,7 @@ export const APP_CONFIG = {
 // Helper function to generate referral links with proper domain handling
 export const generateReferralLink = (referralCode: string): string => {
   const domain = APP_CONFIG.getDisplayDomain();
-  return `${domain}/signup?ref=${referralCode}`;
+  return `${domain}/login?mode=signup&ref=${referralCode}`;
 };
 
 // Helper function to extract referral code from URL
