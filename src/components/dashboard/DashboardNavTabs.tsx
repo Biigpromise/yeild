@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Home, 
@@ -20,7 +20,7 @@ interface DashboardNavTabsProps {
   onTabChange?: (tabId: string) => void;
 }
 
-export const DashboardNavTabs: React.FC<DashboardNavTabsProps> = ({ 
+const DashboardNavTabs: React.FC<DashboardNavTabsProps> = memo(({ 
   activeTab = 'dashboard', 
   onTabChange 
 }) => {
@@ -105,4 +105,8 @@ export const DashboardNavTabs: React.FC<DashboardNavTabsProps> = ({
       })}
     </div>
   );
-};
+});
+
+DashboardNavTabs.displayName = 'DashboardNavTabs';
+
+export { DashboardNavTabs };

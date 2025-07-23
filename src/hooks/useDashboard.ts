@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -28,7 +28,7 @@ export const useDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
@@ -40,158 +40,79 @@ export const useDashboard = () => {
       
       console.log('Loading user data for:', user.id);
       
-      // Load profile data with better error handling
-      let profile = null;
-      try {
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .maybeSingle();
-        
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-          // Don't fail completely, just use default values
-          profile = null;
-        } else {
-          profile = profileData;
-        }
-      } catch (networkError) {
-        console.error('Network error fetching profile:', networkError);
-        profile = null;
-      }
+      // Load all data in parallel for faster loading
+      const [profileResult, tasksResult, submissionsResult, withdrawalsResult] = await Promise.allSettled([
+        supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+        supabase.from('user_tasks').select(`
+          *,
+          tasks (
+            id,
+            title,
+            description,
+            points,
+            category,
+            difficulty
+          )
+        `).eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('task_submissions').select(`
+          *,
+          tasks (
+            id,
+            title,
+            description,
+            points,
+            category,
+            difficulty
+          )
+        `).eq('user_id', user.id).order('submitted_at', { ascending: false }),
+        supabase.from('withdrawal_requests').select('amount, status').eq('user_id', user.id)
+      ]);
 
-      if (!profile) {
-        console.log('No profile found or error occurred, using default values');
-        setUserProfile(null);
-        setUserStats({
-          points: 0,
-          level: 1,
-          tasksCompleted: 0,
-          currentStreak: 0,
-          rank: 0,
-          referrals: 0,
-          followers: 0,
-          following: 0
-        });
-        setTotalPointsEarned(0);
-      } else {
-        console.log('Profile loaded:', profile);
+      // Handle profile data
+      if (profileResult.status === 'fulfilled' && !profileResult.value.error) {
+        const profile = profileResult.value.data;
         setUserProfile(profile);
-        setUserStats({
-          points: profile.points || 0,
-          level: profile.level || 1,
-          tasksCompleted: profile.tasks_completed || 0,
-          currentStreak: 0,
-          rank: 0,
-          referrals: profile.active_referrals_count || 0,
-          followers: profile.followers_count || 0,
-          following: profile.following_count || 0,
-        });
-        setTotalPointsEarned(profile.points || 0);
-      }
-
-      // Load user tasks and submissions with better error handling
-      try {
-        console.log('Loading user tasks...');
-        const { data: userTasksData, error: tasksError } = await supabase
-          .from('user_tasks')
-          .select(`
-            *,
-            tasks (
-              id,
-              title,
-              description,
-              points,
-              category,
-              difficulty
-            )
-          `)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (tasksError) {
-          console.error('Error loading user tasks:', tasksError);
-          setUserTasks([]);
-        } else {
-          console.log('User tasks loaded:', userTasksData);
-          setUserTasks(userTasksData || []);
-        }
-      } catch (taskError) {
-        console.error('Network error loading user tasks:', taskError);
-        setUserTasks([]);
-      }
-
-      try {
-        console.log('Loading user submissions...');
-        const { data: submissionsData, error: submissionsError } = await supabase
-          .from('task_submissions')
-          .select(`
-            *,
-            tasks (
-              id,
-              title,
-              description,
-              points,
-              category,
-              difficulty
-            )
-          `)
-          .eq('user_id', user.id)
-          .order('submitted_at', { ascending: false });
-
-        if (submissionsError) {
-          console.error('Error loading user submissions:', submissionsError);
-          setUserSubmissions([]);
-          setCompletedTasks([]);
-        } else {
-          console.log('User submissions loaded:', submissionsData);
-          setUserSubmissions(submissionsData || []);
-          
-          // Filter approved submissions as completed tasks
-          const approvedSubmissions = (submissionsData || []).filter(
-            (sub: any) => sub.status === 'approved'
-          );
-          setCompletedTasks(approvedSubmissions);
-        }
-      } catch (submissionError) {
-        console.error('Network error loading user submissions:', submissionError);
-        setUserSubmissions([]);
-        setCompletedTasks([]);
-      }
-
-      // Load withdrawal data with better error handling
-      try {
-        console.log('Loading withdrawal data...');
-        const { data: withdrawals, error: withdrawalError } = await supabase
-          .from('withdrawal_requests')
-          .select('amount, status')
-          .eq('user_id', user.id);
-
-        if (withdrawalError) {
-          console.error('Error loading withdrawals:', withdrawalError);
-          setWithdrawalStats({
-            pendingWithdrawals: 0,
-            completedWithdrawals: 0
+        if (profile) {
+          setUserStats({
+            points: profile.points || 0,
+            level: profile.level || 1,
+            tasksCompleted: profile.tasks_completed || 0,
+            currentStreak: 0,
+            rank: 0,
+            referrals: profile.active_referrals_count || 0,
+            followers: profile.followers_count || 0,
+            following: profile.following_count || 0,
           });
-        } else if (withdrawals) {
-          const pending = withdrawals
-            .filter(w => w.status === 'pending' || w.status === 'approved')
-            .reduce((sum, w) => sum + w.amount, 0);
-          const completed = withdrawals
-            .filter(w => w.status === 'completed')
-            .reduce((sum, w) => sum + w.amount, 0);
-          
-          setWithdrawalStats({
-            pendingWithdrawals: pending,
-            completedWithdrawals: completed
-          });
+          setTotalPointsEarned(profile.points || 0);
         }
-      } catch (withdrawalError) {
-        console.error('Network error loading withdrawal data:', withdrawalError);
+      }
+
+      // Handle tasks data
+      if (tasksResult.status === 'fulfilled' && !tasksResult.value.error) {
+        setUserTasks(tasksResult.value.data || []);
+      }
+
+      // Handle submissions data
+      if (submissionsResult.status === 'fulfilled' && !submissionsResult.value.error) {
+        const submissions = submissionsResult.value.data || [];
+        setUserSubmissions(submissions);
+        const approved = submissions.filter((sub: any) => sub.status === 'approved');
+        setCompletedTasks(approved);
+      }
+
+      // Handle withdrawals data
+      if (withdrawalsResult.status === 'fulfilled' && !withdrawalsResult.value.error) {
+        const withdrawals = withdrawalsResult.value.data || [];
+        const pending = withdrawals
+          .filter(w => w.status === 'pending' || w.status === 'approved')
+          .reduce((sum, w) => sum + w.amount, 0);
+        const completed = withdrawals
+          .filter(w => w.status === 'completed')
+          .reduce((sum, w) => sum + w.amount, 0);
+        
         setWithdrawalStats({
-          pendingWithdrawals: 0,
-          completedWithdrawals: 0
+          pendingWithdrawals: pending,
+          completedWithdrawals: completed
         });
       }
       
@@ -201,11 +122,11 @@ export const useDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     loadUserData();
-  }, [user]);
+  }, [loadUserData]);
   
   return {
     user,

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useDashboard } from '@/hooks/useDashboard';
@@ -36,14 +36,49 @@ const Dashboard: React.FC = () => {
     setActiveTab(tab);
   }, [searchParams]);
 
-  const handleTabChange = (tabId: string) => {
+  const handleTabChange = useCallback((tabId: string) => {
     setActiveTab(tabId);
     if (tabId === 'dashboard') {
       setSearchParams({});
     } else {
       setSearchParams({ tab: tabId });
     }
-  };
+  }, [setSearchParams]);
+
+  // Memoize tab content to prevent unnecessary re-renders
+  const tabContent = useMemo(() => {
+    switch (activeTab) {
+      case 'tasks':
+        return <TasksTab userStats={userStats} />;
+      case 'wallet':
+        return <WalletTab />;
+      case 'referral':
+        return <ReferralsTab />;
+      case 'profile':
+        return <ProfileTab />;
+      case 'leaderboard':
+        return <LeaderboardTab />;
+      case 'social':
+        return <SocialTab />;
+      case 'stories':
+        return <StoriesTab />;
+      case 'settings':
+        return (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-white">Settings</h2>
+            <SettingsTab />
+          </div>
+        );
+      default:
+        return (
+          <>
+            <SimplifiedDashboardStats userStats={userStats} />
+            <DashboardCTA />
+            <DashboardProgress userStats={userStats} />
+          </>
+        );
+    }
+  }, [activeTab, userStats]);
 
   if (loading) {
     return (
@@ -67,72 +102,14 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const renderTabContent = () => {
-    try {
-      switch (activeTab) {
-        case 'tasks':
-          return <TasksTab userStats={userStats} />;
-        case 'wallet':
-          return <WalletTab />;
-        case 'referral':
-          return <ReferralsTab />;
-        case 'profile':
-          return <ProfileTab />;
-        case 'leaderboard':
-          return <LeaderboardTab />;
-        case 'social':
-          return <SocialTab />;
-        case 'stories':
-          return <StoriesTab />;
-        case 'settings':
-          return (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-white">Settings</h2>
-              <SettingsTab />
-            </div>
-          );
-        default:
-          return (
-            <>
-              {/* Stats Grid */}
-              <SimplifiedDashboardStats userStats={userStats} />
-              
-              {/* Central CTA */}
-              <DashboardCTA />
-              
-              {/* Progress Section */}
-              <DashboardProgress userStats={userStats} />
-            </>
-          );
-      }
-    } catch (error) {
-      console.error('Error rendering tab content:', error);
-      return (
-        <div className="text-center py-8">
-          <p className="text-red-400">Something went wrong loading this tab. Please try refreshing the page.</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            Refresh
-          </button>
-        </div>
-      );
-    }
-  };
-
   return (
     <DashboardErrorBoundary>
       <div className="bg-gray-900 min-h-screen text-white">
-        {/* Dashboard Header with Bird Status and Logout */}
         <DashboardHeader user={user} onTabChange={handleTabChange} />
         
         <div className="max-w-md mx-auto px-4 py-6">
-          {/* Navigation Tabs */}
           <DashboardNavTabs activeTab={activeTab} onTabChange={handleTabChange} />
-          
-          {/* Tab Content */}
-          {renderTabContent()}
+          {tabContent}
         </div>
       </div>
     </DashboardErrorBoundary>

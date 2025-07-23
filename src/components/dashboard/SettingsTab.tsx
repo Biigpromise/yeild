@@ -9,19 +9,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Moon, Sun, Monitor, User, Bell, Shield, Palette } from 'lucide-react';
 
 export const SettingsTab: React.FC = () => {
-  // Add error handling for theme context
-  let theme = 'dark';
-  let setTheme = (newTheme: string) => {
-    console.log('Theme change requested:', newTheme);
-  };
-
-  try {
-    const themeContext = useTheme();
-    theme = themeContext.theme;
-    setTheme = themeContext.setTheme;
-  } catch (error) {
-    console.error('Theme context not available, using fallback');
-  }
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="space-y-6">
