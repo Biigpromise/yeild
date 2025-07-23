@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { CheckCircle, XCircle, Clock, Eye, Building2 } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Building2 } from 'lucide-react';
 
 interface BrandApplication {
   id: string;
@@ -39,7 +39,24 @@ export const BrandApplicationsManager: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setApplications(data || []);
+      
+      // Transform the data to match our interface
+      const transformedData: BrandApplication[] = (data || []).map(app => ({
+        id: app.id,
+        user_id: app.user_id,
+        company_name: app.company_name,
+        website: app.website,
+        company_size: app.company_size,
+        industry: app.industry,
+        task_types: Array.isArray(app.task_types) ? app.task_types : [],
+        budget: app.budget,
+        goals: app.goals,
+        status: app.status as 'pending' | 'approved' | 'rejected',
+        created_at: app.created_at,
+        email_confirmed: app.email_confirmed
+      }));
+      
+      setApplications(transformedData);
     } catch (error) {
       console.error('Error loading brand applications:', error);
       toast.error('Failed to load brand applications');

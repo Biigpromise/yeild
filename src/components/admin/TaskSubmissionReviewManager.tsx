@@ -11,11 +11,13 @@ interface TaskSubmission {
   id: string;
   task_id: string;
   user_id: string;
-  submission_text: string;
-  submission_files: string[];
+  evidence: string;
   status: 'pending' | 'approved' | 'rejected';
   submitted_at: string;
   reviewed_at: string | null;
+  admin_notes: string | null;
+  submission_text: string;
+  submission_files: string[];
   reviewer_notes: string | null;
   tasks: {
     title: string;
@@ -56,7 +58,25 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         .order('submitted_at', { ascending: false });
 
       if (error) throw error;
-      setSubmissions(data || []);
+      
+      // Transform the data to match our interface
+      const transformedData: TaskSubmission[] = (data || []).map(submission => ({
+        id: submission.id,
+        task_id: submission.task_id,
+        user_id: submission.user_id,
+        evidence: submission.evidence,
+        status: submission.status as 'pending' | 'approved' | 'rejected',
+        submitted_at: submission.submitted_at,
+        reviewed_at: submission.reviewed_at,
+        admin_notes: submission.admin_notes,
+        submission_text: submission.evidence || '', // Use evidence as submission_text
+        submission_files: Array.isArray(submission.evidence_files) ? submission.evidence_files : [],
+        reviewer_notes: submission.admin_notes,
+        tasks: submission.tasks,
+        profiles: submission.profiles
+      }));
+      
+      setSubmissions(transformedData);
     } catch (error) {
       console.error('Error loading submissions:', error);
       toast.error('Failed to load submissions');
@@ -73,7 +93,7 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         .update({ 
           status: approved ? 'approved' : 'rejected',
           reviewed_at: new Date().toISOString(),
-          reviewer_notes: notes || null
+          admin_notes: notes || null
         })
         .eq('id', submissionId);
 

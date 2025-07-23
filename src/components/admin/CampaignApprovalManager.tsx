@@ -48,7 +48,24 @@ export const CampaignApprovalManager: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setCampaigns(data || []);
+      
+      // Transform the data to match our interface
+      const transformedData: Campaign[] = (data || []).map(campaign => ({
+        id: campaign.id,
+        title: campaign.title,
+        description: campaign.description,
+        budget: campaign.budget,
+        funded_amount: campaign.funded_amount,
+        start_date: campaign.start_date,
+        end_date: campaign.end_date,
+        status: campaign.status,
+        admin_approval_status: campaign.admin_approval_status as 'pending' | 'approved' | 'rejected',
+        brand_id: campaign.brand_id,
+        created_at: campaign.created_at,
+        brand_profiles: campaign.brand_profiles
+      }));
+      
+      setCampaigns(transformedData);
     } catch (error) {
       console.error('Error loading campaigns:', error);
       toast.error('Failed to load campaigns');
