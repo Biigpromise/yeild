@@ -21,7 +21,7 @@ const OnboardingFlowContent: React.FC<OnboardingFlowProps> = ({ userType, onComp
   
   return (
     <div className="space-y-6">
-      <BirdProgressionOnboarding onComplete={handleOnboardingComplete} />
+      <BirdProgressionOnboarding />
       <NewUserOnboarding onComplete={handleOnboardingComplete} />
     </div>
   );

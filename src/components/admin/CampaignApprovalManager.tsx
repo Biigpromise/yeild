@@ -45,12 +45,12 @@ export const CampaignApprovalManager: React.FC = () => {
 
       if (error) throw error;
       
-      // Transform data to match our interface
+      // Transform data to match our interface with proper null handling
       const transformedCampaigns = (data || []).map(campaign => ({
         ...campaign,
-        admin_approval_status: campaign.admin_approval_status as 'pending' | 'approved' | 'rejected',
+        admin_approval_status: (campaign.admin_approval_status as 'pending' | 'approved' | 'rejected') || 'pending',
         brand_profiles: campaign.brand_profiles && typeof campaign.brand_profiles === 'object' && 'company_name' in campaign.brand_profiles 
-          ? campaign.brand_profiles 
+          ? { company_name: campaign.brand_profiles.company_name }
           : null
       }));
       

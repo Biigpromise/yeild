@@ -58,7 +58,7 @@ export const TaskSubmissionReviewManager: React.FC = () => {
 
       if (error) throw error;
       
-      // Transform the data to match our interface
+      // Transform the data to match our interface with proper null handling
       const transformedData = (data || []).map(item => ({
         id: item.id,
         task_id: item.task_id,
@@ -71,8 +71,12 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         reviewed_at: item.reviewed_at,
         reviewer_feedback: item.admin_notes,
         admin_notes: item.admin_notes,
-        tasks: item.tasks && typeof item.tasks === 'object' && 'title' in item.tasks ? item.tasks : null,
-        profiles: item.profiles && typeof item.profiles === 'object' && 'name' in item.profiles ? item.profiles : null
+        tasks: item.tasks && typeof item.tasks === 'object' && 'title' in item.tasks 
+          ? { title: item.tasks.title, points: item.tasks.points }
+          : null,
+        profiles: item.profiles && typeof item.profiles === 'object' && 'name' in item.profiles 
+          ? { name: item.profiles.name, email: item.profiles.email }
+          : null
       }));
       
       setSubmissions(transformedData);
