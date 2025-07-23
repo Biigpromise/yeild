@@ -64,8 +64,13 @@ export const CampaignApprovalManager: React.FC = () => {
         brand_profiles: campaign.brand_profiles && 
           typeof campaign.brand_profiles === 'object' && 
           !('error' in campaign.brand_profiles) &&
-          campaign.brand_profiles !== null
-          ? campaign.brand_profiles as { company_name: string; industry: string; }
+          campaign.brand_profiles !== null &&
+          'company_name' in campaign.brand_profiles &&
+          'industry' in campaign.brand_profiles
+          ? {
+              company_name: campaign.brand_profiles.company_name,
+              industry: campaign.brand_profiles.industry
+            }
           : null
       }));
       

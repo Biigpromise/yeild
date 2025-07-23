@@ -76,14 +76,26 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         tasks: submission.tasks && 
           typeof submission.tasks === 'object' && 
           !('error' in submission.tasks) &&
-          submission.tasks !== null
-          ? submission.tasks as { title: string; description: string; points: number; }
+          submission.tasks !== null &&
+          'title' in submission.tasks &&
+          'description' in submission.tasks &&
+          'points' in submission.tasks
+          ? {
+              title: submission.tasks.title,
+              description: submission.tasks.description,
+              points: submission.tasks.points
+            }
           : null,
         profiles: submission.profiles && 
           typeof submission.profiles === 'object' && 
           !('error' in submission.profiles) &&
-          submission.profiles !== null
-          ? submission.profiles as { name: string; email: string; }
+          submission.profiles !== null &&
+          'name' in submission.profiles &&
+          'email' in submission.profiles
+          ? {
+              name: submission.profiles.name,
+              email: submission.profiles.email
+            }
           : null
       }));
       
