@@ -14,24 +14,35 @@ export const AdminAccessGuard: React.FC<AdminAccessGuardProps> = ({ children }) 
   const { user, loading: authLoading } = useAuth();
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [checking, setChecking] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>('');
 
   const checkAccess = async () => {
     if (!user) {
       setHasAccess(false);
+      setDebugInfo('No user logged in');
       return;
     }
 
     setChecking(true);
+    setDebugInfo(`Checking access for: ${user.email}`);
+    
     try {
+      console.log('Checking admin access for:', user.email);
+      
       // First ensure admin role exists
-      await adminAccessService.ensureAdminRole();
+      const roleEnsured = await adminAccessService.ensureAdminRole();
+      console.log('Role ensured:', roleEnsured);
       
       // Then check access
       const access = await adminAccessService.checkAdminAccess();
+      console.log('Access granted:', access);
+      
       setHasAccess(access);
+      setDebugInfo(access ? 'Access granted' : 'Access denied - not admin');
     } catch (error) {
       console.error('Error checking admin access:', error);
       setHasAccess(false);
+      setDebugInfo(`Error: ${error.message}`);
     } finally {
       setChecking(false);
     }
@@ -43,13 +54,14 @@ export const AdminAccessGuard: React.FC<AdminAccessGuardProps> = ({ children }) 
     }
   }, [user, authLoading]);
 
-  if (authLoading || checking || hasAccess === null) {
+  if (authLoading || checking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="w-96">
           <CardContent className="p-8 text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-muted-foreground">Verifying admin access...</p>
+            <p className="text-muted-foreground mb-2">Verifying admin access...</p>
+            <p className="text-sm text-muted-foreground">{debugInfo}</p>
           </CardContent>
         </Card>
       </div>
@@ -75,18 +87,21 @@ export const AdminAccessGuard: React.FC<AdminAccessGuardProps> = ({ children }) 
     );
   }
 
-  if (!hasAccess) {
+  if (hasAccess === false) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="w-96">
           <CardContent className="p-8 text-center">
             <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-2">
               You don't have permission to access the admin panel.
             </p>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground mb-2">
               Current user: {user.email}
+            </p>
+            <p className="text-xs text-muted-foreground mb-4">
+              Debug: {debugInfo}
             </p>
             <Button onClick={checkAccess} variant="outline" className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4" />

@@ -169,6 +169,10 @@ export const ChatInterface: React.FC = () => {
   };
 
   const handleProfileClick = (userId: string) => {
+    if (userId === user?.id) {
+      // Don't show modal for own profile, could navigate to profile page instead
+      return;
+    }
     setSelectedUserId(userId);
     setShowProfileModal(true);
   };
@@ -223,9 +227,9 @@ export const ChatInterface: React.FC = () => {
               <MessageItem
                 key={message.id}
                 message={message}
-                currentUserId={user.id}
+                currentUserId={user?.id || ''}
                 onView={() => trackMessageView(message.id)}
-                onProfileClick={() => handleProfileClick(message.user_id)}
+                onProfileClick={handleProfileClick}
               />
             ))}
             <div ref={messagesEndRef} />

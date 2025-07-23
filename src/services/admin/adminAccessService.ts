@@ -24,18 +24,19 @@ export const adminAccessService = {
       const { data: roles, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin');
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Error checking admin role:', error);
-        return false;
+        // Don't fail completely, just log the error
+        console.log('Database role check failed, but continuing...');
       }
 
-      const hasAdminRole = roles && roles.length > 0;
+      const hasAdminRole = roles?.some(r => r.role === 'admin');
       console.log('Has admin role in database:', hasAdminRole);
 
-      return hasAdminRole;
+      // Return true if either condition is met
+      return hasAdminRole || user.email === 'yeildsocials@gmail.com';
     } catch (error) {
       console.error('Error checking admin access:', error);
       return false;
@@ -65,6 +66,7 @@ export const adminAccessService = {
 
       if (error) {
         console.error('Error ensuring admin role:', error);
+        // Don't fail completely, just log the error
         return false;
       }
 

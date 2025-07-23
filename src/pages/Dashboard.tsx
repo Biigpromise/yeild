@@ -1,115 +1,169 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
-import { useDashboard } from '@/hooks/useDashboard';
-import { SimplifiedDashboardStats } from '@/components/dashboard/SimplifiedDashboardStats';
-import { DashboardNavTabs } from '@/components/dashboard/DashboardNavTabs';
-import { DashboardCTA } from '@/components/dashboard/DashboardCTA';
-import { DashboardProgress } from '@/components/dashboard/DashboardProgress';
-import { DashboardErrorBoundary, DashboardErrorFallback } from '@/components/dashboard/DashboardErrorBoundary';
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { WalletTab } from '@/components/dashboard/WalletTab';
-import { ReferralsTab } from '@/components/dashboard/ReferralsTab';
-import { ProfileTab } from '@/components/dashboard/ProfileTab';
-import { LeaderboardTab } from '@/components/dashboard/LeaderboardTab';
-import { SocialTab } from '@/components/dashboard/SocialTab';
-import { StoriesTab } from '@/components/dashboard/StoriesTab';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { DashboardStats } from '@/components/dashboard/DashboardStats';
+import { TasksTab } from '@/components/dashboard/TasksTab';
+import { WalletTab } from '@/components/dashboard/WalletTab';
+import { ReferralTab } from '@/components/dashboard/ReferralTab';
+import { SocialTab } from '@/components/dashboard/SocialTab';
+import { Target, Wallet, Users, MessageCircle } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState('dashboard');
   const { user } = useAuth();
-  
-  const {
-    userStats,
-    loading,
-    error,
-    loadUserData
-  } = useDashboard();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [userStats, setUserStats] = useState({
+    points: 0,
+    level: 1,
+    tasksCompleted: 0,
+    activeReferrals: 0,
+    totalReferrals: 0,
+    walletBalance: 0
+  });
+  const [userTasks, setUserTasks] = useState([]);
+  const [userSubmissions, setUserSubmissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Get active tab from URL params, default to 'tasks'
+  const activeTab = searchParams.get('tab') || 'tasks';
+
+  const handleTabChange = (tab: string) => {
+    setSearchParams({ tab });
+  };
 
   useEffect(() => {
-    const tab = searchParams.get('tab') || 'dashboard';
-    setActiveTab(tab);
-  }, [searchParams]);
+    if (user) {
+      loadUserData();
+    }
+  }, [user]);
 
-  const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId);
-    if (tabId === 'dashboard') {
-      setSearchParams({});
-    } else {
-      setSearchParams({ tab: tabId });
+  const loadUserData = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      
+      // Load user profile data
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        setUserStats({
+          points: profile.points || 0,
+          level: profile.level || 1,
+          tasksCompleted: profile.tasks_completed || 0,
+          activeReferrals: profile.active_referrals_count || 0,
+          totalReferrals: profile.total_referrals_count || 0,
+          walletBalance: profile.wallet_balance || 0
+        });
+      }
+
+      // Load user tasks
+      const { data: tasks } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id);
+
+      setUserTasks(tasks || []);
+
+      // Load user submissions
+      const { data: submissions } = await supabase
+        .from('task_submissions')
+        .select(`
+          *,
+          tasks (
+            title,
+            points,
+            description
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      setUserSubmissions(submissions || []);
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) {
+  if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-yellow-400" />
-          <p className="text-gray-400">Loading your dashboard...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <h2 className="text-xl font-semibold mb-2">Please sign in</h2>
+            <p className="text-muted-foreground">
+              You need to be signed in to access your dashboard.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div className="bg-gray-900 min-h-screen">
-        <DashboardErrorFallback 
-          error={error} 
-          onRetry={loadUserData}
-        />
-      </div>
-    );
-  }
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'wallet':
-        return <WalletTab />;
-      case 'referral':
-        return <ReferralsTab />;
-      case 'profile':
-        return <ProfileTab />;
-      case 'leaderboard':
-        return <LeaderboardTab />;
-      case 'social':
-        return <SocialTab />;
-      case 'stories':
-        return <StoriesTab />;
-      default:
-        return (
-          <>
-            {/* Stats Grid */}
-            <SimplifiedDashboardStats userStats={userStats} />
-            
-            {/* Central CTA */}
-            <DashboardCTA />
-            
-            {/* Progress Section */}
-            <DashboardProgress userStats={userStats} />
-          </>
-        );
-    }
-  };
 
   return (
-    <DashboardErrorBoundary>
-      <div className="bg-gray-900 min-h-screen text-white">
-        {/* Dashboard Header with Bird Status and Logout */}
-        <DashboardHeader user={user} onTabChange={handleTabChange} />
-        
-        <div className="max-w-md mx-auto px-4 py-6">
-          {/* Navigation Tabs */}
-          <DashboardNavTabs activeTab={activeTab} onTabChange={handleTabChange} />
-          
-          {/* Tab Content */}
-          {renderTabContent()}
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto p-4 md:p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome back! Here's your activity overview.
+          </p>
         </div>
+
+        <DashboardStats stats={userStats} loading={loading} />
+
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="tasks" className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              <span className="hidden sm:inline">Tasks</span>
+            </TabsTrigger>
+            <TabsTrigger value="wallet" className="flex items-center gap-2">
+              <Wallet className="h-4 w-4" />
+              <span className="hidden sm:inline">Wallet</span>
+            </TabsTrigger>
+            <TabsTrigger value="referral" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Referral</span>
+            </TabsTrigger>
+            <TabsTrigger value="social" className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Social</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="tasks" className="mt-6">
+            <TasksTab
+              userStats={userStats}
+              userTasks={userTasks}
+              userSubmissions={userSubmissions}
+              loadUserData={loadUserData}
+            />
+          </TabsContent>
+
+          <TabsContent value="wallet" className="mt-6">
+            <WalletTab userStats={userStats} />
+          </TabsContent>
+
+          <TabsContent value="referral" className="mt-6">
+            <ReferralTab userStats={userStats} />
+          </TabsContent>
+
+          <TabsContent value="social" className="mt-6">
+            <SocialTab />
+          </TabsContent>
+        </Tabs>
       </div>
-    </DashboardErrorBoundary>
+    </div>
   );
 };
 
