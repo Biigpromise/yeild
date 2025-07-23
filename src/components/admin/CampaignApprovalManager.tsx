@@ -16,13 +16,13 @@ interface Campaign {
   budget: number;
   funded_amount: number;
   status: string;
-  admin_approval_status: 'pending' | 'approved' | 'rejected';
+  admin_approval_status: string;
   payment_status: string;
   created_at: string;
   brand_id: string;
   brand_profiles: {
     company_name: string;
-  };
+  } | null;
 }
 
 export const CampaignApprovalManager: React.FC = () => {
@@ -45,7 +45,7 @@ export const CampaignApprovalManager: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setCampaigns(data || []);
+      setCampaigns(data as Campaign[] || []);
     } catch (error) {
       console.error('Error loading campaigns:', error);
       toast.error('Failed to load campaigns');
@@ -175,7 +175,6 @@ export const CampaignApprovalManager: React.FC = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => {
-                              // Open details modal
                               console.log('View details for:', campaign.id);
                             }}
                           >

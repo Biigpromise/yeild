@@ -13,14 +13,17 @@ interface BrandApplication {
   id: string;
   user_id: string;
   company_name: string;
-  website: string;
+  website: string | null;
   industry: string;
   company_size: string;
   budget: string;
   goals: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: string;
   created_at: string;
   email_confirmed: boolean;
+  email_confirmed_at: string | null;
+  task_types: any;
+  updated_at: string;
 }
 
 export const BrandApplicationsManager: React.FC = () => {
@@ -40,7 +43,7 @@ export const BrandApplicationsManager: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setApplications(data || []);
+      setApplications(data as BrandApplication[] || []);
     } catch (error) {
       console.error('Error loading applications:', error);
       toast.error('Failed to load brand applications');
@@ -162,7 +165,6 @@ export const BrandApplicationsManager: React.FC = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => {
-                              // Open details modal
                               console.log('View details for:', app.id);
                             }}
                           >

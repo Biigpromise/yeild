@@ -16,20 +16,22 @@ interface TaskSubmission {
   id: string;
   task_id: string;
   user_id: string;
+  evidence: string;
   evidence_url: string;
   evidence_text: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: string;
   submitted_at: string;
-  reviewed_at: string;
-  reviewer_feedback: string;
+  reviewed_at: string | null;
+  reviewer_feedback: string | null;
+  admin_notes: string | null;
   tasks: {
     title: string;
     points: number;
-  };
+  } | null;
   profiles: {
     name: string;
     email: string;
-  };
+  } | null;
 }
 
 export const TaskSubmissionReviewManager: React.FC = () => {
@@ -56,7 +58,25 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         .order('submitted_at', { ascending: false });
 
       if (error) throw error;
-      setSubmissions(data || []);
+      
+      // Transform the data to match our interface
+      const transformedData = (data || []).map(item => ({
+        id: item.id,
+        task_id: item.task_id,
+        user_id: item.user_id,
+        evidence: item.evidence || '',
+        evidence_url: item.evidence_file_url || '',
+        evidence_text: item.evidence || '',
+        status: item.status,
+        submitted_at: item.submitted_at,
+        reviewed_at: item.reviewed_at,
+        reviewer_feedback: item.admin_notes,
+        admin_notes: item.admin_notes,
+        tasks: item.tasks,
+        profiles: item.profiles
+      }));
+      
+      setSubmissions(transformedData);
     } catch (error) {
       console.error('Error loading submissions:', error);
       toast.error('Failed to load task submissions');
@@ -72,7 +92,7 @@ export const TaskSubmissionReviewManager: React.FC = () => {
         .update({ 
           status: newStatus,
           reviewed_at: new Date().toISOString(),
-          reviewer_feedback: reviewFeedback
+          admin_notes: reviewFeedback
         })
         .eq('id', submissionId);
 

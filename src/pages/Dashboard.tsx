@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,11 +10,12 @@ import { TasksTab } from '@/components/dashboard/TasksTab';
 import { ReferralTab } from '@/components/dashboard/ReferralTab';
 import { WalletTab } from '@/components/dashboard/WalletTab';
 import { ProfileTab } from '@/components/dashboard/ProfileTab';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDashboard } from '@/hooks/useDashboard';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { isOnboardingComplete } = useOnboarding();
+  const { isOnboardingComplete, showOnboarding, userType, completeOnboarding } = useOnboarding();
   
   const {
     userProfile,
@@ -31,8 +33,8 @@ const Dashboard = () => {
     return <Navigate to="/auth" />;
   }
 
-  if (!isOnboardingComplete) {
-    return <OnboardingFlow />;
+  if (!isOnboardingComplete && showOnboarding) {
+    return <OnboardingFlow userType={userType} onComplete={completeOnboarding} />;
   }
 
   if (loading) {
@@ -77,7 +79,6 @@ const Dashboard = () => {
           <TabsContent value="tasks" className="mt-6">
             <TasksTab 
               userTasks={userTasks}
-              completedTasks={completedTasks}
               onTaskUpdate={loadUserData}
             />
           </TabsContent>
