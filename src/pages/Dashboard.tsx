@@ -12,10 +12,23 @@ import { ReferralsTab } from '@/components/dashboard/ReferralsTab';
 import { SocialTab } from '@/components/dashboard/SocialTab';
 import { Target, Wallet, Users, MessageCircle } from 'lucide-react';
 
+interface UserStats {
+  points: number;
+  level: number;
+  tasksCompleted: number;
+  activeReferrals: number;
+  totalReferrals: number;
+  currentStreak: number;
+  rank: number;
+  referrals: number;
+  followers: number;
+  following: number;
+}
+
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [userStats, setUserStats] = useState({
+  const [userStats, setUserStats] = useState<UserStats>({
     points: 0,
     level: 1,
     tasksCompleted: 0,
@@ -27,8 +40,8 @@ const Dashboard: React.FC = () => {
     followers: 0,
     following: 0
   });
-  const [userTasks, setUserTasks] = useState([]);
-  const [userSubmissions, setUserSubmissions] = useState([]);
+  const [userTasks, setUserTasks] = useState<any[]>([]);
+  const [userSubmissions, setUserSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Get active tab from URL params, default to 'tasks'
@@ -58,7 +71,7 @@ const Dashboard: React.FC = () => {
         .single();
 
       if (profile) {
-        setUserStats({
+        const newStats: UserStats = {
           points: profile.points || 0,
           level: profile.level || 1,
           tasksCompleted: profile.tasks_completed || 0,
@@ -69,7 +82,8 @@ const Dashboard: React.FC = () => {
           referrals: profile.active_referrals_count || 0,
           followers: profile.followers_count || 0,
           following: profile.following_count || 0
-        });
+        };
+        setUserStats(newStats);
       }
 
       // Load user tasks
