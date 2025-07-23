@@ -23,6 +23,12 @@ schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
+[functions.flutterwave-webhook]
+verify_jwt = false
+
+[functions.process-settlements]
+verify_jwt = true
+
 [functions.payment-webhook]
 verify_jwt = false
 

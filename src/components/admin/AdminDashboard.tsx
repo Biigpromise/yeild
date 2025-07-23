@@ -18,6 +18,7 @@ import { EnhancedUserManagement } from './enhanced/EnhancedUserManagement';
 import { EnhancedTaskManagement } from './enhanced/EnhancedTaskManagement';
 import { EnhancedAnalytics } from './enhanced/EnhancedAnalytics';
 import { EnhancedFinanceManagement } from './enhanced/EnhancedFinanceManagement';
+import { FinancialDashboard } from './financial/FinancialDashboard';
 import { AdminSettings } from './AdminSettings';
 
 export const AdminDashboard: React.FC = () => {
@@ -179,7 +180,7 @@ export const AdminDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="finance">
-            <EnhancedFinanceManagement />
+            <FinancialDashboard />
           </TabsContent>
         </Tabs>
       </div>

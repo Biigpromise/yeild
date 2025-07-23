@@ -643,6 +643,81 @@ export type Database = {
           },
         ]
       }
+      company_financial_accounts: {
+        Row: {
+          account_name: string
+          account_number: string
+          account_type: string
+          bank_code: string
+          bank_name: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          account_type?: string
+          bank_code: string
+          bank_name: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          account_type?: string
+          bank_code?: string
+          bank_name?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      company_revenue: {
+        Row: {
+          created_at: string | null
+          id: string
+          net_revenue: number | null
+          payment_count: number | null
+          revenue_date: string
+          total_fees: number | null
+          total_payments: number | null
+          total_withdrawals: number | null
+          updated_at: string | null
+          withdrawal_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          net_revenue?: number | null
+          payment_count?: number | null
+          revenue_date: string
+          total_fees?: number | null
+          total_payments?: number | null
+          total_withdrawals?: number | null
+          updated_at?: string | null
+          withdrawal_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          net_revenue?: number | null
+          payment_count?: number | null
+          revenue_date?: string
+          total_fees?: number | null
+          total_payments?: number | null
+          total_withdrawals?: number | null
+          updated_at?: string | null
+          withdrawal_count?: number | null
+        }
+        Relationships: []
+      }
       crypto_addresses: {
         Row: {
           created_at: string
@@ -834,6 +909,72 @@ export type Database = {
           severity?: string | null
           status?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      fund_transfers: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string | null
+          error_message: string | null
+          fee: number | null
+          flutterwave_id: string | null
+          flutterwave_response: Json | null
+          id: string
+          net_amount: number
+          recipient_account: string
+          recipient_bank: string
+          retry_count: number | null
+          settlement_date: string | null
+          source_id: string | null
+          source_type: string
+          status: string | null
+          transfer_date: string | null
+          transfer_reference: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string | null
+          error_message?: string | null
+          fee?: number | null
+          flutterwave_id?: string | null
+          flutterwave_response?: Json | null
+          id?: string
+          net_amount: number
+          recipient_account: string
+          recipient_bank: string
+          retry_count?: number | null
+          settlement_date?: string | null
+          source_id?: string | null
+          source_type: string
+          status?: string | null
+          transfer_date?: string | null
+          transfer_reference: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string | null
+          error_message?: string | null
+          fee?: number | null
+          flutterwave_id?: string | null
+          flutterwave_response?: Json | null
+          id?: string
+          net_amount?: number
+          recipient_account?: string
+          recipient_bank?: string
+          retry_count?: number | null
+          settlement_date?: string | null
+          source_id?: string | null
+          source_type?: string
+          status?: string | null
+          transfer_date?: string | null
+          transfer_reference?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1900,6 +2041,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      settlement_schedules: {
+        Row: {
+          created_at: string | null
+          day_of_month: number | null
+          day_of_week: number | null
+          frequency: string
+          id: string
+          is_active: boolean | null
+          last_run: string | null
+          minimum_amount: number | null
+          next_run: string | null
+          schedule_name: string
+          time_of_day: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          day_of_month?: number | null
+          day_of_week?: number | null
+          frequency: string
+          id?: string
+          is_active?: boolean | null
+          last_run?: string | null
+          minimum_amount?: number | null
+          next_run?: string | null
+          schedule_name: string
+          time_of_day?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          day_of_month?: number | null
+          day_of_week?: number | null
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          last_run?: string | null
+          minimum_amount?: number | null
+          next_run?: string | null
+          schedule_name?: string
+          time_of_day?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       stories: {
         Row: {
