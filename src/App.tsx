@@ -4,26 +4,26 @@ import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Header } from '@/components/layout/Header';
+import { Header } from '@/components/landing/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { Home } from '@/pages/Home';
-import { About } from '@/pages/About';
-import { Login } from '@/pages/Login';
-import { Signup } from '@/pages/Signup';
-import { Dashboard } from '@/pages/Dashboard';
-import { Profile } from '@/pages/Profile';
-import { Tasks } from '@/pages/Tasks';
+import Home from '@/pages/Home';
+import About from '@/pages/About';
+import Login from '@/pages/Login';
+import SignUp from '@/pages/SignUp';
+import Dashboard from '@/pages/Dashboard';
+import Profile from '@/pages/Profile';
+import Tasks from '@/pages/Tasks';
 import TaskDetail from '@/pages/TaskDetail';
-import { Leaderboard } from '@/pages/Leaderboard';
-import { Rewards } from '@/pages/Rewards';
-import { Withdrawal } from '@/pages/Withdrawal';
-import { Chat } from '@/pages/Chat';
-import { AdminDashboard } from '@/pages/AdminDashboard';
-import { BrandDashboard } from '@/pages/BrandDashboard';
+import Leaderboard from '@/pages/Leaderboard';
+import Rewards from '@/pages/Rewards';
+import Withdrawal from '@/pages/Withdrawal';
+import Chat from '@/pages/Chat';
+import AdminDashboard from '@/pages/AdminDashboard';
+import BrandDashboard from '@/pages/BrandDashboard';
 import BrandCampaignDashboard from '@/pages/BrandCampaignDashboard';
-import { BrandApplication } from '@/pages/BrandApplication';
-import { AuthCallback } from '@/pages/AuthCallback';
-import { Onboarding } from '@/pages/Onboarding';
+import BrandApplication from '@/pages/BrandApplication';
+import AuthCallback from '@/pages/AuthCallback';
+import Onboarding from '@/pages/Onboarding';
 
 const queryClient = new QueryClient();
 
@@ -40,7 +40,7 @@ function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/signup" element={<SignUp />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/brand-application" element={<BrandApplication />} />
                   <Route path="/onboarding" element={<Onboarding />} />
