@@ -48,13 +48,13 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
   const [adminNotes, setAdminNotes] = useState("");
   const [qualityScore, setQualityScore] = useState<number>(80);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [actionType, setActionType] = useState<'approve' | 'reject'>('approve');
+  const [actionType, setActionType] = useState<'approved' | 'rejected'>('approved');
 
   const handleApprove = (submission: SubmissionDetails) => {
     if (readOnly) return;
     
     setSelectedSubmission(submission);
-    setActionType('approve');
+    setActionType('approved');
     setAdminNotes("");
     setQualityScore(80);
     setIsDialogOpen(true);
@@ -64,7 +64,7 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
     if (readOnly) return;
     
     setSelectedSubmission(submission);
-    setActionType('reject');
+    setActionType('rejected');
     setAdminNotes("");
     setIsDialogOpen(true);
   };
@@ -72,7 +72,7 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
   const handleConfirmAction = () => {
     if (!selectedSubmission) return;
     
-    onUpdate(selectedSubmission.id, actionType, adminNotes, actionType === 'approve' ? qualityScore : undefined);
+    onUpdate(selectedSubmission.id, actionType, adminNotes, actionType === 'approved' ? qualityScore : undefined);
     setIsDialogOpen(false);
     setSelectedSubmission(null);
   };
@@ -212,11 +212,11 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {actionType === 'approve' ? 'Approve' : 'Reject'} Submission
+              {actionType === 'approved' ? 'Approve' : 'Reject'} Submission
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {actionType === 'approve' && (
+            {actionType === 'approved' && (
               <div>
                 <Label htmlFor="quality-score">Quality Score (1-100)</Label>
                 <Input
@@ -245,7 +245,7 @@ export const TaskSubmissionReview: React.FC<TaskSubmissionReviewProps> = ({
                 Cancel
               </Button>
               <Button onClick={handleConfirmAction}>
-                {actionType === 'approve' ? 'Approve' : 'Reject'}
+                {actionType === 'approved' ? 'Approve' : 'Reject'}
               </Button>
             </div>
           </div>

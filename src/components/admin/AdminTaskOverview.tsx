@@ -121,29 +121,42 @@ export const AdminTaskOverview = () => {
 
   const loadSubmissions = async () => {
     try {
-      const { data, error } = await supabase
+      // First get submissions with tasks
+      const { data: submissionsData, error: submissionsError } = await supabase
         .from('task_submissions')
         .select(`
           *,
-          tasks(title, points, category, difficulty),
-          profiles(name, email)
+          tasks(title, points, category, difficulty)
         `)
         .order('submitted_at', { ascending: false });
 
-      if (error) {
-        console.error('Error loading submissions:', error);
+      if (submissionsError) {
+        console.error('Error loading submissions:', submissionsError);
         toast.error('Failed to load submissions');
         return;
       }
 
-      // Transform the data to match our interface
-      const transformedSubmissions: SubmissionWithDetails[] = (data || []).map(submission => ({
-        ...submission,
-        // Ensure submission_text is always present (use evidence as fallback)
-        submission_text: submission.submission_text || submission.evidence || '',
-        tasks: submission.tasks,
-        profiles: submission.profiles
-      }));
+      // Then get user profiles separately
+      const userIds = submissionsData?.map(s => s.user_id).filter(Boolean) || [];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Error loading profiles:', profilesError);
+      }
+
+      // Combine the data
+      const transformedSubmissions: SubmissionWithDetails[] = (submissionsData || []).map(submission => {
+        const profile = profilesData?.find(p => p.id === submission.user_id);
+        return {
+          ...submission,
+          submission_text: submission.submission_text || submission.evidence || '',
+          tasks: submission.tasks,
+          profiles: profile ? { name: profile.name || 'Unknown User', email: profile.email || 'No email' } : null
+        };
+      });
 
       setSubmissions(transformedSubmissions);
     } catch (error) {
