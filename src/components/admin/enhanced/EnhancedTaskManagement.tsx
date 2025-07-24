@@ -128,16 +128,33 @@ export const EnhancedTaskManagement: React.FC = () => {
 
     let evidenceData;
     try {
-      // Handle different evidence formats
-      if (typeof submission.evidence === 'string') {
+      // Check for evidence_files array first (new multi-file format)
+      if (submission?.evidence_files && Array.isArray(submission.evidence_files)) {
+        evidenceData = { images: submission.evidence_files };
+      } else if (typeof submission.evidence === 'string') {
         try {
-          evidenceData = JSON.parse(submission.evidence);
+          const parsed = JSON.parse(submission.evidence);
+          // Check for evidence_files in parsed object
+          if (parsed.evidence_files && Array.isArray(parsed.evidence_files)) {
+            evidenceData = { images: parsed.evidence_files };
+          } else {
+            evidenceData = parsed;
+          }
         } catch (parseError) {
           // If JSON parsing fails, treat as plain text
           evidenceData = { description: submission.evidence };
         }
-      } else {
+      } else if (typeof submission.evidence === 'object') {
         evidenceData = submission.evidence;
+        // Check for evidence_files in object
+        if (evidenceData.evidence_files && Array.isArray(evidenceData.evidence_files)) {
+          evidenceData = { images: evidenceData.evidence_files };
+        }
+      } else if (submission?.evidence_file_url) {
+        // Fallback to single file URL
+        evidenceData = { image: submission.evidence_file_url };
+      } else {
+        evidenceData = { description: 'No evidence provided' };
       }
     } catch (error) {
       console.error('Error parsing evidence:', error);

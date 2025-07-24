@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BrandCampaignActions } from '@/components/brand/BrandCampaignActions';
+import { BrandCampaignActionsEnhanced } from '@/components/brand/BrandCampaignActionsEnhanced';
 import { CampaignDetailView } from '@/components/brand/CampaignDetailView';
 import { Progress } from '@/components/ui/progress';
 import { 
@@ -400,9 +400,12 @@ export const BrandCampaignManager: React.FC = () => {
                         <Eye className="h-4 w-4 mr-1" />
                         View Details
                       </Button>
-                      <BrandCampaignActions 
+                      <BrandCampaignActionsEnhanced 
                         campaign={campaign} 
-                        onUpdate={() => refetch()} 
+                        onUpdate={() => refetch()}
+                        onView={(campaign) => setSelectedCampaignId(campaign.id)}
+                        onEdit={(campaign) => console.log('Edit campaign:', campaign.id)}
+                        onAnalytics={(campaign) => setSelectedCampaignId(campaign.id)}
                       />
                     </div>
                   </div>
