@@ -1,9 +1,12 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import Dashboard from '@/pages/Dashboard';
 import Auth from '@/pages/Auth';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -12,6 +15,7 @@ import SignUp from '@/pages/SignUp';
 import AdminDashboard from '@/pages/AdminDashboard';
 import BrandDashboard from '@/pages/BrandDashboard';
 import LandingPage from '@/pages/LandingPage';
+import Welcome from '@/pages/Welcome';
 import Onboarding from '@/pages/Onboarding';
 import Leaderboard from '@/pages/Leaderboard';
 import Rewards from '@/pages/Rewards';
@@ -38,36 +42,40 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/auth/reset-password" element={<ResetPassword />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/brand-dashboard" element={<BrandDashboard />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/rewards" element={<Rewards />} />
-              <Route path="/tasks" element={<Tasks />} />
-              <Route path="/chat" element={<Chat />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/referrals" element={<Referrals />} />
-              <Route path="/notifications" element={<Notifications />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/support" element={<SupportPage />} />
-              <Route path="/task-submission/:taskId" element={<TaskSubmissionPage />} />
-              <Route path="/brand-onboarding" element={<BrandOnboarding />} />
-              <Route path="/brand-portal" element={<BrandPortal />} />
-              <Route path="/walkthrough" element={<Walkthrough />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms-of-service" element={<TermsOfService />} />
-              <Route path="/faq" element={<FAQ />} />
-            </Routes>
-          </Router>
-          <Toaster richColors />
+          <OnboardingProvider>
+            <Router>
+              <Routes>
+                <Route path="/" element={<Welcome />} />
+                <Route path="/landing" element={<LandingPage />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/auth/reset-password" element={<ResetPassword />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/brand-dashboard" element={<BrandDashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/leaderboard" element={<Leaderboard />} />
+                <Route path="/rewards" element={<Rewards />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/referrals" element={<Referrals />} />
+                <Route path="/notifications" element={<Notifications />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/support" element={<SupportPage />} />
+                <Route path="/task-submission/:taskId" element={<TaskSubmissionPage />} />
+                <Route path="/brand-onboarding" element={<BrandOnboarding />} />
+                <Route path="/brand-portal" element={<BrandPortal />} />
+                <Route path="/walkthrough" element={<Walkthrough />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms-of-service" element={<TermsOfService />} />
+                <Route path="/faq" element={<FAQ />} />
+              </Routes>
+              <OnboardingTutorial />
+            </Router>
+            <Toaster richColors />
+          </OnboardingProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

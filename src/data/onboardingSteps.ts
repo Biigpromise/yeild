@@ -1,52 +1,40 @@
 
-export interface OnboardingStep {
-  id: string;
-  title: string;
-  description: string;
-  target?: string;
-  position?: 'top' | 'bottom' | 'left' | 'right';
-}
+import { OnboardingStep } from '@/components/ui/onboarding-tutorial';
 
 export const defaultOnboardingSteps: OnboardingStep[] = [
   {
     id: 'welcome',
-    title: 'Welcome to YIELD!',
-    description: 'Let\'s take a quick tour to get you started with earning points and leveling up your YEILDER bird.',
+    title: 'Welcome to YEILD!',
+    description: 'Let\'s take a quick tour of your new dashboard and show you how to get started earning rewards.',
+    target: '[data-onboarding="dashboard"]',
     position: 'bottom'
   },
   {
-    id: 'bird-status',
-    title: 'Your Bird Status',
-    description: 'This shows your current bird level, stats, and progress toward the next level. Complete tasks and refer friends to level up!',
-    target: '[data-onboarding="bird-status"]',
+    id: 'tasks',
+    title: 'Browse Tasks',
+    description: 'Find and complete tasks to earn points and rewards. Tasks are categorized by difficulty and reward amount.',
+    target: '[data-onboarding="tasks"]',
     position: 'bottom'
   },
   {
-    id: 'tasks-tab',
-    title: 'Tasks',
-    description: 'Browse and complete tasks to earn points. Each task has different rewards and difficulty levels.',
-    target: '[data-value="tasks"]',
-    position: 'bottom'
-  },
-  {
-    id: 'profile-tab',
+    id: 'profile',
     title: 'Your Profile',
-    description: 'Manage your profile information and view your achievements here.',
-    target: '[data-value="profile"]',
+    description: 'Track your progress, level, and achievements. Build your reputation to unlock better tasks.',
+    target: '[data-onboarding="profile"]',
     position: 'bottom'
   },
   {
-    id: 'wallet-tab',
-    title: 'Wallet',
-    description: 'Track your points and set up withdrawals when you\'re ready to cash out.',
-    target: '[data-value="wallet"]',
+    id: 'rewards',
+    title: 'Redeem Rewards',
+    description: 'Exchange your earned points for real rewards, gift cards, and cash withdrawals.',
+    target: '[data-onboarding="rewards"]',
     position: 'bottom'
   },
   {
-    id: 'referrals-tab',
-    title: 'Referrals',
-    description: 'Invite friends to join YIELD and earn bonus points when they complete tasks.',
-    target: '[data-value="referrals"]',
+    id: 'leaderboard',
+    title: 'Compete & Climb',
+    description: 'See where you rank among other users and compete for top positions to earn bonus rewards.',
+    target: '[data-onboarding="leaderboard"]',
     position: 'bottom'
   }
 ];
