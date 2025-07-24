@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle, XCircle } from 'lucide-react';
-import { BrandApplication } from '@/hooks/useBrandApplicationStatus';
+import { BrandApplication } from '@/hooks/useBrandApplications';
 import InviteTeamModal from "./InviteTeamModal";
 
 const StatusInfo = ({ status }: { status: BrandApplication['status'] }) => {

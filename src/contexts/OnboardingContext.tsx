@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface OnboardingContextType {
   showOnboarding: boolean;
@@ -29,37 +30,91 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
   const { user } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [userType, setUserType] = useState<'user' | 'brand'>('user');
+  const [brandStatus, setBrandStatus] = useState<any>(null);
 
   console.log('OnboardingProvider: Initializing...');
 
   useEffect(() => {
-    if (user) {
+    const checkUserBrandStatus = async () => {
+      if (!user) return;
+
+      try {
+        // Check multiple sources for brand status
+        const [rolesResponse, profileResponse, applicationResponse] = await Promise.all([
+          supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'brand'),
+          supabase.from('brand_profiles').select('*').eq('user_id', user.id).single(),
+          supabase.from('brand_applications').select('*').eq('user_id', user.id).single()
+        ]);
+
+        const hasBrandRole = rolesResponse.data && rolesResponse.data.length > 0;
+        const hasBrandProfile = profileResponse.data && !profileResponse.error;
+        const hasBrandApplication = applicationResponse.data && !applicationResponse.error;
+        
+        const isBrandUser = hasBrandRole || hasBrandProfile || hasBrandApplication ||
+                           user.user_metadata?.user_type === 'brand' ||
+                           user.user_metadata?.company_name;
+
+        setBrandStatus({
+          hasBrandRole,
+          hasBrandProfile,
+          hasBrandApplication,
+          isBrandUser
+        });
+
+        console.log('OnboardingProvider: Brand status checked', {
+          hasBrandRole,
+          hasBrandProfile,
+          hasBrandApplication,
+          isBrandUser,
+          userMetadata: user.user_metadata
+        });
+
+      } catch (error) {
+        console.error('Error checking brand status:', error);
+        setBrandStatus({ isBrandUser: false });
+      }
+    };
+
+    checkUserBrandStatus();
+  }, [user]);
+
+  useEffect(() => {
+    if (user && brandStatus !== null) {
       console.log('OnboardingProvider: User found, checking onboarding status');
       
       // Check if user has seen onboarding
       const hasSeenOnboarding = localStorage.getItem(`onboarding_${user.id}`);
       
-      // Determine user type based on user metadata or role
-      const isBrand = user.user_metadata?.user_type === 'brand' || 
-                     user.user_metadata?.company_name;
+      // Enhanced brand detection using fetched data
+      const isBrand = brandStatus?.isBrandUser || false;
       
-      // For brand users, show onboarding regardless of email confirmation
-      // For regular users, require email confirmation
-      if (!hasSeenOnboarding && (isBrand || user.email_confirmed_at)) {
-        console.log('OnboardingProvider: Starting onboarding timer');
-        
-        setUserType(isBrand ? 'brand' : 'user');
-        
-        // Show onboarding after a short delay to allow page to load
-        const timer = setTimeout(() => {
-          console.log('OnboardingProvider: Showing onboarding');
-          setShowOnboarding(true);
-        }, 1000);
-        
-        return () => clearTimeout(timer);
+      console.log('OnboardingProvider: User type detection', { 
+        isBrand, 
+        brandStatus,
+        userMetadata: user.user_metadata,
+        hasSeenOnboarding
+      });
+      
+      // Show onboarding for new users (both brand and regular)
+      if (!hasSeenOnboarding) {
+        // For brand users, show immediately
+        // For regular users, require email confirmation
+        if (isBrand || user.email_confirmed_at) {
+          console.log('OnboardingProvider: Starting onboarding timer');
+          
+          setUserType(isBrand ? 'brand' : 'user');
+          
+          // Show onboarding after a short delay to allow page to load
+          const timer = setTimeout(() => {
+            console.log('OnboardingProvider: Showing onboarding for', isBrand ? 'brand' : 'user');
+            setShowOnboarding(true);
+          }, 1000);
+          
+          return () => clearTimeout(timer);
+        }
       }
     }
-  }, [user]);
+  }, [user, brandStatus]);
 
   const completeOnboarding = () => {
     console.log('OnboardingProvider: Completing onboarding');

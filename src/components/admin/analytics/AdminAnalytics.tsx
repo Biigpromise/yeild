@@ -304,14 +304,43 @@ export const AdminAnalytics = () => {
         </TabsContent>
 
         <TabsContent value="revenue">
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center py-8">
-                <DollarSign className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">Revenue analytics coming soon...</p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-green-500" />
+                  <div>
+                    <p className="text-2xl font-bold">₦{(platformMetrics?.totalPointsAwarded * 10 || 0).toLocaleString()}</p>
+                    <p className="text-sm text-muted-foreground">Total Revenue</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-500" />
+                  <div>
+                    <p className="text-2xl font-bold">₦{((platformMetrics?.totalPointsAwarded * 10 || 0) * 0.1).toLocaleString()}</p>
+                    <p className="text-sm text-muted-foreground">Platform Fees</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-purple-500" />
+                  <div>
+                    <p className="text-2xl font-bold">{taskStats?.pendingSubmissions || 0}</p>
+                    <p className="text-sm text-muted-foreground">Pending Payouts</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
