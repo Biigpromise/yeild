@@ -16,7 +16,11 @@ import {
   Megaphone,
   Settings,
   BarChart3,
-  CreditCard
+  CreditCard,
+  FileText,
+  MessageCircle,
+  Bell,
+  CheckSquare
 } from 'lucide-react';
 import { AdminSignOutMenu } from './AdminSignOutMenu';
 import { EnhancedUserManagement } from './enhanced/EnhancedUserManagement';
@@ -28,6 +32,10 @@ import { AdminSettings } from './AdminSettings';
 import { AdminBrands } from './AdminBrands';
 import { BrandCampaigns } from './BrandCampaigns';
 import { CampaignApprovalManager } from './CampaignApprovalManager';
+import { BrandCommunicationsTab } from '@/components/brand/BrandCommunicationsTab';
+import { BrandContentTab } from '@/components/brand/BrandContentTab';
+import { BrandNotificationsTab } from '@/components/brand/BrandNotificationsTab';
+import { TaskSubmissionApprovalTab } from '@/components/brand/TaskSubmissionApprovalTab';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { useRecentActivities } from '@/hooks/useRecentActivities';
 
@@ -65,7 +73,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Admin Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8 bg-muted">
+          <TabsList className="grid w-full grid-cols-5 lg:grid-cols-11 bg-muted">
             <TabsTrigger value="overview" className="data-[state=active]:bg-background">
               <BarChart3 className="h-4 w-4 mr-2" />
               Overview
@@ -85,6 +93,22 @@ export const AdminDashboard: React.FC = () => {
             <TabsTrigger value="tasks" className="data-[state=active]:bg-background">
               <Target className="h-4 w-4 mr-2" />
               Tasks
+            </TabsTrigger>
+            <TabsTrigger value="communications" className="data-[state=active]:bg-background">
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Communications
+            </TabsTrigger>
+            <TabsTrigger value="content" className="data-[state=active]:bg-background">
+              <FileText className="h-4 w-4 mr-2" />
+              Content
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="data-[state=active]:bg-background">
+              <Bell className="h-4 w-4 mr-2" />
+              Notifications
+            </TabsTrigger>
+            <TabsTrigger value="submissions" className="data-[state=active]:bg-background">
+              <CheckSquare className="h-4 w-4 mr-2" />
+              Submissions
             </TabsTrigger>
             <TabsTrigger value="analytics" className="data-[state=active]:bg-background">
               <TrendingUp className="h-4 w-4 mr-2" />
@@ -253,6 +277,22 @@ export const AdminDashboard: React.FC = () => {
 
           <TabsContent value="tasks">
             <EnhancedTaskManagement />
+          </TabsContent>
+
+          <TabsContent value="communications">
+            <BrandCommunicationsTab />
+          </TabsContent>
+
+          <TabsContent value="content">
+            <BrandContentTab />
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <BrandNotificationsTab />
+          </TabsContent>
+
+          <TabsContent value="submissions">
+            <TaskSubmissionApprovalTab />
           </TabsContent>
 
           <TabsContent value="analytics">
