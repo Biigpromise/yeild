@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +13,7 @@ import {
   Users, 
   TrendingUp,
   Bell,
-  Template,
+  FileText,
   BarChart3,
   Settings,
   Calendar,
@@ -27,7 +26,7 @@ import { BrandNotifications } from '@/components/brand/BrandNotifications';
 import { CampaignAnalytics } from '@/components/brand/CampaignAnalytics';
 import { CampaignTemplates } from '@/components/brand/CampaignTemplates';
 
-export const BrandDashboard = () => {
+const BrandDashboard = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -126,7 +125,7 @@ export const BrandDashboard = () => {
               Analytics
             </TabsTrigger>
             <TabsTrigger value="templates" className="flex items-center gap-2">
-              <Template className="h-4 w-4" />
+              <FileText className="h-4 w-4" />
               Templates
             </TabsTrigger>
             <TabsTrigger value="notifications" className="flex items-center gap-2">
@@ -352,3 +351,5 @@ export const BrandDashboard = () => {
     </div>
   );
 };
+
+export default BrandDashboard;

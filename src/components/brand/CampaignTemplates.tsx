@@ -17,18 +17,18 @@ import {
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { 
-  Template, 
+  FileText, 
   Plus, 
   Edit2, 
   Trash2, 
   Copy, 
-  Share,
-  FileText
+  Share
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CampaignTemplate {
   id: string;
+  brand_id: string;
   name: string;
   description: string;
   template_data: any;
@@ -84,9 +84,15 @@ export const CampaignTemplates = () => {
 
   const createTemplateMutation = useMutation({
     mutationFn: async (templateData: TemplateFormData) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { error } = await supabase
         .from('campaign_templates')
-        .insert([templateData]);
+        .insert([{
+          ...templateData,
+          brand_id: user.id
+        }]);
 
       if (error) throw error;
     },
@@ -104,9 +110,15 @@ export const CampaignTemplates = () => {
 
   const updateTemplateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: TemplateFormData }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { error } = await supabase
         .from('campaign_templates')
-        .update(data)
+        .update({
+          ...data,
+          brand_id: user.id
+        })
         .eq('id', id);
 
       if (error) throw error;
@@ -144,11 +156,15 @@ export const CampaignTemplates = () => {
 
   const duplicateTemplateMutation = useMutation({
     mutationFn: async (template: CampaignTemplate) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const duplicateData = {
         name: `${template.name} (Copy)`,
         description: template.description,
         template_data: template.template_data,
         is_shared: false,
+        brand_id: user.id
       };
 
       const { error } = await supabase
@@ -208,7 +224,7 @@ export const CampaignTemplates = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Template className="h-5 w-5" />
+            <FileText className="h-5 w-5" />
             Campaign Templates
           </CardTitle>
         </CardHeader>
@@ -226,7 +242,7 @@ export const CampaignTemplates = () => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Template className="h-5 w-5" />
+            <FileText className="h-5 w-5" />
             Campaign Templates
           </CardTitle>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
