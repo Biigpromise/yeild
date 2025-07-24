@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -169,20 +170,20 @@ export const TaskSubmissionsManager: React.FC = () => {
 
       // Award points to user by updating their profile points directly
       if (submission.task_info?.points) {
-        // Get current user points
+        // Get current user profile data
         const { data: userProfile, error: profileError } = await supabase
           .from('profiles')
-          .select('points')
+          .select('points, tasks_completed')
           .eq('id', submission.user_id)
           .single();
 
         if (!profileError && userProfile) {
-          // Update user points
+          // Update user points and tasks completed
           const { error: pointsError } = await supabase
             .from('profiles')
             .update({
               points: (userProfile.points || 0) + submission.task_info.points,
-              tasks_completed: supabase.raw('tasks_completed + 1')
+              tasks_completed: (userProfile.tasks_completed || 0) + 1
             })
             .eq('id', submission.user_id);
 
