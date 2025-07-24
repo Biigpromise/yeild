@@ -36,15 +36,17 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     if (user) {
       console.log('OnboardingProvider: User found, checking onboarding status');
       
-      // Check if user has seen onboarding and email is confirmed
+      // Check if user has seen onboarding
       const hasSeenOnboarding = localStorage.getItem(`onboarding_${user.id}`);
       
-      if (!hasSeenOnboarding && user.email_confirmed_at) {
+      // Determine user type based on user metadata or role
+      const isBrand = user.user_metadata?.user_type === 'brand' || 
+                     user.user_metadata?.company_name;
+      
+      // For brand users, show onboarding regardless of email confirmation
+      // For regular users, require email confirmation
+      if (!hasSeenOnboarding && (isBrand || user.email_confirmed_at)) {
         console.log('OnboardingProvider: Starting onboarding timer');
-        
-        // Determine user type based on user metadata or role
-        const isBrand = user.user_metadata?.user_type === 'brand' || 
-                       user.user_metadata?.company_name;
         
         setUserType(isBrand ? 'brand' : 'user');
         

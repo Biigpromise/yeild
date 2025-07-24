@@ -1,20 +1,19 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
+import BrandOnboardingExperience from '@/components/onboarding/BrandOnboardingExperience';
 
 const BrandOnboarding: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleComplete = () => {
+    // Navigate to brand dashboard after completion
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Brand Onboarding</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Brand onboarding page coming soon...</p>
-          </CardContent>
-        </Card>
-      </div>
+      <BrandOnboardingExperience onComplete={handleComplete} />
     </div>
   );
 };
