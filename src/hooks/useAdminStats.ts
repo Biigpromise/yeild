@@ -78,6 +78,40 @@ export const useAdminStats = () => {
           ? Math.round(((activeTasks || 0) - lastMonthTasks) / lastMonthTasks * 100)
           : 0;
 
+        // Calculate revenue growth
+        const { data: lastMonthRevenue } = await supabase
+          .from('payment_transactions')
+          .select('amount')
+          .eq('status', 'successful')
+          .lt('created_at', lastMonth.toISOString());
+
+        const lastMonthRevenueTotal = lastMonthRevenue?.reduce((sum, transaction) => 
+          sum + Number(transaction.amount), 0) || 0;
+
+        const revenueGrowth = lastMonthRevenueTotal > 0
+          ? Math.round((totalRevenue - lastMonthRevenueTotal) / lastMonthRevenueTotal * 100)
+          : 0;
+
+        // Calculate engagement growth
+        const { count: lastMonthSubmissions } = await supabase
+          .from('task_submissions')
+          .select('*', { count: 'exact', head: true })
+          .lt('submitted_at', lastMonth.toISOString());
+
+        const { count: lastMonthApproved } = await supabase
+          .from('task_submissions')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'approved')
+          .lt('submitted_at', lastMonth.toISOString());
+
+        const lastMonthEngagementRate = lastMonthSubmissions && lastMonthSubmissions > 0
+          ? Math.round((lastMonthApproved || 0) / lastMonthSubmissions * 100)
+          : 0;
+
+        const engagementGrowth = lastMonthEngagementRate > 0
+          ? Math.round((engagementRate - lastMonthEngagementRate) / lastMonthEngagementRate * 100)
+          : 0;
+
         setStats({
           totalUsers: totalUsers || 0,
           activeTasks: activeTasks || 0,
@@ -85,8 +119,8 @@ export const useAdminStats = () => {
           totalRevenue,
           userGrowth,
           taskGrowth,
-          engagementGrowth: 2, // Placeholder for now
-          revenueGrowth: 18 // Placeholder for now
+          engagementGrowth,
+          revenueGrowth
         });
 
       } catch (error) {
