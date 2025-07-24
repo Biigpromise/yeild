@@ -1,42 +1,45 @@
-import React, { useState, useEffect } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { realAdminUserService } from "@/services/admin/realAdminUserService";
-import { roleService } from "@/services/roleService";
-import { LoadingState } from "@/components/ui/loading-state";
-import { UserSearchAutocomplete } from "@/components/admin/UserSearchAutocomplete";
-import { toast } from "sonner";
 
-type User = {
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Search, User, Mail, Calendar, Award, Eye } from 'lucide-react';
+
+interface UserProfile {
   id: string;
-  name: string;
   email: string;
+  name: string;
   points: number;
   level: number;
   tasks_completed: number;
   created_at: string;
-  user_roles?: Array<{ role: string }>;
-  user_streaks?: Array<{ current_streak: number }>;
-};
+  active_referrals_count: number;
+  total_referrals_count: number;
+}
 
-export const AdminUsers = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+export const AdminUsers: React.FC = () => {
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadUsers();
   }, []);
 
   const loadUsers = async () => {
-    setLoading(true);
     try {
-      const userData = await realAdminUserService.getAllUsers();
-      setUsers(userData);
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      setUsers(data || []);
     } catch (error) {
       console.error('Error loading users:', error);
       toast.error('Failed to load users');
@@ -45,177 +48,94 @@ export const AdminUsers = () => {
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: string) => {
-    try {
-      console.log('Changing role for user:', userId, 'to:', newRole);
-      
-      // Use the realAdminUserService to update the role
-      const success = await realAdminUserService.updateUserRole(userId, newRole);
-      
-      if (success) {
-        // Reload users to reflect the change
-        await loadUsers();
-      }
-    } catch (error) {
-      console.error('Error updating user role:', error);
-      toast.error('Failed to update user role');
-    }
-  };
-
-  const filteredUsers = users.filter(user => 
+  const filteredUsers = users.filter(user =>
     user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const toggleSelectUser = (userId: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId)
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    );
-  };
-
-  const handleSuspendUsers = async () => {
-    for (const userId of selectedUsers) {
-      await realAdminUserService.updateUserStatus(userId, 'suspended');
-    }
-    setSelectedUsers([]);
-    loadUsers();
-  };
-
-  const getUserLevel = (points: number) => {
-    if (points >= 10000) return "Gold";
-    if (points >= 5000) return "Silver";
-    return "Bronze";
-  };
-
-  const getUserStreak = (user: User) => {
-    return user.user_streaks?.[0]?.current_streak || 0;
-  };
-
-  const getUserRole = (user: User) => {
-    return user.user_roles?.[0]?.role || 'user';
-  };
-
   if (loading) {
-    return <LoadingState text="Loading users..." />;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>User Management</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-4">
-            <UserSearchAutocomplete
-              value={searchTerm}
-              onChange={setSearchTerm}
-              placeholder="Search by name or email"
-              className="max-w-sm"
-            />
-            <Button 
-              variant="destructive" 
-              disabled={selectedUsers.length === 0}
-              onClick={handleSuspendUsers}
-            >
-              Suspend Selected
-            </Button>
-          </div>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">User Management</h2>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-blue-600 border-blue-600">
+            {users.length} Total Users
+          </Badge>
+        </div>
+      </div>
 
-          <div className="overflow-x-auto border rounded-md">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <input 
-                      type="checkbox" 
-                      className="w-4 h-4" 
-                      onChange={() => {
-                        if (selectedUsers.length === filteredUsers.length) {
-                          setSelectedUsers([]);
-                        } else {
-                          setSelectedUsers(filteredUsers.map(user => user.id));
-                        }
-                      }}
-                      checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
-                    />
-                  </TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Points</TableHead>
-                  <TableHead>Streak</TableHead>
-                  <TableHead>Level</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Join Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <input 
-                        type="checkbox" 
-                        className="w-4 h-4" 
-                        checked={selectedUsers.includes(user.id)}
-                        onChange={() => toggleSelectUser(user.id)}
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">{user.name || 'Unknown'}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.points || 0}</TableCell>
-                    <TableCell>{getUserStreak(user)}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        getUserLevel(user.points || 0) === "Gold" ? "bg-yellow-100 text-yellow-800" :
-                        getUserLevel(user.points || 0) === "Silver" ? "bg-gray-100 text-gray-800" :
-                        "bg-amber-100 text-amber-800"
-                      }`}>
-                        {getUserLevel(user.points || 0)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Select 
-                        value={getUserRole(user)} 
-                        onValueChange={(value) => handleRoleChange(user.id, value)}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="user">User</SelectItem>
-                          <SelectItem value="moderator">Moderator</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline">
-                          Edit
-                        </Button>
-                        <Button size="sm" variant="destructive">
-                          Suspend
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {filteredUsers.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
-                      No users found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-4">
+        {filteredUsers.map((user) => (
+          <Card key={user.id}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <User className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <CardTitle className="text-lg">{user.name || 'Unknown User'}</CardTitle>
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Mail className="h-4 w-4" />
+                      {user.email}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">Level {user.level}</Badge>
+                  <Button size="sm" variant="outline">
+                    <Eye className="h-4 w-4 mr-1" />
+                    View Details
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="flex items-center gap-2">
+                  <Award className="h-4 w-4 text-yellow-600" />
+                  <span className="text-sm font-medium">{user.points} Points</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">Tasks: {user.tasks_completed}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">Referrals: {user.active_referrals_count}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-600" />
+                  <span className="text-sm">{new Date(user.created_at).toLocaleDateString()}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        
+        {filteredUsers.length === 0 && (
+          <div className="text-center py-8">
+            <User className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+            <p className="text-gray-500">No users found</p>
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </div>
   );
 };

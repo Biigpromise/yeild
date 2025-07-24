@@ -7,6 +7,7 @@ import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, CheckCircle } from 'lucide-re
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { ForgotPasswordLink } from '@/components/auth/ForgotPasswordLink';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -236,16 +237,7 @@ const Auth = () => {
               </form>
 
               {/* Forgot Password Link */}
-              {isLogin && (
-                <div className="text-center mt-4">
-                  <button
-                    onClick={() => navigate('/forgot-password')}
-                    className="text-yeild-yellow hover:text-yeild-yellow/80 text-sm"
-                  >
-                    Forgot your password?
-                  </button>
-                </div>
-              )}
+              {isLogin && <ForgotPasswordLink />}
 
               {/* Switch between login/signup */}
               <div className="text-center mt-8">

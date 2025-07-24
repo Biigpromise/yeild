@@ -1,122 +1,75 @@
-
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Toaster } from '@/components/ui/sonner';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import Welcome from '@/pages/Welcome';
-import About from '@/pages/About';
-import Login from '@/pages/Login';
-import SignUp from '@/pages/SignUp';
+import { Toaster } from 'sonner';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import Dashboard from '@/pages/Dashboard';
-import Profile from '@/pages/Profile';
-import Tasks from '@/pages/Tasks';
-import TaskDetail from '@/pages/TaskDetail';
+import Auth from '@/pages/Auth';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+import SignUp from '@/pages/SignUp';
+import AdminDashboard from '@/pages/AdminDashboard';
+import BrandDashboard from '@/pages/BrandDashboard';
+import LandingPage from '@/pages/LandingPage';
+import Onboarding from '@/pages/Onboarding';
 import Leaderboard from '@/pages/Leaderboard';
 import Rewards from '@/pages/Rewards';
-import Withdrawal from '@/pages/Withdrawal';
+import Tasks from '@/pages/Tasks';
 import Chat from '@/pages/Chat';
-import AdminDashboard from '@/pages/AdminDashboard';
-import EmailConfirmation from '@/pages/EmailConfirmation';
-import BrandDashboard from '@/pages/BrandDashboard';
-import BrandCampaignDashboard from '@/pages/BrandCampaignDashboard';
-import BrandApplication from '@/pages/BrandApplication';
-import AuthCallback from '@/pages/AuthCallback';
-import Onboarding from '@/pages/Onboarding';
-import CampaignCreate from '@/pages/CampaignCreate';
-import ForgotPassword from '@/pages/ForgotPassword';
-import Auth from '@/pages/Auth';
+import Profile from '@/pages/Profile';
+import Referrals from '@/pages/Referrals';
+import Notifications from '@/pages/Notifications';
+import Settings from '@/pages/Settings';
+import SupportPage from '@/pages/SupportPage';
+import TaskSubmissionPage from '@/pages/TaskSubmissionPage';
+import BrandOnboarding from '@/pages/BrandOnboarding';
+import BrandPortal from '@/pages/BrandPortal';
+import Walkthrough from '@/pages/Walkthrough';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import TermsOfService from '@/pages/TermsOfService';
+import FAQ from '@/pages/FAQ';
+import './App.css';
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
+      <ThemeProvider>
         <AuthProvider>
-          <OnboardingProvider>
-            <div className="min-h-screen bg-background">
-              <main>
-                <Routes>
-                  <Route path="/" element={<Welcome />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<SignUp />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/auth/callback" element={<AuthCallback />} />
-                  <Route path="/brand-application" element={<BrandApplication />} />
-                  <Route path="/onboarding" element={<Onboarding />} />
-                  
-                  {/* Protected Routes */}
-                  <Route path="/dashboard" element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/profile" element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/tasks" element={
-                    <ProtectedRoute>
-                      <Tasks />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/tasks/:id" element={
-                    <ProtectedRoute>
-                      <TaskDetail />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/leaderboard" element={
-                    <ProtectedRoute>
-                      <Leaderboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/rewards" element={
-                    <ProtectedRoute>
-                      <Rewards />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/withdrawal" element={
-                    <ProtectedRoute>
-                      <Withdrawal />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/chat" element={
-                    <ProtectedRoute>
-                      <Chat />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin" element={
-                    <ProtectedRoute>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/brand-dashboard" element={
-                    <ProtectedRoute>
-                      <BrandDashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/brand-campaigns" element={
-                    <ProtectedRoute>
-                      <BrandCampaignDashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/campaigns/create" element={
-                    <ProtectedRoute>
-                      <CampaignCreate />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                </Routes>
-              </main>
-              <Toaster />
-            </div>
-          </OnboardingProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/reset-password" element={<ResetPassword />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/brand-dashboard" element={<BrandDashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/rewards" element={<Rewards />} />
+              <Route path="/tasks" element={<Tasks />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/referrals" element={<Referrals />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/support" element={<SupportPage />} />
+              <Route path="/task-submission/:taskId" element={<TaskSubmissionPage />} />
+              <Route path="/brand-onboarding" element={<BrandOnboarding />} />
+              <Route path="/brand-portal" element={<BrandPortal />} />
+              <Route path="/walkthrough" element={<Walkthrough />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/faq" element={<FAQ />} />
+            </Routes>
+          </Router>
+          <Toaster richColors />
         </AuthProvider>
-      </Router>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
