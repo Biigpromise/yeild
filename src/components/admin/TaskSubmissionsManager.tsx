@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,12 +24,12 @@ interface TaskSubmission {
     title: string;
     points: number;
     description: string;
-  };
+  } | null;
   profiles: {
     id: string;
     name: string;
     email: string;
-  };
+  } | null;
 }
 
 export const TaskSubmissionsManager: React.FC = () => {
@@ -63,7 +64,7 @@ export const TaskSubmissionsManager: React.FC = () => {
 
       if (error) throw error;
       
-      // Map the data to match our interface
+      // Map the data to match our interface with proper null handling
       const mappedSubmissions: TaskSubmission[] = (data || []).map(item => ({
         id: item.id,
         user_id: item.user_id,
@@ -75,8 +76,8 @@ export const TaskSubmissionsManager: React.FC = () => {
         reviewed_at: item.reviewed_at,
         admin_notes: item.admin_notes,
         points_awarded: item.calculated_points,
-        tasks: item.tasks,
-        profiles: item.profiles
+        tasks: item.tasks || null,
+        profiles: item.profiles || null
       }));
 
       setSubmissions(mappedSubmissions);
@@ -171,7 +172,7 @@ export const TaskSubmissionsManager: React.FC = () => {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-lg">{submission.tasks?.title}</CardTitle>
+                      <CardTitle className="text-lg">{submission.tasks?.title || 'Unknown Task'}</CardTitle>
                       <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <User className="h-4 w-4" />
@@ -183,7 +184,7 @@ export const TaskSubmissionsManager: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-1">
                           <FileText className="h-4 w-4" />
-                          {submission.tasks?.points} points
+                          {submission.tasks?.points || 0} points
                         </div>
                       </div>
                     </div>
@@ -196,7 +197,7 @@ export const TaskSubmissionsManager: React.FC = () => {
                 <CardContent className="space-y-4">
                   <div>
                     <p className="text-sm font-medium text-gray-700">Task Description:</p>
-                    <p className="text-sm text-gray-600">{submission.tasks?.description}</p>
+                    <p className="text-sm text-gray-600">{submission.tasks?.description || 'No description'}</p>
                   </div>
                   
                   {submission.evidence_text && (
@@ -273,8 +274,8 @@ export const TaskSubmissionsManager: React.FC = () => {
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold">{submission.tasks?.title}</h3>
-                      <p className="text-sm text-gray-600">{submission.profiles?.name}</p>
+                      <h3 className="font-semibold">{submission.tasks?.title || 'Unknown Task'}</h3>
+                      <p className="text-sm text-gray-600">{submission.profiles?.name || 'Unknown User'}</p>
                       <p className="text-xs text-gray-500">
                         Approved on {new Date(submission.reviewed_at || '').toLocaleDateString()}
                       </p>
@@ -304,8 +305,8 @@ export const TaskSubmissionsManager: React.FC = () => {
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold">{submission.tasks?.title}</h3>
-                      <p className="text-sm text-gray-600">{submission.profiles?.name}</p>
+                      <h3 className="font-semibold">{submission.tasks?.title || 'Unknown Task'}</h3>
+                      <p className="text-sm text-gray-600">{submission.profiles?.name || 'Unknown User'}</p>
                       <p className="text-xs text-gray-500">
                         Rejected on {new Date(submission.reviewed_at || '').toLocaleDateString()}
                       </p>

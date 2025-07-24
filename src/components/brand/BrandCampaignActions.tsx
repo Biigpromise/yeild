@@ -18,7 +18,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-interface Campaign {
+interface BrandCampaign {
   id: string;
   title: string;
   description: string | null;
@@ -27,16 +27,16 @@ interface Campaign {
   start_date: string | null;
   end_date: string | null;
   created_at: string;
-  updated_at?: string;
-  admin_approval_status?: string;
+  updated_at: string;
+  admin_approval_status: string;
   target_audience?: any;
   requirements?: any;
-  payment_status?: string;
-  funded_amount?: number;
+  payment_status: string;
+  funded_amount: number;
 }
 
 interface BrandCampaignActionsProps {
-  campaign: Campaign;
+  campaign: BrandCampaign;
   onUpdate: () => void;
 }
 
@@ -94,9 +94,19 @@ export const BrandCampaignActions: React.FC<BrandCampaignActionsProps> = ({
   const canDelete = campaign.status !== 'active';
 
   // Create a complete campaign object with default values for missing properties
-  const completeCampaign: Campaign = {
-    ...campaign,
+  const completeCampaign: BrandCampaign = {
+    id: campaign.id,
+    title: campaign.title,
+    description: campaign.description,
+    budget: campaign.budget,
+    status: campaign.status,
+    start_date: campaign.start_date,
+    end_date: campaign.end_date,
+    created_at: campaign.created_at,
     updated_at: campaign.updated_at || campaign.created_at,
+    admin_approval_status: campaign.admin_approval_status || 'pending',
+    target_audience: campaign.target_audience,
+    requirements: campaign.requirements,
     payment_status: campaign.payment_status || 'unpaid',
     funded_amount: campaign.funded_amount || 0
   };
