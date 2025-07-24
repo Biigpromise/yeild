@@ -39,15 +39,25 @@ const ProgressiveAuthFlow = () => {
     const typeParam = searchParams.get('type');
     const modeParam = searchParams.get('mode');
     
-    // Check for signin mode - can be ?mode=signin or legacy ?type=signin
-    const isSigninMode = modeParam === 'signin' || typeParam === 'signin';
-    setIsLogin(isSigninMode);
+    console.log("URL analysis:", { typeParam, modeParam });
     
-    // If mode is signin, skip user type selection and go directly to email
-    if (isSigninMode) {
+    // Set user type if specified
+    if (typeParam && (typeParam === 'user' || typeParam === 'brand')) {
+      setFormData(prev => ({ ...prev, userType: typeParam as 'user' | 'brand' }));
+    }
+    
+    // Check for explicit signin mode
+    const isSigninMode = modeParam === 'signin' || typeParam === 'signin';
+    
+    // For brand URLs like /auth?type=brand, default to sign-in since most brands are returning users
+    if (typeParam === 'brand' && !modeParam) {
+      setIsLogin(true);
+      setCurrentStep('email'); // Skip user type selection for brands
+    } else if (isSigninMode) {
+      setIsLogin(true);
       setCurrentStep('email');
     } else if (typeParam && (typeParam === 'user' || typeParam === 'brand')) {
-      setFormData(prev => ({ ...prev, userType: typeParam as 'user' | 'brand' }));
+      // For sign-up mode with type specified
       setCurrentStep('email');
     }
   }, [searchParams]);
@@ -329,8 +339,21 @@ const ProgressiveAuthFlow = () => {
                 className="space-y-6"
               >
                 <div className="text-center">
-                  <h2 className="text-2xl font-bold mb-2">What's your email?</h2>
-                  <p className="text-gray-400">We'll use this to send you updates and notifications</p>
+                  <h2 className="text-2xl font-bold mb-2">
+                    {isLogin ? 'Welcome back!' : "What's your email?"}
+                  </h2>
+                  <p className="text-gray-400">
+                    {isLogin 
+                      ? `Sign in to your ${formData.userType || 'account'}` 
+                      : "We'll use this to send you updates and notifications"
+                    }
+                  </p>
+                  {formData.userType && (
+                    <div className="flex items-center justify-center space-x-2 mt-2 text-yeild-yellow">
+                      {formData.userType === 'brand' ? <Building2 className="w-4 h-4" /> : <Users className="w-4 h-4" />}
+                      <span className="text-sm capitalize">{formData.userType} Account</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="relative">
@@ -353,17 +376,29 @@ const ProgressiveAuthFlow = () => {
                   Continue
                 </Button>
 
-                {!isLogin && (
-                  <div className="text-center">
-                    <span className="text-gray-400">Already have an account? </span>
-                    <button
-                      onClick={() => setIsLogin(true)}
-                      className="text-yeild-yellow hover:text-yeild-yellow/80 font-medium"
-                    >
-                      Sign in
-                    </button>
-                  </div>
-                )}
+                <div className="text-center">
+                  {!isLogin ? (
+                    <>
+                      <span className="text-gray-400">Already have an account? </span>
+                      <button
+                        onClick={() => setIsLogin(true)}
+                        className="text-yeild-yellow hover:text-yeild-yellow/80 font-medium"
+                      >
+                        Sign in
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-gray-400">Don't have an account? </span>
+                      <button
+                        onClick={() => setIsLogin(false)}
+                        className="text-yeild-yellow hover:text-yeild-yellow/80 font-medium"
+                      >
+                        Sign up
+                      </button>
+                    </>
+                  )}
+                </div>
               </motion.div>
             )}
 
