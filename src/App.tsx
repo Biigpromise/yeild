@@ -11,7 +11,7 @@ import Dashboard from '@/pages/Dashboard';
 import Auth from '@/pages/Auth';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
-import SignUp from '@/pages/SignUp';
+
 import AdminDashboard from '@/pages/AdminDashboard';
 import BrandDashboard from '@/pages/BrandDashboard';
 import LandingPage from '@/pages/LandingPage';
@@ -50,7 +50,7 @@ function App() {
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
-                <Route path="/signup" element={<SignUp />} />
+                
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/brand-dashboard" element={<BrandDashboard />} />
                 <Route path="/dashboard" element={<Dashboard />} />

@@ -98,7 +98,7 @@ const MetaStyleLoginForm = ({ onBack }: MetaStyleLoginFormProps) => {
       {/* Create Account Button at Bottom */}
       <div className="fixed bottom-8 left-6 right-6">
         <Button
-          onClick={() => navigate("/signup")}
+          onClick={() => navigate("/auth")}
           variant="outline"
           className="w-full border-yeild-yellow text-yeild-yellow hover:bg-yeild-yellow/10 py-6 text-lg font-semibold rounded-full"
         >

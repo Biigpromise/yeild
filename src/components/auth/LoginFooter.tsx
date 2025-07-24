@@ -10,7 +10,7 @@ const LoginFooter = () => {
       <div className="text-center">
         <p className="text-gray-400">
           Don't have an account?{" "}
-          <Link to="/signup" className="text-yeild-yellow hover:underline">
+          <Link to="/auth" className="text-yeild-yellow hover:underline">
             Sign up
           </Link>
         </p>
@@ -29,7 +29,7 @@ const LoginFooter = () => {
       {/* Create New Account Button at Bottom */}
       <div className="pt-4 border-t border-gray-700">
         <Button
-          onClick={() => navigate("/signup")}
+          onClick={() => navigate("/auth")}
           variant="outline"
           className="w-full border-yeild-yellow text-yeild-yellow hover:bg-yeild-yellow/10 py-3 text-base font-semibold rounded-lg"
         >

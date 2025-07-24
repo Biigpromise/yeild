@@ -24,7 +24,7 @@ export const Header = () => {
     if (user) {
       navigate("/dashboard");
     } else {
-      navigate("/signup");
+      navigate("/auth");
     }
   };
 
