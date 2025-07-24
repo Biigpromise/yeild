@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Upload } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -18,6 +19,7 @@ const campaignSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   budget: z.number().min(10, "Minimum budget is $10"),
+  currency: z.enum(['USD', 'NGN']),
   status: z.enum(['draft', 'active', 'paused', 'completed', 'cancelled']),
   start_date: z.string().optional(),
   end_date: z.string().optional(),
@@ -40,6 +42,9 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
 }) => {
   const { user } = useAuth();
   const [loading, setLoading] = React.useState(false);
+  const [logoFile, setLogoFile] = React.useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = React.useState<string | null>(null);
+  const [conversionRate] = React.useState(1500);
 
   const form = useForm<CampaignFormData>({
     resolver: zodResolver(campaignSchema),
@@ -47,11 +52,15 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
       title: campaign?.title || "",
       description: campaign?.description || "",
       budget: campaign?.budget || 10,
+      currency: 'USD',
       status: (campaign?.status as 'draft' | 'active' | 'paused' | 'completed' | 'cancelled') || 'draft',
       start_date: campaign?.start_date || "",
       end_date: campaign?.end_date || "",
     }
   });
+
+  const watchedCurrency = form.watch('currency');
+  const watchedBudget = form.watch('budget');
 
   React.useEffect(() => {
     if (campaign) {
@@ -59,6 +68,7 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
         title: campaign.title,
         description: campaign.description || "",
         budget: campaign.budget,
+        currency: 'USD',
         status: campaign.status as 'draft' | 'active' | 'paused' | 'completed' | 'cancelled',
         start_date: campaign.start_date || "",
         end_date: campaign.end_date || "",
@@ -68,6 +78,7 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
         title: "",
         description: "",
         budget: 10,
+        currency: 'USD',
         status: 'draft',
         start_date: "",
         end_date: "",
@@ -75,16 +86,56 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
     }
   }, [campaign, form]);
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadLogo = async (): Promise<string | null> => {
+    if (!logoFile || !user) return null;
+
+    const fileExt = logoFile.name.split('.').pop();
+    const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+    const filePath = `campaign-logos/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('posts')
+      .upload(filePath, logoFile);
+
+    if (uploadError) {
+      console.error('Error uploading logo:', uploadError);
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage.from('posts').getPublicUrl(filePath);
+    return data.publicUrl;
+  };
+
   const onSubmit = async (data: CampaignFormData) => {
     if (!user) return;
     
     setLoading(true);
     try {
+      let logoUrl = null;
+      if (logoFile) {
+        logoUrl = await uploadLogo();
+      }
+
+      const budgetInUSD = data.currency === 'NGN' ? data.budget / conversionRate : data.budget;
+
       const campaignData = {
         brand_id: user.id,
         title: data.title,
         description: data.description,
-        budget: data.budget,
+        budget: budgetInUSD,
+        logo_url: logoUrl,
         status: data.status,
         start_date: data.start_date || null,
         end_date: data.end_date || null,
@@ -146,19 +197,39 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
             />
           </div>
 
-          <div>
-            <Label htmlFor="budget">Budget ($)</Label>
-            <Input
-              id="budget"
-              type="number"
-              min="10"
-              step="0.01"
-              {...form.register('budget', { valueAsNumber: true })}
-              placeholder="10.00"
-            />
-            {form.formState.errors.budget && (
-              <p className="text-sm text-red-600 mt-1">{form.formState.errors.budget.message}</p>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="currency">Currency</Label>
+              <Select onValueChange={(value) => form.setValue('currency', value as 'USD' | 'NGN')} defaultValue="USD">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USD">USD ($)</SelectItem>
+                  <SelectItem value="NGN">NGN (₦)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="budget">Budget ({watchedCurrency}) *</Label>
+              <Input
+                id="budget"
+                type="number"
+                min="10"
+                step="0.01"
+                {...form.register('budget', { valueAsNumber: true })}
+                placeholder={watchedCurrency === 'USD' ? '10.00' : '15000.00'}
+              />
+              {watchedCurrency && watchedBudget && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  ≈ {watchedCurrency === 'USD' ? '₦' : '$'}{(watchedCurrency === 'USD' ? watchedBudget * conversionRate : watchedBudget / conversionRate).toLocaleString()} {watchedCurrency === 'USD' ? 'NGN' : 'USD'}
+                </p>
+              )}
+              {form.formState.errors.budget && (
+                <p className="text-sm text-red-600 mt-1">{form.formState.errors.budget.message}</p>
+              )}
+            </div>
           </div>
 
           <div>
@@ -193,6 +264,34 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
                 type="date"
                 {...form.register('end_date')}
               />
+            </div>
+          </div>
+
+          <div>
+            <Label>Campaign Logo</Label>
+            <div className="mt-1">
+              <div className="flex items-center justify-center w-full">
+                <label htmlFor="logo-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-border border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted">
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="Logo preview" className="h-20 w-20 object-contain" />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                      <p className="mb-2 text-sm text-muted-foreground">
+                        <span className="font-semibold">Click to upload</span> your campaign logo
+                      </p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
+                    </div>
+                  )}
+                  <input
+                    id="logo-upload"
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                  />
+                </label>
+              </div>
             </div>
           </div>
 

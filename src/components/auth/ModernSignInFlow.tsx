@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
@@ -14,6 +15,7 @@ interface ModernSignInFlowProps {
 }
 
 const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, onSwitchToSignup }) => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -147,7 +149,7 @@ const ModernSignInFlow: React.FC<ModernSignInFlowProps> = ({ userType, onBack, o
                 <button 
                   type="button" 
                   className="text-sm text-yeild-yellow hover:underline"
-                  onClick={() => window.location.href = '/forgot-password'}
+                  onClick={() => navigate('/forgot-password')}
                 >
                   Forgot password?
                 </button>

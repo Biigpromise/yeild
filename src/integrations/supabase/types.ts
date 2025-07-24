@@ -227,6 +227,7 @@ export type Database = {
           end_date: string | null
           funded_amount: number | null
           id: string
+          logo_url: string | null
           payment_status: string | null
           payment_transaction_id: string | null
           rejection_reason: string | null
@@ -249,6 +250,7 @@ export type Database = {
           end_date?: string | null
           funded_amount?: number | null
           id?: string
+          logo_url?: string | null
           payment_status?: string | null
           payment_transaction_id?: string | null
           rejection_reason?: string | null
@@ -271,6 +273,7 @@ export type Database = {
           end_date?: string | null
           funded_amount?: number | null
           id?: string
+          logo_url?: string | null
           payment_status?: string | null
           payment_transaction_id?: string | null
           rejection_reason?: string | null
@@ -340,6 +343,7 @@ export type Database = {
         Row: {
           company_name: string
           created_at: string
+          currency_preference: string | null
           description: string | null
           id: string
           industry: string | null
@@ -351,6 +355,7 @@ export type Database = {
         Insert: {
           company_name: string
           created_at?: string
+          currency_preference?: string | null
           description?: string | null
           id?: string
           industry?: string | null
@@ -362,6 +367,7 @@ export type Database = {
         Update: {
           company_name?: string
           created_at?: string
+          currency_preference?: string | null
           description?: string | null
           id?: string
           industry?: string | null
@@ -748,6 +754,30 @@ export type Database = {
           updated_at?: string
           user_id?: string
           wallet_address?: string
+        }
+        Relationships: []
+      }
+      currency_rates: {
+        Row: {
+          from_currency: string
+          id: string
+          rate: number
+          to_currency: string
+          updated_at: string | null
+        }
+        Insert: {
+          from_currency: string
+          id?: string
+          rate: number
+          to_currency: string
+          updated_at?: string | null
+        }
+        Update: {
+          from_currency?: string
+          id?: string
+          rate?: number
+          to_currency?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

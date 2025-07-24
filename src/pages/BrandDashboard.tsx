@@ -30,6 +30,10 @@ import { BrandBillingTab } from '@/components/brand/BrandBillingTab';
 import { BrandProfileTab } from '@/components/brand/BrandProfileTab';
 import { BrandPerformanceTab } from '@/components/brand/BrandPerformanceTab';
 import { BrandWalletCard } from '@/components/brand/BrandWalletCard';
+import { BrandCommunicationsTab } from '@/components/brand/BrandCommunicationsTab';
+import { BrandContentTab } from '@/components/brand/BrandContentTab';
+import { BrandNotificationsTab } from '@/components/brand/BrandNotificationsTab';
+import { TaskSubmissionApprovalTab } from '@/components/brand/TaskSubmissionApprovalTab';
 
 const BrandDashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -89,7 +93,7 @@ const BrandDashboard = () => {
       {/* Brand Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 bg-muted">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 bg-muted">
             <TabsTrigger value="overview" className="data-[state=active]:bg-background">
               <BarChart3 className="h-4 w-4 mr-2" />
               Overview
@@ -98,17 +102,25 @@ const BrandDashboard = () => {
               <Target className="h-4 w-4 mr-2" />
               Campaigns
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="data-[state=active]:bg-background">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Analytics
+            <TabsTrigger value="communications" className="data-[state=active]:bg-background">
+              <Users className="h-4 w-4 mr-2" />
+              Communications
+            </TabsTrigger>
+            <TabsTrigger value="content" className="data-[state=active]:bg-background">
+              <FileText className="h-4 w-4 mr-2" />
+              Content
+            </TabsTrigger>
+            <TabsTrigger value="submissions" className="data-[state=active]:bg-background">
+              <Settings className="h-4 w-4 mr-2" />
+              Submissions
             </TabsTrigger>
             <TabsTrigger value="billing" className="data-[state=active]:bg-background">
               <CreditCard className="h-4 w-4 mr-2" />
               Billing
             </TabsTrigger>
-            <TabsTrigger value="performance" className="data-[state=active]:bg-background">
-              <Activity className="h-4 w-4 mr-2" />
-              Performance
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-background">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Analytics
             </TabsTrigger>
             <TabsTrigger value="profile" className="data-[state=active]:bg-background">
               <User className="h-4 w-4 mr-2" />
@@ -238,6 +250,18 @@ const BrandDashboard = () => {
 
           <TabsContent value="performance">
             <BrandPerformanceTab />
+          </TabsContent>
+
+          <TabsContent value="communications">
+            <BrandCommunicationsTab />
+          </TabsContent>
+
+          <TabsContent value="content">
+            <BrandContentTab />
+          </TabsContent>
+
+          <TabsContent value="submissions">
+            <TaskSubmissionApprovalTab />
           </TabsContent>
 
           <TabsContent value="profile">

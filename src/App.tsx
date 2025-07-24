@@ -24,6 +24,8 @@ import BrandCampaignDashboard from '@/pages/BrandCampaignDashboard';
 import BrandApplication from '@/pages/BrandApplication';
 import AuthCallback from '@/pages/AuthCallback';
 import Onboarding from '@/pages/Onboarding';
+import CampaignCreate from '@/pages/CampaignCreate';
+import ForgotPassword from '@/pages/ForgotPassword';
 
 const queryClient = new QueryClient();
 
@@ -101,6 +103,12 @@ function App() {
                       <BrandCampaignDashboard />
                     </ProtectedRoute>
                   } />
+                  <Route path="/campaigns/create" element={
+                    <ProtectedRoute>
+                      <CampaignCreate />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
                 </Routes>
               </main>
               <Toaster />
