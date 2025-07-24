@@ -2,33 +2,19 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  LayoutDashboard, 
   Users, 
   Building2, 
-  FileText, 
   DollarSign,
   Shield,
-  Settings,
-  Bell,
   TrendingUp,
-  Target,
-  MessageSquare,
-  CreditCard
+  Target
 } from 'lucide-react';
+import { AdminSidebar } from './AdminSidebar';
 
-// Import existing components
-import { AdminBrands } from './AdminBrands';
 import { TaskSubmissionsManager } from './TaskSubmissionsManager';
-import { BrandCampaignsManagement } from './brands/BrandCampaignsManagement';
-import { AdminUsers } from './AdminUsers';
-import { AdminFinancialOverview } from './AdminFinancialOverview';
-import { AdminSettings } from './AdminSettings';
-import { AdminNotifications } from './AdminNotifications';
-import { AdminAnalytics } from './AdminAnalytics';
 
 
 // Quick stats component with real data
@@ -148,67 +134,14 @@ const QuickStats = () => {
 
 export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <p className="text-muted-foreground mt-1">
-              Welcome back, manage your platform
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-blue-600 border-blue-600">
-              System Online
-            </Badge>
-          </div>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <LayoutDashboard className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Users
-            </TabsTrigger>
-            <TabsTrigger value="brands" className="flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              Brands
-            </TabsTrigger>
-            <TabsTrigger value="campaigns" className="flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              Campaigns
-            </TabsTrigger>
-            <TabsTrigger value="submissions" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Submissions
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="financial" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Financial
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              Notifications
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Settings
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return (
+          <div className="space-y-6">
             <QuickStats />
-            
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
@@ -221,15 +154,15 @@ export const AdminDashboard: React.FC = () => {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Daily Active Users</span>
-                      <span className="font-medium">8,432</span>
+                      <span className="font-medium">Real-time data</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Task Completion Rate</span>
-                      <span className="font-medium">87%</span>
+                      <span className="font-medium">Real-time data</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Brand Satisfaction</span>
-                      <span className="font-medium">4.8/5</span>
+                      <span className="font-medium">Real-time data</span>
                     </div>
                   </div>
                 </CardContent>
@@ -258,46 +191,136 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">API Response Time</span>
-                      <span className="font-medium">120ms</span>
+                      <span className="font-medium">Real-time data</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+          </div>
+        );
+      case 'users':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>User Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Real user management interface coming soon.</p>
+            </CardContent>
+          </Card>
+        );
+      case 'brands':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Brand Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Real brand management interface coming soon.</p>
+            </CardContent>
+          </Card>
+        );
+      case 'campaigns':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Campaign Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Real campaign management interface coming soon.</p>
+            </CardContent>
+          </Card>
+        );
+      case 'submissions':
+        return <TaskSubmissionsManager />;
+      case 'analytics':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Analytics & Reports</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Real analytics dashboard coming soon.</p>
+            </CardContent>
+          </Card>
+        );
+      case 'financial':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Financial Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Real financial management interface coming soon.</p>
+            </CardContent>
+          </Card>
+        );
+      case 'notifications':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Notifications</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Real notification management interface coming soon.</p>
+            </CardContent>
+          </Card>
+        );
+      case 'settings':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Platform Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Real platform settings interface coming soon.</p>
+            </CardContent>
+          </Card>
+        );
+      default:
+        return null;
+    }
+  };
 
-          <TabsContent value="users">
-            <AdminUsers />
-          </TabsContent>
-
-          <TabsContent value="brands">
-            <AdminBrands />
-          </TabsContent>
-
-          <TabsContent value="campaigns">
-            <BrandCampaignsManagement />
-          </TabsContent>
-
-          <TabsContent value="submissions">
-            <TaskSubmissionsManager />
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <AdminAnalytics />
-          </TabsContent>
-
-          <TabsContent value="financial">
-            <AdminFinancialOverview />
-          </TabsContent>
-
-          <TabsContent value="notifications">
-            <AdminNotifications />
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <AdminSettings />
-          </TabsContent>
-        </Tabs>
+  return (
+    <div className="min-h-screen bg-background flex">
+      <AdminSidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
+      
+      <div className="flex-1 overflow-auto">
+        <div className="p-6">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-foreground">
+              {activeTab === 'overview' && 'Dashboard Overview'}
+              {activeTab === 'users' && 'User Management'}
+              {activeTab === 'brands' && 'Brand Management'}
+              {activeTab === 'campaigns' && 'Campaign Management'}
+              {activeTab === 'submissions' && 'Task Submissions'}
+              {activeTab === 'analytics' && 'Analytics & Reports'}
+              {activeTab === 'financial' && 'Financial Management'}
+              {activeTab === 'notifications' && 'Notifications'}
+              {activeTab === 'settings' && 'Platform Settings'}
+            </h1>
+            <p className="text-muted-foreground">
+              {activeTab === 'overview' && 'Monitor your platform performance and key metrics'}
+              {activeTab === 'users' && 'Manage user accounts, roles, and permissions'}
+              {activeTab === 'brands' && 'Oversee brand applications and profiles'}
+              {activeTab === 'campaigns' && 'Review and manage brand campaigns'}
+              {activeTab === 'submissions' && 'Review and approve task submissions'}
+              {activeTab === 'analytics' && 'View detailed analytics and generate reports'}
+              {activeTab === 'financial' && 'Manage payments, revenue, and financial operations'}
+              {activeTab === 'notifications' && 'Send and manage platform notifications'}
+              {activeTab === 'settings' && 'Configure platform settings and preferences'}
+            </p>
+          </div>
+          
+          {renderContent()}
+        </div>
       </div>
     </div>
   );
