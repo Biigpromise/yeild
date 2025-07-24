@@ -43,7 +43,7 @@ export const useSignUp = () => {
         type: 'signup',
         email: email,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
       
@@ -108,7 +108,7 @@ export const useSignUp = () => {
         password: data.password,
         options: {
           data: metadata,
-          emailRedirectTo: `${window.location.origin}/dashboard`
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
 

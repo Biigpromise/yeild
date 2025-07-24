@@ -70,7 +70,18 @@ const BrandSignUpFlow = () => {
           }
         };
 
-        const { error } = await signUp(signUpData.email, signUpData.password, signUpData.options.data.name);
+        const { error } = await signUp(
+          signUpData.email, 
+          signUpData.password, 
+          signUpData.options.data.name,
+          'brand',
+          {
+            company_name: formData.company_name,
+            website: formData.website,
+            industry: formData.industry
+          },
+          `${window.location.origin}/auth/callback`
+        );
         if (error) {
           toast.error(error.message);
         } else {
