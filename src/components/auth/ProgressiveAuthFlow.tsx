@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { InputValidator } from '@/services/validation/inputValidator';
+import { handleAuthError } from '@/contexts/auth/authErrorHandler';
 
 type StepType = 'userType' | 'email' | 'password' | 'name' | 'complete';
 
@@ -109,7 +110,16 @@ const ProgressiveAuthFlow = () => {
       if (isLogin) {
         const { error } = await signIn(formData.email, formData.password);
         if (error) {
-          toast.error(error.message);
+          const friendlyError = handleAuthError(error, 'sign in');
+          toast.error(friendlyError, {
+            action: friendlyError.includes('No account found') ? {
+              label: 'Create Account',
+              onClick: () => {
+                setIsLogin(false);
+                toast.dismiss();
+              }
+            } : undefined
+          });
         } else {
           toast.success("Welcome back!");
           // Navigation will be handled by useEffect when user state changes
@@ -126,7 +136,8 @@ const ProgressiveAuthFlow = () => {
         );
         
         if (error) {
-          toast.error(error.message);
+          const friendlyError = handleAuthError(error, 'sign up');
+          toast.error(friendlyError);
         } else {
           setCurrentStep('complete');
           toast.success("Account created! Please check your email to verify your account.");

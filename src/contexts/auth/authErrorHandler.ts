@@ -5,7 +5,9 @@ export const handleAuthError = (error: any, operation: string): string => {
   
   // Common error messages mapping
   const errorMessages: { [key: string]: string } = {
-    'Invalid login credentials': 'Invalid email or password. Please check your credentials.',
+    'Invalid login credentials': operation === 'sign in' 
+      ? 'No account found with this email address. Please check your email or create a new account.'
+      : 'Invalid email or password. Please check your credentials.',
     'Email not confirmed': 'Please check your email and confirm your account before signing in.',
     'User already registered': 'An account with this email already exists. Please try signing in instead.',
     'user_already_exists': 'An account with this email already exists. Please try signing in instead.',
