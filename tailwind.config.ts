@@ -63,6 +63,15 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
+				// Professional Brand Colors
+				brand: {
+					blue: 'hsl(var(--brand-blue))',
+					'blue-dark': 'hsl(var(--brand-blue-dark))',
+					success: 'hsl(var(--brand-success))',
+					warning: 'hsl(var(--brand-warning))',
+					danger: 'hsl(var(--brand-danger))',
+					info: 'hsl(var(--brand-info))',
+				},
 				// YEILD Brand Colors
 				yeild: {
 					yellow: {
