@@ -86,7 +86,8 @@ interface CampaignCardProps {
   roas: number;
 }
 
-const CampaignCard = ({ name, status, budget, spent, impressions, clicks, ctr, roas }: CampaignCardProps) => {
+const CampaignCard = ({ id, name, status, budget, spent, impressions, clicks, ctr, roas }: CampaignCardProps) => {
+  const navigate = useNavigate();
   const statusConfig = {
     active: { color: "bg-brand-success text-white", icon: PlayCircle, label: "Active" },
     paused: { color: "bg-brand-warning text-white", icon: PauseCircle, label: "Paused" },
@@ -98,7 +99,10 @@ const CampaignCard = ({ name, status, budget, spent, impressions, clicks, ctr, r
   const { color, icon: StatusIcon, label } = statusConfig[status];
 
   return (
-    <Card className="hover:shadow-md transition-all duration-200">
+    <Card 
+      className="hover:shadow-md transition-all duration-200 cursor-pointer" 
+      onClick={() => navigate('/brand-dashboard/campaigns')}
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
           <h4 className="font-semibold text-sm text-foreground truncate">{name}</h4>
@@ -149,6 +153,7 @@ const CampaignCard = ({ name, status, budget, spent, impressions, clicks, ctr, r
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 export function ProfessionalDashboardOverview({
   profile,
@@ -156,6 +161,7 @@ export function ProfessionalDashboardOverview({
   onCreateCampaign,
   onAddFunds,
 }: ProfessionalDashboardOverviewProps) {
+  const navigate = useNavigate();
   // Fetch real campaign data
   const { data: campaigns = [], isLoading: campaignsLoading } = useQuery({
     queryKey: ['brand-campaigns-dashboard'],
@@ -293,7 +299,12 @@ export function ProfessionalDashboardOverview({
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold">Active Campaigns</CardTitle>
-                <Button variant="ghost" size="sm" className="gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={() => navigate('/brand-dashboard/campaigns')}
+                >
                   View All
                   <ArrowUpRight className="w-4 h-4" />
                 </Button>
