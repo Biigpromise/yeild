@@ -108,7 +108,7 @@ const BrandDashboard = () => {
       <div className="container mx-auto p-6">
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-8">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-8 mb-4">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -151,7 +151,7 @@ const BrandDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Total Budget</p>
-                      <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">₦{totalBudget.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">${totalBudget.toLocaleString()}</p>
                       <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                         {wallet?.total_deposited ? ((totalBudget / wallet.total_deposited) * 100).toFixed(1) : 0}% allocated
                       </p>
@@ -181,7 +181,7 @@ const BrandDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Wallet Balance</p>
-                      <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">₦{wallet?.balance?.toLocaleString() || '0'}</p>
+                      <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">${wallet?.balance?.toLocaleString() || '10'}</p>
                       <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
                         Available for campaigns
                       </p>
@@ -293,7 +293,7 @@ const BrandDashboard = () => {
                         <div>
                           <p className="font-medium">{campaign.title}</p>
                           <p className="text-sm text-muted-foreground">
-                            ₦{Number(campaign.budget).toLocaleString()} • {new Date(campaign.created_at).toLocaleDateString()}
+                            ${Number(campaign.budget).toLocaleString()} • {new Date(campaign.created_at).toLocaleDateString()}
                           </p>
                         </div>
                         <Badge variant={
@@ -334,11 +334,11 @@ const BrandDashboard = () => {
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                       <span className="text-sm font-medium">Total Invested</span>
-                      <span className="font-bold">₦{wallet?.total_spent?.toLocaleString() || '0'}</span>
+                      <span className="font-bold">${wallet?.total_spent?.toLocaleString() || '0'}</span>
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                       <span className="text-sm font-medium">Available Balance</span>
-                      <span className="font-bold text-blue-600">₦{wallet?.balance?.toLocaleString() || '0'}</span>
+                      <span className="font-bold text-blue-600">${wallet?.balance?.toLocaleString() || '10'}</span>
                     </div>
                   </div>
                 </CardContent>

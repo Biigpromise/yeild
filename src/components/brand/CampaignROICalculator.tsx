@@ -46,45 +46,52 @@ export const CampaignROICalculator = () => {
       return;
     }
 
-    // Base multipliers for different campaign types
+    // Task-based calculation: 50 points per task completion
+    const pointsPerTask = 50;
+    const costPerPoint = 2; // ₦2 per point
+    
+    // Calculate total tasks possible with budget
+    const totalTasksPossible = Math.floor(budget / (pointsPerTask * costPerPoint));
+    
+    // Base reach per task for different campaign types
     const typeMultipliers = {
-      social_media: { reach: 15, engagement: 0.03, conversion: 0.02 },
-      influencer: { reach: 8, engagement: 0.05, conversion: 0.035 },
-      content_creation: { reach: 12, engagement: 0.04, conversion: 0.025 },
-      brand_awareness: { reach: 20, engagement: 0.025, conversion: 0.015 },
+      social_media: { reachPerTask: 500, engagementRate: 0.08, conversionRate: 0.03 },
+      influencer: { reachPerTask: 300, engagementRate: 0.12, conversionRate: 0.05 },
+      content_creation: { reachPerTask: 400, engagementRate: 0.10, conversionRate: 0.04 },
+      brand_awareness: { reachPerTask: 800, engagementRate: 0.06, conversionRate: 0.02 },
     };
 
     // Audience targeting multipliers
     const audienceMultipliers = {
       general: 1.0,
-      targeted: 1.3,
-      premium: 1.6,
-      niche: 1.8
+      targeted: 1.2,
+      premium: 1.4,
+      niche: 1.6
     };
 
-    // Duration efficiency (longer campaigns may have diminishing returns)
-    const durationEfficiency = Math.max(0.7, 1 - (duration - 7) * 0.02);
+    // Duration efficiency (longer campaigns spread reach better)
+    const durationEfficiency = Math.min(1.5, 1 + (duration - 7) * 0.02);
 
     const multiplier = typeMultipliers[campaignType as keyof typeof typeMultipliers];
     const audienceMultiplier = audienceMultipliers[targetAudience as keyof typeof audienceMultipliers];
 
-    // Calculate metrics
-    const estimatedReach = Math.round(budget * multiplier.reach * audienceMultiplier * durationEfficiency);
-    const expectedEngagement = Math.round(estimatedReach * multiplier.engagement);
-    const estimatedConversions = Math.round(expectedEngagement * multiplier.conversion);
+    // Calculate realistic metrics
+    const estimatedReach = Math.round(totalTasksPossible * multiplier.reachPerTask * audienceMultiplier * durationEfficiency);
+    const expectedEngagement = Math.round(estimatedReach * multiplier.engagementRate);
+    const estimatedConversions = Math.round(expectedEngagement * multiplier.conversionRate);
     
     const costPerEngagement = expectedEngagement > 0 ? budget / expectedEngagement : 0;
     const costPerConversion = estimatedConversions > 0 ? budget / estimatedConversions : 0;
     
-    // ROI calculation (assuming average conversion value of ₦2000)
-    const averageConversionValue = 2000;
+    // ROI calculation based on realistic conversion value (₦500 average)
+    const averageConversionValue = 500;
     const totalRevenue = estimatedConversions * averageConversionValue;
     const projectedROI = budget > 0 ? ((totalRevenue - budget) / budget) * 100 : 0;
 
     setMetrics({
       estimatedReach,
       expectedEngagement,
-      projectedROI,
+      projectedROI: Math.max(-100, Math.min(200, projectedROI)), // Cap ROI between -100% and 200%
       costPerEngagement,
       estimatedConversions,
       costPerConversion
@@ -92,7 +99,7 @@ export const CampaignROICalculator = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    return `₦${amount.toLocaleString()}`;
+    return `$${amount.toLocaleString()}`;
   };
 
   const getROIColor = (roi: number) => {
@@ -111,17 +118,17 @@ export const CampaignROICalculator = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Input Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
-            <Label htmlFor="budget">Campaign Budget (₦)</Label>
+            <Label htmlFor="budget">Campaign Budget ($)</Label>
             <Input
               id="budget"
               type="number"
               value={budget}
               onChange={(e) => setBudget(Number(e.target.value))}
-              placeholder="10,000"
-              min="1000"
-              step="1000"
+              placeholder="10"
+              min="10"
+              step="10"
             />
           </div>
 
@@ -165,6 +172,15 @@ export const CampaignROICalculator = () => {
               placeholder="7"
               min="1"
               max="90"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="start-date">Campaign Start Date</Label>
+            <Input
+              id="start-date"
+              type="date"
+              className="w-full"
             />
           </div>
         </div>

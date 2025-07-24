@@ -80,7 +80,7 @@ export const BrandDashboardHeader: React.FC<BrandDashboardHeaderProps> = ({
                 <div>
                   <p className="text-sm text-muted-foreground">Wallet Balance</p>
                   <p className="text-lg font-bold text-foreground">
-                    ₦{wallet?.balance?.toLocaleString() || '0'}
+                    ${wallet?.balance?.toLocaleString() || '10'}
                   </p>
                 </div>
                 <Button
