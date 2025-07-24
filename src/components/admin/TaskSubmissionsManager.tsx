@@ -76,8 +76,8 @@ export const TaskSubmissionsManager: React.FC = () => {
         reviewed_at: item.reviewed_at,
         admin_notes: item.admin_notes,
         points_awarded: item.calculated_points,
-        tasks: item.tasks || null,
-        profiles: item.profiles || null
+        tasks: item.tasks && typeof item.tasks === 'object' && !Array.isArray(item.tasks) ? item.tasks : null,
+        profiles: item.profiles && typeof item.profiles === 'object' && !Array.isArray(item.profiles) ? item.profiles : null
       }));
 
       setSubmissions(mappedSubmissions);

@@ -90,6 +90,11 @@ export const BrandCampaignActions: React.FC<BrandCampaignActionsProps> = ({
     }
   };
 
+  const handleEditClose = () => {
+    setIsEditOpen(false);
+    onUpdate();
+  };
+
   const canEdit = campaign.admin_approval_status !== 'approved';
   const canDelete = campaign.status !== 'active';
 
@@ -192,8 +197,7 @@ export const BrandCampaignActions: React.FC<BrandCampaignActionsProps> = ({
       <EditCampaignDialog
         campaign={completeCampaign}
         isOpen={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
-        onUpdate={onUpdate}
+        onClose={handleEditClose}
       />
     </div>
   );
