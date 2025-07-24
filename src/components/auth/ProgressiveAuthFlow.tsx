@@ -352,6 +352,18 @@ const ProgressiveAuthFlow = () => {
                 >
                   Continue
                 </Button>
+
+                {!isLogin && (
+                  <div className="text-center">
+                    <span className="text-gray-400">Already have an account? </span>
+                    <button
+                      onClick={() => setIsLogin(true)}
+                      className="text-yeild-yellow hover:text-yeild-yellow/80 font-medium"
+                    >
+                      Sign in
+                    </button>
+                  </div>
+                )}
               </motion.div>
             )}
 
