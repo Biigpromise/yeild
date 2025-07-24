@@ -220,6 +220,11 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
                 step="0.01"
                 {...form.register('budget', { valueAsNumber: true })}
                 placeholder={watchedCurrency === 'USD' ? '10.00' : '15000.00'}
+                onFocus={(e) => {
+                  if (e.target.value === '0') {
+                    e.target.value = '';
+                  }
+                }}
               />
               {watchedCurrency && watchedBudget && (
                 <p className="text-sm text-muted-foreground mt-1">

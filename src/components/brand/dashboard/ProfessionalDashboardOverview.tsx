@@ -147,33 +147,58 @@ const CampaignCard = ({ name, status, budget, spent, impressions, clicks, ctr, r
   );
 };
 
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+
 export function ProfessionalDashboardOverview({
   profile,
   wallet,
   onCreateCampaign,
   onAddFunds,
 }: ProfessionalDashboardOverviewProps) {
-  // Mock data - replace with real data
+  // Fetch real campaign data
+  const { data: campaigns = [], isLoading: campaignsLoading } = useQuery({
+    queryKey: ['brand-campaigns-dashboard'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('brand_campaigns')
+        .select('*')
+        .eq('brand_id', user.id)
+        .limit(3)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Calculate real metrics from campaigns
+  const totalSpent = campaigns.reduce((sum, campaign) => sum + (campaign.funded_amount || 0), 0);
+  const activeCampaigns = campaigns.filter(campaign => campaign.status === 'active').length;
+  
   const metrics = [
     {
       title: "Total Spend",
-      value: "₦485,000",
+      value: `₦${totalSpent.toLocaleString()}`,
       change: "+12.5%",
       changeType: "increase" as const,
       icon: DollarSign,
       color: "blue" as const,
     },
     {
-      title: "Total Impressions",
-      value: "2.4M",
+      title: "Wallet Balance",
+      value: `₦${wallet?.balance?.toLocaleString() || "0.00"}`,
       change: "+8.3%",
       changeType: "increase" as const,
       icon: Eye,
       color: "green" as const,
     },
     {
-      title: "Average CTR",
-      value: "3.2%",
+      title: "Total Campaigns",
+      value: campaigns.length.toString(),
       change: "+0.5%",
       changeType: "increase" as const,
       icon: BarChart3,
@@ -181,67 +206,53 @@ export function ProfessionalDashboardOverview({
     },
     {
       title: "Active Campaigns",
-      value: "8",
-      change: "-2",
-      changeType: "decrease" as const,
+      value: activeCampaigns.toString(),
+      change: activeCampaigns > 0 ? `+${activeCampaigns}` : "0",
+      changeType: activeCampaigns > 0 ? "increase" as const : "decrease" as const,
       icon: Target,
       color: "red" as const,
     },
   ];
 
-  const campaigns = [
-    {
-      id: "1",
-      name: "Summer Sale Campaign",
-      status: "active" as const,
-      budget: 150000,
-      spent: 95000,
-      impressions: 450000,
-      clicks: 14500,
-      ctr: 3.2,
-      roas: 4.5,
-    },
-    {
-      id: "2",
-      name: "Brand Awareness Drive",
-      status: "paused" as const,
-      budget: 200000,
-      spent: 120000,
-      impressions: 680000,
-      clicks: 8900,
-      ctr: 1.3,
-      roas: 2.1,
-    },
-    {
-      id: "3",
-      name: "Product Launch",
-      status: "active" as const,
-      budget: 300000,
-      spent: 280000,
-      impressions: 850000,
-      clicks: 25500,
-      ctr: 3.0,
-      roas: 5.2,
-    },
-  ];
-
-  const alerts = [
-    {
+  // Generate smart alerts based on real data
+  const alerts = [];
+  
+  // Check for low wallet balance
+  if (wallet && wallet.balance < 50000) {
+    alerts.push({
       type: "warning",
-      message: "Campaign 'Product Launch' budget is 93% utilized",
-      action: "Review Budget",
-    },
-    {
-      type: "success",
-      message: "Your ROAS improved by 15% this week",
-      action: "View Details",
-    },
-    {
+      message: "Your wallet balance is running low. Consider adding funds.",
+      action: "Add Funds",
+    });
+  }
+
+  // Check for campaigns needing attention
+  const draftCampaigns = campaigns.filter(c => c.status === 'draft').length;
+  if (draftCampaigns > 0) {
+    alerts.push({
       type: "info",
-      message: "New audience insights available",
-      action: "Explore",
-    },
-  ];
+      message: `You have ${draftCampaigns} draft campaign${draftCampaigns > 1 ? 's' : ''} ready to activate.`,
+      action: "View Campaigns",
+    });
+  }
+
+  // Add success message if campaigns are active
+  if (activeCampaigns > 0) {
+    alerts.push({
+      type: "success",
+      message: `You have ${activeCampaigns} active campaign${activeCampaigns > 1 ? 's' : ''} running smoothly.`,
+      action: "View Performance",
+    });
+  }
+
+  // Default message if no alerts
+  if (alerts.length === 0) {
+    alerts.push({
+      type: "info",
+      message: "All systems running smoothly. Ready to create your first campaign?",
+      action: "Get Started",
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -289,9 +300,38 @@ export function ProfessionalDashboardOverview({
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {campaigns.map((campaign) => (
-                <CampaignCard key={campaign.id} {...campaign} />
-              ))}
+              {campaignsLoading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="h-20 bg-muted rounded-lg"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : campaigns.length > 0 ? (
+                campaigns.map((campaign) => (
+                  <CampaignCard 
+                    key={campaign.id} 
+                    id={campaign.id}
+                    name={campaign.title}
+                    status={campaign.status as any}
+                    budget={campaign.budget}
+                    spent={campaign.funded_amount || 0}
+                    impressions={0}
+                    clicks={0}
+                    ctr={0}
+                    roas={0}
+                  />
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">No campaigns yet</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Create your first campaign to get started
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

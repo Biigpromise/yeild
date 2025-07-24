@@ -1,5 +1,7 @@
 
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,8 +30,65 @@ import { AdminSettings } from './AdminSettings';
 import { AdminNotifications } from './AdminNotifications';
 import { AdminAnalytics } from './AdminAnalytics';
 
-// Quick stats component
+
+// Quick stats component with real data
 const QuickStats = () => {
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: async () => {
+      // Get users count
+      const { count: usersCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      // Get brand applications count
+      const { count: brandsCount } = await supabase
+        .from('brand_applications')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'approved');
+
+      // Get campaigns count
+      const { count: campaignsCount } = await supabase
+        .from('brand_campaigns')
+        .select('*', { count: 'exact', head: true });
+
+      // Get active campaigns count
+      const { count: activeCampaignsCount } = await supabase
+        .from('brand_campaigns')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active');
+
+      // Get total revenue (sum of all brand wallets total_deposited)
+      const { data: wallets } = await supabase
+        .from('brand_wallets')
+        .select('total_deposited');
+
+      const totalRevenue = wallets?.reduce((sum, wallet) => sum + (wallet.total_deposited || 0), 0) || 0;
+
+      return {
+        totalUsers: usersCount || 0,
+        activeBrands: brandsCount || 0,
+        totalRevenue,
+        activeCampaigns: activeCampaignsCount || 0,
+        totalCampaigns: campaignsCount || 0,
+      };
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="animate-pulse">
+            <CardContent className="p-4">
+              <div className="h-20 bg-muted rounded"></div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <Card>
@@ -37,8 +96,8 @@ const QuickStats = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-              <p className="text-2xl font-bold">12,345</p>
-              <p className="text-xs text-green-600">+5.2% from last month</p>
+              <p className="text-2xl font-bold">{stats?.totalUsers?.toLocaleString() || '0'}</p>
+              <p className="text-xs text-green-600">Platform members</p>
             </div>
             <Users className="h-8 w-8 text-blue-600" />
           </div>
@@ -50,8 +109,8 @@ const QuickStats = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Active Brands</p>
-              <p className="text-2xl font-bold">89</p>
-              <p className="text-xs text-green-600">+12% from last month</p>
+              <p className="text-2xl font-bold">{stats?.activeBrands?.toLocaleString() || '0'}</p>
+              <p className="text-xs text-green-600">Approved partners</p>
             </div>
             <Building2 className="h-8 w-8 text-green-600" />
           </div>
@@ -63,8 +122,8 @@ const QuickStats = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-              <p className="text-2xl font-bold">₦2.4M</p>
-              <p className="text-xs text-green-600">+18% from last month</p>
+              <p className="text-2xl font-bold">₦{stats?.totalRevenue?.toLocaleString() || '0'}</p>
+              <p className="text-xs text-green-600">Platform deposits</p>
             </div>
             <DollarSign className="h-8 w-8 text-yellow-600" />
           </div>
@@ -76,8 +135,8 @@ const QuickStats = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Active Campaigns</p>
-              <p className="text-2xl font-bold">156</p>
-              <p className="text-xs text-green-600">+8% from last month</p>
+              <p className="text-2xl font-bold">{stats?.activeCampaigns?.toLocaleString() || '0'}</p>
+              <p className="text-xs text-muted-foreground">of {stats?.totalCampaigns || 0} total</p>
             </div>
             <Target className="h-8 w-8 text-purple-600" />
           </div>

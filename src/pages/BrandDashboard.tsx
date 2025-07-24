@@ -8,6 +8,7 @@ import { BrandSidebar } from '@/components/brand/dashboard/BrandSidebar';
 import { ProfessionalDashboardOverview } from '@/components/brand/dashboard/ProfessionalDashboardOverview';
 import { CreateCampaignDialog } from '@/components/brand/CreateCampaignDialog';
 import { BrandWalletFundingDialog } from '@/components/brand/BrandWalletFundingDialog';
+import { BrandCampaignManager } from '@/components/brand/dashboard/BrandCampaignManager';
 import { toast } from 'sonner';
 
 const BrandDashboard = () => {
@@ -82,12 +83,7 @@ const BrandDashboard = () => {
               />
               <Route
                 path="/campaigns"
-                element={
-                  <div className="text-center py-12">
-                    <h2 className="text-2xl font-bold text-foreground mb-4">Campaign Manager</h2>
-                    <p className="text-muted-foreground">Coming soon...</p>
-                  </div>
-                }
+                element={<BrandCampaignManager />}
               />
               <Route
                 path="/audience"

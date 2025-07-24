@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Target,
@@ -11,7 +11,11 @@ import {
   ChevronDown,
   Bell,
   HelpCircle,
+  LogOut,
+  User,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import {
   Sidebar,
   SidebarContent,
@@ -90,8 +94,20 @@ interface BrandSidebarProps {
 export function BrandSidebar({ profile, wallet }: BrandSidebarProps) {
   const { state } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      toast.success("Signed out successfully");
+      navigate("/auth");
+    } catch (error: any) {
+      toast.error("Error signing out: " + error.message);
+    }
+  };
 
   const isActive = (path: string) => {
     if (path === "/brand-dashboard") {
@@ -198,6 +214,19 @@ export function BrandSidebar({ profile, wallet }: BrandSidebarProps) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              
+              {/* Sign Out Button */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className="p-0">
+                  <button 
+                    onClick={handleSignOut}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 w-full"
+                  >
+                    <LogOut className="w-5 h-5 flex-shrink-0" />
+                    {!collapsed && <span className="flex-1 truncate text-left">Sign Out</span>}
+                  </button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
