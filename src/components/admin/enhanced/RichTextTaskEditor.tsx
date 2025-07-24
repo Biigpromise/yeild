@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Bold, Italic, List, Link2, Eye } from "lucide-react";
+import DOMPurify from 'dompurify';
 
 interface RichTextTaskEditorProps {
   value: string;
@@ -63,7 +64,7 @@ export const RichTextTaskEditor: React.FC<RichTextTaskEditorProps> = ({
   ];
 
   const renderPreview = (text: string) => {
-    return text
+    const html = text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-blue-500 underline">$1</a>')
@@ -71,6 +72,9 @@ export const RichTextTaskEditor: React.FC<RichTextTaskEditorProps> = ({
       .split('\n')
       .map(line => `<p class="mb-2">${line}</p>`)
       .join('');
+    
+    // Sanitize HTML to prevent XSS attacks
+    return DOMPurify.sanitize(html);
   };
 
   return (
