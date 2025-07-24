@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -104,8 +103,8 @@ export const TaskSubmissionsManager: React.FC = () => {
 
           return {
             ...submission,
-            task_info: task,
-            user_info: user
+            task_info: task || undefined,
+            user_info: user || undefined
           };
         })
       );
@@ -168,28 +167,28 @@ export const TaskSubmissionsManager: React.FC = () => {
 
       if (updateError) throw updateError;
 
-      // Award points to user
+      // Award points to user by updating their profile points directly
       if (submission.task_info?.points) {
-        const { error: pointsError } = await supabase.rpc('credit_user_account', {
-          user_id: submission.user_id,
-          amount: submission.task_info.points,
-          reference: `Task completion: ${submission.task_info.title}`
-        });
-
-        if (pointsError) {
-          console.error('Error awarding points:', pointsError);
-        }
-
-        // Update user's task completion count
-        const { error: profileError } = await supabase
+        // Get current user points
+        const { data: userProfile, error: profileError } = await supabase
           .from('profiles')
-          .update({
-            tasks_completed: supabase.sql`tasks_completed + 1`
-          })
-          .eq('id', submission.user_id);
+          .select('points')
+          .eq('id', submission.user_id)
+          .single();
 
-        if (profileError) {
-          console.error('Error updating profile:', profileError);
+        if (!profileError && userProfile) {
+          // Update user points
+          const { error: pointsError } = await supabase
+            .from('profiles')
+            .update({
+              points: (userProfile.points || 0) + submission.task_info.points,
+              tasks_completed: supabase.raw('tasks_completed + 1')
+            })
+            .eq('id', submission.user_id);
+
+          if (pointsError) {
+            console.error('Error awarding points:', pointsError);
+          }
         }
       }
 
