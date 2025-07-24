@@ -143,6 +143,24 @@ export const useAuthOperations = () => {
                   email_confirmed: !!data.user.email_confirmed_at
                 });
             }
+
+            // Ensure brand role is assigned
+            const { data: roleData } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', data.user.id)
+              .eq('role', 'brand')
+              .single();
+
+            if (!roleData) {
+              console.log('Assigning brand role to user:', data.user.id);
+              await supabase
+                .from('user_roles')
+                .insert({
+                  user_id: data.user.id,
+                  role: 'brand'
+                });
+            }
           } catch (brandError) {
             console.error('Error handling brand application:', brandError);
           }

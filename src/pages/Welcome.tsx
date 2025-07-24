@@ -25,7 +25,7 @@ const Welcome: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-yeild-black relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-yeild-black relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-yeild-yellow opacity-10 blur-3xl"></div>
       <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-yeild-yellow opacity-10 blur-3xl"></div>
