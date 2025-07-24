@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -64,7 +63,23 @@ export const TaskSubmissionsManager: React.FC = () => {
 
       if (error) throw error;
       
-      setSubmissions(data || []);
+      // Map the data to match our interface
+      const mappedSubmissions: TaskSubmission[] = (data || []).map(item => ({
+        id: item.id,
+        user_id: item.user_id,
+        task_id: item.task_id,
+        evidence_url: item.evidence_file_url || '',
+        evidence_text: item.evidence || '',
+        status: item.status as 'pending' | 'approved' | 'rejected',
+        submitted_at: item.submitted_at,
+        reviewed_at: item.reviewed_at,
+        admin_notes: item.admin_notes,
+        points_awarded: item.calculated_points,
+        tasks: item.tasks,
+        profiles: item.profiles
+      }));
+
+      setSubmissions(mappedSubmissions);
     } catch (error) {
       console.error('Error loading task submissions:', error);
       toast.error('Failed to load task submissions');

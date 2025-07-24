@@ -27,9 +27,12 @@ interface Campaign {
   start_date: string | null;
   end_date: string | null;
   created_at: string;
+  updated_at?: string;
   admin_approval_status?: string;
   target_audience?: any;
   requirements?: any;
+  payment_status?: string;
+  funded_amount?: number;
 }
 
 interface BrandCampaignActionsProps {
@@ -89,6 +92,14 @@ export const BrandCampaignActions: React.FC<BrandCampaignActionsProps> = ({
 
   const canEdit = campaign.admin_approval_status !== 'approved';
   const canDelete = campaign.status !== 'active';
+
+  // Create a complete campaign object with default values for missing properties
+  const completeCampaign: Campaign = {
+    ...campaign,
+    updated_at: campaign.updated_at || campaign.created_at,
+    payment_status: campaign.payment_status || 'unpaid',
+    funded_amount: campaign.funded_amount || 0
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -163,13 +174,13 @@ export const BrandCampaignActions: React.FC<BrandCampaignActionsProps> = ({
       )}
 
       <CampaignDetailsDialog
-        campaign={campaign}
+        campaign={completeCampaign}
         isOpen={isDetailsOpen}
         onClose={() => setIsDetailsOpen(false)}
       />
 
       <EditCampaignDialog
-        campaign={campaign}
+        campaign={completeCampaign}
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
         onUpdate={onUpdate}
