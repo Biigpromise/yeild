@@ -214,7 +214,28 @@ const ProgressiveAuthFlow = () => {
                   </p>
                 </div>
 
-                {!isLogin && (
+                {isLogin ? (
+                  <div className="space-y-6">
+                    <div className="relative">
+                      <Mail className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <input
+                        type="email"
+                        placeholder="Enter your email address"
+                        value={formData.email}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        className="w-full bg-transparent text-white text-lg pl-8 py-4 border-0 border-b-2 border-gray-600 focus:border-yeild-yellow focus:outline-none placeholder-gray-400"
+                        autoFocus
+                      />
+                    </div>
+                    <Button
+                      onClick={() => setCurrentStep('password')}
+                      className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-3 text-lg font-semibold rounded-lg"
+                      disabled={!formData.email}
+                    >
+                      Continue
+                    </Button>
+                  </div>
+                ) : (
                   <div className="space-y-4">
                     <Button
                       onClick={() => handleUserTypeSelect('user')}
@@ -298,13 +319,13 @@ const ProgressiveAuthFlow = () => {
                 </div>
 
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
+                  <Mail className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
                     type="email"
                     placeholder="Enter your email address"
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full bg-black border-gray-600 text-white pl-10 py-6 text-lg rounded-lg focus:border-yeild-yellow focus:ring-yeild-yellow"
+                    className="w-full bg-transparent text-white text-lg pl-8 py-4 border-0 border-b-2 border-gray-600 focus:border-yeild-yellow focus:outline-none placeholder-gray-400"
                     autoFocus
                   />
                 </div>
@@ -338,19 +359,19 @@ const ProgressiveAuthFlow = () => {
                 </div>
 
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
+                  <Lock className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    className="w-full bg-black border-gray-600 text-white pl-10 pr-10 py-6 text-lg rounded-lg focus:border-yeild-yellow focus:ring-yeild-yellow"
+                    className="w-full bg-transparent text-white text-lg pl-8 pr-10 py-4 border-0 border-b-2 border-gray-600 focus:border-yeild-yellow focus:outline-none placeholder-gray-400"
                     autoFocus
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -381,13 +402,13 @@ const ProgressiveAuthFlow = () => {
                 </div>
 
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
+                  <User className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
                     type="text"
                     placeholder="Enter your full name"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full bg-black border-gray-600 text-white pl-10 py-6 text-lg rounded-lg focus:border-yeild-yellow focus:ring-yeild-yellow"
+                    className="w-full bg-transparent text-white text-lg pl-8 py-4 border-0 border-b-2 border-gray-600 focus:border-yeild-yellow focus:outline-none placeholder-gray-400"
                     autoFocus
                   />
                 </div>
