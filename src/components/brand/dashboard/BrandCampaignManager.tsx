@@ -39,15 +39,24 @@ export const BrandCampaignManager: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      console.log('Fetching campaigns for user:', user.id);
+
       const { data, error } = await supabase
         .from('brand_campaigns')
         .select('*')
         .eq('brand_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching campaigns:', error);
+        throw error;
+      }
+      
+      console.log('Fetched campaigns:', data);
       return data || [];
     },
+    enabled: true,
+    refetchOnWindowFocus: true
   });
 
   const { data: wallet } = useQuery({
