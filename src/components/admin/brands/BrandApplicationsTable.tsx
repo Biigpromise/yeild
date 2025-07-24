@@ -85,7 +85,16 @@ export const BrandApplicationsTable: React.FC<BrandApplicationsTableProps> = ({
                   >
                     {app.status === 'rejected' ? 'Rejected' : 'Reject'}
                   </Button>
-                  <Button size="sm" variant="outline">Details</Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => {
+                      // TODO: Implement details modal
+                      console.log('View details for application:', app.id);
+                    }}
+                  >
+                    Details
+                  </Button>
                 </div>
               </TableCell>
             </TableRow>

@@ -147,6 +147,18 @@ export const BrandCampaignsList = () => {
     updateCampaignStatusMutation.mutate({ id: campaignId, status: newStatus });
   };
 
+  const handleViewDetails = (campaignId: string) => {
+    // TODO: Implement view details modal or navigation
+    console.log('View details for campaign:', campaignId);
+    toast.info('Campaign details view will be implemented');
+  };
+
+  const handleEditCampaign = (campaignId: string) => {
+    // TODO: Implement edit campaign modal or navigation
+    console.log('Edit campaign:', campaignId);
+    toast.info('Campaign edit functionality will be implemented');
+  };
+
   const filteredCampaigns = campaigns?.filter(campaign => {
     const matchesSearch = campaign.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          campaign.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -332,11 +344,11 @@ export const BrandCampaignsList = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewDetails(campaign.id)}>
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditCampaign(campaign.id)}>
                             <Edit2 className="h-4 w-4 mr-2" />
                             Edit Campaign
                           </DropdownMenuItem>

@@ -26,6 +26,7 @@ import {
   Server,
   Lock
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AdminSignOutMenu } from './AdminSignOutMenu';
 import { EnhancedUserManagement } from './enhanced/EnhancedUserManagement';
 import { EnhancedTaskManagement } from './enhanced/EnhancedTaskManagement';
@@ -85,83 +86,118 @@ export const AdminDashboard: React.FC = () => {
       {/* Admin Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 lg:grid-cols-18 bg-muted">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-background">
-              <BarChart3 className="h-4 w-4 mr-2" />
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-muted overflow-x-auto"    >
+            <TabsTrigger value="overview" className="data-[state=active]:bg-background whitespace-nowrap">
+              <BarChart3 className="h-4 w-4 mr-1" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="monitoring" className="data-[state=active]:bg-background">
-              <Activity className="h-4 w-4 mr-2" />
-              Monitoring
-            </TabsTrigger>
-            <TabsTrigger value="security" className="data-[state=active]:bg-background">
-              <Shield className="h-4 w-4 mr-2" />
-              Security
-            </TabsTrigger>
-            <TabsTrigger value="security-advanced" className="data-[state=active]:bg-background">
-              <Lock className="h-4 w-4 mr-2" />
-              Sec Advanced
-            </TabsTrigger>
-            <TabsTrigger value="fraud" className="data-[state=active]:bg-background">
-              <Eye className="h-4 w-4 mr-2" />
-              Fraud
-            </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-background">
-              <Users className="h-4 w-4 mr-2" />
+            <TabsTrigger value="users" className="data-[state=active]:bg-background whitespace-nowrap">
+              <Users className="h-4 w-4 mr-1" />
               Users
             </TabsTrigger>
-            <TabsTrigger value="brands" className="data-[state=active]:bg-background">
-              <Building2 className="h-4 w-4 mr-2" />
+            <TabsTrigger value="brands" className="data-[state=active]:bg-background whitespace-nowrap">
+              <Building2 className="h-4 w-4 mr-1" />
               Brands
             </TabsTrigger>
-            <TabsTrigger value="campaigns" className="data-[state=active]:bg-background">
-              <Megaphone className="h-4 w-4 mr-2" />
+            <TabsTrigger value="campaigns" className="data-[state=active]:bg-background whitespace-nowrap">
+              <Megaphone className="h-4 w-4 mr-1" />
               Campaigns
             </TabsTrigger>
-            <TabsTrigger value="tasks" className="data-[state=active]:bg-background">
-              <Target className="h-4 w-4 mr-2" />
+            <TabsTrigger value="tasks" className="data-[state=active]:bg-background whitespace-nowrap">
+              <Target className="h-4 w-4 mr-1" />
               Tasks
             </TabsTrigger>
-            <TabsTrigger value="moderation" className="data-[state=active]:bg-background">
-              <Eye className="h-4 w-4 mr-2" />
-              Moderation
-            </TabsTrigger>
-            <TabsTrigger value="communications" className="data-[state=active]:bg-background">
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Communications
-            </TabsTrigger>
-            <TabsTrigger value="content" className="data-[state=active]:bg-background">
-              <FileText className="h-4 w-4 mr-2" />
-              Content
-            </TabsTrigger>
-            <TabsTrigger value="content-mgmt" className="data-[state=active]:bg-background">
-              <FileText className="h-4 w-4 mr-2" />
-              Content Mgmt
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="data-[state=active]:bg-background">
-              <Bell className="h-4 w-4 mr-2" />
-              Notifications
-            </TabsTrigger>
-            <TabsTrigger value="submissions" className="data-[state=active]:bg-background">
-              <CheckSquare className="h-4 w-4 mr-2" />
-              Submissions
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="data-[state=active]:bg-background">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="finance" className="data-[state=active]:bg-background">
-              <CreditCard className="h-4 w-4 mr-2" />
+            <TabsTrigger value="finance" className="data-[state=active]:bg-background whitespace-nowrap">
+              <CreditCard className="h-4 w-4 mr-1" />
               Finance
             </TabsTrigger>
-            <TabsTrigger value="config" className="data-[state=active]:bg-background">
-              <Zap className="h-4 w-4 mr-2" />
-              Config
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-background">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </TabsTrigger>
+            
+            {/* Secondary tabs accessible via dropdown */}
+            <Select value={activeTab} onValueChange={setActiveTab}>
+              <SelectTrigger className="w-[120px] h-10">
+                <SelectValue placeholder="More..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="monitoring">
+                  <div className="flex items-center">
+                    <Activity className="h-4 w-4 mr-2" />
+                    Monitoring
+                  </div>
+                </SelectItem>
+                <SelectItem value="security">
+                  <div className="flex items-center">
+                    <Shield className="h-4 w-4 mr-2" />
+                    Security
+                  </div>
+                </SelectItem>
+                <SelectItem value="security-advanced">
+                  <div className="flex items-center">
+                    <Lock className="h-4 w-4 mr-2" />
+                    Sec Advanced
+                  </div>
+                </SelectItem>
+                <SelectItem value="fraud">
+                  <div className="flex items-center">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Fraud
+                  </div>
+                </SelectItem>
+                <SelectItem value="moderation">
+                  <div className="flex items-center">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Moderation
+                  </div>
+                </SelectItem>
+                <SelectItem value="communications">
+                  <div className="flex items-center">
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Communications
+                  </div>
+                </SelectItem>
+                <SelectItem value="content">
+                  <div className="flex items-center">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Content
+                  </div>
+                </SelectItem>
+                <SelectItem value="content-mgmt">
+                  <div className="flex items-center">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Content Mgmt
+                  </div>
+                </SelectItem>
+                <SelectItem value="notifications">
+                  <div className="flex items-center">
+                    <Bell className="h-4 w-4 mr-2" />
+                    Notifications
+                  </div>
+                </SelectItem>
+                <SelectItem value="submissions">
+                  <div className="flex items-center">
+                    <CheckSquare className="h-4 w-4 mr-2" />
+                    Submissions
+                  </div>
+                </SelectItem>
+                <SelectItem value="analytics">
+                  <div className="flex items-center">
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    Analytics
+                  </div>
+                </SelectItem>
+                <SelectItem value="config">
+                  <div className="flex items-center">
+                    <Zap className="h-4 w-4 mr-2" />
+                    Config
+                  </div>
+                </SelectItem>
+                <SelectItem value="settings">
+                  <div className="flex items-center">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Settings
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">

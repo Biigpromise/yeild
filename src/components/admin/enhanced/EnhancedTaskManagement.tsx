@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAdminTaskManagement } from '../hooks/useAdminTaskManagement';
 import { enhancedTaskManagementService } from '@/services/admin/enhancedTaskManagementService';
+import { taskSubmissionService } from '@/services/taskSubmissionService';
 import { Search, Plus, Edit, Trash2, Eye, CheckCircle, XCircle, Clock, Image as ImageIcon, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -37,6 +38,31 @@ export const EnhancedTaskManagement: React.FC = () => {
   } = useAdminTaskManagement();
 
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
+  const [realSubmissions, setRealSubmissions] = useState<any[]>([]);
+  const [submissionStats, setSubmissionStats] = useState({
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  });
+
+  // Load real submission data
+  React.useEffect(() => {
+    const loadSubmissions = async () => {
+      try {
+        const [allSubmissions, stats] = await Promise.all([
+          taskSubmissionService.getAllSubmissions(),
+          taskSubmissionService.getSubmissionStats()
+        ]);
+        setRealSubmissions(allSubmissions);
+        setSubmissionStats(stats);
+      } catch (error) {
+        console.error('Error loading submissions:', error);
+      }
+    };
+
+    loadSubmissions();
+  }, []);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -65,10 +91,23 @@ export const EnhancedTaskManagement: React.FC = () => {
 
   const handleUpdateSubmission = async (submissionId: string, status: 'approved' | 'rejected', notes?: string) => {
     try {
-      await handleSubmissionUpdate(submissionId, status, notes);
-      setSelectedSubmission(null);
+      const success = await taskSubmissionService.updateSubmissionStatus(submissionId, status, notes);
+      if (success) {
+        // Reload submissions data
+        const [allSubmissions, stats] = await Promise.all([
+          taskSubmissionService.getAllSubmissions(),
+          taskSubmissionService.getSubmissionStats()
+        ]);
+        setRealSubmissions(allSubmissions);
+        setSubmissionStats(stats);
+        setSelectedSubmission(null);
+        toast.success(`Submission ${status} successfully`);
+      } else {
+        toast.error('Failed to update submission');
+      }
     } catch (error) {
       console.error('Error updating submission:', error);
+      toast.error('Failed to update submission');
     }
   };
 
@@ -149,19 +188,19 @@ export const EnhancedTaskManagement: React.FC = () => {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-orange-600">{pendingSubmissions.length}</div>
+            <div className="text-2xl font-bold text-orange-600">{submissionStats.pending}</div>
             <p className="text-sm text-gray-600">Pending Submissions</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-gray-600">{totalSubmissions}</div>
+            <div className="text-2xl font-bold text-gray-600">{submissionStats.total}</div>
             <p className="text-sm text-gray-600">Total Submissions</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">{approvedSubmissions}</div>
+            <div className="text-2xl font-bold text-green-600">{submissionStats.approved}</div>
             <p className="text-sm text-gray-600">Approved Submissions</p>
           </CardContent>
         </Card>
@@ -247,7 +286,7 @@ export const EnhancedTaskManagement: React.FC = () => {
 
         <TabsContent value="submissions" className="space-y-4">
           <div className="space-y-4">
-            {submissions.map((submission) => (
+            {realSubmissions.map((submission) => (
               <Card key={submission.id}>
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start">
