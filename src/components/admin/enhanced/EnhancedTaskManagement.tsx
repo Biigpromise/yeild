@@ -12,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAdminTaskManagement } from '../hooks/useAdminTaskManagement';
 import { enhancedTaskManagementService } from '@/services/admin/enhancedTaskManagementService';
 import { taskSubmissionService } from '@/services/taskSubmissionService';
-import { Search, Plus, Edit, Trash2, Eye, CheckCircle, XCircle, Clock, Image as ImageIcon, ExternalLink } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, CheckCircle, XCircle, Clock, Image as ImageIcon, ExternalLink, FileText, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const EnhancedTaskManagement: React.FC = () => {
@@ -63,6 +63,7 @@ export const EnhancedTaskManagement: React.FC = () => {
 
     loadSubmissions();
   }, []);
+
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -112,57 +113,153 @@ export const EnhancedTaskManagement: React.FC = () => {
   };
 
   const renderSubmissionEvidence = (submission: any) => {
-    if (!submission.evidence) return null;
-
-    let evidenceData;
-    try {
-      evidenceData = typeof submission.evidence === 'string' 
-        ? JSON.parse(submission.evidence) 
-        : submission.evidence;
-    } catch (error) {
-      console.error('Error parsing evidence:', error);
-      return <p className="text-sm text-gray-500">Evidence format error</p>;
-    }
-
-    if (evidenceData.images && evidenceData.images.length > 0) {
+    console.log('Rendering evidence for submission:', submission);
+    
+    if (!submission.evidence) {
       return (
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Photo Evidence:</Label>
-          <div className="grid grid-cols-2 gap-2">
-            {evidenceData.images.map((imageUrl: string, index: number) => (
-              <div key={index} className="relative">
-                <img 
-                  src={imageUrl} 
-                  alt={`Evidence ${index + 1}`}
-                  className="w-full h-32 object-cover rounded-md border cursor-pointer hover:opacity-80"
-                  onClick={() => window.open(imageUrl, '_blank')}
-                />
-                <div className="absolute top-2 right-2">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => window.open(imageUrl, '_blank')}
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+        <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-2 text-gray-500">
+            <AlertCircle className="h-4 w-4" />
+            <span className="text-sm">No evidence provided</span>
           </div>
         </div>
       );
     }
 
-    if (evidenceData.description) {
+    let evidenceData;
+    try {
+      // Handle different evidence formats
+      if (typeof submission.evidence === 'string') {
+        try {
+          evidenceData = JSON.parse(submission.evidence);
+        } catch (parseError) {
+          // If JSON parsing fails, treat as plain text
+          evidenceData = { description: submission.evidence };
+        }
+      } else {
+        evidenceData = submission.evidence;
+      }
+    } catch (error) {
+      console.error('Error parsing evidence:', error);
       return (
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Text Evidence:</Label>
-          <p className="text-sm bg-gray-50 p-3 rounded-md">{evidenceData.description}</p>
+        <div className="p-4 bg-red-50 rounded-lg">
+          <div className="flex items-center gap-2 text-red-600">
+            <AlertCircle className="h-4 w-4" />
+            <span className="text-sm">Error loading evidence</span>
+          </div>
         </div>
       );
     }
 
-    return <p className="text-sm text-gray-500">No evidence provided</p>;
+    console.log('Parsed evidence data:', evidenceData);
+
+    return (
+      <div className="space-y-4">
+        <Label className="text-sm font-medium">Submission Evidence:</Label>
+        
+        {/* Handle image evidence */}
+        {evidenceData.images && evidenceData.images.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-medium">Photo Evidence ({evidenceData.images.length})</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {evidenceData.images.map((imageUrl: string, index: number) => (
+                <div key={index} className="relative group">
+                  <div className="relative overflow-hidden rounded-lg border border-gray-200">
+                    <img 
+                      src={imageUrl} 
+                      alt={`Evidence ${index + 1}`}
+                      className="w-full h-32 object-cover transition-transform group-hover:scale-105"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIxIDlWN0E0IDQgMCAwIDAgMTcgM0g3QTQgNCAwIDAgMCAzIDdWMTdBNCA0IDAgMCAwIDcgMjFIOUwyMSA5WiIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0yMSA5TDkgMjEiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K';
+                        target.alt = 'Failed to load image';
+                        console.error('Failed to load image:', imageUrl);
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => window.open(imageUrl, '_blank')}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        View
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Handle single image URL */}
+        {evidenceData.image && !evidenceData.images && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-medium">Photo Evidence</span>
+            </div>
+            <div className="relative group w-fit">
+              <img 
+                src={evidenceData.image} 
+                alt="Evidence"
+                className="w-full max-w-sm h-32 object-cover rounded-lg border border-gray-200 cursor-pointer"
+                onClick={() => window.open(evidenceData.image, '_blank')}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIxIDlWN0E0IDQgMCAwIDAgMTcgM0g3QTQgNCAwIDAgMCAzIDdWMTdBNCA0IDAgMCAwIDcgMjFIOUwyMSA5WiIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0yMSA5TDkgMjEiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K';
+                  console.error('Failed to load image:', evidenceData.image);
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Handle text evidence */}
+        {evidenceData.description && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-green-600" />
+              <span className="text-sm font-medium">Text Evidence</span>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg border">
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{evidenceData.description}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Handle text field evidence */}
+        {evidenceData.text && !evidenceData.description && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-green-600" />
+              <span className="text-sm font-medium">Text Evidence</span>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg border">
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{evidenceData.text}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Fallback for unknown format */}
+        {!evidenceData.images && !evidenceData.image && !evidenceData.description && !evidenceData.text && (
+          <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div className="flex items-center gap-2 text-yellow-700">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">Evidence format not recognized</span>
+            </div>
+            <pre className="mt-2 text-xs text-gray-600 overflow-auto">
+              {JSON.stringify(evidenceData, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+    );
   };
 
   if (loading) {
@@ -329,37 +426,42 @@ export const EnhancedTaskManagement: React.FC = () => {
                             View
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl max-h-[80vh]">
+                        <DialogContent className="max-w-3xl max-h-[85vh]">
                           <DialogHeader>
                             <DialogTitle>Submission Details</DialogTitle>
                           </DialogHeader>
-                          <ScrollArea className="max-h-[60vh]">
-                            <div className="space-y-4">
-                              <div>
-                                <Label className="text-sm font-medium">Task:</Label>
-                                <p className="text-sm">{submission.tasks?.title}</p>
+                          <ScrollArea className="max-h-[70vh] pr-4">
+                            <div className="space-y-6">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label className="text-sm font-medium">Task:</Label>
+                                  <p className="text-sm mt-1">{submission.tasks?.title}</p>
+                                </div>
+                                <div>
+                                  <Label className="text-sm font-medium">User:</Label>
+                                  <p className="text-sm mt-1">{submission.profiles?.name || submission.profiles?.email}</p>
+                                </div>
+                                <div>
+                                  <Label className="text-sm font-medium">Status:</Label>
+                                  <Badge className="ml-2">{submission.status}</Badge>
+                                </div>
+                                <div>
+                                  <Label className="text-sm font-medium">Submitted:</Label>
+                                  <p className="text-sm mt-1">{new Date(submission.submitted_at).toLocaleString()}</p>
+                                </div>
                               </div>
-                              <div>
-                                <Label className="text-sm font-medium">User:</Label>
-                                <p className="text-sm">{submission.profiles?.name || submission.profiles?.email}</p>
-                              </div>
-                              <div>
-                                <Label className="text-sm font-medium">Status:</Label>
-                                <Badge className="ml-2">{submission.status}</Badge>
-                              </div>
-                              <div>
-                                <Label className="text-sm font-medium">Submitted:</Label>
-                                <p className="text-sm">{new Date(submission.submitted_at).toLocaleString()}</p>
-                              </div>
+                              
                               {renderSubmissionEvidence(submission)}
+                              
                               {submission.admin_notes && (
                                 <div>
                                   <Label className="text-sm font-medium">Admin Notes:</Label>
-                                  <p className="text-sm bg-gray-50 p-3 rounded-md">{submission.admin_notes}</p>
+                                  <p className="text-sm bg-gray-50 p-3 rounded-md mt-1">{submission.admin_notes}</p>
                                 </div>
                               )}
+                              
                               {submission.status === 'pending' && (
-                                <div className="flex gap-2 pt-4">
+                                <div className="flex gap-2 pt-4 border-t">
                                   <Button 
                                     onClick={() => handleUpdateSubmission(submission.id, 'approved')}
                                     className="flex-1"

@@ -31,20 +31,21 @@ export const fileUploadService = {
   async uploadTaskSubmission(file: File): Promise<string | null> {
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `submission_${Date.now()}.${fileExt}`;
+      const fileName = `submission_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `submissions/${fileName}`;
 
+      // Use the task-evidence bucket for task submissions
       const { error: uploadError } = await supabase.storage
-        .from('stories')
+        .from('task-evidence')
         .upload(filePath, file);
 
       if (uploadError) {
-        console.error('Error uploading submission file:', uploadError);
+        console.error('Error uploading task submission file:', uploadError);
         return null;
       }
 
       const { data } = supabase.storage
-        .from('stories')
+        .from('task-evidence')
         .getPublicUrl(filePath);
 
       return data.publicUrl;
