@@ -309,6 +309,39 @@ export type Database = {
           },
         ]
       }
+      brand_notifications: {
+        Row: {
+          brand_id: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          title: string
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       brand_payment_methods: {
         Row: {
           brand_id: string | null
@@ -472,6 +505,41 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_analytics: {
+        Row: {
+          campaign_id: string
+          id: string
+          metadata: Json | null
+          metric_name: string
+          metric_value: number
+          recorded_at: string | null
+        }
+        Insert: {
+          campaign_id: string
+          id?: string
+          metadata?: Json | null
+          metric_name: string
+          metric_value: number
+          recorded_at?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          id?: string
+          metadata?: Json | null
+          metric_name?: string
+          metric_value?: number
+          recorded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_analytics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "brand_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_approval_requests: {
         Row: {
           brand_id: string | null
@@ -519,6 +587,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      campaign_templates: {
+        Row: {
+          brand_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_shared: boolean | null
+          name: string
+          template_data: Json
+          updated_at: string | null
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_shared?: boolean | null
+          name: string
+          template_data: Json
+          updated_at?: string | null
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_shared?: boolean | null
+          name?: string
+          template_data?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       campaigns: {
         Row: {

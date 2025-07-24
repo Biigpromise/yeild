@@ -1,244 +1,354 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { 
-  Building, 
-  Users, 
+  LayoutDashboard, 
+  PlusCircle, 
   Target, 
-  TrendingUp, 
-  DollarSign,
-  Plus,
-  Settings,
+  DollarSign, 
+  Users, 
+  TrendingUp,
+  Bell,
+  Template,
   BarChart3,
-  LogOut,
-  Wallet,
-  CreditCard,
-  User,
-  FileText,
-  Activity
+  Settings,
+  Calendar,
+  MessageSquare,
+  CreditCard
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useBrandCampaignStats } from '@/hooks/useBrandCampaignStats';
-import { BrandCampaignsTab } from '@/components/brand/BrandCampaignsTab';
-import { BrandAnalyticsTab } from '@/components/brand/BrandAnalyticsTab';
-import { BrandBillingTab } from '@/components/brand/BrandBillingTab';
-import { BrandProfileTab } from '@/components/brand/BrandProfileTab';
-import { BrandPerformanceTab } from '@/components/brand/BrandPerformanceTab';
-import { BrandWalletCard } from '@/components/brand/BrandWalletCard';
+import { CreateCampaignDialog } from '@/components/brand/CreateCampaignDialog';
+import { BrandCampaignsList } from '@/components/brand/BrandCampaignsList';
+import { BrandNotifications } from '@/components/brand/BrandNotifications';
+import { CampaignAnalytics } from '@/components/brand/CampaignAnalytics';
+import { CampaignTemplates } from '@/components/brand/CampaignTemplates';
 
-const BrandDashboard = () => {
-  const { user, loading, signOut } = useAuth();
-  const navigate = useNavigate();
-  const { stats, loading: statsLoading } = useBrandCampaignStats();
+export const BrandDashboard = () => {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
-  if (loading) {
+  const { data: campaigns, isLoading } = useQuery({
+    queryKey: ['brand-campaigns'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('brand_campaigns')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: profile } = useQuery({
+    queryKey: ['brand-profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('brand_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: wallet } = useQuery({
+    queryKey: ['brand-wallet'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('brand_wallets')
+        .select('*')
+        .eq('brand_id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const totalBudget = campaigns?.reduce((sum, campaign) => sum + Number(campaign.budget), 0) || 0;
+  const activeCampaigns = campaigns?.filter(c => c.status === 'active').length || 0;
+  const pendingCampaigns = campaigns?.filter(c => c.admin_approval_status === 'pending').length || 0;
+  const completedCampaigns = campaigns?.filter(c => c.status === 'completed').length || 0;
+
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto p-6">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </div>
       </div>
     );
   }
 
-  // Check if user is brand
-  const isBrand = user?.user_metadata?.user_type === 'brand' || user?.user_metadata?.company_name;
-  if (!user || !isBrand) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  const companyName = user.user_metadata?.company_name || user.user_metadata?.name || 'Brand Partner';
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Brand Header */}
-      <div className="bg-card shadow-sm border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Building className="h-6 w-6 text-primary" />
-                <div>
-                  <h1 className="text-2xl font-bold text-foreground">Brand Dashboard</h1>
-                  <p className="text-sm text-muted-foreground">Welcome back, {companyName}</p>
-                </div>
-              </div>
-              <Badge variant="secondary" className="bg-primary/10 text-primary">
-                Brand Partner
-              </Badge>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => navigate('/brand/settings')}>
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
-              <Button variant="outline" size="sm" onClick={signOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Brand Dashboard</h1>
+            <p className="text-muted-foreground mt-1">
+              Welcome back, {profile?.company_name || 'Brand'}
+            </p>
           </div>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Create Campaign
+          </Button>
         </div>
-      </div>
 
-      {/* Brand Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-muted">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-background">
-              <BarChart3 className="h-4 w-4 mr-2" />
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <LayoutDashboard className="h-4 w-4" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="campaigns" className="data-[state=active]:bg-background">
-              <Target className="h-4 w-4 mr-2" />
+            <TabsTrigger value="campaigns" className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
               Campaigns
             </TabsTrigger>
-            <TabsTrigger value="billing" className="data-[state=active]:bg-background">
-              <CreditCard className="h-4 w-4 mr-2" />
-              Billing
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="data-[state=active]:bg-background">
-              <TrendingUp className="h-4 w-4 mr-2" />
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
               Analytics
             </TabsTrigger>
-            <TabsTrigger value="profile" className="data-[state=active]:bg-background">
-              <User className="h-4 w-4 mr-2" />
-              Profile
+            <TabsTrigger value="templates" className="flex items-center gap-2">
+              <Template className="h-4 w-4" />
+              Templates
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Notifications
+            </TabsTrigger>
+            <TabsTrigger value="wallet" className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Wallet
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="border-border bg-card">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-foreground">Active Campaigns</CardTitle>
-                  <Target className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground">
-                    {statsLoading ? '...' : stats?.activeCampaigns || '0'}
+            {/* Key Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total Budget</p>
+                      <p className="text-2xl font-bold">${totalBudget.toLocaleString()}</p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-green-600" />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {statsLoading ? '...' : `+${stats?.campaignGrowth || 0} from last month`}
-                  </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-border bg-card">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-foreground">Total Reach</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground">
-                    {statsLoading ? '...' : `${(stats?.totalReach || 0).toLocaleString()}`}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Active Campaigns</p>
+                      <p className="text-2xl font-bold">{activeCampaigns}</p>
+                    </div>
+                    <Target className="h-8 w-8 text-blue-600" />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {statsLoading ? '...' : `+${stats?.reachGrowth || 0}% from last month`}
-                  </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-border bg-card">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-foreground">Engagement Rate</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground">
-                    {statsLoading ? '...' : `${stats?.engagementRate || 0}%`}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Pending Approval</p>
+                      <p className="text-2xl font-bold">{pendingCampaigns}</p>
+                    </div>
+                    <Calendar className="h-8 w-8 text-yellow-600" />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {statsLoading ? '...' : `+${stats?.engagementGrowth || 0}% from last month`}
-                  </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-border bg-card">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-foreground">Total Spend</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground">
-                    ₦{statsLoading ? '...' : (stats?.totalSpent || 0).toLocaleString()}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Wallet Balance</p>
+                      <p className="text-2xl font-bold">${wallet?.balance?.toLocaleString() || '0'}</p>
+                    </div>
+                    <CreditCard className="h-8 w-8 text-purple-600" />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {statsLoading ? '...' : `+${stats?.spentGrowth || 0}% from last month`}
-                  </p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Quick Actions and Wallet */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="border-border bg-card">
+            {/* Recent Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-foreground">Campaign Management</CardTitle>
-                  <p className="text-sm text-muted-foreground">Create and manage your marketing campaigns</p>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    Recent Campaigns
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <Button className="w-full" onClick={() => navigate('/campaigns/create')}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create New Campaign
-                    </Button>
-                    <Button variant="outline" className="w-full" onClick={() => setActiveTab('campaigns')}>
-                      <Target className="h-4 w-4 mr-2" />
-                      View All Campaigns
-                    </Button>
+                  <div className="space-y-4">
+                    {campaigns?.slice(0, 5).map((campaign) => (
+                      <div key={campaign.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                        <div>
+                          <p className="font-medium">{campaign.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            ${Number(campaign.budget).toLocaleString()} • {new Date(campaign.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Badge variant={
+                          campaign.status === 'active' ? 'default' :
+                          campaign.status === 'draft' ? 'secondary' : 'outline'
+                        }>
+                          {campaign.status}
+                        </Badge>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-border bg-card">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-foreground">Analytics & Reports</CardTitle>
-                  <p className="text-sm text-muted-foreground">Track your campaign performance</p>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Quick Stats
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <Button variant="outline" className="w-full" onClick={() => setActiveTab('analytics')}>
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      View Analytics
-                    </Button>
-                    <Button variant="outline" className="w-full" onClick={() => setActiveTab('performance')}>
-                      <TrendingUp className="h-4 w-4 mr-2" />
-                      Performance Reports
-                    </Button>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Total Campaigns</span>
+                      <span className="font-medium">{campaigns?.length || 0}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Completed</span>
+                      <span className="font-medium">{completedCampaigns}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Success Rate</span>
+                      <span className="font-medium">
+                        {campaigns?.length > 0 ? Math.round((completedCampaigns / campaigns.length) * 100) : 0}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Total Spent</span>
+                      <span className="font-medium">${wallet?.total_spent?.toLocaleString() || '0'}</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-
-              <BrandWalletCard />
             </div>
           </TabsContent>
 
           <TabsContent value="campaigns">
-            <BrandCampaignsTab />
+            <BrandCampaignsList />
           </TabsContent>
 
           <TabsContent value="analytics">
-            <BrandAnalyticsTab />
+            <CampaignAnalytics />
           </TabsContent>
 
-          <TabsContent value="billing">
-            <BrandBillingTab />
+          <TabsContent value="templates">
+            <CampaignTemplates />
           </TabsContent>
 
-          <TabsContent value="profile">
-            <BrandProfileTab />
+          <TabsContent value="notifications">
+            <BrandNotifications />
+          </TabsContent>
+
+          <TabsContent value="wallet">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Wallet Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="text-center p-4 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground">Current Balance</p>
+                    <p className="text-2xl font-bold">${wallet?.balance?.toLocaleString() || '0'}</p>
+                  </div>
+                  <div className="text-center p-4 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground">Total Deposited</p>
+                    <p className="text-2xl font-bold">${wallet?.total_deposited?.toLocaleString() || '0'}</p>
+                  </div>
+                  <div className="text-center p-4 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground">Total Spent</p>
+                    <p className="text-2xl font-bold">${wallet?.total_spent?.toLocaleString() || '0'}</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <Button>Add Funds</Button>
+                  <Button variant="outline">Transaction History</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Account Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-medium mb-2">Company Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Company Name</p>
+                        <p className="font-medium">{profile?.company_name || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Industry</p>
+                        <p className="font-medium">{profile?.industry || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Website</p>
+                        <p className="font-medium">{profile?.website || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Currency</p>
+                        <p className="font-medium">{profile?.currency_preference || 'NGN'}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <Button>Edit Profile</Button>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
+
+        <CreateCampaignDialog
+          isOpen={isCreateDialogOpen}
+          onClose={() => setIsCreateDialogOpen(false)}
+        />
       </div>
     </div>
   );
 };
-
-export default BrandDashboard;
