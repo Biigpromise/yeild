@@ -6,7 +6,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { BrandApplicationsTable } from "./brands/BrandApplicationsTable";
 import { BrandCampaignsTab } from "./brands/BrandCampaignsTab";
 import { BrandPerformanceTab } from "./brands/BrandPerformanceTab";
-import { useBrandApplications } from "@/hooks/useBrandApplications";
+import { useBrandApplications, type BrandApplication } from "@/hooks/useBrandApplications";
 
 export const AdminBrands = () => {
   const { applications, loading, handleUpdateStatus } = useBrandApplications();

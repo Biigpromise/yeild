@@ -26,6 +26,7 @@ import AuthCallback from '@/pages/AuthCallback';
 import Onboarding from '@/pages/Onboarding';
 import CampaignCreate from '@/pages/CampaignCreate';
 import ForgotPassword from '@/pages/ForgotPassword';
+import Auth from '@/pages/Auth';
 
 const queryClient = new QueryClient();
 
@@ -42,7 +43,7 @@ function App() {
                   <Route path="/about" element={<About />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<SignUp />} />
-                  <Route path="/auth" element={<Login />} />
+                  <Route path="/auth" element={<Auth />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/brand-application" element={<BrandApplication />} />
                   <Route path="/onboarding" element={<Onboarding />} />

@@ -1,21 +1,12 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { BrandApplicationDetailsDialog } from "./BrandApplicationDetailsDialog";
+import { toast } from "sonner";
+import { type BrandApplication } from "@/hooks/useBrandApplications";
 
-type BrandApplication = {
-  id: string;
-  user_id: string;
-  company_name: string;
-  website: string | null;
-  status: "pending" | "approved" | "rejected";
-  created_at: string;
-  company_size: string;
-  industry: string;
-  budget: string;
-  goals: string;
-};
 
 interface BrandApplicationsTableProps {
   applications: BrandApplication[];
@@ -26,6 +17,32 @@ export const BrandApplicationsTable: React.FC<BrandApplicationsTableProps> = ({
   applications,
   onUpdateStatus
 }) => {
+  const [selectedApplication, setSelectedApplication] = useState<BrandApplication | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  const handleApprove = async (applicationId: string, userId: string) => {
+    try {
+      await onUpdateStatus(applicationId, userId, 'approved');
+      toast.success('Brand application approved successfully');
+    } catch (error) {
+      toast.error('Failed to approve application');
+    }
+  };
+
+  const handleReject = async (applicationId: string, userId: string) => {
+    try {
+      await onUpdateStatus(applicationId, userId, 'rejected');
+      toast.success('Brand application rejected');
+    } catch (error) {
+      toast.error('Failed to reject application');
+    }
+  };
+
+  const handleViewDetails = (application: BrandApplication) => {
+    setSelectedApplication(application);
+    setIsDetailsOpen(true);
+  };
+
   return (
     <div className="overflow-x-auto border rounded-md">
       <Table>
@@ -71,7 +88,7 @@ export const BrandApplicationsTable: React.FC<BrandApplicationsTableProps> = ({
                 <div className="flex gap-2 justify-end">
                   <Button 
                     size="sm" 
-                    onClick={() => onUpdateStatus(app.id, app.user_id, 'approved')} 
+                    onClick={() => handleApprove(app.id, app.user_id)} 
                     disabled={app.status !== 'pending'}
                     variant={app.status === 'approved' ? 'outline' : 'default'}
                   >
@@ -80,7 +97,7 @@ export const BrandApplicationsTable: React.FC<BrandApplicationsTableProps> = ({
                   <Button 
                     size="sm" 
                     variant="destructive" 
-                    onClick={() => onUpdateStatus(app.id, app.user_id, 'rejected')} 
+                    onClick={() => handleReject(app.id, app.user_id)} 
                     disabled={app.status !== 'pending'}
                   >
                     {app.status === 'rejected' ? 'Rejected' : 'Reject'}
@@ -88,10 +105,7 @@ export const BrandApplicationsTable: React.FC<BrandApplicationsTableProps> = ({
                   <Button 
                     size="sm" 
                     variant="outline"
-                    onClick={() => {
-                      // TODO: Implement details modal
-                      console.log('View details for application:', app.id);
-                    }}
+                    onClick={() => handleViewDetails(app)}
                   >
                     Details
                   </Button>
@@ -107,6 +121,12 @@ export const BrandApplicationsTable: React.FC<BrandApplicationsTableProps> = ({
           )}
         </TableBody>
       </Table>
+      
+      <BrandApplicationDetailsDialog
+        application={selectedApplication}
+        isOpen={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
+      />
     </div>
   );
 };

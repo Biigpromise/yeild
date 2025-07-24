@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type BrandApplication = {
+export type BrandApplication = {
   id: string;
   user_id: string;
   company_name: string;
@@ -14,6 +14,7 @@ type BrandApplication = {
   industry: string;
   budget: string;
   goals: string;
+  task_types: any;
 };
 
 export const useBrandApplications = () => {

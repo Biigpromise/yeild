@@ -52,6 +52,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { CampaignDetailsDialog } from './CampaignDetailsDialog';
+import { EditCampaignDialog } from './EditCampaignDialog';
 
 interface Campaign {
   id: string;
@@ -72,6 +74,9 @@ export const BrandCampaignsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [approvalFilter, setApprovalFilter] = useState('all');
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: campaigns, isLoading, error } = useQuery({
@@ -147,16 +152,14 @@ export const BrandCampaignsList = () => {
     updateCampaignStatusMutation.mutate({ id: campaignId, status: newStatus });
   };
 
-  const handleViewDetails = (campaignId: string) => {
-    // TODO: Implement view details modal or navigation
-    console.log('View details for campaign:', campaignId);
-    toast.info('Campaign details view will be implemented');
+  const handleViewDetails = (campaign: Campaign) => {
+    setSelectedCampaign(campaign);
+    setIsDetailsOpen(true);
   };
 
-  const handleEditCampaign = (campaignId: string) => {
-    // TODO: Implement edit campaign modal or navigation
-    console.log('Edit campaign:', campaignId);
-    toast.info('Campaign edit functionality will be implemented');
+  const handleEditCampaign = (campaign: Campaign) => {
+    setSelectedCampaign(campaign);
+    setIsEditOpen(true);
   };
 
   const filteredCampaigns = campaigns?.filter(campaign => {
@@ -344,11 +347,11 @@ export const BrandCampaignsList = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewDetails(campaign.id)}>
+                          <DropdownMenuItem onClick={() => handleViewDetails(campaign)}>
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEditCampaign(campaign.id)}>
+                          <DropdownMenuItem onClick={() => handleEditCampaign(campaign)}>
                             <Edit2 className="h-4 w-4 mr-2" />
                             Edit Campaign
                           </DropdownMenuItem>
@@ -401,6 +404,18 @@ export const BrandCampaignsList = () => {
             </Table>
           </div>
         )}
+
+        <CampaignDetailsDialog
+          campaign={selectedCampaign}
+          isOpen={isDetailsOpen}
+          onClose={() => setIsDetailsOpen(false)}
+        />
+
+        <EditCampaignDialog
+          campaign={selectedCampaign}
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+        />
       </CardContent>
     </Card>
   );

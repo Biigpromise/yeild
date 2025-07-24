@@ -1,139 +1,126 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const navigate = useNavigate();
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!email) {
-      toast.error('Please enter your email address');
+      toast.error("Please enter your email address");
       return;
     }
 
+    setIsLoading(true);
+    
     try {
-      setIsLoading(true);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/auth/reset-password`,
       });
 
       if (error) {
         toast.error(error.message);
       } else {
-        setIsSubmitted(true);
-        toast.success('Password reset email sent! Check your inbox.');
+        setEmailSent(true);
+        toast.success("Password reset email sent! Check your inbox.");
       }
     } catch (error: any) {
-      console.error('Password reset error:', error);
-      toast.error(error.message || 'An error occurred while sending reset email');
+      toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (isSubmitted) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="max-w-md mx-auto px-6 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2 text-white">Check your email</h1>
-              <p className="text-gray-400">
-                We've sent a password reset link to {email}
-              </p>
-            </div>
-            
+  return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-gray-900 border-gray-700">
+        <CardHeader>
+          <div className="flex items-center gap-4 mb-4">
             <Button
               onClick={() => navigate('/auth')}
-              className="w-full bg-yeild-yellow hover:bg-yeild-yellow/90 text-black py-4 rounded-full text-lg font-semibold"
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-gray-800"
             >
-              Back to Sign In
+              <ArrowLeft className="w-4 h-4" />
             </Button>
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <div className="flex items-center justify-between p-6">
-        <button onClick={() => navigate('/auth')} className="text-white">
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-        <div className="flex items-center justify-center">
-          <span className="text-yeild-yellow text-2xl font-bold">YEILD</span>
-        </div>
-        <div className="w-6"></div>
-      </div>
-
-      {/* Content */}
-      <div className="px-6 pb-6 max-w-md mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2 text-white">Reset your password</h1>
-            <p className="text-gray-400">
-              Enter your email and we'll send you a link to reset your password
-            </p>
+            <img 
+              src="/lovable-uploads/54ccebd1-9d4c-452f-b0a9-0b9de0fcfebf.png" 
+              alt="YEILD Logo" 
+              className="w-8 h-8 object-contain"
+            />
           </div>
-
-          <form onSubmit={handleResetPassword} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full py-4 px-4 bg-black border-b border-gray-600 rounded-none focus:border-yeild-yellow focus:ring-0 text-lg text-white"
-                placeholder="Enter your email address"
-                required
-              />
-            </div>
-
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-yeild-yellow hover:bg-yeild-yellow/90 text-black py-4 rounded-full text-lg font-semibold"
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                  Sending...
-                </div>
-              ) : (
-                'Send Reset Link'
-              )}
-            </Button>
-          </form>
-
-          <div className="text-center mt-6">
-            <p className="text-gray-400">
-              Remember your password?{' '}
-              <button onClick={() => navigate('/auth')} className="text-yeild-yellow font-medium hover:underline">
+          <CardTitle className="text-2xl text-center text-white">
+            {emailSent ? 'Check your email' : 'Reset your password'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {emailSent ? (
+            <div className="text-center space-y-4">
+              <p className="text-gray-300">
+                We've sent a password reset link to <strong>{email}</strong>
+              </p>
+              <p className="text-sm text-gray-400">
+                If you don't see the email, check your spam folder.
+              </p>
+              <Button
+                onClick={() => navigate('/auth')}
+                className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90"
+              >
                 Back to Sign In
-              </button>
-            </p>
-          </div>
-        </motion.div>
-      </div>
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium text-gray-300">
+                  Email address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-black border-gray-600 text-white pl-10 py-3 rounded-lg focus:border-yeild-yellow focus:ring-yeild-yellow"
+                    required
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-3 font-medium rounded-lg"
+              >
+                {isLoading ? "Sending..." : "Send reset email"}
+              </Button>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => navigate('/auth')}
+                  className="text-sm text-yeild-yellow hover:text-yeild-yellow/80"
+                >
+                  Back to Sign In
+                </button>
+              </div>
+            </form>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
