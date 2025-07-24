@@ -40,7 +40,7 @@ interface User {
   tasks_completed: number;
   created_at: string;
   profile_picture_url?: string;
-  user_roles?: Array<{ role: string }>;
+  user_role?: string;
 }
 
 export const UserManagement: React.FC = () => {
@@ -53,32 +53,36 @@ export const UserManagement: React.FC = () => {
     queryFn: async () => {
       let query = supabase
         .from('profiles')
-        .select(`
-          id,
-          name,
-          email,
-          points,
-          level,
-          tasks_completed,
-          created_at,
-          profile_picture_url,
-          user_roles(role)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
         query = query.or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
       }
 
-      const { data, error } = await query;
+      const { data: profiles, error } = await query;
       if (error) throw error;
 
-      let filteredData = data || [];
-      
+      // Get user roles for each profile
+      const usersWithRoles = await Promise.all(
+        (profiles || []).map(async (profile) => {
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', profile.id)
+            .single();
+
+          return {
+            ...profile,
+            user_role: roleData?.role || 'user'
+          };
+        })
+      );
+
+      // Filter by role if specified
+      let filteredData = usersWithRoles;
       if (roleFilter !== 'all') {
-        filteredData = filteredData.filter(user => 
-          user.user_roles?.some(role => role.role === roleFilter)
-        );
+        filteredData = usersWithRoles.filter(user => user.user_role === roleFilter);
       }
 
       return filteredData as User[];
@@ -172,11 +176,6 @@ export const UserManagement: React.FC = () => {
     } else {
       setSelectedUsers(users.map(user => user.id));
     }
-  };
-
-  const getUserRole = (user: User) => {
-    if (!user.user_roles || user.user_roles.length === 0) return 'user';
-    return user.user_roles[0].role;
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -355,8 +354,8 @@ export const UserManagement: React.FC = () => {
                       <p className="font-medium">{user.name || 'Unnamed User'}</p>
                       <p className="text-sm text-muted-foreground">{user.email}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge className={getRoleBadgeColor(getUserRole(user))}>
-                          {getUserRole(user)}
+                        <Badge className={getRoleBadgeColor(user.user_role || 'user')}>
+                          {user.user_role || 'user'}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
                           Level {user.level} • {user.points} points

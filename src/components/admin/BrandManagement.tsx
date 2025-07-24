@@ -57,34 +57,69 @@ export const BrandManagement: React.FC = () => {
   const { data: activeBrands = [] } = useQuery({
     queryKey: ['active-brands'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: brands, error: brandsError } = await supabase
         .from('brand_profiles')
-        .select(`
-          *,
-          brand_campaigns(count),
-          brand_wallets(balance, total_spent)
-        `)
+        .select('*')
         .limit(10);
 
-      if (error) throw error;
-      return data || [];
+      if (brandsError) throw brandsError;
+
+      // Get campaign counts for each brand
+      const brandsWithCampaigns = await Promise.all(
+        (brands || []).map(async (brand) => {
+          const { count: campaignCount } = await supabase
+            .from('brand_campaigns')
+            .select('*', { count: 'exact', head: true })
+            .eq('brand_id', brand.user_id);
+
+          // Get wallet info for each brand
+          const { data: wallet } = await supabase
+            .from('brand_wallets')
+            .select('balance, total_spent')
+            .eq('brand_id', brand.user_id)
+            .single();
+
+          return {
+            ...brand,
+            campaign_count: campaignCount || 0,
+            wallet_balance: wallet?.balance || 0,
+            total_spent: wallet?.total_spent || 0
+          };
+        })
+      );
+
+      return brandsWithCampaigns;
     },
   });
 
   const { data: recentCampaigns = [] } = useQuery({
     queryKey: ['recent-brand-campaigns'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: campaigns, error: campaignsError } = await supabase
         .from('brand_campaigns')
-        .select(`
-          *,
-          brand_profiles(company_name, logo_url)
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (error) throw error;
-      return data || [];
+      if (campaignsError) throw campaignsError;
+
+      // Get brand info for each campaign
+      const campaignsWithBrands = await Promise.all(
+        (campaigns || []).map(async (campaign) => {
+          const { data: brand } = await supabase
+            .from('brand_profiles')
+            .select('company_name, logo_url')
+            .eq('user_id', campaign.brand_id)
+            .single();
+
+          return {
+            ...campaign,
+            brand_info: brand
+          };
+        })
+      );
+
+      return campaignsWithBrands;
     },
   });
 
@@ -214,15 +249,15 @@ export const BrandManagement: React.FC = () => {
                       <div className="text-right">
                         <div className="flex items-center gap-4 text-sm">
                           <div>
-                            <p className="font-medium">₦{brand.brand_wallets?.[0]?.balance?.toLocaleString() || '0'}</p>
+                            <p className="font-medium">₦{brand.wallet_balance?.toLocaleString() || '0'}</p>
                             <p className="text-muted-foreground">Wallet Balance</p>
                           </div>
                           <div>
-                            <p className="font-medium">{brand.brand_campaigns?.length || 0}</p>
+                            <p className="font-medium">{brand.campaign_count || 0}</p>
                             <p className="text-muted-foreground">Campaigns</p>
                           </div>
                           <div>
-                            <p className="font-medium">₦{brand.brand_wallets?.[0]?.total_spent?.toLocaleString() || '0'}</p>
+                            <p className="font-medium">₦{brand.total_spent?.toLocaleString() || '0'}</p>
                             <p className="text-muted-foreground">Total Spent</p>
                           </div>
                         </div>
@@ -252,7 +287,7 @@ export const BrandManagement: React.FC = () => {
                     <div key={campaign.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-4">
                         <Avatar>
-                          <AvatarImage src={campaign.brand_profiles?.logo_url} />
+                          <AvatarImage src={campaign.brand_info?.logo_url} />
                           <AvatarFallback>
                             <Building2 className="h-4 w-4" />
                           </AvatarFallback>
@@ -260,7 +295,7 @@ export const BrandManagement: React.FC = () => {
                         <div>
                           <p className="font-medium">{campaign.title}</p>
                           <p className="text-sm text-muted-foreground">
-                            by {campaign.brand_profiles?.company_name || 'Unknown Brand'}
+                            by {campaign.brand_info?.company_name || 'Unknown Brand'}
                           </p>
                           <div className="flex items-center gap-2 mt-1">
                             <Badge className={

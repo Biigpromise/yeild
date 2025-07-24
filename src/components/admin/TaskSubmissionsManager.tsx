@@ -41,17 +41,17 @@ interface TaskSubmission {
   reviewed_by?: string;
   admin_notes?: string;
   calculated_points?: number;
-  tasks: {
+  task_info?: {
     title: string;
     points: number;
     brand_user_id: string;
     category: string;
-  } | null;
-  profiles: {
+  };
+  user_info?: {
     name: string;
     email: string;
     profile_picture_url?: string;
-  } | null;
+  };
 }
 
 export const TaskSubmissionsManager: React.FC = () => {
@@ -67,30 +67,7 @@ export const TaskSubmissionsManager: React.FC = () => {
       
       let query = supabase
         .from('task_submissions')
-        .select(`
-          id,
-          user_id,
-          task_id,
-          evidence,
-          evidence_file_url,
-          status,
-          submitted_at,
-          reviewed_at,
-          reviewed_by,
-          admin_notes,
-          calculated_points,
-          tasks (
-            title,
-            points,
-            brand_user_id,
-            category
-          ),
-          profiles (
-            name,
-            email,
-            profile_picture_url
-          )
-        `)
+        .select('*')
         .order('submitted_at', { ascending: false });
 
       if (statusFilter !== 'all') {
@@ -98,19 +75,43 @@ export const TaskSubmissionsManager: React.FC = () => {
       }
 
       if (searchTerm) {
-        // Search in task title through the join
-        query = query.or(`evidence.ilike.%${searchTerm}%`);
+        query = query.ilike('evidence', `%${searchTerm}%`);
       }
 
-      const { data, error } = await query;
+      const { data: submissionsData, error } = await query;
       
       if (error) {
         console.error('Error fetching submissions:', error);
         throw error;
       }
 
-      console.log('Fetched submissions:', data);
-      return (data || []) as TaskSubmission[];
+      // Get additional data for each submission
+      const enrichedSubmissions = await Promise.all(
+        (submissionsData || []).map(async (submission) => {
+          // Get task info
+          const { data: task } = await supabase
+            .from('tasks')
+            .select('title, points, brand_user_id, category')
+            .eq('id', submission.task_id)
+            .single();
+
+          // Get user info
+          const { data: user } = await supabase
+            .from('profiles')
+            .select('name, email, profile_picture_url')
+            .eq('id', submission.user_id)
+            .single();
+
+          return {
+            ...submission,
+            task_info: task,
+            user_info: user
+          };
+        })
+      );
+
+      console.log('Fetched submissions:', enrichedSubmissions);
+      return enrichedSubmissions as TaskSubmission[];
     },
   });
 
@@ -161,36 +162,35 @@ export const TaskSubmissionsManager: React.FC = () => {
           reviewed_at: new Date().toISOString(),
           reviewed_by: user.id,
           admin_notes: reviewNotes,
-          calculated_points: submission.tasks?.points || 0
+          calculated_points: submission.task_info?.points || 0
         })
         .eq('id', submissionId);
 
       if (updateError) throw updateError;
 
       // Award points to user
-      if (submission.tasks?.points) {
-        const { error: pointsError } = await supabase
-          .from('profiles')
-          .update({
-            points: supabase.sql`points + ${submission.tasks.points}`,
-            tasks_completed: supabase.sql`tasks_completed + 1`
-          })
-          .eq('id', submission.user_id);
+      if (submission.task_info?.points) {
+        const { error: pointsError } = await supabase.rpc('credit_user_account', {
+          user_id: submission.user_id,
+          amount: submission.task_info.points,
+          reference: `Task completion: ${submission.task_info.title}`
+        });
 
         if (pointsError) {
           console.error('Error awarding points:', pointsError);
         }
 
-        // Create point transaction record
-        await supabase
-          .from('point_transactions')
-          .insert({
-            user_id: submission.user_id,
-            points: submission.tasks.points,
-            transaction_type: 'task_completion',
-            reference_id: submission.task_id,
-            description: `Task completed: ${submission.tasks.title}`
-          });
+        // Update user's task completion count
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            tasks_completed: supabase.sql`tasks_completed + 1`
+          })
+          .eq('id', submission.user_id);
+
+        if (profileError) {
+          console.error('Error updating profile:', profileError);
+        }
       }
 
       toast.success('Submission approved and user rewarded!');
@@ -372,21 +372,21 @@ export const TaskSubmissionsManager: React.FC = () => {
                 <div key={submission.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center space-x-4">
                     <Avatar>
-                      <AvatarImage src={submission.profiles?.profile_picture_url} />
+                      <AvatarImage src={submission.user_info?.profile_picture_url} />
                       <AvatarFallback>
-                        {submission.profiles?.name?.charAt(0) || submission.profiles?.email?.charAt(0) || 'U'}
+                        {submission.user_info?.name?.charAt(0) || submission.user_info?.email?.charAt(0) || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{submission.profiles?.name || 'Unknown User'}</p>
-                      <p className="text-sm text-muted-foreground">{submission.tasks?.title || 'Unknown Task'}</p>
+                      <p className="font-medium">{submission.user_info?.name || 'Unknown User'}</p>
+                      <p className="text-sm text-muted-foreground">{submission.task_info?.title || 'Unknown Task'}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge className={getStatusColor(submission.status)}>
                           {getStatusIcon(submission.status)}
                           <span className="ml-1">{submission.status}</span>
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          {submission.tasks?.points || 0} points
+                          {submission.task_info?.points || 0} points
                         </span>
                       </div>
                     </div>
@@ -417,15 +417,15 @@ export const TaskSubmissionsManager: React.FC = () => {
                         <DialogHeader>
                           <DialogTitle>Review Submission</DialogTitle>
                           <DialogDescription>
-                            Task: {submission.tasks?.title || 'Unknown Task'}
+                            Task: {submission.task_info?.title || 'Unknown Task'}
                           </DialogDescription>
                         </DialogHeader>
                         
                         <div className="space-y-4">
                           <div>
                             <label className="text-sm font-medium">Submitted by:</label>
-                            <p className="text-sm">{submission.profiles?.name || 'Unknown User'}</p>
-                            <p className="text-xs text-muted-foreground">{submission.profiles?.email}</p>
+                            <p className="text-sm">{submission.user_info?.name || 'Unknown User'}</p>
+                            <p className="text-xs text-muted-foreground">{submission.user_info?.email}</p>
                           </div>
                           
                           <div>
@@ -452,7 +452,7 @@ export const TaskSubmissionsManager: React.FC = () => {
                           
                           <div>
                             <label className="text-sm font-medium">Points:</label>
-                            <p className="text-sm">{submission.tasks?.points || 0} points</p>
+                            <p className="text-sm">{submission.task_info?.points || 0} points</p>
                           </div>
                           
                           <div>

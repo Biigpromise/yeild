@@ -47,7 +47,6 @@ export const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
   const { data: analytics } = useQuery({
     queryKey: ['campaign-analytics', campaignId],
     queryFn: async () => {
-      // Fetch campaign analytics
       const { data, error } = await supabase
         .from('campaign_analytics')
         .select('*')
@@ -61,26 +60,51 @@ export const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
   const { data: submissions } = useQuery({
     queryKey: ['campaign-submissions', campaignId],
     queryFn: async () => {
-      // Fetch task submissions for this campaign
-      const { data, error } = await supabase
+      if (!campaign?.brand_id) return [];
+
+      // Get tasks for this brand
+      const { data: tasks } = await supabase
+        .from('tasks')
+        .select('id')
+        .eq('brand_user_id', campaign.brand_id);
+
+      if (!tasks || tasks.length === 0) return [];
+
+      const taskIds = tasks.map(t => t.id);
+
+      // Get submissions for these tasks
+      const { data: submissionsData, error } = await supabase
         .from('task_submissions')
-        .select(`
-          *,
-          tasks!inner(
-            title,
-            points,
-            brand_user_id
-          ),
-          profiles(
-            name,
-            profile_picture_url
-          )
-        `)
-        .eq('tasks.brand_user_id', campaign?.brand_id)
+        .select('*')
+        .in('task_id', taskIds)
         .order('submitted_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+
+      // Get additional info for each submission
+      const enrichedSubmissions = await Promise.all(
+        (submissionsData || []).map(async (submission) => {
+          const { data: task } = await supabase
+            .from('tasks')
+            .select('title, points')
+            .eq('id', submission.task_id)
+            .single();
+
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, profile_picture_url')
+            .eq('id', submission.user_id)
+            .single();
+
+          return {
+            ...submission,
+            task_info: task,
+            user_info: profile
+          };
+        })
+      );
+
+      return enrichedSubmissions;
     },
     enabled: !!campaign?.brand_id,
   });
@@ -284,11 +308,11 @@ export const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                            {submission.profiles?.name?.[0] || 'U'}
+                            {submission.user_info?.name?.[0] || 'U'}
                           </div>
                           <div>
-                            <p className="font-medium">{submission.profiles?.name || 'Unknown User'}</p>
-                            <p className="text-sm text-muted-foreground">{submission.tasks?.title}</p>
+                            <p className="font-medium">{submission.user_info?.name || 'Unknown User'}</p>
+                            <p className="text-sm text-muted-foreground">{submission.task_info?.title}</p>
                           </div>
                         </div>
                         <Badge className={
