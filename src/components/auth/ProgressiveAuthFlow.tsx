@@ -38,13 +38,16 @@ const ProgressiveAuthFlow = () => {
     const typeParam = searchParams.get('type');
     const modeParam = searchParams.get('mode');
     
-    if (typeParam && (typeParam === 'user' || typeParam === 'brand')) {
+    // Check for signin mode - can be ?mode=signin or legacy ?type=signin
+    const isSigninMode = modeParam === 'signin' || typeParam === 'signin';
+    setIsLogin(isSigninMode);
+    
+    // If mode is signin, skip user type selection and go directly to email
+    if (isSigninMode) {
+      setCurrentStep('email');
+    } else if (typeParam && (typeParam === 'user' || typeParam === 'brand')) {
       setFormData(prev => ({ ...prev, userType: typeParam as 'user' | 'brand' }));
       setCurrentStep('email');
-    }
-    
-    if (modeParam === 'login') {
-      setIsLogin(true);
     }
   }, [searchParams]);
 
@@ -90,6 +93,7 @@ const ProgressiveAuthFlow = () => {
 
   const handleBack = () => {
     if (currentStep === 'email') {
+      // In login mode, go back to userType which will show signin interface
       setCurrentStep('userType');
     } else if (currentStep === 'password') {
       setCurrentStep('email');
