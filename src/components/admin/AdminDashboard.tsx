@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,12 @@ import {
   FileText,
   MessageCircle,
   Bell,
-  CheckSquare
+  CheckSquare,
+  Activity,
+  Eye,
+  Zap,
+  Server,
+  Lock
 } from 'lucide-react';
 import { AdminSignOutMenu } from './AdminSignOutMenu';
 import { EnhancedUserManagement } from './enhanced/EnhancedUserManagement';
@@ -36,6 +40,14 @@ import { BrandCommunicationsTab } from '@/components/brand/BrandCommunicationsTa
 import { BrandContentTab } from '@/components/brand/BrandContentTab';
 import { BrandNotificationsTab } from '@/components/brand/BrandNotificationsTab';
 import { TaskSubmissionApprovalTab } from '@/components/brand/TaskSubmissionApprovalTab';
+import { SystemHealthMonitoring } from './monitoring/SystemHealthMonitoring';
+import { AdvancedFraudDetection } from './fraud/AdvancedFraudDetection';
+import { ContentModerationQueue } from './moderation/ContentModerationQueue';
+import { PlatformConfigManager } from './config/PlatformConfigManager';
+import { AdminSecurity } from './AdminSecurity';
+import { SecurityMonitoring } from './SecurityMonitoring';
+import { AdminContentManagement } from './AdminContentManagement';
+import { AdminFinancialManagement } from './AdminFinancialManagement';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { useRecentActivities } from '@/hooks/useRecentActivities';
 
@@ -73,10 +85,26 @@ export const AdminDashboard: React.FC = () => {
       {/* Admin Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:grid-cols-11 bg-muted">
+          <TabsList className="grid w-full grid-cols-6 lg:grid-cols-18 bg-muted">
             <TabsTrigger value="overview" className="data-[state=active]:bg-background">
               <BarChart3 className="h-4 w-4 mr-2" />
               Overview
+            </TabsTrigger>
+            <TabsTrigger value="monitoring" className="data-[state=active]:bg-background">
+              <Activity className="h-4 w-4 mr-2" />
+              Monitoring
+            </TabsTrigger>
+            <TabsTrigger value="security" className="data-[state=active]:bg-background">
+              <Shield className="h-4 w-4 mr-2" />
+              Security
+            </TabsTrigger>
+            <TabsTrigger value="security-advanced" className="data-[state=active]:bg-background">
+              <Lock className="h-4 w-4 mr-2" />
+              Sec Advanced
+            </TabsTrigger>
+            <TabsTrigger value="fraud" className="data-[state=active]:bg-background">
+              <Eye className="h-4 w-4 mr-2" />
+              Fraud
             </TabsTrigger>
             <TabsTrigger value="users" className="data-[state=active]:bg-background">
               <Users className="h-4 w-4 mr-2" />
@@ -94,6 +122,10 @@ export const AdminDashboard: React.FC = () => {
               <Target className="h-4 w-4 mr-2" />
               Tasks
             </TabsTrigger>
+            <TabsTrigger value="moderation" className="data-[state=active]:bg-background">
+              <Eye className="h-4 w-4 mr-2" />
+              Moderation
+            </TabsTrigger>
             <TabsTrigger value="communications" className="data-[state=active]:bg-background">
               <MessageCircle className="h-4 w-4 mr-2" />
               Communications
@@ -101,6 +133,10 @@ export const AdminDashboard: React.FC = () => {
             <TabsTrigger value="content" className="data-[state=active]:bg-background">
               <FileText className="h-4 w-4 mr-2" />
               Content
+            </TabsTrigger>
+            <TabsTrigger value="content-mgmt" className="data-[state=active]:bg-background">
+              <FileText className="h-4 w-4 mr-2" />
+              Content Mgmt
             </TabsTrigger>
             <TabsTrigger value="notifications" className="data-[state=active]:bg-background">
               <Bell className="h-4 w-4 mr-2" />
@@ -117,6 +153,10 @@ export const AdminDashboard: React.FC = () => {
             <TabsTrigger value="finance" className="data-[state=active]:bg-background">
               <CreditCard className="h-4 w-4 mr-2" />
               Finance
+            </TabsTrigger>
+            <TabsTrigger value="config" className="data-[state=active]:bg-background">
+              <Zap className="h-4 w-4 mr-2" />
+              Config
             </TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-background">
               <Settings className="h-4 w-4 mr-2" />
@@ -242,6 +282,22 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="monitoring">
+            <SystemHealthMonitoring />
+          </TabsContent>
+
+          <TabsContent value="security">
+            <AdminSecurity />
+          </TabsContent>
+
+          <TabsContent value="security-advanced">
+            <SecurityMonitoring />
+          </TabsContent>
+
+          <TabsContent value="fraud">
+            <AdvancedFraudDetection />
+          </TabsContent>
+
           <TabsContent value="users">
             <EnhancedUserManagement />
           </TabsContent>
@@ -279,12 +335,20 @@ export const AdminDashboard: React.FC = () => {
             <EnhancedTaskManagement />
           </TabsContent>
 
+          <TabsContent value="moderation">
+            <ContentModerationQueue />
+          </TabsContent>
+
           <TabsContent value="communications">
             <BrandCommunicationsTab />
           </TabsContent>
 
           <TabsContent value="content">
             <BrandContentTab />
+          </TabsContent>
+
+          <TabsContent value="content-mgmt">
+            <AdminContentManagement />
           </TabsContent>
 
           <TabsContent value="notifications">
@@ -300,7 +364,11 @@ export const AdminDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="finance">
-            <FinancialDashboard />
+            <AdminFinancialManagement />
+          </TabsContent>
+
+          <TabsContent value="config">
+            <PlatformConfigManager />
           </TabsContent>
 
           <TabsContent value="settings">
