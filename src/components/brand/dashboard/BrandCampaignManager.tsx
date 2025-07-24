@@ -41,7 +41,7 @@ export const BrandCampaignManager: React.FC = () => {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [editingCampaign, setEditingCampaign] = useState<any>(null);
 
-  const { data: campaigns = [], isLoading, refetch } = useQuery({
+  const { data: campaigns = [], isLoading, refetch, error } = useQuery({
     queryKey: ['brand-campaigns-manager'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -77,7 +77,7 @@ export const BrandCampaignManager: React.FC = () => {
         .from('brand_wallets')
         .select('*')
         .eq('brand_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
@@ -334,6 +334,19 @@ export const BrandCampaignManager: React.FC = () => {
               </Card>
             ))}
           </div>
+        ) : error ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" />
+              <h3 className="text-lg font-semibold mb-2 text-red-600">Error Loading Campaigns</h3>
+              <p className="text-muted-foreground mb-4">
+                {error.message || 'Failed to load campaigns'}
+              </p>
+              <Button onClick={() => refetch()} variant="outline">
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
         ) : filteredCampaigns.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
