@@ -1,342 +1,281 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { CheckCircle, X, Eye, Clock, DollarSign, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { CheckCircle, XCircle, Clock, DollarSign, Calendar, Target, AlertCircle } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-
-interface Campaign {
-  id: string;
-  title: string;
-  description: string;
-  budget: number;
-  funded_amount: number;
-  start_date: string;
-  end_date: string;
-  status: string;
-  admin_approval_status: 'pending' | 'approved' | 'rejected';
-  brand_id: string;
-  created_at: string;
-  brand_profiles?: {
-    company_name: string;
-    industry: string;
-  } | null;
-}
-
-interface ApprovalDialog {
-  open: boolean;
-  campaignId: string;
-  campaignTitle: string;
-  action: 'approve' | 'reject';
-  reason: string;
-}
+import { useAuth } from '@/contexts/AuthContext';
 
 export const CampaignApprovalManager: React.FC = () => {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const { user } = useAuth();
+  const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processingId, setProcessingId] = useState<string | null>(null);
-  const [approvalDialog, setApprovalDialog] = useState<ApprovalDialog>({
-    open: false,
-    campaignId: '',
-    campaignTitle: '',
-    action: 'approve',
-    reason: ''
-  });
+  const [selectedCampaign, setSelectedCampaign] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
-  useEffect(() => {
-    loadCampaigns();
-  }, []);
-
-  const loadCampaigns = async () => {
+  const fetchPendingCampaigns = async () => {
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from('brand_campaigns')
         .select(`
           *,
-          brand_profiles:brand_id (
-            company_name,
-            industry
-          )
+          brand_profiles!inner(company_name, user_id),
+          brand_wallets!inner(balance)
         `)
+        .eq('admin_approval_status', 'pending')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-      
-      // Transform and validate the data
-      const transformedData: Campaign[] = (data || []).map(campaign => {
-        let brandProfiles: { company_name: string; industry: string; } | null = null;
-        
-        // Safe handling of brand_profiles with comprehensive type checking
-        if (campaign.brand_profiles && 
-            campaign.brand_profiles !== null &&
-            typeof campaign.brand_profiles === 'object' && 
-            !Array.isArray(campaign.brand_profiles) &&
-            !('error' in campaign.brand_profiles)) {
-          const profiles = campaign.brand_profiles as any;
-          if (profiles && 
-              typeof profiles.company_name === 'string' && 
-              typeof profiles.industry === 'string') {
-            brandProfiles = {
-              company_name: profiles.company_name,
-              industry: profiles.industry
-            };
-          }
-        }
+      if (error) throw error;
 
-        return {
-          id: campaign.id || '',
-          title: campaign.title || 'Untitled Campaign',
-          description: campaign.description || 'No description provided',
-          budget: Number(campaign.budget) || 0,
-          funded_amount: Number(campaign.funded_amount) || 0,
-          start_date: campaign.start_date || '',
-          end_date: campaign.end_date || '',
-          status: campaign.status || 'draft',
-          admin_approval_status: (campaign.admin_approval_status as 'pending' | 'approved' | 'rejected') || 'pending',
-          brand_id: campaign.brand_id || '',
-          created_at: campaign.created_at || '',
-          brand_profiles: brandProfiles
-        };
-      });
-      
-      setCampaigns(transformedData);
-    } catch (error) {
-      console.error('Error loading campaigns:', error);
-      toast.error('Failed to load campaigns. Please try again.');
+      setCampaigns(data || []);
+    } catch (error: any) {
+      console.error('Error fetching pending campaigns:', error);
+      toast.error('Failed to load pending campaigns');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleApprovalAction = (campaignId: string, campaignTitle: string, action: 'approve' | 'reject') => {
-    setApprovalDialog({
-      open: true,
-      campaignId,
-      campaignTitle,
-      action,
-      reason: ''
-    });
+  useEffect(() => {
+    fetchPendingCampaigns();
+  }, []);
+
+  const handleApprove = async (campaignId: string) => {
+    setActionLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke('campaign-workflow', {
+        body: {
+          campaign_id: campaignId,
+          action: 'approve',
+          admin_id: user?.id
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success('Campaign approved successfully!');
+      fetchPendingCampaigns();
+    } catch (error: any) {
+      console.error('Error approving campaign:', error);
+      toast.error('Failed to approve campaign: ' + error.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleApproval = async () => {
-    const { campaignId, action, reason } = approvalDialog;
-    
-    if (action === 'reject' && !reason.trim()) {
+  const handleReject = async (campaignId: string) => {
+    if (!rejectionReason.trim()) {
       toast.error('Please provide a reason for rejection');
       return;
     }
 
-    setProcessingId(campaignId);
+    setActionLoading(true);
     try {
-      const updateData: any = {
-        admin_approval_status: action === 'approve' ? 'approved' : 'rejected',
-        status: action === 'approve' ? 'active' : 'rejected'
-      };
+      const { error } = await supabase.functions.invoke('campaign-workflow', {
+        body: {
+          campaign_id: campaignId,
+          action: 'reject',
+          reason: rejectionReason,
+          admin_id: user?.id
+        }
+      });
 
-      if (action === 'reject' && reason.trim()) {
-        updateData.rejection_reason = reason.trim();
-      }
+      if (error) throw error;
 
-      const { error } = await supabase
-        .from('brand_campaigns')
-        .update(updateData)
-        .eq('id', campaignId);
-
-      if (error) {
-        console.error('Supabase update error:', error);
-        throw error;
-      }
-
-      toast.success(`Campaign ${action === 'approve' ? 'approved' : 'rejected'} successfully`);
-      setApprovalDialog({ open: false, campaignId: '', campaignTitle: '', action: 'approve', reason: '' });
-      loadCampaigns();
-    } catch (error) {
-      console.error('Error updating campaign:', error);
-      toast.error(`Failed to ${action} campaign. Please try again.`);
+      toast.success('Campaign rejected and refund processed');
+      setRejectionReason('');
+      setSelectedCampaign(null);
+      fetchPendingCampaigns();
+    } catch (error: any) {
+      console.error('Error rejecting campaign:', error);
+      toast.error('Failed to reject campaign: ' + error.message);
     } finally {
-      setProcessingId(null);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved': return 'bg-green-500';
-      case 'rejected': return 'bg-red-500';
-      default: return 'bg-yellow-500';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'approved': return <CheckCircle className="h-4 w-4" />;
-      case 'rejected': return <XCircle className="h-4 w-4" />;
-      default: return <Clock className="h-4 w-4" />;
+      setActionLoading(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yeild-yellow"></div>
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-muted rounded mb-4"></div>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-24 bg-muted rounded"></div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-white">Campaign Approvals</h2>
-        <Badge variant="outline" className="text-yeild-yellow border-yeild-yellow">
-          {campaigns.filter(c => c.admin_approval_status === 'pending').length} Pending
-        </Badge>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Campaign Approvals</h2>
+          <p className="text-muted-foreground">
+            Review and approve brand campaign submissions
+            {campaigns.length > 0 && (
+              <Badge variant="destructive" className="ml-2">
+                {campaigns.length} pending
+              </Badge>
+            )}
+          </p>
+        </div>
+        <Button variant="outline" onClick={fetchPendingCampaigns}>
+          Refresh
+        </Button>
       </div>
 
-      <div className="grid gap-4">
-        {campaigns.map((campaign) => (
-          <Card key={campaign.id} className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-white">{campaign.title}</CardTitle>
-                  <p className="text-gray-400">
-                    by {campaign.brand_profiles?.company_name || 'Unknown Brand'}
-                  </p>
-                </div>
-                <Badge className={`${getStatusColor(campaign.admin_approval_status)} text-white`}>
-                  {getStatusIcon(campaign.admin_approval_status)}
-                  <span className="ml-1 capitalize">{campaign.admin_approval_status}</span>
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-gray-300">{campaign.description}</p>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-yeild-yellow" />
+      {campaigns.length === 0 ? (
+        <Card className="border-border bg-card">
+          <CardContent className="p-8 text-center">
+            <CheckCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">No pending approvals</h3>
+            <p className="text-muted-foreground">All campaigns have been reviewed</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {campaigns.map((campaign) => (
+            <Card key={campaign.id} className="border-border bg-card">
+              <CardHeader>
+                <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-sm text-gray-400">Budget</p>
-                    <p className="text-white font-semibold">₦{campaign.budget.toLocaleString()}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-yeild-yellow" />
-                  <div>
-                    <p className="text-sm text-gray-400">Start Date</p>
-                    <p className="text-white">
-                      {campaign.start_date ? new Date(campaign.start_date).toLocaleDateString() : 'Not set'}
+                    <CardTitle className="text-lg text-foreground">{campaign.title}</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      by {campaign.brand_profiles?.company_name || 'Unknown Brand'}
                     </p>
                   </div>
+                  <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                    <Clock className="h-4 w-4 mr-1" />
+                    Pending Approval
+                  </Badge>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-yeild-yellow" />
-                  <div>
-                    <p className="text-sm text-gray-400">Industry</p>
-                    <p className="text-white">{campaign.brand_profiles?.industry || 'Not specified'}</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground">{campaign.description}</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">Budget: ${campaign.budget}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span className="text-sm">Payment: {campaign.payment_status}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">
+                      Wallet Balance: ${campaign.brand_wallets?.balance || 0}
+                    </span>
                   </div>
                 </div>
-              </div>
 
-              <div className="text-sm text-gray-400">
-                Created: {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : 'Unknown'}
-              </div>
+                {campaign.logo_url && (
+                  <div className="flex items-center gap-2">
+                    <img 
+                      src={campaign.logo_url} 
+                      alt="Campaign logo" 
+                      className="w-16 h-16 object-contain border rounded"
+                    />
+                    <span className="text-sm text-muted-foreground">Campaign Logo</span>
+                  </div>
+                )}
 
-              {campaign.admin_approval_status === 'pending' && (
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    onClick={() => handleApprovalAction(campaign.id, campaign.title, 'approve')}
-                    disabled={processingId === campaign.id}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Approve Campaign
-                  </Button>
-                  <Button
-                    onClick={() => handleApprovalAction(campaign.id, campaign.title, 'reject')}
-                    disabled={processingId === campaign.id}
-                    variant="outline"
-                    className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
-                  >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Reject Campaign
-                  </Button>
+                {/* Financial Verification */}
+                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                  <h4 className="font-medium text-blue-900 mb-2">Financial Verification</h4>
+                  <div className="text-sm text-blue-800">
+                    {campaign.payment_status === 'paid' ? (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        Campaign is fully funded
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 text-red-500" />
+                        Campaign funding incomplete
+                      </div>
+                    )}
+                    
+                    {campaign.brand_wallets && campaign.brand_wallets.balance >= campaign.budget ? (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        Sufficient wallet balance (${campaign.brand_wallets.balance})
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 text-red-500" />
+                        Insufficient wallet balance
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
-      {campaigns.length === 0 && (
-        <div className="text-center py-8">
-          <Target className="h-12 w-12 mx-auto mb-4 text-gray-600" />
-          <p className="text-gray-400">No campaigns found</p>
+                {selectedCampaign === campaign.id ? (
+                  <div className="space-y-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <h4 className="font-medium text-red-900">Reject Campaign</h4>
+                    <Textarea
+                      placeholder="Provide a detailed reason for rejection..."
+                      value={rejectionReason}
+                      onChange={(e) => setRejectionReason(e.target.value)}
+                      rows={3}
+                    />
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => handleReject(campaign.id)}
+                        variant="destructive"
+                        disabled={!rejectionReason.trim() || actionLoading}
+                      >
+                        {actionLoading ? 'Processing...' : 'Confirm Rejection & Refund'}
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedCampaign(null);
+                          setRejectionReason('');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                    <p className="text-xs text-red-600">
+                      Note: Rejecting will automatically refund ${campaign.budget} to the brand's wallet.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => handleApprove(campaign.id)}
+                      className="bg-green-600 hover:bg-green-700"
+                      disabled={actionLoading}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      {actionLoading ? 'Processing...' : 'Approve Campaign'}
+                    </Button>
+                    <Button 
+                      onClick={() => setSelectedCampaign(campaign.id)}
+                      variant="destructive"
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Reject Campaign
+                    </Button>
+                    <Button variant="outline">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Details
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
-
-      {/* Approval Dialog */}
-      <Dialog open={approvalDialog.open} onOpenChange={(open) => setApprovalDialog({ ...approvalDialog, open })}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {approvalDialog.action === 'approve' ? 'Approve Campaign' : 'Reject Campaign'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Campaign: {approvalDialog.campaignTitle}</p>
-            </div>
-            
-            {approvalDialog.action === 'reject' && (
-              <div>
-                <Label htmlFor="reason">Reason for rejection *</Label>
-                <Textarea
-                  id="reason"
-                  value={approvalDialog.reason}
-                  onChange={(e) => setApprovalDialog({ ...approvalDialog, reason: e.target.value })}
-                  placeholder="Please provide a reason for rejecting this campaign..."
-                  rows={3}
-                />
-              </div>
-            )}
-
-            {approvalDialog.action === 'approve' && (
-              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <p className="text-sm text-green-800">
-                  This campaign will be approved and made active.
-                </p>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setApprovalDialog({ ...approvalDialog, open: false })}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleApproval}
-              disabled={processingId === approvalDialog.campaignId}
-              className={approvalDialog.action === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
-            >
-              {processingId === approvalDialog.campaignId ? 'Processing...' : 
-               approvalDialog.action === 'approve' ? 'Approve' : 'Reject'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

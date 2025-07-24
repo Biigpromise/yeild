@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Upload, Image as ImageIcon, DollarSign, Target } from 'lucide-react';
+import { CurrencyConverter } from '@/components/ui/CurrencyConverter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -31,7 +32,7 @@ const CampaignCreate = () => {
   const [loading, setLoading] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [conversionRate] = useState(1500); // USD to NGN rate
+  const [conversionRate, setConversionRate] = useState(1500); // USD to NGN rate
 
   const form = useForm<CampaignFormData>({
     resolver: zodResolver(campaignSchema),
@@ -316,6 +317,8 @@ const CampaignCreate = () => {
                 </div>
               </CardContent>
             </Card>
+            
+            <CurrencyConverter onConversionUpdate={(rate) => setConversionRate(rate)} />
           </div>
         </div>
       </div>

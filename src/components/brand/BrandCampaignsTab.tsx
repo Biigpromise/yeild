@@ -7,6 +7,7 @@ import { Plus, Eye, Edit, DollarSign, Users, Calendar, TrendingUp, AlertCircle, 
 import { useBrandCampaigns } from "@/hooks/useBrandCampaigns";
 import { useNavigate } from "react-router-dom";
 import { CampaignFundingDialog } from "@/components/brand/CampaignFundingDialog";
+import { CampaignSubmissionButton } from "@/components/brand/CampaignSubmissionButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -246,6 +247,14 @@ export const BrandCampaignsTab: React.FC = () => {
                       Fund Campaign
                     </Button>
                   )}
+                </div>
+                
+                {/* Campaign Submission Section */}
+                <div className="mt-4 pt-4 border-t border-border">
+                  <CampaignSubmissionButton
+                    campaign={campaign}
+                    onSubmissionComplete={fetchBrandCampaigns}
+                  />
                 </div>
               </CardContent>
             </Card>
