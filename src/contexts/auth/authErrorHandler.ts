@@ -6,11 +6,11 @@ export const handleAuthError = (error: any, operation: string): string => {
   // Common error messages mapping
   const errorMessages: { [key: string]: string } = {
     'Invalid login credentials': operation === 'sign in' 
-      ? 'No account found with this email address. Please check your email or create a new account.'
+      ? 'Invalid email or password. If you signed up with Google, please use "Continue with Google" instead.'
       : 'Invalid email or password. Please check your credentials.',
     'Email not confirmed': 'Please check your email and confirm your account before signing in.',
-    'User already registered': 'An account with this email already exists. Please try signing in instead.',
-    'user_already_exists': 'An account with this email already exists. Please try signing in instead.',
+    'User already registered': 'An account with this email already exists. Try signing in instead, or use "Continue with Google" if you signed up with Google.',
+    'user_already_exists': 'An account with this email already exists. Try signing in instead, or use "Continue with Google" if you signed up with Google.',
     'Signup requires a valid password': 'Password must be at least 6 characters long.',
     'Invalid email': 'Please enter a valid email address.',
     'Network error': 'Network connection failed. Please check your internet connection.',
@@ -27,4 +27,30 @@ export const handleAuthError = (error: any, operation: string): string => {
 
   // Fallback error message
   return error?.message || `${operation} failed. Please try again.`;
+};
+
+// Check if an email exists in the auth system
+export const checkEmailExists = async (email: string): Promise<{ exists: boolean; isOAuthOnly: boolean }> => {
+  try {
+    // Import supabase client
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    // Check if user exists in profiles table (which is created for all users)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .eq('email', email)
+      .maybeSingle();
+    
+    if (profile) {
+      // For now, we'll assume that if a user exists, we can't easily determine 
+      // if they're OAuth-only without admin privileges, so we'll return conservative values
+      return { exists: true, isOAuthOnly: false };
+    }
+    
+    return { exists: false, isOAuthOnly: false };
+  } catch (error) {
+    console.error('Error checking email existence:', error);
+    return { exists: false, isOAuthOnly: false };
+  }
 };

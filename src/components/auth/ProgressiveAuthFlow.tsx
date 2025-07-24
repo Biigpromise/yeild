@@ -313,6 +313,12 @@ const ProgressiveAuthFlow = () => {
                     </svg>
                     Continue with Google
                   </Button>
+                  
+                  {isLogin && (
+                    <div className="text-center text-sm text-gray-400 mt-2">
+                      Use this if you previously signed up with Google
+                    </div>
+                  )}
                 </div>
 
                 <div className="text-center">
@@ -446,6 +452,19 @@ const ProgressiveAuthFlow = () => {
                 >
                   {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Continue')}
                 </Button>
+
+                {isLogin && (
+                  <div className="text-center">
+                    <button
+                      onClick={() => {
+                        toast.info("If you signed up with Google, please use 'Continue with Google' below. For password reset, contact support.");
+                      }}
+                      className="text-gray-400 hover:text-yeild-yellow text-sm underline"
+                    >
+                      Forgot your password?
+                    </button>
+                  </div>
+                )}
               </motion.div>
             )}
 

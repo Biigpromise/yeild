@@ -1,7 +1,7 @@
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { handleAuthError } from "./authErrorHandler";
+import { handleAuthError, checkEmailExists } from "./authErrorHandler";
 
 export const useAuthOperations = () => {
   const signUp = async (email: string, password: string, name?: string, userType?: string, additionalData?: Record<string, any>, emailRedirectTo?: string) => {
@@ -37,6 +37,18 @@ export const useAuthOperations = () => {
         ...additionalData
       };
       
+      // Check if email already exists before attempting signup
+      const { exists } = await checkEmailExists(email);
+      
+      if (exists) {
+        return { 
+          user: null, 
+          error: { 
+            message: "An account with this email already exists. Try signing in instead, or use 'Continue with Google' if you created your account with Google." 
+          } 
+        };
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -87,12 +99,33 @@ export const useAuthOperations = () => {
         return { error };
       }
 
+      // Check if email exists and if it's OAuth-only before attempting sign in
+      const { exists, isOAuthOnly } = await checkEmailExists(email);
+      
+      if (exists && isOAuthOnly) {
+        return { 
+          error: { 
+            message: "This account was created with Google. Please use 'Continue with Google' to sign in, or reset your password to enable email/password sign in." 
+          } 
+        };
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) {
+        // Provide more specific error for non-existent accounts
+        if (error.message.includes('Invalid login credentials') && !exists) {
+          return { 
+            error: { 
+              ...error, 
+              message: "No account found with this email address. Please check your email or create a new account." 
+            } 
+          };
+        }
+        
         const friendlyMessage = handleAuthError(error, 'sign in');
         return { error: { ...error, message: friendlyMessage } };
       }
