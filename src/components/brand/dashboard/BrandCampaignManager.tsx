@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BrandCampaignActions } from '@/components/brand/BrandCampaignActions';
+import { CampaignDetailView } from '@/components/brand/CampaignDetailView';
+import { Progress } from '@/components/ui/progress';
 import { 
   Search, 
   Filter, 
@@ -19,11 +22,12 @@ import {
   CheckCircle,
   Clock,
   Pause,
-  Play
+  Play,
+  Users,
+  TrendingUp
 } from 'lucide-react';
 import { CreateCampaignDialog } from '@/components/brand/CreateCampaignDialog';
 import { BrandWalletFundingDialog } from '@/components/brand/BrandWalletFundingDialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 
 export const BrandCampaignManager: React.FC = () => {
@@ -32,6 +36,7 @@ export const BrandCampaignManager: React.FC = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isFundingDialogOpen, setIsFundingDialogOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
 
   const { data: campaigns = [], isLoading, refetch } = useQuery({
     queryKey: ['brand-campaigns-manager'],
@@ -76,6 +81,39 @@ export const BrandCampaignManager: React.FC = () => {
     },
   });
 
+  // Fetch submissions for each campaign to show engagement
+  const { data: allSubmissions } = useQuery({
+    queryKey: ['brand-all-submissions'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('task_submissions')
+        .select(`
+          *,
+          tasks!inner(
+            title,
+            points,
+            brand_user_id
+          )
+        `)
+        .eq('tasks.brand_user_id', user.id);
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  if (selectedCampaignId) {
+    return (
+      <CampaignDetailView
+        campaignId={selectedCampaignId}
+        onBack={() => setSelectedCampaignId(null)}
+      />
+    );
+  }
+
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = campaign.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (campaign.description && campaign.description.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -111,6 +149,20 @@ export const BrandCampaignManager: React.FC = () => {
     }
   };
 
+  const getCampaignSubmissions = (campaignId: string) => {
+    if (!allSubmissions) return { total: 0, approved: 0, pending: 0 };
+    
+    const campaignSubs = allSubmissions.filter(sub => 
+      campaigns.find(c => c.id === campaignId)
+    );
+    
+    return {
+      total: campaignSubs.length,
+      approved: campaignSubs.filter(s => s.status === 'approved').length,
+      pending: campaignSubs.filter(s => s.status === 'pending').length
+    };
+  };
+
   const handleTopUpCampaign = (campaign: any) => {
     setSelectedCampaign(campaign);
     setIsFundingDialogOpen(true);
@@ -133,7 +185,6 @@ export const BrandCampaignManager: React.FC = () => {
 
   const handleResumeCampaign = async (campaignId: string) => {
     try {
-      // Check wallet balance first
       if (!wallet || wallet.balance < 10000) {
         toast.error('Insufficient wallet balance. Please add funds to resume campaign.');
         return;
@@ -300,33 +351,125 @@ export const BrandCampaignManager: React.FC = () => {
             </CardContent>
           </Card>
         ) : (
-          filteredCampaigns.map((campaign) => (
-            <Card key={campaign.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <CardTitle className="text-xl">{campaign.title}</CardTitle>
-                      <Badge className={`${getStatusColor(campaign.status)} flex items-center gap-1`}>
-                        {getStatusIcon(campaign.status)}
-                        {campaign.status}
-                      </Badge>
-                      <Badge className={getApprovalStatusColor(campaign.admin_approval_status || 'pending')}>
-                        {campaign.admin_approval_status || 'pending'}
-                      </Badge>
+          filteredCampaigns.map((campaign) => {
+            const submissions = getCampaignSubmissions(campaign.id);
+            const fundingProgress = (campaign.funded_amount || 0) / campaign.budget * 100;
+            
+            return (
+              <Card key={campaign.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <CardTitle 
+                          className="text-xl hover:text-primary cursor-pointer"
+                          onClick={() => setSelectedCampaignId(campaign.id)}
+                        >
+                          {campaign.title}
+                        </CardTitle>
+                        <Badge className={`${getStatusColor(campaign.status)} flex items-center gap-1`}>
+                          {getStatusIcon(campaign.status)}
+                          {campaign.status}
+                        </Badge>
+                        <Badge className={getApprovalStatusColor(campaign.admin_approval_status || 'pending')}>
+                          {campaign.admin_approval_status || 'pending'}
+                        </Badge>
+                      </div>
+                      
+                      {campaign.admin_approval_status === 'rejected' && campaign.rejection_reason && (
+                        <div className="flex items-center gap-2 text-brand-danger bg-brand-danger/10 px-3 py-2 rounded-lg mb-3">
+                          <AlertCircle className="h-4 w-4" />
+                          <span className="text-sm font-medium">Rejected:</span>
+                          <span className="text-sm">{campaign.rejection_reason}</span>
+                        </div>
+                      )}
+
+                      {campaign.description && (
+                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                          {campaign.description}
+                        </p>
+                      )}
                     </div>
                     
-                    {campaign.admin_approval_status === 'rejected' && campaign.rejection_reason && (
-                      <div className="flex items-center gap-2 text-brand-danger bg-brand-danger/10 px-3 py-2 rounded-lg">
-                        <AlertCircle className="h-4 w-4" />
-                        <span className="text-sm font-medium">Rejected:</span>
-                        <span className="text-sm">{campaign.rejection_reason}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedCampaignId(campaign.id)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View Details
+                      </Button>
+                      <BrandCampaignActions 
+                        campaign={campaign} 
+                        onUpdate={() => refetch()} 
+                      />
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    {/* Campaign Management Actions */}
+                </CardHeader>
+                
+                <CardContent>
+                  {/* Budget and Funding */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">Budget Progress</span>
+                      <span className="text-sm text-muted-foreground">
+                        ₦{(campaign.funded_amount || 0).toLocaleString()} / ₦{campaign.budget.toLocaleString()}
+                      </span>
+                    </div>
+                    <Progress value={fundingProgress} className="h-2" />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {Math.round(fundingProgress)}% funded
+                    </p>
+                  </div>
+
+                  {/* Key Metrics Grid */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <DollarSign className="h-4 w-4 mx-auto mb-1 text-green-600" />
+                      <p className="text-sm font-medium">₦{campaign.budget.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">Budget</p>
+                    </div>
+                    
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <Users className="h-4 w-4 mx-auto mb-1 text-blue-600" />
+                      <p className="text-sm font-medium">{submissions.total}</p>
+                      <p className="text-xs text-muted-foreground">Submissions</p>
+                    </div>
+                    
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <CheckCircle className="h-4 w-4 mx-auto mb-1 text-green-600" />
+                      <p className="text-sm font-medium">{submissions.approved}</p>
+                      <p className="text-xs text-muted-foreground">Approved</p>
+                    </div>
+                    
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <Clock className="h-4 w-4 mx-auto mb-1 text-yellow-600" />
+                      <p className="text-sm font-medium">{submissions.pending}</p>
+                      <p className="text-xs text-muted-foreground">Pending</p>
+                    </div>
+                  </div>
+
+                  {/* Campaign Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <span>Created: {new Date(campaign.created_at).toLocaleDateString()}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-brand-warning" />
+                      <span>
+                        {campaign.start_date 
+                          ? `Starts: ${new Date(campaign.start_date).toLocaleDateString()}`
+                          : 'No start date'
+                        }
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="flex items-center gap-2 mt-4 pt-4 border-t">
                     {campaign.status === 'active' && (
                       <Button
                         size="sm"
@@ -359,62 +502,20 @@ export const BrandCampaignManager: React.FC = () => {
                         Top Up
                       </Button>
                     )}
-                    
-                    <BrandCampaignActions 
-                      campaign={campaign} 
-                      onUpdate={() => refetch()} 
-                    />
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedCampaignId(campaign.id)}
+                    >
+                      <TrendingUp className="h-4 w-4 mr-1" />
+                      Analytics
+                    </Button>
                   </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-brand-success" />
-                    <div>
-                      <span className="text-sm font-medium">Budget: ₦{campaign.budget.toLocaleString()}</span>
-                      <div className="text-xs text-muted-foreground">
-                        Funded: ₦{(campaign.funded_amount || 0).toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-primary" />
-                    <div>
-                      <span className="text-sm">Created: {new Date(campaign.created_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-brand-warning" />
-                    <div>
-                      <span className="text-sm">
-                        {campaign.start_date 
-                          ? `Starts: ${new Date(campaign.start_date).toLocaleDateString()}`
-                          : 'No start date'
-                        }
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <span className="text-sm">Performance: Coming soon</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {campaign.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {campaign.description}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
 

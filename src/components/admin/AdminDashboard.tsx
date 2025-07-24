@@ -13,9 +13,10 @@ import {
   Target
 } from 'lucide-react';
 import { AdminSidebar } from './AdminSidebar';
-
 import { TaskSubmissionsManager } from './TaskSubmissionsManager';
-
+import { UserManagement } from './UserManagement';
+import { BrandManagement } from './BrandManagement';
+import { TaskManagement } from './TaskManagement';
 
 // Quick stats component with real data
 const QuickStats = () => {
@@ -200,27 +201,9 @@ export const AdminDashboard: React.FC = () => {
           </div>
         );
       case 'users':
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Real user management interface coming soon.</p>
-            </CardContent>
-          </Card>
-        );
+        return <UserManagement />;
       case 'brands':
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Brand Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Real brand management interface coming soon.</p>
-            </CardContent>
-          </Card>
-        );
+        return <BrandManagement />;
       case 'campaigns':
         return (
           <Card>
@@ -228,12 +211,14 @@ export const AdminDashboard: React.FC = () => {
               <CardTitle>Campaign Management</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">Real campaign management interface coming soon.</p>
+              <p className="text-muted-foreground">Campaign management interface coming soon.</p>
             </CardContent>
           </Card>
         );
       case 'submissions':
         return <TaskSubmissionsManager />;
+      case 'tasks':
+        return <TaskManagement />;
       case 'analytics':
         return (
           <Card>
@@ -301,6 +286,7 @@ export const AdminDashboard: React.FC = () => {
               {activeTab === 'brands' && 'Brand Management'}
               {activeTab === 'campaigns' && 'Campaign Management'}
               {activeTab === 'submissions' && 'Task Submissions'}
+              {activeTab === 'tasks' && 'Task Management'}
               {activeTab === 'analytics' && 'Analytics & Reports'}
               {activeTab === 'financial' && 'Financial Management'}
               {activeTab === 'notifications' && 'Notifications'}
@@ -312,6 +298,7 @@ export const AdminDashboard: React.FC = () => {
               {activeTab === 'brands' && 'Oversee brand applications and profiles'}
               {activeTab === 'campaigns' && 'Review and manage brand campaigns'}
               {activeTab === 'submissions' && 'Review and approve task submissions'}
+              {activeTab === 'tasks' && 'Manage platform tasks and categories'}
               {activeTab === 'analytics' && 'View detailed analytics and generate reports'}
               {activeTab === 'financial' && 'Manage payments, revenue, and financial operations'}
               {activeTab === 'notifications' && 'Send and manage platform notifications'}

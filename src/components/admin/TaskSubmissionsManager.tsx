@@ -1,123 +1,241 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '@/integrations/supabase/client';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  Search, 
+  Filter, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  Eye,
+  ExternalLink,
+  AlertCircle
+} from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { CheckCircle, XCircle, Eye, Download, User, Calendar, FileText } from 'lucide-react';
 
 interface TaskSubmission {
   id: string;
   user_id: string;
   task_id: string;
-  evidence_url: string;
-  evidence_text: string;
-  status: 'pending' | 'approved' | 'rejected';
+  evidence: string;
+  evidence_file_url: string;
+  status: string;
   submitted_at: string;
   reviewed_at?: string;
+  reviewed_by?: string;
   admin_notes?: string;
-  points_awarded?: number;
+  calculated_points?: number;
   tasks: {
-    id: string;
     title: string;
     points: number;
-    description: string;
+    brand_user_id: string;
+    category: string;
   } | null;
   profiles: {
-    id: string;
     name: string;
     email: string;
+    profile_picture_url?: string;
   } | null;
 }
 
 export const TaskSubmissionsManager: React.FC = () => {
-  const [submissions, setSubmissions] = useState<TaskSubmission[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('pending');
+  const [selectedSubmission, setSelectedSubmission] = useState<TaskSubmission | null>(null);
+  const [reviewNotes, setReviewNotes] = useState('');
 
-  useEffect(() => {
-    loadSubmissions();
-  }, []);
-
-  const loadSubmissions = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
+  const { data: submissions = [], isLoading, refetch } = useQuery({
+    queryKey: ['admin-task-submissions', statusFilter, searchTerm],
+    queryFn: async () => {
+      console.log('Fetching task submissions with status:', statusFilter);
+      
+      let query = supabase
         .from('task_submissions')
         .select(`
-          *,
+          id,
+          user_id,
+          task_id,
+          evidence,
+          evidence_file_url,
+          status,
+          submitted_at,
+          reviewed_at,
+          reviewed_by,
+          admin_notes,
+          calculated_points,
           tasks (
-            id,
             title,
             points,
-            description
+            brand_user_id,
+            category
           ),
           profiles (
-            id,
             name,
-            email
+            email,
+            profile_picture_url
           )
         `)
         .order('submitted_at', { ascending: false });
 
-      if (error) throw error;
-      
-      // Map the data to match our interface with proper null handling
-      const mappedSubmissions: TaskSubmission[] = (data || []).map(item => ({
-        id: item.id,
-        user_id: item.user_id,
-        task_id: item.task_id,
-        evidence_url: item.evidence_file_url || '',
-        evidence_text: item.evidence || '',
-        status: item.status as 'pending' | 'approved' | 'rejected',
-        submitted_at: item.submitted_at,
-        reviewed_at: item.reviewed_at,
-        admin_notes: item.admin_notes,
-        points_awarded: item.calculated_points,
-        tasks: item.tasks && typeof item.tasks === 'object' && !Array.isArray(item.tasks) ? item.tasks : null,
-        profiles: item.profiles && typeof item.profiles === 'object' && !Array.isArray(item.profiles) ? item.profiles : null
-      }));
+      if (statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
+      }
 
-      setSubmissions(mappedSubmissions);
-    } catch (error) {
-      console.error('Error loading task submissions:', error);
-      toast.error('Failed to load task submissions');
-    } finally {
-      setLoading(false);
+      if (searchTerm) {
+        // Search in task title through the join
+        query = query.or(`evidence.ilike.%${searchTerm}%`);
+      }
+
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error fetching submissions:', error);
+        throw error;
+      }
+
+      console.log('Fetched submissions:', data);
+      return (data || []) as TaskSubmission[];
+    },
+  });
+
+  const { data: submissionStats } = useQuery({
+    queryKey: ['submission-stats'],
+    queryFn: async () => {
+      const { count: totalSubmissions } = await supabase
+        .from('task_submissions')
+        .select('*', { count: 'exact', head: true });
+
+      const { count: pendingSubmissions } = await supabase
+        .from('task_submissions')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      const { count: approvedSubmissions } = await supabase
+        .from('task_submissions')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'approved');
+
+      const { count: rejectedSubmissions } = await supabase
+        .from('task_submissions')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'rejected');
+
+      return {
+        total: totalSubmissions || 0,
+        pending: pendingSubmissions || 0,
+        approved: approvedSubmissions || 0,
+        rejected: rejectedSubmissions || 0,
+      };
+    },
+  });
+
+  const handleApproveSubmission = async (submissionId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const submission = submissions.find(s => s.id === submissionId);
+      if (!submission) throw new Error('Submission not found');
+
+      // Update submission status
+      const { error: updateError } = await supabase
+        .from('task_submissions')
+        .update({
+          status: 'approved',
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: user.id,
+          admin_notes: reviewNotes,
+          calculated_points: submission.tasks?.points || 0
+        })
+        .eq('id', submissionId);
+
+      if (updateError) throw updateError;
+
+      // Award points to user
+      if (submission.tasks?.points) {
+        const { error: pointsError } = await supabase
+          .from('profiles')
+          .update({
+            points: supabase.sql`points + ${submission.tasks.points}`,
+            tasks_completed: supabase.sql`tasks_completed + 1`
+          })
+          .eq('id', submission.user_id);
+
+        if (pointsError) {
+          console.error('Error awarding points:', pointsError);
+        }
+
+        // Create point transaction record
+        await supabase
+          .from('point_transactions')
+          .insert({
+            user_id: submission.user_id,
+            points: submission.tasks.points,
+            transaction_type: 'task_completion',
+            reference_id: submission.task_id,
+            description: `Task completed: ${submission.tasks.title}`
+          });
+      }
+
+      toast.success('Submission approved and user rewarded!');
+      setReviewNotes('');
+      setSelectedSubmission(null);
+      refetch();
+    } catch (error: any) {
+      console.error('Error approving submission:', error);
+      toast.error('Failed to approve submission: ' + error.message);
     }
   };
 
-  const handleApproval = async (submissionId: string, approved: boolean, adminNotes?: string) => {
-    setProcessingId(submissionId);
+  const handleRejectSubmission = async (submissionId: string) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { error } = await supabase
         .from('task_submissions')
-        .update({ 
-          status: approved ? 'approved' : 'rejected',
+        .update({
+          status: 'rejected',
           reviewed_at: new Date().toISOString(),
-          admin_notes: adminNotes || ''
+          reviewed_by: user.id,
+          admin_notes: reviewNotes
         })
         .eq('id', submissionId);
 
       if (error) throw error;
 
-      toast.success(`Submission ${approved ? 'approved' : 'rejected'} successfully`);
-      loadSubmissions();
-    } catch (error) {
-      console.error('Error updating submission:', error);
-      toast.error('Failed to update submission');
-    } finally {
-      setProcessingId(null);
+      toast.success('Submission rejected');
+      setReviewNotes('');
+      setSelectedSubmission(null);
+      refetch();
+    } catch (error: any) {
+      console.error('Error rejecting submission:', error);
+      toast.error('Failed to reject submission: ' + error.message);
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-yellow-100 text-yellow-800';
+      case 'approved': return 'bg-green-500 text-white';
+      case 'rejected': return 'bg-red-500 text-white';
+      case 'pending': return 'bg-yellow-500 text-white';
+      default: return 'bg-gray-500 text-white';
     }
   };
 
@@ -125,215 +243,274 @@ export const TaskSubmissionsManager: React.FC = () => {
     switch (status) {
       case 'approved': return <CheckCircle className="h-4 w-4" />;
       case 'rejected': return <XCircle className="h-4 w-4" />;
-      default: return <Eye className="h-4 w-4" />;
+      case 'pending': return <Clock className="h-4 w-4" />;
+      default: return <AlertCircle className="h-4 w-4" />;
     }
   };
 
-  const pendingSubmissions = submissions.filter(s => s.status === 'pending');
-  const approvedSubmissions = submissions.filter(s => s.status === 'approved');
-  const rejectedSubmissions = submissions.filter(s => s.status === 'rejected');
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yeild-yellow"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Task Submissions</h2>
-        <div className="flex gap-2">
-          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
-            {pendingSubmissions.length} Pending
-          </Badge>
-          <Badge variant="outline" className="text-green-600 border-green-600">
-            {approvedSubmissions.length} Approved
-          </Badge>
-          <Badge variant="outline" className="text-red-600 border-red-600">
-            {rejectedSubmissions.length} Rejected
-          </Badge>
-        </div>
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Task Submissions</h1>
+        <p className="text-muted-foreground">
+          Review and manage user task submissions
+        </p>
       </div>
 
-      <Tabs defaultValue="pending" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="pending">Pending ({pendingSubmissions.length})</TabsTrigger>
-          <TabsTrigger value="approved">Approved ({approvedSubmissions.length})</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected ({rejectedSubmissions.length})</TabsTrigger>
-        </TabsList>
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Submissions</p>
+                <p className="text-2xl font-bold">{submissionStats?.total || 0}</p>
+              </div>
+              <Eye className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Pending Reviews</p>
+                <p className="text-2xl font-bold text-yellow-600">{submissionStats?.pending || 0}</p>
+              </div>
+              <Clock className="h-8 w-8 text-yellow-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Approved</p>
+                <p className="text-2xl font-bold text-green-600">{submissionStats?.approved || 0}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Rejected</p>
+                <p className="text-2xl font-bold text-red-600">{submissionStats?.rejected || 0}</p>
+              </div>
+              <XCircle className="h-8 w-8 text-red-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        <TabsContent value="pending">
-          <div className="grid gap-4">
-            {pendingSubmissions.map((submission) => (
-              <Card key={submission.id} className="border-yellow-200">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{submission.tasks?.title || 'Unknown Task'}</CardTitle>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <User className="h-4 w-4" />
-                          {submission.profiles?.name || 'Unknown User'}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {new Date(submission.submitted_at).toLocaleDateString()}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <FileText className="h-4 w-4" />
-                          {submission.tasks?.points || 0} points
-                        </div>
-                      </div>
-                    </div>
-                    <Badge className={getStatusColor(submission.status)}>
-                      {getStatusIcon(submission.status)}
-                      <span className="ml-1 capitalize">{submission.status}</span>
-                    </Badge>
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search submissions..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Submissions List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Submissions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4 animate-pulse">
+                  <div className="w-10 h-10 bg-muted rounded-full"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-muted rounded w-1/4"></div>
+                    <div className="h-3 bg-muted rounded w-1/3"></div>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Task Description:</p>
-                    <p className="text-sm text-gray-600">{submission.tasks?.description || 'No description'}</p>
-                  </div>
-                  
-                  {submission.evidence_text && (
+                </div>
+              ))}
+            </div>
+          ) : submissions.length === 0 ? (
+            <div className="text-center py-8">
+              <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">No submissions found</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                {statusFilter !== 'all' ? `No ${statusFilter} submissions` : 'No submissions yet'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {submissions.map((submission) => (
+                <div key={submission.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <Avatar>
+                      <AvatarImage src={submission.profiles?.profile_picture_url} />
+                      <AvatarFallback>
+                        {submission.profiles?.name?.charAt(0) || submission.profiles?.email?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Evidence Text:</p>
-                      <p className="text-sm text-gray-600">{submission.evidence_text}</p>
-                    </div>
-                  )}
-                  
-                  {submission.evidence_url && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Evidence File:</p>
+                      <p className="font-medium">{submission.profiles?.name || 'Unknown User'}</p>
+                      <p className="text-sm text-muted-foreground">{submission.tasks?.title || 'Unknown Task'}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.open(submission.evidence_url, '_blank')}
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          View Evidence
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            const link = document.createElement('a');
-                            link.href = submission.evidence_url;
-                            link.download = `evidence_${submission.id}`;
-                            link.click();
-                          }}
-                        >
-                          <Download className="h-4 w-4 mr-1" />
-                          Download
-                        </Button>
+                        <Badge className={getStatusColor(submission.status)}>
+                          {getStatusIcon(submission.status)}
+                          <span className="ml-1">{submission.status}</span>
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {submission.tasks?.points || 0} points
+                        </span>
                       </div>
                     </div>
-                  )}
-
-                  <div className="flex gap-2 pt-4">
-                    <Button
-                      onClick={() => handleApproval(submission.id, true)}
-                      disabled={processingId === submission.id}
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Approve
-                    </Button>
-                    <Button
-                      onClick={() => handleApproval(submission.id, false)}
-                      disabled={processingId === submission.id}
-                      variant="destructive"
-                    >
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Reject
-                    </Button>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-            
-            {pendingSubmissions.length === 0 && (
-              <div className="text-center py-8">
-                <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-500">No pending submissions</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="approved">
-          <div className="grid gap-4">
-            {approvedSubmissions.map((submission) => (
-              <Card key={submission.id} className="border-green-200">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold">{submission.tasks?.title || 'Unknown Task'}</h3>
-                      <p className="text-sm text-gray-600">{submission.profiles?.name || 'Unknown User'}</p>
-                      <p className="text-xs text-gray-500">
-                        Approved on {new Date(submission.reviewed_at || '').toLocaleDateString()}
+                  
+                  <div className="flex items-center gap-4">
+                    <div className="text-right text-sm">
+                      <p className="font-medium">
+                        {new Date(submission.submitted_at).toLocaleDateString()}
+                      </p>
+                      <p className="text-muted-foreground">
+                        {new Date(submission.submitted_at).toLocaleTimeString()}
                       </p>
                     </div>
-                    <Badge className={getStatusColor(submission.status)}>
-                      {getStatusIcon(submission.status)}
-                      <span className="ml-1">Approved</span>
-                    </Badge>
+                    
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setSelectedSubmission(submission)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Review
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Review Submission</DialogTitle>
+                          <DialogDescription>
+                            Task: {submission.tasks?.title || 'Unknown Task'}
+                          </DialogDescription>
+                        </DialogHeader>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-sm font-medium">Submitted by:</label>
+                            <p className="text-sm">{submission.profiles?.name || 'Unknown User'}</p>
+                            <p className="text-xs text-muted-foreground">{submission.profiles?.email}</p>
+                          </div>
+                          
+                          <div>
+                            <label className="text-sm font-medium">Evidence:</label>
+                            <p className="text-sm mt-1 p-3 bg-muted rounded">{submission.evidence}</p>
+                          </div>
+                          
+                          {submission.evidence_file_url && (
+                            <div>
+                              <label className="text-sm font-medium">Evidence File:</label>
+                              <div className="mt-1">
+                                <a 
+                                  href={submission.evidence_file_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 text-blue-600 hover:underline"
+                                >
+                                  View Evidence File
+                                  <ExternalLink className="h-4 w-4" />
+                                </a>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div>
+                            <label className="text-sm font-medium">Points:</label>
+                            <p className="text-sm">{submission.tasks?.points || 0} points</p>
+                          </div>
+                          
+                          <div>
+                            <label className="text-sm font-medium">Review Notes:</label>
+                            <Textarea
+                              placeholder="Add your review notes..."
+                              value={reviewNotes}
+                              onChange={(e) => setReviewNotes(e.target.value)}
+                              className="mt-1"
+                            />
+                          </div>
+                          
+                          {submission.status === 'pending' && (
+                            <div className="flex gap-2">
+                              <Button 
+                                onClick={() => handleApproveSubmission(submission.id)}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Approve
+                              </Button>
+                              <Button 
+                                onClick={() => handleRejectSubmission(submission.id)}
+                                variant="destructive"
+                              >
+                                <XCircle className="h-4 w-4 mr-2" />
+                                Reject
+                              </Button>
+                            </div>
+                          )}
+                          
+                          {submission.status !== 'pending' && (
+                            <div className="p-3 bg-muted rounded">
+                              <p className="text-sm font-medium">
+                                Status: {submission.status}
+                              </p>
+                              {submission.reviewed_at && (
+                                <p className="text-xs text-muted-foreground">
+                                  Reviewed: {new Date(submission.reviewed_at).toLocaleString()}
+                                </p>
+                              )}
+                              {submission.admin_notes && (
+                                <p className="text-sm mt-2">
+                                  <span className="font-medium">Notes:</span> {submission.admin_notes}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-            
-            {approvedSubmissions.length === 0 && (
-              <div className="text-center py-8">
-                <CheckCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-500">No approved submissions</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="rejected">
-          <div className="grid gap-4">
-            {rejectedSubmissions.map((submission) => (
-              <Card key={submission.id} className="border-red-200">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold">{submission.tasks?.title || 'Unknown Task'}</h3>
-                      <p className="text-sm text-gray-600">{submission.profiles?.name || 'Unknown User'}</p>
-                      <p className="text-xs text-gray-500">
-                        Rejected on {new Date(submission.reviewed_at || '').toLocaleDateString()}
-                      </p>
-                      {submission.admin_notes && (
-                        <p className="text-xs text-red-600 mt-1">
-                          Note: {submission.admin_notes}
-                        </p>
-                      )}
-                    </div>
-                    <Badge className={getStatusColor(submission.status)}>
-                      {getStatusIcon(submission.status)}
-                      <span className="ml-1">Rejected</span>
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            
-            {rejectedSubmissions.length === 0 && (
-              <div className="text-center py-8">
-                <XCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-500">No rejected submissions</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
