@@ -30,6 +30,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { UserProfileDialog } from './user-management/UserProfileDialog';
+import { EditUserDialog } from './user-management/EditUserDialog';
+import { SuspendUserDialog } from './user-management/SuspendUserDialog';
 
 interface User {
   id: string;
@@ -40,20 +43,40 @@ interface User {
   tasks_completed: number;
   created_at: string;
   profile_picture_url?: string;
-  user_role?: string;
+  followers_count: number;
+  following_count: number;
+  active_referrals_count: number;
+  user_roles: Array<{ role: string }>;
+  user_streaks?: Array<{ current_streak: number }>;
 }
 
 export const UserManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
 
   const { data: users = [], isLoading, refetch } = useQuery({
     queryKey: ['admin-users', searchTerm, roleFilter],
     queryFn: async () => {
       let query = supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          id,
+          name,
+          email,
+          points,
+          level,
+          tasks_completed,
+          created_at,
+          profile_picture_url,
+          followers_count,
+          following_count,
+          active_referrals_count
+        `)
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
@@ -69,12 +92,19 @@ export const UserManagement: React.FC = () => {
           const { data: roleData } = await supabase
             .from('user_roles')
             .select('role')
+            .eq('user_id', profile.id);
+
+          const { data: streakData } = await supabase
+            .from('user_streaks')
+            .select('current_streak')
             .eq('user_id', profile.id)
+            .eq('streak_type', 'task_completion')
             .single();
 
           return {
             ...profile,
-            user_role: roleData?.role || 'user'
+            user_roles: roleData || [{ role: 'user' }],
+            user_streaks: streakData ? [{ current_streak: streakData.current_streak }] : []
           };
         })
       );
@@ -82,7 +112,9 @@ export const UserManagement: React.FC = () => {
       // Filter by role if specified
       let filteredData = usersWithRoles;
       if (roleFilter !== 'all') {
-        filteredData = usersWithRoles.filter(user => user.user_role === roleFilter);
+        filteredData = usersWithRoles.filter(user => 
+          user.user_roles.some(role => role.role === roleFilter)
+        );
       }
 
       return filteredData as User[];
@@ -142,6 +174,21 @@ export const UserManagement: React.FC = () => {
     }
   };
 
+  const handleViewProfile = (user: User) => {
+    setSelectedUser(user);
+    setProfileDialogOpen(true);
+  };
+
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setEditDialogOpen(true);
+  };
+
+  const handleSuspendUser = (user: User) => {
+    setSelectedUser(user);
+    setSuspendDialogOpen(true);
+  };
+
   const handleBulkAction = async (action: string) => {
     if (selectedUsers.length === 0) {
       toast.error('Please select users first');
@@ -150,7 +197,6 @@ export const UserManagement: React.FC = () => {
 
     try {
       if (action === 'delete') {
-        // This would typically be a soft delete or account suspension
         toast.info('Bulk delete functionality would be implemented here');
       } else if (action === 'suspend') {
         toast.info('Bulk suspend functionality would be implemented here');
@@ -354,8 +400,8 @@ export const UserManagement: React.FC = () => {
                       <p className="font-medium">{user.name || 'Unnamed User'}</p>
                       <p className="text-sm text-muted-foreground">{user.email}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge className={getRoleBadgeColor(user.user_role || 'user')}>
-                          {user.user_role || 'user'}
+                        <Badge className={getRoleBadgeColor(user.user_roles[0]?.role || 'user')}>
+                          {user.user_roles[0]?.role || 'user'}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
                           Level {user.level} • {user.points} points
@@ -381,11 +427,11 @@ export const UserManagement: React.FC = () => {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewProfile(user)}>
                           <Eye className="h-4 w-4 mr-2" />
                           View Profile
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditUser(user)}>
                           <Edit className="h-4 w-4 mr-2" />
                           Edit User
                         </DropdownMenuItem>
@@ -403,7 +449,10 @@ export const UserManagement: React.FC = () => {
                           Make User
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">
+                        <DropdownMenuItem 
+                          className="text-red-600"
+                          onClick={() => handleSuspendUser(user)}
+                        >
                           <Ban className="h-4 w-4 mr-2" />
                           Suspend User
                         </DropdownMenuItem>
@@ -416,6 +465,40 @@ export const UserManagement: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialogs */}
+      <UserProfileDialog
+        user={selectedUser}
+        isOpen={profileDialogOpen}
+        onClose={() => {
+          setProfileDialogOpen(false);
+          setSelectedUser(null);
+        }}
+      />
+
+      <EditUserDialog
+        user={selectedUser}
+        isOpen={editDialogOpen}
+        onClose={() => {
+          setEditDialogOpen(false);
+          setSelectedUser(null);
+        }}
+        onUpdate={() => {
+          refetch();
+        }}
+      />
+
+      <SuspendUserDialog
+        user={selectedUser}
+        isOpen={suspendDialogOpen}
+        onClose={() => {
+          setSuspendDialogOpen(false);
+          setSelectedUser(null);
+        }}
+        onUpdate={() => {
+          refetch();
+        }}
+      />
     </div>
   );
 };

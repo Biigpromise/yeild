@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Dialog,
@@ -8,7 +9,17 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, DollarSign, Target, Users, Activity, CreditCard } from 'lucide-react';
+import { 
+  Calendar, 
+  DollarSign, 
+  Target, 
+  Users, 
+  FileText,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  XCircle
+} from 'lucide-react';
 
 interface Campaign {
   id: string;
@@ -23,6 +34,9 @@ interface Campaign {
   created_at: string;
   updated_at: string;
   funded_amount: number;
+  target_audience?: any;
+  requirements?: any;
+  rejection_reason?: string;
 }
 
 interface CampaignDetailsDialogProps {
@@ -40,144 +54,240 @@ export const CampaignDetailsDialog: React.FC<CampaignDetailsDialogProps> = ({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'draft':
-        return 'bg-gray-100 text-gray-800';
-      case 'paused':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'completed': return 'bg-blue-100 text-blue-800';
+      case 'draft': return 'bg-gray-100 text-gray-800';
+      case 'paused': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getApprovalColor = (status: string) => {
+  const getApprovalStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved': return 'bg-green-100 text-green-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      default: return 'bg-yellow-100 text-yellow-800';
+    }
+  };
+
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'unpaid': return 'bg-red-100 text-red-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+      case 'paid':
+      case 'active':
+      case 'completed':
+        return <CheckCircle className="h-4 w-4" />;
       case 'rejected':
-        return 'bg-red-100 text-red-800';
+        return <XCircle className="h-4 w-4" />;
+      case 'pending':
+      case 'draft':
+        return <Clock className="h-4 w-4" />;
       default:
-        return 'bg-gray-100 text-gray-800';
+        return <AlertCircle className="h-4 w-4" />;
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Target className="h-6 w-6" />
-            {campaign.title}
-          </DialogTitle>
+          <DialogTitle className="text-xl">{campaign.title}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Status Overview */}
-          <div className="flex flex-wrap gap-4">
-            <Badge className={getStatusColor(campaign.status)}>
-              Status: {campaign.status}
-            </Badge>
-            <Badge className={getApprovalColor(campaign.admin_approval_status)}>
-              Approval: {campaign.admin_approval_status}
-            </Badge>
-            <Badge variant={campaign.payment_status === 'paid' ? 'default' : 'secondary'}>
-              Payment: {campaign.payment_status}
-            </Badge>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Campaign Status */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Campaign Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-muted-foreground">Status</div>
+                    <Badge className={getStatusColor(campaign.status)}>
+                      {getStatusIcon(campaign.status)}
+                      <span className="ml-1">{campaign.status}</span>
+                    </Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-muted-foreground">Admin Approval</div>
+                    <Badge className={getApprovalStatusColor(campaign.admin_approval_status)}>
+                      {getStatusIcon(campaign.admin_approval_status)}
+                      <span className="ml-1">{campaign.admin_approval_status}</span>
+                    </Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-muted-foreground">Payment</div>
+                    <Badge className={getPaymentStatusColor(campaign.payment_status)}>
+                      {getStatusIcon(campaign.payment_status)}
+                      <span className="ml-1">{campaign.payment_status}</span>
+                    </Badge>
+                  </div>
+                </div>
+
+                {campaign.rejection_reason && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-red-800 font-medium mb-1">
+                      <XCircle className="h-4 w-4" />
+                      Rejection Reason
+                    </div>
+                    <p className="text-sm text-red-700">{campaign.rejection_reason}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Description */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Description
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-700 leading-relaxed">
+                  {campaign.description || 'No description provided.'}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Target Audience */}
+            {campaign.target_audience && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Target Audience
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700">
+                    {typeof campaign.target_audience === 'string' 
+                      ? campaign.target_audience 
+                      : campaign.target_audience.description || 'No target audience specified.'}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Requirements */}
+            {campaign.requirements && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5" />
+                    Requirements
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700">
+                    {typeof campaign.requirements === 'string' 
+                      ? campaign.requirements 
+                      : campaign.requirements.description || 'No requirements specified.'}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
-          {/* Campaign Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Target className="h-5 w-5" />
-                Campaign Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="font-medium text-sm text-muted-foreground">Description</label>
-                <p className="mt-1 text-sm leading-relaxed">{campaign.description}</p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Budget Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  Budget
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div>
-                  <label className="font-medium text-sm text-muted-foreground flex items-center gap-1">
-                    <DollarSign className="h-4 w-4" />
-                    Budget
-                  </label>
-                  <p className="text-lg font-medium">${campaign.budget?.toLocaleString()}</p>
+                  <div className="text-sm font-medium text-muted-foreground">Total Budget</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    ₦{campaign.budget.toLocaleString()}
+                  </div>
+                </div>
+                <Separator />
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground">Funded Amount</div>
+                  <div className="text-lg font-semibold">
+                    ₦{campaign.funded_amount.toLocaleString()}
+                  </div>
                 </div>
                 <div>
-                  <label className="font-medium text-sm text-muted-foreground flex items-center gap-1">
-                    <CreditCard className="h-4 w-4" />
-                    Funded Amount
-                  </label>
-                  <p className="text-lg font-medium">${campaign.funded_amount?.toLocaleString()}</p>
+                  <div className="text-sm font-medium text-muted-foreground">Remaining</div>
+                  <div className="text-lg font-semibold">
+                    ₦{(campaign.budget - campaign.funded_amount).toLocaleString()}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Timeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Timeline */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Timeline
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 <div>
-                  <label className="font-medium text-sm text-muted-foreground">Start Date</label>
-                  <p>{campaign.start_date ? new Date(campaign.start_date).toLocaleDateString() : 'Not set'}</p>
+                  <div className="text-sm font-medium text-muted-foreground">Created</div>
+                  <div className="text-sm">
+                    {new Date(campaign.created_at).toLocaleDateString()}
+                  </div>
                 </div>
+                {campaign.start_date && (
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Start Date</div>
+                    <div className="text-sm">
+                      {new Date(campaign.start_date).toLocaleDateString()}
+                    </div>
+                  </div>
+                )}
+                {campaign.end_date && (
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">End Date</div>
+                    <div className="text-sm">
+                      {new Date(campaign.end_date).toLocaleDateString()}
+                    </div>
+                  </div>
+                )}
                 <div>
-                  <label className="font-medium text-sm text-muted-foreground">End Date</label>
-                  <p>{campaign.end_date ? new Date(campaign.end_date).toLocaleDateString() : 'Not set'}</p>
+                  <div className="text-sm font-medium text-muted-foreground">Last Updated</div>
+                  <div className="text-sm">
+                    {new Date(campaign.updated_at).toLocaleDateString()}
+                  </div>
                 </div>
-                <div>
-                  <label className="font-medium text-sm text-muted-foreground">Created</label>
-                  <p>{new Date(campaign.created_at).toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <label className="font-medium text-sm text-muted-foreground">Last Updated</label>
-                  <p>{new Date(campaign.updated_at).toLocaleDateString()}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Performance Metrics */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                Performance Metrics
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-muted rounded-lg">
-                  <p className="text-2xl font-bold">{campaign.budget > 0 ? Math.round((campaign.funded_amount / campaign.budget) * 100) : 0}%</p>
-                  <p className="text-sm text-muted-foreground">Budget Utilization</p>
+            {/* Campaign ID */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-sm font-medium text-muted-foreground mb-1">Campaign ID</div>
+                <div className="text-xs font-mono bg-gray-100 p-2 rounded">
+                  {campaign.id}
                 </div>
-                <div className="text-center p-4 bg-muted rounded-lg">
-                  <p className="text-2xl font-bold">0</p>
-                  <p className="text-sm text-muted-foreground">Tasks Completed</p>
-                </div>
-                <div className="text-center p-4 bg-muted rounded-lg">
-                  <p className="text-2xl font-bold">0</p>
-                  <p className="text-sm text-muted-foreground">Engagements</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
