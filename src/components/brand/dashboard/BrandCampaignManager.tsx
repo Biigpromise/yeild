@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BrandCampaignActionsEnhanced } from '@/components/brand/BrandCampaignActionsEnhanced';
 import { CampaignDetailView } from '@/components/brand/CampaignDetailView';
+import { EditCampaignDialog } from '@/components/brand/EditCampaignDialog';
 import { Progress } from '@/components/ui/progress';
 import { 
   Search, 
@@ -35,8 +36,10 @@ export const BrandCampaignManager: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isFundingDialogOpen, setIsFundingDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const [editingCampaign, setEditingCampaign] = useState<any>(null);
 
   const { data: campaigns = [], isLoading, refetch } = useQuery({
     queryKey: ['brand-campaigns-manager'],
@@ -404,7 +407,10 @@ export const BrandCampaignManager: React.FC = () => {
                         campaign={campaign} 
                         onUpdate={() => refetch()}
                         onView={(campaign) => setSelectedCampaignId(campaign.id)}
-                        onEdit={(campaign) => console.log('Edit campaign:', campaign.id)}
+                        onEdit={(campaign) => {
+                          setEditingCampaign(campaign);
+                          setIsEditDialogOpen(true);
+                        }}
                         onAnalytics={(campaign) => setSelectedCampaignId(campaign.id)}
                       />
                     </div>
@@ -537,6 +543,16 @@ export const BrandCampaignManager: React.FC = () => {
         onFundingComplete={() => {
           refetch();
           toast.success('Wallet updated successfully');
+        }}
+      />
+
+      <EditCampaignDialog
+        campaign={editingCampaign}
+        isOpen={isEditDialogOpen}
+        onClose={() => {
+          setIsEditDialogOpen(false);
+          setEditingCampaign(null);
+          refetch();
         }}
       />
     </div>
