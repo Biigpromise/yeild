@@ -49,11 +49,22 @@ export const BrandCampaignManager: React.FC = () => {
 
       console.log('Fetching campaigns for user:', user.id);
 
+      // Check if user has a brand profile
+      const { data: brandProfile } = await supabase
+        .from('brand_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      console.log('Brand profile check:', brandProfile);
+
       const { data, error } = await supabase
         .from('brand_campaigns')
         .select('*')
         .eq('brand_id', user.id)
         .order('created_at', { ascending: false });
+
+      console.log('Campaigns query result:', { data, error, userId: user.id, campaignCount: data?.length });
 
       if (error) {
         console.error('Error fetching campaigns:', error);
