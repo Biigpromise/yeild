@@ -49,15 +49,46 @@ export const roleService = {
 
   async assignRole(userId: string, role: string) {
     try {
-      // Only allow admin operations for yeildsocials@gmail.com
+      // Check if current user is admin using secure function
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.email !== 'yeildsocials@gmail.com') {
-        toast.error('Unauthorized access');
+      if (!user) {
+        toast.error('Authentication required');
         return false;
       }
 
-      // For this simple system, we'll just show success
-      // In a real app, this would update the database
+      const isAdmin = await supabase.rpc('check_user_role_secure', {
+        check_user_id: user.id,
+        required_role: 'admin'
+      });
+
+      if (!isAdmin.data) {
+        toast.error('Admin access required');
+        return false;
+      }
+
+      // Assign role securely
+      const { error } = await supabase
+        .from('user_roles')
+        .insert({ user_id: userId, role: role })
+        .select();
+
+      if (error) {
+        console.error('Error assigning role:', error);
+        toast.error('Failed to assign role');
+        return false;
+      }
+
+      // Log the role assignment for audit
+      await supabase.rpc('log_security_event', {
+        user_id_param: userId,
+        event_type: 'role_assigned',
+        event_details: { 
+          assigned_role: role, 
+          assigned_by: user.id,
+          assigned_by_email: user.email 
+        }
+      });
+
       toast.success(`Role ${role} assigned successfully`);
       return true;
     } catch (error) {
@@ -69,15 +100,47 @@ export const roleService = {
 
   async removeRole(userId: string, role: string) {
     try {
-      // Only allow admin operations for yeildsocials@gmail.com
+      // Check if current user is admin using secure function
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.email !== 'yeildsocials@gmail.com') {
-        toast.error('Unauthorized access');
+      if (!user) {
+        toast.error('Authentication required');
         return false;
       }
 
-      // For this simple system, we'll just show success
-      // In a real app, this would update the database
+      const isAdmin = await supabase.rpc('check_user_role_secure', {
+        check_user_id: user.id,
+        required_role: 'admin'
+      });
+
+      if (!isAdmin.data) {
+        toast.error('Admin access required');
+        return false;
+      }
+
+      // Remove role securely
+      const { error } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId)
+        .eq('role', role);
+
+      if (error) {
+        console.error('Error removing role:', error);
+        toast.error('Failed to remove role');
+        return false;
+      }
+
+      // Log the role removal for audit
+      await supabase.rpc('log_security_event', {
+        user_id_param: userId,
+        event_type: 'role_removed',
+        event_details: { 
+          removed_role: role, 
+          removed_by: user.id,
+          removed_by_email: user.email 
+        }
+      });
+
       toast.success(`Role ${role} removed successfully`);
       return true;
     } catch (error) {

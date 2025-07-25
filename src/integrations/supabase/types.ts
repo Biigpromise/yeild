@@ -3142,6 +3142,10 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: boolean
       }
+      check_user_role_secure: {
+        Args: { check_user_id: string; required_role: string }
+        Returns: boolean
+      }
       credit_user_account: {
         Args: { user_id: string; amount: number; reference: string }
         Returns: undefined
@@ -3284,6 +3288,10 @@ export type Database = {
           p_activity_date?: string
         }
         Returns: undefined
+      }
+      verify_admin_access_secure: {
+        Args: { user_email: string }
+        Returns: boolean
       }
       verify_single_admin_access: {
         Args: { user_email: string }

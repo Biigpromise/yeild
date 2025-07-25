@@ -14,13 +14,7 @@ export const adminAccessService = {
 
       console.log('Checking admin access for user:', user.email);
 
-      // Check if user is the designated admin
-      if (user.email === 'yeildsocials@gmail.com') {
-        console.log('Admin email confirmed');
-        return true;
-      }
-
-      // Also check database for admin role
+      // Check database for admin role - removed hardcoded email check for security
       const { data: roles, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -35,6 +29,14 @@ export const adminAccessService = {
       const hasAdminRole = roles && roles.length > 0;
       console.log('Has admin role in database:', hasAdminRole);
 
+      // Log admin access check for security audit
+      if (hasAdminRole) {
+        await this.logSecurityEvent(user.id, 'admin_access_verified', {
+          user_email: user.email,
+          access_granted: true
+        });
+      }
+
       return hasAdminRole;
     } catch (error) {
       console.error('Error checking admin access:', error);
@@ -42,35 +44,72 @@ export const adminAccessService = {
     }
   },
 
-  // Ensure admin role is assigned
-  async ensureAdminRole(): Promise<boolean> {
+  // Secure admin role assignment using database function
+  async grantAdminAccess(userEmail: string): Promise<boolean> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        return false;
-      }
-
-      // Only for the designated admin email
-      if (user.email !== 'yeildsocials@gmail.com') {
-        return false;
-      }
-
-      // Try to insert admin role if it doesn't exist
-      const { error } = await supabase
-        .from('user_roles')
-        .upsert(
-          { user_id: user.id, role: 'admin' },
-          { onConflict: 'user_id,role' }
-        );
+      const { data, error } = await supabase.rpc('verify_admin_access_secure', {
+        user_email: userEmail
+      });
 
       if (error) {
-        console.error('Error ensuring admin role:', error);
+        console.error('Error granting admin access:', error);
+        toast.error('Failed to grant admin access: ' + error.message);
         return false;
       }
 
+      if (data) {
+        toast.success('Admin access granted successfully');
+        return true;
+      } else {
+        toast.error('User not found with that email or email not verified');
+        return false;
+      }
+    } catch (error) {
+      console.error('Error granting admin access:', error);
+      toast.error('Failed to grant admin access');
+      return false;
+    }
+  },
+
+  // Enhanced security event logging
+  async logSecurityEvent(userId: string, eventType: string, details: any): Promise<void> {
+    try {
+      await supabase.rpc('log_security_event', {
+        user_id_param: userId,
+        event_type: eventType,
+        event_details: details
+      });
+    } catch (error) {
+      console.error('Error logging security event:', error);
+    }
+  },
+
+  // Validate user session and check for suspicious activity
+  async validateUserSession(): Promise<boolean> {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) return false;
+
+      // Check for session anomalies
+      const lastActivity = localStorage.getItem('last_admin_activity');
+      const currentTime = Date.now();
+      
+      if (lastActivity) {
+        const timeDiff = currentTime - parseInt(lastActivity);
+        // If more than 4 hours of inactivity, require re-authentication
+        if (timeDiff > 4 * 60 * 60 * 1000) {
+          await this.logSecurityEvent(user.id, 'session_timeout_detected', {
+            last_activity: lastActivity,
+            current_time: currentTime
+          });
+          return false;
+        }
+      }
+
+      localStorage.setItem('last_admin_activity', currentTime.toString());
       return true;
     } catch (error) {
-      console.error('Error ensuring admin role:', error);
+      console.error('Error validating user session:', error);
       return false;
     }
   }

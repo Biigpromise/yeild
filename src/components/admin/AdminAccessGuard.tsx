@@ -23,10 +23,14 @@ export const AdminAccessGuard: React.FC<AdminAccessGuardProps> = ({ children }) 
 
     setChecking(true);
     try {
-      // First ensure admin role exists
-      await adminAccessService.ensureAdminRole();
+      // Validate user session for enhanced security
+      const sessionValid = await adminAccessService.validateUserSession();
+      if (!sessionValid) {
+        setHasAccess(false);
+        return;
+      }
       
-      // Then check access
+      // Check admin access
       const access = await adminAccessService.checkAdminAccess();
       setHasAccess(access);
     } catch (error) {
