@@ -66,22 +66,25 @@ serve(async (req) => {
           throw new Error(`Invalid email data: missing required fields`);
         }
 
-        // Clean and validate tags
+        // Clean and validate tags - ensure no empty or invalid values
         const validTags = [];
-        if (email.email_type && email.email_type.trim()) {
-          validTags.push(email.email_type.trim());
+        if (email.email_type && typeof email.email_type === 'string' && email.email_type.trim().length > 0) {
+          validTags.push(email.email_type.trim().replace(/[^a-zA-Z0-9_-]/g, ''));
         }
-        if (email.priority && email.priority.trim()) {
-          validTags.push(email.priority.trim());
+        if (email.priority && typeof email.priority === 'string' && email.priority.trim().length > 0) {
+          validTags.push(email.priority.trim().replace(/[^a-zA-Z0-9_-]/g, ''));
         }
         validTags.push('yeildsocials');
+
+        // Filter out any empty strings after sanitization
+        const sanitizedTags = validTags.filter(tag => tag && tag.length > 0);
 
         const emailPayload = {
           from: 'YIELD <noreply@yeildsocials.com>',
           to: Array.isArray(email.to) ? email.to : [email.to],
-          subject: email.subject,
-          html: email.html,
-          ...(validTags.length > 0 && { tags: validTags }),
+          subject: email.subject || 'Notification from YIELD',
+          html: email.html || '<p>No content provided</p>',
+          ...(sanitizedTags.length > 0 && { tags: sanitizedTags }),
           headers: {
             'X-Priority': '1',
             'X-MSMail-Priority': 'High',
