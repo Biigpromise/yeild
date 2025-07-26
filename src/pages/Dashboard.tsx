@@ -28,7 +28,6 @@ import { SocialTab } from "@/components/dashboard/SocialTab";
 import { WalletTab } from "@/components/dashboard/WalletTab";
 import { ReferralsTab } from "@/components/dashboard/ReferralsTab";
 import { NotificationCenter } from "@/components/dashboard/NotificationCenter";
-import { useRealTimeNotifications } from "@/hooks/useRealTimeNotifications";
 import { ProfileEditModal } from "@/components/dashboard/ProfileEditModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +38,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const { userProfile, userStats, loading, error, loadUserData } = useDashboard();
-  const { unreadCount } = useRealTimeNotifications(user?.id || null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleSignOut = async () => {
     try {
@@ -139,7 +138,7 @@ export default function Dashboard() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-80 p-0" align="end">
-                  <NotificationCenter />
+                  <NotificationCenter onUnreadCountChange={setUnreadCount} />
                 </PopoverContent>
               </Popover>
               

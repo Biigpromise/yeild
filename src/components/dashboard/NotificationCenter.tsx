@@ -17,7 +17,11 @@ interface Notification {
   announcement_id?: string;
 }
 
-export const NotificationCenter: React.FC = () => {
+interface NotificationCenterProps {
+  onUnreadCountChange?: (count: number) => void;
+}
+
+export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onUnreadCountChange }) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +53,9 @@ export const NotificationCenter: React.FC = () => {
       }
 
       setNotifications(data || []);
-      setUnreadCount(data?.filter(n => !n.is_read).length || 0);
+      const count = data?.filter(n => !n.is_read).length || 0;
+      setUnreadCount(count);
+      onUnreadCountChange?.(count);
     } catch (error) {
       console.error('Error loading notifications:', error);
     } finally {
@@ -74,7 +80,9 @@ export const NotificationCenter: React.FC = () => {
         (payload) => {
           const newNotification = payload.new as Notification;
           setNotifications(prev => [newNotification, ...prev]);
-          setUnreadCount(prev => prev + 1);
+          const newCount = unreadCount + 1;
+          setUnreadCount(newCount);
+          onUnreadCountChange?.(newCount);
           
           // Show toast for new notification
           toast.info(newNotification.title, {
@@ -95,10 +103,11 @@ export const NotificationCenter: React.FC = () => {
           setNotifications(prev =>
             prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
           );
-          setUnreadCount(prev => {
-            const wasRead = prev > 0 && updatedNotification.is_read;
-            return wasRead ? prev - 1 : prev;
-          });
+          if (updatedNotification.is_read) {
+            const newCount = Math.max(0, unreadCount - 1);
+            setUnreadCount(newCount);
+            onUnreadCountChange?.(newCount);
+          }
         }
       )
       .subscribe();
@@ -127,7 +136,9 @@ export const NotificationCenter: React.FC = () => {
           n.id === notificationId ? { ...n, is_read: true } : n
         )
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      const newCount = Math.max(0, unreadCount - 1);
+      setUnreadCount(newCount);
+      onUnreadCountChange?.(newCount);
     } catch (error) {
       console.error('Error updating notification:', error);
     }
@@ -152,6 +163,7 @@ export const NotificationCenter: React.FC = () => {
         prev.map(n => ({ ...n, is_read: true }))
       );
       setUnreadCount(0);
+      onUnreadCountChange?.(0);
       toast.success('All notifications marked as read');
     } catch (error) {
       console.error('Error updating notifications:', error);
