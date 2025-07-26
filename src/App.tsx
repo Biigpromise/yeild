@@ -34,7 +34,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/login" element={<Login />} />
+                <Route path="/login" element={<Auth />} />
                 <Route path="/email-confirmation" element={<EmailConfirmation />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/brand-auth" element={<BrandAuth />} />
