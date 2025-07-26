@@ -962,6 +962,48 @@ export type Database = {
           },
         ]
       }
+      email_delivery_logs: {
+        Row: {
+          created_at: string
+          delivered_at: string | null
+          delivery_time_seconds: number | null
+          email: string
+          email_type: string
+          error_message: string | null
+          failed_at: string | null
+          id: string
+          sent_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delivered_at?: string | null
+          delivery_time_seconds?: number | null
+          email: string
+          email_type: string
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delivered_at?: string | null
+          delivery_time_seconds?: number | null
+          email?: string
+          email_type?: string
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       faqs: {
         Row: {
           answer: string

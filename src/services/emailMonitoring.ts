@@ -11,6 +11,8 @@ export interface EmailDeliveryLog {
   failed_at?: string;
   error_message?: string;
   delivery_time_seconds?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export class EmailMonitoringService {
@@ -32,6 +34,7 @@ export class EmailMonitoringService {
         return null;
       }
 
+      console.log('Email delivery logged:', data);
       return data;
     } catch (error) {
       console.error('Error logging email sent:', error);
@@ -47,8 +50,15 @@ export class EmailMonitoringService {
     try {
       const updateData: any = {
         status,
-        [`${status}_at`]: new Date().toISOString()
+        updated_at: new Date().toISOString()
       };
+
+      // Set the appropriate timestamp based on status
+      if (status === 'delivered') {
+        updateData.delivered_at = new Date().toISOString();
+      } else if (status === 'failed') {
+        updateData.failed_at = new Date().toISOString();
+      }
 
       if (errorMessage) {
         updateData.error_message = errorMessage;
@@ -77,6 +87,8 @@ export class EmailMonitoringService {
 
       if (error) {
         console.error('Failed to update email status:', error);
+      } else {
+        console.log(`Email status updated to ${status} for log ID: ${logId}`);
       }
     } catch (error) {
       console.error('Error updating email status:', error);
@@ -103,7 +115,7 @@ export class EmailMonitoringService {
       const { data, error } = await supabase
         .from('email_delivery_logs')
         .select('*')
-        .gte('sent_at', timeFilter);
+        .gte('created_at', timeFilter);
 
       if (error) {
         console.error('Failed to get email stats:', error);
@@ -112,22 +124,45 @@ export class EmailMonitoringService {
 
       const stats = {
         total: data.length,
+        pending: data.filter(log => log.status === 'pending').length,
         sent: data.filter(log => log.status === 'sent').length,
         delivered: data.filter(log => log.status === 'delivered').length,
         failed: data.filter(log => log.status === 'failed').length,
         averageDeliveryTime: 0
       };
 
-      const deliveredEmails = data.filter(log => log.delivery_time_seconds);
+      const deliveredEmails = data.filter(log => log.delivery_time_seconds && log.delivery_time_seconds > 0);
       if (deliveredEmails.length > 0) {
         stats.averageDeliveryTime = Math.round(
           deliveredEmails.reduce((sum, log) => sum + (log.delivery_time_seconds || 0), 0) / deliveredEmails.length
         );
       }
 
+      console.log(`Email stats for ${timeRange}:`, stats);
       return stats;
     } catch (error) {
       console.error('Error getting email stats:', error);
+      return null;
+    }
+  }
+
+  static async getRecentFailedEmails(limit: number = 10) {
+    try {
+      const { data, error } = await supabase
+        .from('email_delivery_logs')
+        .select('*')
+        .eq('status', 'failed')
+        .order('failed_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Failed to get failed emails:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error getting failed emails:', error);
       return null;
     }
   }
