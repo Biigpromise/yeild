@@ -15,8 +15,6 @@ import BrandAuth from "./pages/BrandAuth";
 import BrandDashboard from "./pages/BrandDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import ResetPassword from "./pages/ResetPassword";
-import UserSignUp from "./pages/UserSignUp";
-import BrandSignUp from "./pages/BrandSignUp";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { RoleBasedRoute } from "@/components/RoleBasedRoute";
 import "./App.css";
@@ -34,8 +32,6 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/user-signup" element={<UserSignUp />} />
-              <Route path="/brand-signup" element={<BrandSignUp />} />
               <Route path="/email-confirmation" element={<EmailConfirmation />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/brand-auth" element={<BrandAuth />} />

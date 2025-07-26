@@ -17,11 +17,11 @@ const Welcome: React.FC = () => {
   }, []);
 
   const handleUserSignup = () => {
-    navigate('/user-signup');
+    navigate('/auth?type=user');
   };
 
   const handleBrandSignup = () => {
-    navigate('/brand-signup');
+    navigate('/auth?type=brand');
   };
 
   return (
