@@ -9,6 +9,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { InputValidator } from '@/services/validation/inputValidator';
 import { handleAuthError } from '@/contexts/auth/authErrorHandler';
+import { ForgotPasswordLink } from './ForgotPasswordLink';
 
 type StepType = 'userType' | 'email' | 'password' | 'name' | 'complete';
 
@@ -454,16 +455,7 @@ const ProgressiveAuthFlow = () => {
                 </Button>
 
                 {isLogin && (
-                  <div className="text-center">
-                    <button
-                      onClick={() => {
-                        toast.info("If you signed up with Google, please use 'Continue with Google' below. For password reset, contact support.");
-                      }}
-                      className="text-gray-400 hover:text-yeild-yellow text-sm underline"
-                    >
-                      Forgot your password?
-                    </button>
-                  </div>
+                  <ForgotPasswordLink userType={formData.userType as 'user' | 'brand'} />
                 )}
               </motion.div>
             )}

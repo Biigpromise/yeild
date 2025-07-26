@@ -19,6 +19,7 @@ import { AdminNotifications } from './notifications/AdminNotifications';
 import { AdminSettings } from './settings/AdminSettings';
 import { TaskSubmissionsManager } from './TaskSubmissionsManager';
 import { AdminUserActions } from './AdminUserActions';
+import { AdminSignOutMenu } from './AdminSignOutMenu';
 
 export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -36,11 +37,14 @@ export const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-muted-foreground mt-2">
-            Comprehensive platform management and analytics
-          </p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
+            <p className="text-muted-foreground mt-2">
+              Comprehensive platform management and analytics
+            </p>
+          </div>
+          <AdminSignOutMenu />
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
