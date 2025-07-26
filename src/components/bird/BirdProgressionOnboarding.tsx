@@ -2,8 +2,9 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, DollarSign, Users, Target } from 'lucide-react';
+import { Trophy, DollarSign, Users, Target, ChevronRight, SkipForward } from 'lucide-react';
 import { RealisticPhoenixBird } from './RealisticPhoenixBird';
 
 interface BirdLevel {
@@ -26,7 +27,11 @@ const birdLevels: BirdLevel[] = [
   { name: 'Phoenix', emoji: '🔥', minReferrals: 60, minPoints: 12000, earningRate: 30, description: 'Legendary champion', color: '#F97316' },
 ];
 
-export const BirdProgressionOnboarding: React.FC = () => {
+interface BirdProgressionOnboardingProps {
+  onComplete?: () => void;
+}
+
+export const BirdProgressionOnboarding: React.FC<BirdProgressionOnboardingProps> = ({ onComplete }) => {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-4">
@@ -115,13 +120,33 @@ export const BirdProgressionOnboarding: React.FC = () => {
         ))}
       </div>
 
-      <div className="text-center">
-        <p className="text-gray-400">
-          Start as a Dove and work your way up to Phoenix status!
-        </p>
-        <p className="text-yeild-yellow font-semibold mt-2">
-          Complete tasks and refer friends to unlock higher earning potential
-        </p>
+      <div className="text-center space-y-6">
+        <div>
+          <p className="text-gray-400">
+            Start as a Dove and work your way up to Phoenix status!
+          </p>
+          <p className="text-yeild-yellow font-semibold mt-2">
+            Complete tasks and refer friends to unlock higher earning potential
+          </p>
+        </div>
+        
+        <div className="flex gap-4 justify-center">
+          <Button
+            variant="outline"
+            onClick={onComplete}
+            className="flex items-center gap-2"
+          >
+            <SkipForward className="w-4 h-4" />
+            Skip for now
+          </Button>
+          <Button
+            onClick={onComplete}
+            className="flex items-center gap-2"
+          >
+            Continue to Dashboard
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
