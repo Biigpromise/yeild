@@ -15,6 +15,7 @@ import BrandAuth from "./pages/BrandAuth";
 import BrandDashboard from "./pages/BrandDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import ResetPassword from "./pages/ResetPassword";
+import CustomResetPassword from "./pages/CustomResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import Tasks from "./pages/Tasks";
 import Onboarding from "./pages/Onboarding";
@@ -40,7 +41,7 @@ const AppContent = () => {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/brand-auth" element={<BrandAuth />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/reset-password" element={<CustomResetPassword />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/brand-onboarding" element={<BrandOnboarding />} />
         <Route

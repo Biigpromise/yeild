@@ -307,41 +307,45 @@ export const useAuthOperations = () => {
 
   const resetPassword = async (email: string) => {
     try {
-      console.log("AuthContext: Attempting password reset for:", email);
+      console.log("AuthContext: Using custom password reset for:", email);
       
       if (!email) {
         const error = new Error("Email is required");
         return { error };
       }
 
-      // Check if email exists before attempting reset
-      const { exists } = await checkEmailExists(email);
+      // Call our custom password reset edge function (bypasses Supabase's broken email system)
+      const { data, error: functionError } = await supabase.functions.invoke('custom-password-reset', {
+        body: { email }
+      });
       
-      if (!exists) {
+      if (functionError) {
+        console.error("AuthContext: Custom password reset function error:", functionError);
         return { 
           error: { 
-            message: "No account found with this email address. Please check your email or sign up for a new account." 
+            message: "Failed to send password reset email. Please try again in a few moments." 
           } 
         };
       }
 
-      // Use Supabase's default password reset for better reliability
-      const resetUrl = `${PRODUCTION_DOMAIN}/reset-password`;
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: resetUrl
-      });
-      
-      if (resetError) {
-        const friendlyMessage = handleAuthError(resetError, 'password reset');
-        return { error: { ...resetError, message: friendlyMessage } };
+      if (data?.error) {
+        console.error("AuthContext: Custom password reset response error:", data.error);
+        return { 
+          error: { 
+            message: data.error 
+          } 
+        };
       }
 
-      console.log("AuthContext: Password reset email sent successfully");
+      console.log("AuthContext: Custom password reset email sent successfully");
       return { error: null };
     } catch (error) {
       console.error("AuthContext: Password reset unexpected error:", error);
-      const friendlyMessage = handleAuthError(error, 'password reset');
-      return { error: { message: friendlyMessage } };
+      return { 
+        error: { 
+          message: "An unexpected error occurred. Please try again." 
+        } 
+      };
     }
   };
 
