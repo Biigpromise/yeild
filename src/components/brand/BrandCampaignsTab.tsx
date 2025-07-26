@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Eye, Edit, DollarSign, Users, Calendar, TrendingUp, AlertCircle, Trash2 } from "lucide-react";
+import { Plus, Eye, Edit, DollarSign, Users, Calendar, TrendingUp, AlertCircle, Trash2, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useBrandCampaigns } from "@/hooks/useBrandCampaigns";
 import { useNavigate } from "react-router-dom";
 import { CampaignFundingDialog } from "@/components/brand/CampaignFundingDialog";
@@ -148,21 +149,64 @@ export const BrandCampaignsTab: React.FC = () => {
           {campaigns.map((campaign) => (
             <Card key={campaign.id} className="border-border bg-card hover:shadow-md transition-shadow">
               <CardHeader className="pb-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                  <div className="flex-1 w-full sm:w-auto">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex-1 min-w-0">
                     <CardTitle className="text-lg sm:text-xl text-foreground mb-2 break-words">{campaign.title}</CardTitle>
                     <p className="text-muted-foreground text-sm break-words">{campaign.description}</p>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      <Badge className={getStatusColor(campaign.status)}>
+                        {campaign.status}
+                      </Badge>
+                      <Badge className={getPaymentStatusColor(campaign.payment_status || 'unpaid')}>
+                        {campaign.payment_status || 'unpaid'}
+                      </Badge>
+                      <Badge className={getApprovalStatusColor(campaign.admin_approval_status || 'pending')}>
+                        Admin: {campaign.admin_approval_status || 'pending'}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                    <Badge className={getStatusColor(campaign.status)}>
-                      {campaign.status}
-                    </Badge>
-                    <Badge className={getPaymentStatusColor(campaign.payment_status || 'unpaid')}>
-                      {campaign.payment_status || 'unpaid'}
-                    </Badge>
-                    <Badge className={getApprovalStatusColor(campaign.admin_approval_status || 'pending')}>
-                      Admin: {campaign.admin_approval_status || 'pending'}
-                    </Badge>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                      className="border-border text-foreground hover:bg-muted"
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      <span className="hidden sm:inline">View Details</span>
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                          <MoreVertical className="h-4 w-4" />
+                          <span className="sr-only">Open menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        {campaign.status === 'draft' && (
+                          <>
+                            <DropdownMenuItem onClick={() => navigate(`/campaigns/${campaign.id}/edit`)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Campaign
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteCampaign(campaign.id)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Campaign
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                        {campaign.status !== 'draft' && (
+                          <DropdownMenuItem disabled>
+                            <AlertCircle className="mr-2 h-4 w-4" />
+                            No actions available
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </CardHeader>
@@ -202,42 +246,8 @@ export const BrandCampaignsTab: React.FC = () => {
                   </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-border">
-                   <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/campaigns/${campaign.id}`)}
-                      className="border-border text-foreground hover:bg-muted flex-1 sm:flex-none"
-                    >
-                      <Eye className="mr-2 h-4 w-4" />
-                      View Details
-                    </Button>
-                    {campaign.status === 'draft' && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/campaigns/${campaign.id}/edit`)}
-                          className="border-border text-foreground hover:bg-muted flex-1 sm:flex-none"
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteCampaign(campaign.id)}
-                          className="border-destructive text-destructive hover:bg-destructive/10 flex-1 sm:flex-none"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                  
-                  {campaign.payment_status !== 'paid' && (
+                {campaign.payment_status !== 'paid' && (
+                  <div className="pt-4 border-t border-border">
                     <Button
                       onClick={() => handleFundCampaign(campaign)}
                       className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold w-full sm:w-auto"
@@ -246,8 +256,8 @@ export const BrandCampaignsTab: React.FC = () => {
                       <DollarSign className="mr-2 h-4 w-4" />
                       Fund Campaign
                     </Button>
-                  )}
-                </div>
+                  </div>
+                )}
                 
                 {/* Campaign Submission Section */}
                 <div className="mt-4 pt-4 border-t border-border">
