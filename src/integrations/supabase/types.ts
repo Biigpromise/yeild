@@ -3161,7 +3161,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      performance_monitor: {
+        Row: {
+          idx_scan: number | null
+          idx_tup_fetch: number | null
+          n_tup_del: number | null
+          n_tup_ins: number | null
+          n_tup_upd: number | null
+          schemaname: unknown | null
+          seq_scan: number | null
+          seq_scan_percentage: number | null
+          seq_tup_read: number | null
+          tablename: unknown | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_referral_points: {
