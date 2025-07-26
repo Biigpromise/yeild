@@ -18,6 +18,7 @@ import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { RoleBasedRoute } from "@/components/RoleBasedRoute";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -25,48 +26,50 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/email-confirmation" element={<EmailConfirmation />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/brand-auth" element={<BrandAuth />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/brand-dashboard"
-                element={
-                  <RoleBasedRoute requiredRole="brand">
-                    <BrandDashboard />
-                  </RoleBasedRoute>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <RoleBasedRoute requiredRole="admin">
-                    <AdminDashboard />
-                  </RoleBasedRoute>
-                }
-              />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/email-confirmation" element={<EmailConfirmation />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/brand-auth" element={<BrandAuth />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/brand-dashboard"
+                  element={
+                    <RoleBasedRoute requiredRole="brand">
+                      <BrandDashboard />
+                    </RoleBasedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <RoleBasedRoute requiredRole="admin">
+                      <AdminDashboard />
+                    </RoleBasedRoute>
+                  }
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
