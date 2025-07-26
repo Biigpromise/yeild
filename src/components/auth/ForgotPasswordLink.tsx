@@ -10,7 +10,7 @@ export const ForgotPasswordLink: React.FC<ForgotPasswordLinkProps> = ({ userType
   const navigate = useNavigate();
 
   const handleForgotPassword = () => {
-    navigate('/reset-password');
+    navigate('/forgot-password');
   };
 
   return (
@@ -18,7 +18,7 @@ export const ForgotPasswordLink: React.FC<ForgotPasswordLinkProps> = ({ userType
       <button
         type="button"
         onClick={handleForgotPassword}
-        className="text-sm text-yeild-yellow hover:text-yeild-yellow/80 underline"
+        className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
       >
         Forgot your password?
       </button>

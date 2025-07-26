@@ -186,21 +186,24 @@ const ProgressiveAuthFlow = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          <span className="text-foreground">Loading...</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full bg-black text-white flex flex-col">
+    <div className="min-h-screen w-full bg-background text-foreground flex flex-col">
       {/* Header with progress */}
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <Button
             onClick={currentStep === 'userType' ? () => navigate('/') : handleBack}
             variant="ghost"
-            className="p-2 text-white hover:bg-gray-800 rounded-full"
+            className="p-2 text-foreground hover:bg-secondary rounded-full"
           >
             <ArrowLeft className="w-6 h-6" />
           </Button>
@@ -209,14 +212,14 @@ const ProgressiveAuthFlow = () => {
             <Progress value={getStepProgress()} className="h-2" />
           </div>
           
-          <div className="text-sm text-gray-400">
+          <div className="text-sm text-muted-foreground">
             {isLogin ? 'Sign In' : 'Sign Up'}
           </div>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex items-center justify-center px-6">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6">
         <div className="w-full max-w-md mx-auto">
           <AnimatePresence mode="wait">
             {/* User Type Selection */}
@@ -234,8 +237,8 @@ const ProgressiveAuthFlow = () => {
                     alt="YEILD Logo" 
                     className="w-16 h-16 mx-auto mb-6 object-contain"
                   />
-                  <h1 className="text-3xl font-bold mb-2">Welcome to YEILD</h1>
-                  <p className="text-gray-400 text-lg">
+                  <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-foreground">Welcome to YEILD</h1>
+                  <p className="text-muted-foreground text-base sm:text-lg">
                     {isLogin ? 'Sign in to your account' : 'Choose your account type'}
                   </p>
                 </div>
@@ -243,19 +246,19 @@ const ProgressiveAuthFlow = () => {
                 {isLogin ? (
                   <div className="space-y-6">
                     <div className="relative">
-                      <Mail className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <Mail className="absolute left-0 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                       <input
                         type="email"
                         placeholder="Enter your email address"
                         value={formData.email}
                         onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                        className="w-full bg-transparent text-white text-lg pl-8 py-4 border-0 border-b-2 border-gray-600 focus:border-yeild-yellow focus:outline-none placeholder-gray-400"
+                        className="w-full bg-transparent text-foreground text-lg pl-8 py-4 border-0 border-b-2 border-border focus:border-primary focus:outline-none placeholder-muted-foreground"
                         autoFocus
                       />
                     </div>
                     <Button
                       onClick={() => setCurrentStep('password')}
-                      className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-3 text-lg font-semibold rounded-lg"
+                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 text-lg font-semibold"
                       disabled={!formData.email}
                     >
                       Continue
@@ -266,34 +269,34 @@ const ProgressiveAuthFlow = () => {
                     <Button
                       onClick={() => handleUserTypeSelect('user')}
                       variant="outline"
-                      className="w-full p-6 h-auto text-left border-gray-600 hover:border-yeild-yellow hover:bg-yeild-yellow/10 group"
+                      className="w-full p-4 sm:p-6 h-auto text-left border-border hover:border-primary hover:bg-secondary group"
                     >
-                      <div className="flex items-center space-x-4">
-                        <div className="p-3 bg-yeild-yellow/20 rounded-full group-hover:bg-yeild-yellow/30">
-                          <Users className="w-6 h-6 text-yeild-yellow" />
+                      <div className="flex items-center space-x-3 sm:space-x-4">
+                        <div className="p-2 sm:p-3 bg-primary/10 rounded-full group-hover:bg-primary/20">
+                          <Users className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-white">I'm a User</h3>
-                          <p className="text-gray-400 text-sm">Complete tasks, earn rewards, and build your reputation</p>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base sm:text-lg font-semibold text-foreground">I'm a User</h3>
+                          <p className="text-muted-foreground text-xs sm:text-sm">Complete tasks, earn rewards, and build your reputation</p>
                         </div>
-                        <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-yeild-yellow ml-auto" />
+                        <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground group-hover:text-primary ml-auto flex-shrink-0" />
                       </div>
                     </Button>
 
                     <Button
                       onClick={() => handleUserTypeSelect('brand')}
                       variant="outline"
-                      className="w-full p-6 h-auto text-left border-gray-600 hover:border-yeild-yellow hover:bg-yeild-yellow/10 group"
+                      className="w-full p-4 sm:p-6 h-auto text-left border-border hover:border-primary hover:bg-secondary group"
                     >
-                      <div className="flex items-center space-x-4">
-                        <div className="p-3 bg-yeild-yellow/20 rounded-full group-hover:bg-yeild-yellow/30">
-                          <Building2 className="w-6 h-6 text-yeild-yellow" />
+                      <div className="flex items-center space-x-3 sm:space-x-4">
+                        <div className="p-2 sm:p-3 bg-primary/10 rounded-full group-hover:bg-primary/20">
+                          <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-white">I'm a Brand</h3>
-                          <p className="text-gray-400 text-sm">Create campaigns and connect with your audience</p>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base sm:text-lg font-semibold text-foreground">I'm a Brand</h3>
+                          <p className="text-muted-foreground text-xs sm:text-sm">Create campaigns and connect with your audience</p>
                         </div>
-                        <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-yeild-yellow ml-auto" />
+                        <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground group-hover:text-primary ml-auto flex-shrink-0" />
                       </div>
                     </Button>
                   </div>
@@ -303,7 +306,7 @@ const ProgressiveAuthFlow = () => {
                   <Button
                     onClick={handleGoogleAuth}
                     variant="outline"
-                    className="w-full py-3 border-gray-600 text-white hover:bg-gray-800 rounded-lg flex items-center justify-center gap-3"
+                    className="w-full py-3 border-border text-foreground hover:bg-secondary flex items-center justify-center gap-3"
                     disabled={isLoading}
                   >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -316,19 +319,19 @@ const ProgressiveAuthFlow = () => {
                   </Button>
                   
                   {isLogin && (
-                    <div className="text-center text-sm text-gray-400 mt-2">
+                    <div className="text-center text-sm text-muted-foreground mt-2">
                       Use this if you previously signed up with Google
                     </div>
                   )}
                 </div>
 
                 <div className="text-center">
-                  <span className="text-gray-400">
+                  <span className="text-muted-foreground">
                     {isLogin ? "Don't have an account? " : "Already have an account? "}
                   </span>
                   <button
                     onClick={() => setIsLogin(!isLogin)}
-                    className="text-yeild-yellow hover:text-yeild-yellow/80 font-medium"
+                    className="text-primary hover:text-primary/80 font-medium transition-colors"
                   >
                     {isLogin ? "Sign up" : "Sign in"}
                   </button>
@@ -346,17 +349,17 @@ const ProgressiveAuthFlow = () => {
                 className="space-y-6"
               >
                 <div className="text-center">
-                  <h2 className="text-2xl font-bold mb-2">
+                  <h2 className="text-xl sm:text-2xl font-bold mb-2 text-foreground">
                     {isLogin ? 'Welcome back!' : "What's your email?"}
                   </h2>
-                  <p className="text-gray-400">
+                  <p className="text-muted-foreground text-sm sm:text-base">
                     {isLogin 
                       ? `Sign in to your ${formData.userType || 'account'}` 
                       : "We'll use this to send you updates and notifications"
                     }
                   </p>
                   {formData.userType && (
-                    <div className="flex items-center justify-center space-x-2 mt-2 text-yeild-yellow">
+                    <div className="flex items-center justify-center space-x-2 mt-2 text-primary">
                       {formData.userType === 'brand' ? <Building2 className="w-4 h-4" /> : <Users className="w-4 h-4" />}
                       <span className="text-sm capitalize">{formData.userType} Account</span>
                     </div>
@@ -364,20 +367,20 @@ const ProgressiveAuthFlow = () => {
                 </div>
 
                 <div className="relative">
-                  <Mail className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Mail className="absolute left-0 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                   <input
                     type="email"
                     placeholder="Enter your email address"
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full bg-transparent text-white text-lg pl-8 py-4 border-0 border-b-2 border-gray-600 focus:border-yeild-yellow focus:outline-none placeholder-gray-400"
+                    className="w-full bg-transparent text-foreground text-lg pl-8 py-4 border-0 border-b-2 border-border focus:border-primary focus:outline-none placeholder-muted-foreground"
                     autoFocus
                   />
                 </div>
 
                 <Button
                   onClick={handleNext}
-                  className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-3 text-lg font-semibold rounded-lg"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 text-lg font-semibold"
                   disabled={!formData.email}
                 >
                   Continue
@@ -386,20 +389,20 @@ const ProgressiveAuthFlow = () => {
                 <div className="text-center">
                   {!isLogin ? (
                     <>
-                      <span className="text-gray-400">Already have an account? </span>
+                      <span className="text-muted-foreground">Already have an account? </span>
                       <button
                         onClick={() => setIsLogin(true)}
-                        className="text-yeild-yellow hover:text-yeild-yellow/80 font-medium"
+                        className="text-primary hover:text-primary/80 font-medium transition-colors"
                       >
                         Sign in
                       </button>
                     </>
                   ) : (
                     <>
-                      <span className="text-gray-400">Don't have an account? </span>
+                      <span className="text-muted-foreground">Don't have an account? </span>
                       <button
                         onClick={() => setIsLogin(false)}
-                        className="text-yeild-yellow hover:text-yeild-yellow/80 font-medium"
+                        className="text-primary hover:text-primary/80 font-medium transition-colors"
                       >
                         Sign up
                       </button>
@@ -419,28 +422,28 @@ const ProgressiveAuthFlow = () => {
                 className="space-y-6"
               >
                 <div className="text-center">
-                  <h2 className="text-2xl font-bold mb-2">
+                  <h2 className="text-xl sm:text-2xl font-bold mb-2 text-foreground">
                     {isLogin ? 'Enter your password' : 'Create a secure password'}
                   </h2>
-                  <p className="text-gray-400">
-                    {isLogin ? 'Welcome back!' : 'Must be at least 8 characters with uppercase, lowercase, and number'}
+                  <p className="text-muted-foreground text-sm sm:text-base">
+                    {isLogin ? 'Welcome back!' : 'Must be at least 6 characters long'}
                   </p>
                 </div>
 
                 <div className="relative">
-                  <Lock className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Lock className="absolute left-0 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                   <input
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    className="w-full bg-transparent text-white text-lg pl-8 pr-10 py-4 border-0 border-b-2 border-gray-600 focus:border-yeild-yellow focus:outline-none placeholder-gray-400"
+                    className="w-full bg-transparent text-foreground text-lg pl-8 pr-10 py-4 border-0 border-b-2 border-border focus:border-primary focus:outline-none placeholder-muted-foreground"
                     autoFocus
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    className="absolute right-0 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -448,7 +451,7 @@ const ProgressiveAuthFlow = () => {
 
                 <Button
                   onClick={handleNext}
-                  className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-3 text-lg font-semibold rounded-lg"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 text-lg font-semibold"
                   disabled={!formData.password || isLoading}
                 >
                   {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Continue')}
@@ -470,25 +473,25 @@ const ProgressiveAuthFlow = () => {
                 className="space-y-6"
               >
                 <div className="text-center">
-                  <h2 className="text-2xl font-bold mb-2">What's your name?</h2>
-                  <p className="text-gray-400">This will be displayed on your profile</p>
+                  <h2 className="text-xl sm:text-2xl font-bold mb-2 text-foreground">What's your name?</h2>
+                  <p className="text-muted-foreground text-sm sm:text-base">This will be displayed on your profile</p>
                 </div>
 
                 <div className="relative">
-                  <User className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <User className="absolute left-0 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                   <input
                     type="text"
                     placeholder="Enter your full name"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full bg-transparent text-white text-lg pl-8 py-4 border-0 border-b-2 border-gray-600 focus:border-yeild-yellow focus:outline-none placeholder-gray-400"
+                    className="w-full bg-transparent text-foreground text-lg pl-8 py-4 border-0 border-b-2 border-border focus:border-primary focus:outline-none placeholder-muted-foreground"
                     autoFocus
                   />
                 </div>
 
                 <Button
                   onClick={handleNext}
-                  className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-3 text-lg font-semibold rounded-lg"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 text-lg font-semibold"
                   disabled={!formData.name || isLoading}
                 >
                   {isLoading ? 'Creating account...' : 'Create Account'}
@@ -504,13 +507,13 @@ const ProgressiveAuthFlow = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center space-y-6"
               >
-                <div className="p-4 bg-green-500/20 rounded-full w-20 h-20 mx-auto flex items-center justify-center">
-                  <CheckCircle className="w-10 h-10 text-green-500" />
+                <div className="p-4 bg-primary/20 rounded-full w-20 h-20 mx-auto flex items-center justify-center">
+                  <CheckCircle className="w-10 h-10 text-primary" />
                 </div>
                 
                 <div>
-                  <h2 className="text-2xl font-bold mb-2">Account created!</h2>
-                  <p className="text-gray-400">
+                  <h2 className="text-xl sm:text-2xl font-bold mb-2 text-foreground">Account created!</h2>
+                  <p className="text-muted-foreground text-sm sm:text-base">
                     Please check your email to verify your account. You'll be redirected to your dashboard shortly.
                   </p>
                 </div>

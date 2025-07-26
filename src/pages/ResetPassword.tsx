@@ -15,6 +15,7 @@ export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [validLink, setValidLink] = useState<boolean | null>(null);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -25,8 +26,7 @@ export default function ResetPassword() {
     
     if (!accessToken || !refreshToken) {
       console.error('Missing tokens for password reset');
-      toast.error('Invalid or expired reset link. Please request a new one.');
-      navigate('/auth');
+      setValidLink(false);
       return;
     }
 
@@ -39,8 +39,9 @@ export default function ResetPassword() {
 
       if (error) {
         console.error('Error setting session:', error);
-        toast.error('Invalid or expired reset link. Please request a new one.');
-        navigate('/auth');
+        setValidLink(false);
+      } else {
+        setValidLink(true);
       }
     };
 
@@ -82,22 +83,72 @@ export default function ResetPassword() {
     }
   };
 
+  if (validLink === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md bg-card border-border">
+          <CardContent className="p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Verifying reset link...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (validLink === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md bg-card border-border">
+          <CardHeader className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
+              <Lock className="w-8 h-8 text-destructive" />
+            </div>
+            <div>
+              <CardTitle className="text-xl text-foreground mb-2">Invalid Reset Link</CardTitle>
+              <p className="text-muted-foreground text-sm">
+                This password reset link is invalid or has expired.
+              </p>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={() => navigate('/forgot-password')}
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Request New Reset Link
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/auth')}
+              className="w-full"
+            >
+              Back to Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-4">
-      <Card className="w-full max-w-md bg-gray-900 border-gray-700">
-        <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 bg-blue-900 rounded-full flex items-center justify-center mb-4">
-            <Lock className="w-8 h-8 text-blue-400" />
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md bg-card border-border">
+        <CardHeader className="text-center space-y-4">
+          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+            <Lock className="w-8 h-8 text-primary" />
           </div>
-          <CardTitle className="text-xl text-white">Reset Your Password</CardTitle>
-          <p className="text-gray-400 text-sm mt-2">
-            Enter your new password below
-          </p>
+          <div>
+            <CardTitle className="text-xl text-foreground">Reset Your Password</CardTitle>
+            <p className="text-muted-foreground text-sm mt-2">
+              Enter your new password below
+            </p>
+          </div>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleResetPassword} className="space-y-4">
+        <CardContent className="space-y-6">
+          <form onSubmit={handleResetPassword} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">New Password</Label>
+              <Label htmlFor="password" className="text-foreground">New Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -105,7 +156,7 @@ export default function ResetPassword() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter new password"
-                  className="bg-gray-800 border-gray-600 text-white pr-10"
+                  className="bg-input border-border text-foreground pr-10 py-3"
                   required
                   minLength={6}
                 />
@@ -113,16 +164,19 @@ export default function ResetPassword() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-white"
+                  className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Must be at least 6 characters long
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-white">Confirm New Password</Label>
+              <Label htmlFor="confirmPassword" className="text-foreground">Confirm New Password</Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
@@ -130,7 +184,7 @@ export default function ResetPassword() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm new password"
-                  className="bg-gray-800 border-gray-600 text-white pr-10"
+                  className="bg-input border-border text-foreground pr-10 py-3"
                   required
                   minLength={6}
                 />
@@ -138,7 +192,7 @@ export default function ResetPassword() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-white"
+                  className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -148,7 +202,7 @@ export default function ResetPassword() {
 
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3"
               disabled={loading}
             >
               {loading ? 'Resetting Password...' : 'Reset Password'}
@@ -159,7 +213,7 @@ export default function ResetPassword() {
                 type="button"
                 variant="link"
                 onClick={() => navigate('/auth')}
-                className="text-gray-400 hover:text-white text-sm"
+                className="text-muted-foreground hover:text-foreground text-sm"
               >
                 Back to Sign In
               </Button>

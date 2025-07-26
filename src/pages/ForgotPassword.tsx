@@ -42,15 +42,15 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-gray-900 border-gray-700">
-        <CardHeader>
-          <div className="flex items-center gap-4 mb-4">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-card border-border">
+        <CardHeader className="space-y-4">
+          <div className="flex items-center gap-4">
             <Button
               onClick={() => navigate('/auth')}
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-gray-800"
+              className="text-muted-foreground hover:text-foreground hover:bg-secondary p-2"
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
@@ -60,41 +60,54 @@ const ForgotPassword = () => {
               className="w-8 h-8 object-contain"
             />
           </div>
-          <CardTitle className="text-2xl text-center text-white">
-            {emailSent ? 'Check your email' : 'Reset your password'}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {emailSent ? (
-            <div className="text-center space-y-4">
-              <p className="text-gray-300">
-                We've sent a password reset link to <strong>{email}</strong>
+          <div className="text-center">
+            <CardTitle className="text-2xl text-foreground">
+              {emailSent ? 'Check your email' : 'Reset your password'}
+            </CardTitle>
+            {!emailSent && (
+              <p className="text-muted-foreground text-sm mt-2">
+                Enter your email and we'll send you a reset link
               </p>
-              <p className="text-sm text-gray-400">
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {emailSent ? (
+            <div className="text-center space-y-6">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Mail className="w-8 h-8 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-foreground">
+                  We've sent a password reset link to
+                </p>
+                <p className="font-medium text-foreground">{email}</p>
+              </div>
+              <p className="text-sm text-muted-foreground">
                 If you don't see the email, check your spam folder.
               </p>
               <Button
                 onClick={() => navigate('/auth')}
-                className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3"
               >
                 Back to Sign In
               </Button>
             </div>
           ) : (
-            <form onSubmit={handleResetPassword} className="space-y-4">
+            <form onSubmit={handleResetPassword} className="space-y-6">
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-300">
+                <label htmlFor="email" className="text-sm font-medium text-foreground">
                   Email address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="Enter your email address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-black border-gray-600 text-white pl-10 py-3 rounded-lg focus:border-yeild-yellow focus:ring-yeild-yellow"
+                    className="w-full bg-input border-border text-foreground pl-10 py-3 focus:border-primary focus:ring-primary"
                     required
                   />
                 </div>
@@ -103,19 +116,20 @@ const ForgotPassword = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90 py-3 font-medium rounded-lg"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 font-medium"
               >
                 {isLoading ? "Sending..." : "Send reset email"}
               </Button>
 
               <div className="text-center">
-                <button
+                <Button
                   type="button"
+                  variant="link"
                   onClick={() => navigate('/auth')}
-                  className="text-sm text-yeild-yellow hover:text-yeild-yellow/80"
+                  className="text-sm text-muted-foreground hover:text-foreground"
                 >
                   Back to Sign In
-                </button>
+                </Button>
               </div>
             </form>
           )}
