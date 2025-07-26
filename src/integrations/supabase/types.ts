@@ -2215,6 +2215,39 @@ export type Database = {
           },
         ]
       }
+      security_audit_logs: {
+        Row: {
+          event_details: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          severity: string | null
+          timestamp: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          event_details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          severity?: string | null
+          timestamp?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          event_details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          severity?: string | null
+          timestamp?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       settlement_schedules: {
         Row: {
           created_at: string | null
@@ -3310,6 +3343,15 @@ export type Database = {
           user_id_param: string
           event_type: string
           event_details?: Json
+        }
+        Returns: undefined
+      }
+      log_security_event_enhanced: {
+        Args: {
+          user_id_param: string
+          event_type: string
+          event_details?: Json
+          severity_param?: string
         }
         Returns: undefined
       }

@@ -23,7 +23,8 @@ export const useSecurityMonitoring = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      await supabase.rpc('log_security_event', {
+      // Use enhanced security logging function
+      await supabase.rpc('log_security_event_enhanced', {
         user_id_param: event.user_id || user?.id,
         event_type: event.type,
         event_details: {
@@ -31,8 +32,10 @@ export const useSecurityMonitoring = () => {
           details: event.details,
           timestamp: new Date().toISOString(),
           user_agent: navigator.userAgent,
-          url: window.location.href
-        }
+          url: window.location.href,
+          referrer: document.referrer
+        },
+        severity_param: event.severity
       });
 
       // Show immediate alert for high/critical events
@@ -42,6 +45,11 @@ export const useSecurityMonitoring = () => {
           description: `${event.type.replace('_', ' ').toUpperCase()} detected`,
           variant: "destructive"
         });
+        
+        // Notify admins for critical events
+        if (event.severity === 'critical') {
+          console.error('CRITICAL SECURITY EVENT:', event);
+        }
       }
     } catch (error) {
       console.error('Failed to log security event:', error);
