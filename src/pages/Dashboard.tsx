@@ -108,16 +108,16 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-2 sm:gap-4">
-            <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center">
-              <div className="bg-card rounded-lg p-3 sm:p-4 border border-border shadow-sm min-w-0">
+            <div className="grid grid-cols-3 gap-4 sm:gap-6 text-center">
+              <div className="min-w-0">
                 <div className="text-xl sm:text-2xl font-bold text-warning">{userStats?.points || 0}</div>
                 <div className="text-xs text-muted-foreground font-medium">Points</div>
               </div>
-              <div className="bg-card rounded-lg p-3 sm:p-4 border border-border shadow-sm min-w-0">
+              <div className="min-w-0">
                 <div className="text-xl sm:text-2xl font-bold text-primary">{userStats?.level || 1}</div>
                 <div className="text-xs text-muted-foreground font-medium">Level</div>
               </div>
-              <div className="bg-card rounded-lg p-3 sm:p-4 border border-border shadow-sm min-w-0">
+              <div className="min-w-0">
                 <div className="text-xl sm:text-2xl font-bold text-green-500">{userStats?.tasksCompleted || 0}</div>
                 <div className="text-xs text-muted-foreground font-medium">Tasks</div>
               </div>
