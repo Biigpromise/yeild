@@ -76,28 +76,41 @@ export const useAuthOperations = () => {
         }
       }
 
-      // Since we've disabled Supabase's email confirmation, send our custom verification email
-      if (data.user) {
+      // Send custom verification email using our edge function
+      if (data.user && !data.user.email_confirmed_at) {
         try {
-          const confirmationUrl = `${window.location.origin}/auth/confirm?token=${data.session?.access_token}&type=signup&redirect_to=${encodeURIComponent(redirectUrl)}`;
-          
-          const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
-            body: { 
+          const { data: emailData, error: emailError } = await supabase.functions.invoke('send-verification-email', {
+            body: {
               email: data.user.email,
               name: data.user.user_metadata?.name || data.user.email?.split('@')[0],
-              confirmationUrl: confirmationUrl
+              confirmationUrl: `${window.location.origin}/auth/callback`
             }
           });
-          
+
           if (emailError) {
-            console.error('Error sending verification email:', emailError);
-            toast.error("Account created but there was an issue sending the verification email. You can still sign in.");
+            console.error('Custom verification email failed:', emailError);
+            // Fallback to Supabase's default email system
+            const { error: fallbackError } = await supabase.auth.resend({
+              type: 'signup',
+              email: data.user.email,
+              options: { 
+                emailRedirectTo: redirectUrl
+              }
+            });
+            
+            if (fallbackError) {
+              console.error('Fallback email also failed:', fallbackError);
+              toast.warning("Account created but verification email couldn't be sent. You can request a new one later.");
+            } else {
+              toast.success("Account created! Please check your email to verify your account.");
+            }
           } else {
+            console.log('Custom verification email sent successfully:', emailData);
             toast.success("Account created! Please check your email to verify your account.");
           }
         } catch (emailError) {
           console.error('Unexpected error sending verification email:', emailError);
-          toast.error("Account created but there was an issue sending the verification email. You can still sign in.");
+          toast.warning("Account created but verification email couldn't be sent. You can request a new one later.");
         }
       }
 
@@ -352,19 +365,30 @@ export const useAuthOperations = () => {
         return { error };
       }
 
-      const redirectUrl = `${window.location.origin}/dashboard`;
-      
-      // Use our custom verification email function
-      const { error } = await supabase.functions.invoke('send-verification-email', {
-        body: { 
-          email: email, 
-          confirmationUrl: `${window.location.origin}/auth/confirm?redirect_to=${encodeURIComponent(redirectUrl)}`
+      // Try custom verification email first
+      const { data: emailData, error: customError } = await supabase.functions.invoke('send-verification-email', {
+        body: {
+          email,
+          name: email.split('@')[0], // Use email prefix as fallback name
+          confirmationUrl: `${window.location.origin}/auth/callback`
         }
       });
-      
-      if (error) {
-        const friendlyMessage = handleAuthError(error, 'resend confirmation');
-        return { error: { ...error, message: friendlyMessage } };
+
+      if (customError) {
+        console.error('Custom verification email failed:', customError);
+        // Fallback to Supabase's default resend
+        const { error: fallbackError } = await supabase.auth.resend({
+          type: 'signup',
+          email: email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`
+          }
+        });
+        
+        if (fallbackError) {
+          const friendlyMessage = handleAuthError(fallbackError, 'resend confirmation');
+          return { error: { ...fallbackError, message: friendlyMessage } };
+        }
       }
 
       console.log("AuthContext: Confirmation email resent successfully");

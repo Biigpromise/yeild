@@ -35,26 +35,44 @@ export const useSignUp = () => {
   const [searchParams] = useSearchParams();
 
   const handleResendConfirmation = async () => {
-    if (!email) return;
+    if (!email) {
+      toast.error('Email address is required');
+      return;
+    }
     
     setResendLoading(true);
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+      // Try custom verification email first
+      const { data: emailData, error: customError } = await supabase.functions.invoke('send-verification-email', {
+        body: {
+          email,
+          name: name || email.split('@')[0],
+          confirmationUrl: `${window.location.origin}/auth/callback`
         }
       });
-      
-      if (error) {
-        toast.error('Failed to resend confirmation email');
-      } else {
-        toast.success('Confirmation email sent successfully');
+
+      if (customError) {
+        console.error('Custom verification email failed:', customError);
+        // Fallback to Supabase's default resend
+        const { error: fallbackError } = await supabase.auth.resend({
+          type: 'signup',
+          email: email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`
+          }
+        });
+        
+        if (fallbackError) {
+          console.error('Fallback resend failed:', fallbackError);
+          toast.error('Failed to resend confirmation email. Please try again in a few minutes.');
+          return;
+        }
       }
-    } catch (error) {
+      
+      toast.success('Confirmation email sent! Please check your inbox and spam folder.');
+    } catch (error: any) {
       console.error('Error resending confirmation:', error);
-      toast.error('Failed to resend confirmation email');
+      toast.error('Failed to resend confirmation email. Please try again later.');
     } finally {
       setResendLoading(false);
     }
