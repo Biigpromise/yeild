@@ -15,8 +15,8 @@ const AdminDashboard = () => {
     );
   }
 
-  // Check if user is admin
-  if (!user || user.email !== 'yeildsocials@gmail.com') {
+  // This will be handled by the AdminDashboard component's role checking
+  if (!user) {
     return <Navigate to="/dashboard" replace />;
   }
 
