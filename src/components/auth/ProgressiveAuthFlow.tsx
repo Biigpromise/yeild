@@ -237,7 +237,7 @@ const ProgressiveAuthFlow = () => {
                     alt="YEILD Logo" 
                     className="w-16 h-16 mx-auto mb-6 object-contain"
                   />
-                  <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-foreground">Welcome to YEILD</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-foreground">Welcome to <span className="text-[hsl(var(--warning))]">YEILD</span></h1>
                   <p className="text-muted-foreground text-base sm:text-lg">
                     {isLogin ? 'Sign in to your account' : 'Choose your account type'}
                   </p>
@@ -258,7 +258,7 @@ const ProgressiveAuthFlow = () => {
                     </div>
                     <Button
                       onClick={() => setCurrentStep('password')}
-                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 text-lg font-semibold"
+                      className="w-full bg-[hsl(var(--warning))] text-black hover:bg-[hsl(var(--warning))]/90 py-3 text-lg font-semibold"
                       disabled={!formData.email}
                     >
                       Continue
@@ -276,7 +276,7 @@ const ProgressiveAuthFlow = () => {
                           <Users className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-base sm:text-lg font-semibold text-foreground">I'm a User</h3>
+                          <h3 className="text-base sm:text-lg font-semibold text-foreground">I'm a <span className="text-[hsl(var(--warning))]">User</span></h3>
                           <p className="text-muted-foreground text-xs sm:text-sm">Complete tasks, earn rewards, and build your reputation</p>
                         </div>
                         <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground group-hover:text-primary ml-auto flex-shrink-0" />
@@ -331,7 +331,7 @@ const ProgressiveAuthFlow = () => {
                   </span>
                   <button
                     onClick={() => setIsLogin(!isLogin)}
-                    className="text-primary hover:text-primary/80 font-medium transition-colors"
+                    className="text-[hsl(var(--warning))] hover:text-[hsl(var(--warning))]/80 font-medium transition-colors"
                   >
                     {isLogin ? "Sign up" : "Sign in"}
                   </button>
@@ -359,7 +359,7 @@ const ProgressiveAuthFlow = () => {
                     }
                   </p>
                   {formData.userType && (
-                    <div className="flex items-center justify-center space-x-2 mt-2 text-primary">
+                    <div className="flex items-center justify-center space-x-2 mt-2 text-[hsl(var(--warning))]">
                       {formData.userType === 'brand' ? <Building2 className="w-4 h-4" /> : <Users className="w-4 h-4" />}
                       <span className="text-sm capitalize">{formData.userType} Account</span>
                     </div>
@@ -380,7 +380,7 @@ const ProgressiveAuthFlow = () => {
 
                 <Button
                   onClick={handleNext}
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 text-lg font-semibold"
+                  className="w-full bg-[hsl(var(--warning))] text-black hover:bg-[hsl(var(--warning))]/90 py-3 text-lg font-semibold"
                   disabled={!formData.email}
                 >
                   Continue
@@ -392,7 +392,7 @@ const ProgressiveAuthFlow = () => {
                       <span className="text-muted-foreground">Already have an account? </span>
                       <button
                         onClick={() => setIsLogin(true)}
-                        className="text-primary hover:text-primary/80 font-medium transition-colors"
+                        className="text-[hsl(var(--warning))] hover:text-[hsl(var(--warning))]/80 font-medium transition-colors"
                       >
                         Sign in
                       </button>
@@ -402,7 +402,7 @@ const ProgressiveAuthFlow = () => {
                       <span className="text-muted-foreground">Don't have an account? </span>
                       <button
                         onClick={() => setIsLogin(false)}
-                        className="text-primary hover:text-primary/80 font-medium transition-colors"
+                        className="text-[hsl(var(--warning))] hover:text-[hsl(var(--warning))]/80 font-medium transition-colors"
                       >
                         Sign up
                       </button>
@@ -451,7 +451,7 @@ const ProgressiveAuthFlow = () => {
 
                 <Button
                   onClick={handleNext}
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 text-lg font-semibold"
+                  className="w-full bg-[hsl(var(--warning))] text-black hover:bg-[hsl(var(--warning))]/90 py-3 text-lg font-semibold"
                   disabled={!formData.password || isLoading}
                 >
                   {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Continue')}
@@ -491,7 +491,7 @@ const ProgressiveAuthFlow = () => {
 
                 <Button
                   onClick={handleNext}
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 text-lg font-semibold"
+                  className="w-full bg-[hsl(var(--warning))] text-black hover:bg-[hsl(var(--warning))]/90 py-3 text-lg font-semibold"
                   disabled={!formData.name || isLoading}
                 >
                   {isLoading ? 'Creating account...' : 'Create Account'}

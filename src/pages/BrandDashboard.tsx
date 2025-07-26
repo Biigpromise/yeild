@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { BrandSidebar } from '@/components/brand/dashboard/BrandSidebar';
 import { ProfessionalDashboardOverview } from '@/components/brand/dashboard/ProfessionalDashboardOverview';
+import { BrandSettings } from '@/components/brand/dashboard/BrandSettings';
 import { CreateCampaignDialog } from '@/components/brand/CreateCampaignDialog';
 import { BrandWalletFundingDialog } from '@/components/brand/BrandWalletFundingDialog';
 import { BrandCampaignManager } from '@/components/brand/dashboard/BrandCampaignManager';
@@ -132,12 +133,7 @@ const BrandDashboard = () => {
               />
               <Route
                 path="/settings"
-                element={
-                  <div className="text-center py-12">
-                    <h2 className="text-2xl font-bold text-foreground mb-4">Settings</h2>
-                    <p className="text-muted-foreground">Coming soon...</p>
-                  </div>
-                }
+                element={<BrandSettings profile={profile} />}
               />
             </Routes>
           </div>

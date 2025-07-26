@@ -16,6 +16,7 @@ import BrandDashboard from "./pages/BrandDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
+import Tasks from "./pages/Tasks";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { RoleBasedRoute } from "@/components/RoleBasedRoute";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -49,11 +50,19 @@ function App() {
                   }
                 />
                 <Route
-                  path="/brand-dashboard"
+                  path="/brand-dashboard/*"
                   element={
                     <RoleBasedRoute requiredRole="brand">
                       <BrandDashboard />
                     </RoleBasedRoute>
+                  }
+                />
+                <Route
+                  path="/tasks"
+                  element={
+                    <ProtectedRoute>
+                      <Tasks />
+                    </ProtectedRoute>
                   }
                 />
                 <Route
