@@ -1,28 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { useDashboard } from "@/hooks/useDashboard";
 import { toast } from "sonner";
 import { EmailConfirmationBanner } from "@/components/EmailConfirmationBanner";
+import { StatsDashboard } from "@/components/StatsDashboard";
+import { TasksTab } from "@/components/dashboard/TasksTab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { 
+  BarChart3, 
+  Target, 
+  Wallet, 
+  Users, 
+  Gift,
+  User,
+  LogOut
+} from "lucide-react";
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      if (!user) {
-        console.log('No user found, redirecting to auth');
-        navigate('/auth');
-        return;
-      }
-
-      setLoading(false);
-    };
-
-    checkUser();
-  }, [user, navigate]);
+  const [activeTab, setActiveTab] = useState("overview");
+  const { userProfile, userStats, loading, error } = useDashboard();
 
   const handleSignOut = async () => {
     try {
@@ -37,30 +38,144 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yeild-yellow"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       <EmailConfirmationBanner />
-      <nav className="bg-gray-900 border-b border-gray-700">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="text-white font-bold text-lg">Dashboard</div>
-          <button
-            onClick={handleSignOut}
-            className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded"
-          >
-            Sign Out
-          </button>
+      
+      {/* Header */}
+      <header className="border-b bg-card">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold">Dashboard</h1>
+            <div className="text-sm text-muted-foreground">
+              Welcome back, {userProfile?.display_name || user?.user_metadata?.name || user?.email?.split('@')[0]}!
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-1">
+                <Target className="h-4 w-4 text-primary" />
+                <span className="font-medium">{userStats?.points || 0}</span>
+                <span className="text-muted-foreground">points</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <BarChart3 className="h-4 w-4 text-primary" />
+                <span className="font-medium">Level {userStats?.level || 1}</span>
+              </div>
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSignOut}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
         </div>
-      </nav>
+      </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <h2 className="text-2xl font-semibold text-white mb-4">Welcome to your Dashboard!</h2>
-        <p className="text-gray-400">This is a protected route. Only authenticated users can access this page.</p>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 lg:w-fit lg:grid-cols-4">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              <span className="hidden sm:inline">Tasks</span>
+            </TabsTrigger>
+            <TabsTrigger value="wallet" className="flex items-center gap-2">
+              <Wallet className="h-4 w-4" />
+              <span className="hidden sm:inline">Wallet</span>
+            </TabsTrigger>
+            <TabsTrigger value="referral" className="flex items-center gap-2">
+              <Gift className="h-4 w-4" />
+              <span className="hidden sm:inline">Referral</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            <StatsDashboard userStats={userStats ? {
+              points: userStats.points,
+              level: userStats.level.toString(),
+              tasksCompleted: userStats.tasksCompleted
+            } : undefined} />
+          </TabsContent>
+
+          <TabsContent value="tasks" className="space-y-6">
+            <TasksTab />
+          </TabsContent>
+
+          <TabsContent value="wallet" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Wallet className="h-5 w-5" />
+                  Wallet Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">Wallet Coming Soon</h3>
+                  <p className="text-muted-foreground">
+                    Manage your earnings and withdrawals here.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="referral" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Gift className="h-5 w-5" />
+                  Referral Program
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-medium mb-2">Referral Program Coming Soon</h3>
+                  <p className="text-muted-foreground">
+                    Invite friends and earn bonus points for each successful referral.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
