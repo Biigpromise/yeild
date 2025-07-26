@@ -28,6 +28,7 @@ import { SocialTab } from "@/components/dashboard/SocialTab";
 import { WalletTab } from "@/components/dashboard/WalletTab";
 import { ReferralsTab } from "@/components/dashboard/ReferralsTab";
 import { NotificationCenter } from "@/components/dashboard/NotificationCenter";
+import { useRealTimeNotifications } from "@/hooks/useRealTimeNotifications";
 import { ProfileEditModal } from "@/components/dashboard/ProfileEditModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +39,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const { userProfile, userStats, loading, error, loadUserData } = useDashboard();
+  const { unreadCount } = useRealTimeNotifications(user?.id || null);
 
   const handleSignOut = async () => {
     try {
@@ -82,13 +84,13 @@ export default function Dashboard() {
       
       {/* Header */}
       <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-3 py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setIsProfileModalOpen(true)}
               className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full"
             >
-              <Avatar className="h-12 w-12 hover:ring-2 hover:ring-primary transition-all cursor-pointer">
+              <Avatar className="h-10 w-10 sm:h-12 sm:w-12 hover:ring-2 hover:ring-primary transition-all cursor-pointer">
                 <AvatarImage 
                   src={userProfile?.profile_picture_url || user?.user_metadata?.avatar_url} 
                   alt="Profile picture" 
@@ -99,26 +101,26 @@ export default function Dashboard() {
               </Avatar>
             </button>
             <div className="flex flex-col">
-              <h1 className="text-2xl font-bold text-warning glow-text shadow-glow-yellow">YEILD</h1>
-              <div className="text-sm text-muted-foreground">
-                Welcome back, {userProfile?.display_name || user?.user_metadata?.name || user?.email?.split('@')[0]}!
+              <h1 className="text-xl sm:text-2xl font-bold text-yellow-500">YIELD</h1>
+              <div className="text-xs sm:text-sm text-muted-foreground">
+                Welcome back, {(userProfile?.display_name || user?.user_metadata?.name || user?.email?.split('@')[0])?.slice(0, 15)}{(userProfile?.display_name || user?.user_metadata?.name || user?.email?.split('@')[0])?.length > 15 ? '...' : ''}!
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="grid grid-cols-3 gap-6 text-center">
-              <div className="bg-card/50 rounded-lg p-3 border border-border/50">
-                <div className="text-2xl font-bold text-warning mb-1">{userStats?.points || 0}</div>
-                <div className="text-sm text-muted-foreground">Points</div>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-6 text-center">
+              <div className="bg-card/50 rounded-lg p-2 sm:p-3 border border-border/50">
+                <div className="text-lg sm:text-2xl font-bold text-warning mb-1">{userStats?.points || 0}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Points</div>
               </div>
-              <div className="bg-card/50 rounded-lg p-3 border border-border/50">
-                <div className="text-2xl font-bold text-primary mb-1">{userStats?.level || 1}</div>
-                <div className="text-sm text-muted-foreground">Level</div>
+              <div className="bg-card/50 rounded-lg p-2 sm:p-3 border border-border/50">
+                <div className="text-lg sm:text-2xl font-bold text-primary mb-1">{userStats?.level || 1}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Level</div>
               </div>
-              <div className="bg-card/50 rounded-lg p-3 border border-border/50">
-                <div className="text-2xl font-bold text-green-500 mb-1">{userStats?.tasksCompleted || 0}</div>
-                <div className="text-sm text-muted-foreground">Tasks</div>
+              <div className="bg-card/50 rounded-lg p-2 sm:p-3 border border-border/50">
+                <div className="text-lg sm:text-2xl font-bold text-green-500 mb-1">{userStats?.tasksCompleted || 0}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Tasks</div>
               </div>
             </div>
             
@@ -127,11 +129,13 @@ export default function Dashboard() {
                 <PopoverTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative">
                     <Bell className="h-5 w-5" />
-                    <Badge 
-                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 text-white hover:bg-red-600"
-                    >
-                      3
-                    </Badge>
+                    {unreadCount > 0 && (
+                      <Badge 
+                        className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 text-white hover:bg-red-600"
+                      >
+                        {unreadCount}
+                      </Badge>
+                    )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-80 p-0" align="end">
