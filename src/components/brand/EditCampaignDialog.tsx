@@ -76,6 +76,8 @@ export const EditCampaignDialog: React.FC<EditCampaignDialogProps> = ({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['brand-campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['brand-campaigns-manager'] });
+      queryClient.invalidateQueries({ queryKey: ['brand-campaigns-list'] });
       toast.success('Campaign updated successfully');
       onClose();
     },

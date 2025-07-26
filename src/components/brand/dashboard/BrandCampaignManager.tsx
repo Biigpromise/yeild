@@ -11,6 +11,7 @@ import { BrandCampaignActionsEnhanced } from '@/components/brand/BrandCampaignAc
 import { CampaignDetailView } from '@/components/brand/CampaignDetailView';
 import { EditCampaignDialog } from '@/components/brand/EditCampaignDialog';
 import { Progress } from '@/components/ui/progress';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { 
   Search, 
   Filter, 
@@ -44,38 +45,54 @@ export const BrandCampaignManager: React.FC = () => {
   const { data: campaigns = [], isLoading, refetch, error } = useQuery({
     queryKey: ['brand-campaigns-manager'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
 
-      console.log('Fetching campaigns for user:', user.id);
+        console.log('✅ Fetching campaigns for user:', user.id);
 
-      // Check if user has a brand profile
-      const { data: brandProfile } = await supabase
-        .from('brand_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+        // Check if user has a brand profile
+        const { data: brandProfile, error: profileError } = await supabase
+          .from('brand_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-      console.log('Brand profile check:', brandProfile);
+        if (profileError) {
+          console.error('❌ Brand profile error:', profileError);
+        } else {
+          console.log('✅ Brand profile check:', brandProfile);
+        }
 
-      const { data, error } = await supabase
-        .from('brand_campaigns')
-        .select('*')
-        .eq('brand_id', user.id)
-        .order('created_at', { ascending: false });
+        const { data, error } = await supabase
+          .from('brand_campaigns')
+          .select('*')
+          .eq('brand_id', user.id)
+          .order('created_at', { ascending: false });
 
-      console.log('Campaigns query result:', { data, error, userId: user.id, campaignCount: data?.length });
+        console.log('✅ Campaigns query result:', { 
+          data, 
+          error, 
+          userId: user.id, 
+          campaignCount: data?.length 
+        });
 
-      if (error) {
-        console.error('Error fetching campaigns:', error);
-        throw error;
+        if (error) {
+          console.error('❌ Error fetching campaigns:', error);
+          throw error;
+        }
+        
+        console.log('✅ Successfully fetched campaigns:', data);
+        return data || [];
+      } catch (fetchError) {
+        console.error('❌ Campaign fetch error:', fetchError);
+        throw fetchError;
       }
-      
-      console.log('Fetched campaigns:', data);
-      return data || [];
     },
     enabled: true,
-    refetchOnWindowFocus: true
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: 1000
   });
 
   const { data: wallet } = useQuery({
@@ -227,7 +244,8 @@ export const BrandCampaignManager: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <ErrorBoundary>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -579,6 +597,7 @@ export const BrandCampaignManager: React.FC = () => {
           refetch();
         }}
       />
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 };
