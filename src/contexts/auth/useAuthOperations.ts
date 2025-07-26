@@ -76,9 +76,29 @@ export const useAuthOperations = () => {
         }
       }
 
-      // Always require email confirmation for new signups
-      if (data.user && !data.user.email_confirmed_at) {
-        toast.success("Account created! Please check your email to confirm your account before signing in.");
+      // Since we've disabled Supabase's email confirmation, send our custom verification email
+      if (data.user) {
+        try {
+          const confirmationUrl = `${window.location.origin}/auth/confirm?token=${data.session?.access_token}&type=signup&redirect_to=${encodeURIComponent(redirectUrl)}`;
+          
+          const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
+            body: { 
+              email: data.user.email,
+              name: data.user.user_metadata?.name || data.user.email?.split('@')[0],
+              confirmationUrl: confirmationUrl
+            }
+          });
+          
+          if (emailError) {
+            console.error('Error sending verification email:', emailError);
+            toast.error("Account created but there was an issue sending the verification email. You can still sign in.");
+          } else {
+            toast.success("Account created! Please check your email to verify your account.");
+          }
+        } catch (emailError) {
+          console.error('Unexpected error sending verification email:', emailError);
+          toast.error("Account created but there was an issue sending the verification email. You can still sign in.");
+        }
       }
 
       console.log("Signup successful - email confirmation required");
