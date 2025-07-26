@@ -3,6 +3,8 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+const PRODUCTION_DOMAIN = 'https://yeildsocials.com';
+
 export function useResendBrandConfirmation() {
   const [resendLoading, setResendLoading] = useState(false);
 
@@ -16,7 +18,7 @@ export function useResendBrandConfirmation() {
     try {
       console.log('Resending brand confirmation email to:', email, 'Company:', companyName);
       
-      const magicLinkUrl = `${window.location.origin}/brand-dashboard`;
+      const magicLinkUrl = `${PRODUCTION_DOMAIN}/brand-dashboard`;
       
       const brandEmail = {
         to: email,

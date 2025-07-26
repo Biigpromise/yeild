@@ -1,124 +1,102 @@
 
-import React from "react";
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Award, Building2, Calendar } from "lucide-react";
-import { TaskSocialMediaDisplay } from "./TaskSocialMediaDisplay";
+import { Clock, DollarSign, Users, CheckCircle } from "lucide-react";
 
-interface Task {
-  id: string;
+interface TaskCardProps {
   title: string;
   description: string;
   points: number;
-  category: string;
-  difficulty: string;
-  estimated_time?: string;
-  brand_name?: string;
-  brand_logo_url?: string;
-  expires_at?: string;
-  social_media_links?: Record<string, string> | null;
+  timeEstimate: string;
+  participants: number;
+  status: 'available' | 'in_progress' | 'completed';
+  onViewTask: () => void;
 }
 
-interface TaskCardProps {
-  task: Task;
-  onTaskClick?: (task: Task) => void;
-  hasSubmitted?: boolean;
-}
-
-export const TaskCard: React.FC<TaskCardProps> = ({ 
-  task, 
-  onTaskClick,
-  hasSubmitted = false 
-}) => {
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty?.toLowerCase()) {
-      case 'easy': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'hard': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+const TaskCard = ({ 
+  title, 
+  description, 
+  points, 
+  timeEstimate, 
+  participants, 
+  status, 
+  onViewTask 
+}: TaskCardProps) => {
+  const getStatusColor = () => {
+    switch (status) {
+      case 'available':
+        return 'bg-green-500/20 text-green-300 border-green-500/30';
+      case 'in_progress':
+        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
+      case 'completed':
+        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+      default:
+        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
     }
   };
 
-  const formatExpiryDate = (dateString?: string) => {
-    if (!dateString) return null;
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const getStatusText = () => {
+    switch (status) {
+      case 'available':
+        return 'Available';
+      case 'in_progress':
+        return 'In Progress';
+      case 'completed':
+        return 'Completed';
+      default:
+        return 'Unknown';
+    }
   };
 
   return (
-    <Card className="h-full hover:shadow-lg transition-shadow duration-200 cursor-pointer group">
+    <Card className="bg-slate-900 border-slate-700 hover:border-slate-600 transition-colors">
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-lg font-semibold group-hover:text-blue-600 transition-colors">
-            {task.title}
+        <div className="flex items-start justify-between">
+          <CardTitle className="text-lg font-semibold text-white line-clamp-2">
+            {title}
           </CardTitle>
-          <div className="flex items-center gap-1 text-yellow-600 font-semibold">
-            <Award className="h-4 w-4" />
-            <span>{task.points}</span>
-          </div>
-        </div>
-        
-        <div className="flex flex-wrap gap-2 mt-2">
-          <Badge variant="secondary" className="text-xs">
-            {task.category}
-          </Badge>
-          <Badge className={`text-xs ${getDifficultyColor(task.difficulty)}`}>
-            {task.difficulty}
+          <Badge className={getStatusColor()}>
+            {status === 'completed' && <CheckCircle className="w-3 h-3 mr-1" />}
+            {getStatusText()}
           </Badge>
         </div>
       </CardHeader>
-
       <CardContent className="space-y-4">
-        <p className="text-sm text-gray-600 line-clamp-3">
-          {task.description}
+        <p className="text-slate-300 text-sm line-clamp-3">
+          {description}
         </p>
-
-        <div className="space-y-2 text-xs text-gray-500">
-          {task.estimated_time && (
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              <span>{task.estimated_time}</span>
+        
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center text-green-400">
+              <DollarSign className="w-4 h-4 mr-1" />
+              <span className="font-medium">{points} pts</span>
             </div>
-          )}
-          
-          {task.brand_name && (
-            <div className="flex items-center gap-1">
-              <Building2 className="h-3 w-3" />
-              <span>{task.brand_name}</span>
+            
+            <div className="flex items-center text-slate-400">
+              <Clock className="w-4 h-4 mr-1" />
+              <span>{timeEstimate}</span>
             </div>
-          )}
-          
-          {task.expires_at && (
-            <div className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              <span>Expires: {formatExpiryDate(task.expires_at)}</span>
+            
+            <div className="flex items-center text-slate-400">
+              <Users className="w-4 h-4 mr-1" />
+              <span>{participants}</span>
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Social Media Links - Always visible and clickable */}
-        <TaskSocialMediaDisplay 
-          socialLinks={task.social_media_links}
-          taskTitle={task.title}
-        />
-
-        <div className="pt-2">
-          <Button 
-            onClick={() => onTaskClick?.(task)}
-            className="w-full"
-            disabled={hasSubmitted}
-            variant={hasSubmitted ? "secondary" : "default"}
-          >
-            {hasSubmitted ? "Submitted" : "Start Task"}
-          </Button>
-        </div>
+        <Button 
+          onClick={onViewTask}
+          className="w-full bg-yeild-yellow text-black hover:bg-yeild-yellow/90"
+          disabled={status === 'completed'}
+        >
+          {status === 'completed' ? 'Completed' : 'View Task'}
+        </Button>
       </CardContent>
     </Card>
   );
 };
+
+export default TaskCard;

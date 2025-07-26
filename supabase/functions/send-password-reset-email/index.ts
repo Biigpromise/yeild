@@ -28,9 +28,8 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get the origin from the request or use default
-    const origin = req.headers.get('origin') || 'https://yeildsocials.com'
-    const resetUrl = `${origin}/reset-password`
+    // Always use production domain for reset URL
+    const resetUrl = 'https://yeildsocials.com/reset-password'
 
     console.log('Generating password reset for:', email, 'Redirect to:', resetUrl)
 

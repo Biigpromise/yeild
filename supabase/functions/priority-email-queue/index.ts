@@ -48,11 +48,17 @@ serve(async (req) => {
 
     const results = []
 
-    // Process high-priority emails immediately
+    // Process all high-priority emails immediately with minimal delay
     const highPriorityEmails = emails.filter(email => email.priority === 'high')
     
-    for (const email of highPriorityEmails) {
+    // Use Promise.all for parallel processing of high-priority emails
+    const highPriorityPromises = highPriorityEmails.map(async (email, index) => {
       try {
+        // Stagger requests by 50ms to avoid rate limits while maintaining speed
+        if (index > 0) {
+          await new Promise(resolve => setTimeout(resolve, 50))
+        }
+
         console.log(`Sending high-priority ${email.email_type} email to:`, email.to)
 
         const emailResponse = await fetch('https://api.resend.com/emails', {
@@ -68,8 +74,15 @@ serve(async (req) => {
             html: email.html,
             tags: [
               { name: 'category', value: email.email_type },
-              { name: 'priority', value: email.priority }
-            ]
+              { name: 'priority', value: email.priority },
+              { name: 'domain', value: 'yeildsocials.com' }
+            ],
+            // Add high priority headers for faster processing
+            headers: {
+              'X-Priority': '1',
+              'X-MSMail-Priority': 'High',
+              'Importance': 'high'
+            }
           }),
         })
 
@@ -86,11 +99,11 @@ serve(async (req) => {
               sent_at: new Date().toISOString()
             })
 
-          results.push({
+          return {
             email: email.to,
             status: 'sent',
             id: emailResult.id
-          })
+          }
         } else {
           throw new Error(`Resend error: ${JSON.stringify(emailResult)}`)
         }
@@ -108,16 +121,17 @@ serve(async (req) => {
             failed_at: new Date().toISOString()
           })
 
-        results.push({
+        return {
           email: email.to,
           status: 'failed',
           error: error.message
-        })
+        }
       }
+    })
 
-      // Small delay between emails to avoid rate limits
-      await new Promise(resolve => setTimeout(resolve, 100))
-    }
+    // Wait for all high-priority emails to complete
+    const highPriorityResults = await Promise.all(highPriorityPromises)
+    results.push(...highPriorityResults)
 
     // Queue medium and low priority emails for background processing
     const backgroundEmails = emails.filter(email => email.priority !== 'high')
@@ -144,7 +158,11 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true,
         processed: results.length,
-        results
+        results,
+        performance: {
+          high_priority_emails: highPriorityEmails.length,
+          processing_time: `${Date.now()} ms`
+        }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { handleAuthError, checkEmailExists } from "./authErrorHandler";
 import { EmailMonitoringService } from "@/services/emailMonitoring";
 
+const PRODUCTION_DOMAIN = 'https://yeildsocials.com';
+
 export const useAuthOperations = () => {
   const signUp = async (email: string, password: string, name?: string, userType?: string, additionalData?: Record<string, any>, emailRedirectTo?: string) => {
     try {
@@ -23,8 +25,8 @@ export const useAuthOperations = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref');
 
-      // Always use the current origin for email confirmation
-      const redirectUrl = emailRedirectTo || `${window.location.origin}/auth/callback`;
+      // Always use production domain for email confirmation
+      const redirectUrl = `${PRODUCTION_DOMAIN}/auth/callback`;
       
       console.log("Using redirect URL:", redirectUrl);
 
@@ -81,7 +83,7 @@ export const useAuthOperations = () => {
       if (data.user && !data.user.email_confirmed_at) {
         try {
           const displayName = data.user.user_metadata?.name || data.user.email?.split('@')[0];
-          const confirmationUrl = `${window.location.origin}/auth/callback`;
+          const confirmationUrl = `${PRODUCTION_DOMAIN}/auth/callback`;
 
           const verificationEmail = {
             to: data.user.email,
@@ -343,8 +345,8 @@ export const useAuthOperations = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref');
       
-      // Always redirect to OAuth callback handler with all params
-      const redirectUrl = `${window.location.origin}/auth/callback`;
+      // Always redirect to production domain
+      const redirectUrl = `${PRODUCTION_DOMAIN}/auth/callback`;
       
       const queryParams: Record<string, string> = {
         user_type: userType || 'user'
@@ -385,7 +387,7 @@ export const useAuthOperations = () => {
         return { error };
       }
 
-      // Create password reset email with high priority
+      // Create password reset email with high priority using production domain
       const resetEmail = {
         to: email,
         subject: "🔑 Reset your YEILD password - Action Required",
@@ -409,7 +411,7 @@ export const useAuthOperations = () => {
               </p>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${window.location.origin}/reset-password" 
+                <a href="${PRODUCTION_DOMAIN}/reset-password" 
                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                           color: white; 
                           padding: 15px 30px; 
@@ -456,8 +458,8 @@ export const useAuthOperations = () => {
       if (queueError) {
         console.error("Priority password reset queue error:", queueError);
         
-        // Fallback to Supabase's default password reset
-        const resetUrl = `${window.location.origin}/reset-password`;
+        // Fallback to Supabase's default password reset with production domain
+        const resetUrl = `${PRODUCTION_DOMAIN}/reset-password`;
         const { error: fallbackError } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: resetUrl
         });
@@ -487,7 +489,7 @@ export const useAuthOperations = () => {
       }
 
       const displayName = email.split('@')[0];
-      const confirmationUrl = `${window.location.origin}/auth/callback`;
+      const confirmationUrl = `${PRODUCTION_DOMAIN}/auth/callback`;
 
       const verificationEmail = {
         to: email,
@@ -547,12 +549,12 @@ export const useAuthOperations = () => {
 
       if (queueError) {
         console.error('Priority confirmation queue failed:', queueError);
-        // Fallback to Supabase's default resend
+        // Fallback to Supabase's default resend with production domain
         const { error: fallbackError } = await supabase.auth.resend({
           type: 'signup',
           email: email,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`
+            emailRedirectTo: `${PRODUCTION_DOMAIN}/auth/callback`
           }
         });
         
