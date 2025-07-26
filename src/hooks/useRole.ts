@@ -1,60 +1,45 @@
 
 import { useState, useEffect } from 'react';
-import { roleService } from '@/services/roleService';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
-export const useRole = (requiredRole?: string) => {
+export const useRole = (requiredRole: string) => {
   const { user } = useAuth();
-  const [userRoles, setUserRoles] = useState<string[]>([]);
   const [hasRequiredRole, setHasRequiredRole] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadUserRoles = async () => {
+    const checkRole = async () => {
       if (!user) {
-        setUserRoles([]);
         setHasRequiredRole(false);
         setLoading(false);
         return;
       }
 
       try {
-        const roles = await roleService.getCurrentUserRoles();
-        const roleNames = roles.map(r => r.role);
-        setUserRoles(roleNames);
-        
-        if (requiredRole) {
-          setHasRequiredRole(roleNames.includes(requiredRole));
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', requiredRole)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error checking role:', error);
+          setHasRequiredRole(false);
+        } else {
+          setHasRequiredRole(!!data);
         }
       } catch (error) {
-        console.error('Error loading user roles:', error);
-        setUserRoles([]);
+        console.error('Unexpected error checking role:', error);
         setHasRequiredRole(false);
       } finally {
         setLoading(false);
       }
     };
 
-    loadUserRoles();
+    checkRole();
   }, [user, requiredRole]);
 
-  const hasRole = (role: string) => userRoles.includes(role);
-
-  const isAdmin = () => hasRole('admin');
-  const isModerator = () => hasRole('moderator');
-  const isUser = () => hasRole('user');
-
-  // Add role property for backward compatibility
-  const role = userRoles.length > 0 ? userRoles[0] : 'user';
-
-  return {
-    userRoles,
-    hasRequiredRole,
-    hasRole,
-    isAdmin,
-    isModerator,
-    isUser,
-    loading,
-    role
-  };
+  return { hasRequiredRole, loading };
 };

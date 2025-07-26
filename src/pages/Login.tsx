@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,8 +26,8 @@ const Login = () => {
   const referralCode = searchParams.get('ref');
 
   useEffect(() => {
-    // Redirect if already authenticated
-    if (user) {
+    // Redirect if already authenticated and email is confirmed
+    if (user && user.email_confirmed_at) {
       if (user.email === 'yeildsocials@gmail.com') {
         navigate('/admin');
       } else if (user.user_metadata?.user_type === 'brand' || user.user_metadata?.company_name) {
@@ -36,6 +35,9 @@ const Login = () => {
       } else {
         navigate('/dashboard');
       }
+    } else if (user && !user.email_confirmed_at) {
+      // If user is signed in but email not confirmed, redirect to confirmation page
+      navigate(`/email-confirmation?email=${user.email}`);
     }
   }, [user, navigate]);
 
@@ -52,9 +54,12 @@ const Login = () => {
     setLoading(true);
     
     try {
-      const { error } = await signIn(email, password);
+      const { error, needsEmailConfirmation } = await signIn(email, password);
       if (error) {
         toast.error(error.message);
+      } else if (needsEmailConfirmation) {
+        // User signed in but needs email confirmation
+        navigate(`/email-confirmation?email=${email}`);
       } else {
         toast.success('Welcome back!');
       }
@@ -71,13 +76,13 @@ const Login = () => {
     
     try {
       // Use the current origin for email redirect
-      const redirectUrl = `${window.location.origin}/login`;
+      const redirectUrl = `${window.location.origin}/auth/callback`;
       const { error } = await signUp(email, password, name, userType, {}, redirectUrl);
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success('Account created! Please check your email to verify your account.');
-        setActiveTab('signin');
+        // Redirect to email confirmation page
+        navigate(`/email-confirmation?email=${email}`);
       }
     } catch (error) {
       toast.error('An unexpected error occurred');

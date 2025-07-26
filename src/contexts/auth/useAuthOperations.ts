@@ -227,15 +227,16 @@ export const useAuthOperations = () => {
         return { error: { ...error, message: friendlyMessage } };
       }
 
-      // Check if email is confirmed for regular users
+      // Check if email is confirmed for regular users - DON'T sign out, just redirect to confirmation
       if (data.user && !data.user.email_confirmed_at) {
         const isBrandUser = data.user.user_metadata?.user_type === 'brand' || 
                            data.user.user_metadata?.company_name;
         
         if (!isBrandUser) {
-          // Sign out regular users who haven't confirmed email
-          await supabase.auth.signOut();
-          return { error: { message: "Please check your email and confirm your account before signing in." } };
+          console.log("User email not confirmed, will redirect to confirmation page");
+          toast.warning("Please check your email and confirm your account to access all features.");
+          // Don't sign out - let them stay signed in but redirect to confirmation page
+          return { error: null, needsEmailConfirmation: true };
         } else {
           console.log("Brand user signing in without email confirmation");
           toast.warning("Please confirm your email to access all brand features.");

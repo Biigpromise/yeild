@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
+import Login from "./pages/Login";
+import EmailConfirmation from "./pages/EmailConfirmation";
 import BrandAuth from "./pages/BrandAuth";
 import BrandDashboard from "./pages/BrandDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -29,6 +31,8 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/email-confirmation" element={<EmailConfirmation />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/brand-auth" element={<BrandAuth />} />
               <Route path="/reset-password" element={<ResetPassword />} />

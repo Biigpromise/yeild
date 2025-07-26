@@ -6,7 +6,7 @@ export interface AuthContextType {
   session: Session | null;  
   loading: boolean;
   signUp: (email: string, password: string, name?: string, userType?: string, additionalData?: Record<string, any>, emailRedirectTo?: string) => Promise<{ user: User | null; error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any; needsEmailConfirmation?: boolean }>;
   signOut: () => Promise<void>;
   signInWithProvider: (provider: 'google' | 'github' | 'twitter', userType?: string) => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
