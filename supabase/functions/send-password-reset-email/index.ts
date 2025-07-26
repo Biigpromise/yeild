@@ -28,12 +28,18 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Get the origin from the request or use default
+    const origin = req.headers.get('origin') || 'https://yeildsocials.com'
+    const resetUrl = `${origin}/reset-password`
+
+    console.log('Generating password reset for:', email, 'Redirect to:', resetUrl)
+
     // Generate password reset link with proper redirect
     const { data, error } = await supabaseClient.auth.admin.generateLink({
       type: 'recovery',
       email: email,
       options: {
-        redirectTo: `${req.headers.get('origin') || 'https://yeildsocials.com'}/reset-password`
+        redirectTo: resetUrl
       }
     })
 
@@ -42,7 +48,7 @@ serve(async (req) => {
       throw error
     }
 
-    // Send email with Resend
+    // Send email with Resend for faster delivery
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
     
     if (!resendApiKey) {
@@ -102,6 +108,7 @@ serve(async (req) => {
       </html>
     `
 
+    // Use priority sending for password reset emails
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -111,8 +118,12 @@ serve(async (req) => {
       body: JSON.stringify({
         from: 'YIELD <noreply@yeildsocials.com>',
         to: [email],
-        subject: 'Reset Your YIELD Password',
+        subject: 'Reset Your YIELD Password - Action Required',
         html: emailHtml,
+        tags: [
+          { name: 'category', value: 'password_reset' },
+          { name: 'priority', value: 'high' }
+        ]
       }),
     })
 
@@ -122,6 +133,8 @@ serve(async (req) => {
       console.error('Resend API error:', emailResult)
       throw new Error('Failed to send email')
     }
+
+    console.log('Password reset email sent successfully to:', email)
 
     return new Response(
       JSON.stringify({ 

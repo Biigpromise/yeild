@@ -2,6 +2,7 @@ import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { handleAuthError, checkEmailExists } from "./authErrorHandler";
+import { EmailMonitoringService } from "@/services/emailMonitoring";
 
 export const useAuthOperations = () => {
   const signUp = async (email: string, password: string, name?: string, userType?: string, additionalData?: Record<string, any>, emailRedirectTo?: string) => {
@@ -79,6 +80,9 @@ export const useAuthOperations = () => {
       // Send custom verification email using our edge function
       if (data.user && !data.user.email_confirmed_at) {
         try {
+          // Log email monitoring
+          EmailMonitoringService.logEmailSent(data.user.email, 'verification');
+
           const { data: emailData, error: emailError } = await supabase.functions.invoke('send-verification-email', {
             body: {
               email: data.user.email,
@@ -323,20 +327,26 @@ export const useAuthOperations = () => {
         return { error };
       }
 
-      // Use our custom password reset email function instead of Supabase's default
-      const resetUrl = `${window.location.origin}/reset-password`;
-      
+      // Log email monitoring for password reset
+      const emailLog = await EmailMonitoringService.logEmailSent(email, 'password_reset');
+
+      // Use our custom password reset email function for faster delivery
       const { error: functionError } = await supabase.functions.invoke('send-password-reset-email', {
         body: { 
-          email: email,
-          resetUrl: resetUrl,
-          name: email.split('@')[0] // Simple name extraction
+          email: email
         }
       });
       
       if (functionError) {
         console.error("Custom password reset function error:", functionError);
+        
+        // Update email log on failure
+        if (emailLog?.id) {
+          EmailMonitoringService.updateEmailStatus(emailLog.id, 'failed', functionError.message);
+        }
+        
         // Fallback to Supabase's default password reset if custom function fails
+        const resetUrl = `${window.location.origin}/reset-password`;
         const { error: fallbackError } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: resetUrl
         });
@@ -412,145 +422,10 @@ export const useAuthOperations = () => {
   return {
     signUp,
     signIn,
-    signOut: async () => {
-      try {
-        console.log("AuthContext: Signing out");
-        const { error } = await supabase.auth.signOut();
-        
-        if (error) {
-          console.error("Sign out error:", error);
-          toast.error("Failed to sign out properly");
-        } else {
-          console.log("Sign out successful");
-          toast.success("Signed out successfully");
-          // Force redirect to home page
-          window.location.href = '/';
-        }
-      } catch (error) {
-        console.error("Sign out unexpected error:", error);
-        toast.error("An error occurred while signing out");
-      }
-    },
-    signInWithProvider: async (provider: 'google' | 'github' | 'twitter', userType?: string) => {
-      try {
-        console.log("AuthContext: Attempting provider sign in with:", provider, "Type:", userType);
-        
-        // Get current URL for referral code
-        const urlParams = new URLSearchParams(window.location.search);
-        const refCode = urlParams.get('ref');
-        
-        // Always redirect to OAuth callback handler with all params  
-        const redirectUrl = `${window.location.origin}/auth/callback`;
-        
-        const queryParams: Record<string, string> = {
-          user_type: userType || 'user'
-        };
-        
-        // Include referral code if present
-        if (refCode) {
-          queryParams.ref = refCode;
-        }
-        
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider,
-          options: {
-            redirectTo: redirectUrl,
-            queryParams
-          }
-        });
-        
-        if (error) {
-          const friendlyMessage = handleAuthError(error, `${provider} sign in`);
-          return { error: { ...error, message: friendlyMessage } };
-        }
-        
-        return { error: null };
-      } catch (error) {
-        console.error("AuthContext: Provider sign in unexpected error:", error);
-        const friendlyMessage = handleAuthError(error, `${provider} sign in`);
-        return { error: { message: friendlyMessage } };
-      }
-    },
-    resetPassword: async (email: string) => {
-      try {
-        console.log("AuthContext: Attempting password reset for:", email);
-        
-        if (!email) {
-          const error = new Error("Email is required");
-          return { error };
-        }
-
-        // Use our custom password reset email function instead of Supabase's default
-        const resetUrl = `${window.location.origin}/reset-password`;
-        
-        const { error: functionError } = await supabase.functions.invoke('send-password-reset-email', {
-          body: { 
-            email: email,
-            resetUrl: resetUrl,
-            name: email.split('@')[0] // Simple name extraction
-          }
-        });
-        
-        if (functionError) {
-          console.error("Custom password reset function error:", functionError);
-          // Fallback to Supabase's default password reset if custom function fails
-          const { error: fallbackError } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: resetUrl
-          });
-          
-          if (fallbackError) {
-            const friendlyMessage = handleAuthError(fallbackError, 'password reset');
-            return { error: { ...fallbackError, message: friendlyMessage } };
-          }
-        }
-
-        console.log("AuthContext: Password reset email sent successfully");
-        return { error: null };
-      } catch (error) {
-        console.error("AuthContext: Password reset unexpected error:", error);
-        const friendlyMessage = handleAuthError(error, 'password reset');
-        return { error: { message: friendlyMessage } };
-      }
-    },
-    resendConfirmation: async (email: string) => {
-      try {
-        console.log("AuthContext: Resending confirmation email for:", email);
-        
-        if (!email) {
-          const error = new Error("Email is required");
-          return { error };
-        }
-
-        const redirectUrl = `${window.location.origin}/dashboard`;
-        
-        // Use our custom verification email function
-        const { error } = await supabase.functions.invoke('send-verification-email', {
-          body: { 
-            email: email, 
-            confirmationUrl: `${window.location.origin}/auth/confirm?redirect_to=${encodeURIComponent(redirectUrl)}`
-          }
-        });
-        
-        if (error) {
-          const friendlyMessage = handleAuthError(error, 'resend confirmation');
-          return { error: { ...error, message: friendlyMessage } };
-        }
-
-        console.log("AuthContext: Confirmation email resent successfully");
-        return { error: null };
-      } catch (error) {
-        console.error("AuthContext: Resend confirmation unexpected error:", error);
-        const friendlyMessage = handleAuthError(error, 'resend confirmation');
-        return { error: { message: friendlyMessage } };
-      }
-    },
-    verifyConfirmationCode: async (inputCode: string): Promise<{ success: boolean; error?: string }> => {
-      try {
-        return { success: true };
-      } catch (error) {
-        console.error("Error verifying confirmation code:", error);
-        return { success: false, error: "Verification failed" };
-      }
-    },
+    signOut,
+    signInWithProvider,
+    resetPassword,
+    resendConfirmation,
+    verifyConfirmationCode,
   };
 };

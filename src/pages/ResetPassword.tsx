@@ -16,21 +16,72 @@ const ResetPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [tokenVerified, setTokenVerified] = useState(false);
 
   useEffect(() => {
     // Check if we have the necessary tokens in the URL
     const accessToken = searchParams.get('access_token');
     const refreshToken = searchParams.get('refresh_token');
+    const tokenHash = searchParams.get('token_hash');
+    const type = searchParams.get('type');
     
-    if (!accessToken || !refreshToken) {
-      console.error("Missing tokens in URL");
+    console.log('Reset password URL params:', {
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!refreshToken,
+      hasTokenHash: !!tokenHash,
+      type
+    });
+
+    // Handle both old and new token formats
+    if ((!accessToken || !refreshToken) && !tokenHash) {
+      console.error("Missing authentication tokens in URL");
       toast.error("Invalid reset link. Please request a new password reset.");
       navigate("/forgot-password");
+      return;
+    }
+
+    // If we have tokens, verify them by setting the session
+    if (accessToken && refreshToken) {
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      }).then(({ data, error }) => {
+        if (error) {
+          console.error("Token verification failed:", error);
+          toast.error("Reset link has expired. Please request a new one.");
+          navigate("/forgot-password");
+        } else {
+          console.log("Token verified successfully");
+          setTokenVerified(true);
+        }
+      });
+    } else if (tokenHash && type === 'recovery') {
+      // Handle new token hash format
+      supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: 'recovery'
+      }).then(({ data, error }) => {
+        if (error) {
+          console.error("Token hash verification failed:", error);
+          toast.error("Reset link has expired. Please request a new one.");
+          navigate("/forgot-password");
+        } else {
+          console.log("Token hash verified successfully");
+          setTokenVerified(true);
+        }
+      });
+    } else {
+      setTokenVerified(true); // Assume valid for now
     }
   }, [searchParams, navigate]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!tokenVerified) {
+      toast.error("Please wait for token verification...");
+      return;
+    }
     
     if (!password || !confirmPassword) {
       toast.error("Please fill out all fields");
@@ -42,8 +93,19 @@ const ResetPassword = () => {
       return;
     }
 
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters long");
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters long");
+      return;
+    }
+
+    // Add password strength validation
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+      toast.error("Password must contain uppercase, lowercase, and numbers");
       return;
     }
 
@@ -57,19 +119,41 @@ const ResetPassword = () => {
       
       if (error) {
         console.error("Password update error:", error);
-        toast.error(error.message || "Failed to update password");
+        
+        // Handle specific error cases
+        if (error.message.includes('same as the old password')) {
+          toast.error("New password must be different from your current password");
+        } else if (error.message.includes('weak password')) {
+          toast.error("Password is too weak. Please choose a stronger password");
+        } else {
+          toast.error(error.message || "Failed to update password");
+        }
       } else {
         console.log("Password updated successfully");
-        toast.success("Password updated successfully!");
+        toast.success("Password updated successfully! You can now sign in with your new password.");
+        
+        // Sign out after password reset for security
+        await supabase.auth.signOut();
         navigate("/login");
       }
     } catch (error) {
       console.error("Unexpected password update error:", error);
-      toast.error("An unexpected error occurred");
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (!tokenVerified) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-yeild-black">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yeild-yellow mx-auto"></div>
+          <p className="text-white mt-4">Verifying reset link...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-yeild-black relative">
@@ -93,7 +177,7 @@ const ResetPassword = () => {
           </div>
           <h1 className="text-2xl font-bold text-white">Set New Password</h1>
           <p className="text-gray-400 mt-2">
-            Enter your new password below
+            Enter your new secure password below
           </p>
         </div>
         
@@ -104,11 +188,12 @@ const ResetPassword = () => {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Enter new password"
+                placeholder="Enter new password (min 8 chars)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="yeild-input pr-10"
                 required
+                minLength={8}
               />
               <button
                 type="button"
@@ -122,6 +207,9 @@ const ResetPassword = () => {
                 )}
               </button>
             </div>
+            <p className="text-xs text-gray-400">
+              Must include uppercase, lowercase, and numbers
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -135,6 +223,7 @@ const ResetPassword = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="yeild-input pr-10"
                 required
+                minLength={8}
               />
               <button
                 type="button"
@@ -153,9 +242,9 @@ const ResetPassword = () => {
           <Button 
             type="submit" 
             className="w-full yeild-btn-primary mt-6" 
-            disabled={isLoading}
+            disabled={isLoading || !tokenVerified}
           >
-            {isLoading ? "Updating..." : "Update Password"}
+            {isLoading ? "Updating Password..." : "Update Password"}
           </Button>
         </form>
       </div>
