@@ -5,13 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const navigate = useNavigate();
+  const { resetPassword } = useAuth();
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,9 +25,7 @@ const ForgotPassword = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      });
+      const { error } = await resetPassword(email);
 
       if (error) {
         toast.error(error.message);
@@ -35,7 +34,8 @@ const ForgotPassword = () => {
         toast.success("Password reset email sent! Check your inbox.");
       }
     } catch (error: any) {
-      toast.error("An unexpected error occurred");
+      console.error('Password reset error:', error);
+      toast.error("An unexpected error occurred while sending reset email");
     } finally {
       setIsLoading(false);
     }
