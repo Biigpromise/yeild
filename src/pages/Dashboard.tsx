@@ -109,16 +109,16 @@ export default function Dashboard() {
           
           <div className="flex items-center gap-2 sm:gap-4">
             <div className="grid grid-cols-3 gap-6 sm:gap-8 text-center">
-              <div className="min-w-0 px-2">
-                <div className="text-xl sm:text-2xl font-bold text-warning truncate">{userStats?.points || 0}</div>
+              <div className="min-w-0 px-1 flex-1">
+                <div className="text-lg sm:text-xl font-bold text-warning leading-tight">{userStats?.points || 0}</div>
                 <div className="text-xs text-muted-foreground font-medium">Points</div>
               </div>
-              <div className="min-w-0 px-2">
-                <div className="text-xl sm:text-2xl font-bold text-primary truncate">{userStats?.level || 1}</div>
+              <div className="min-w-0 px-1 flex-1">
+                <div className="text-lg sm:text-xl font-bold text-primary leading-tight">{userStats?.level || 1}</div>
                 <div className="text-xs text-muted-foreground font-medium">Level</div>
               </div>
-              <div className="min-w-0 px-2">
-                <div className="text-xl sm:text-2xl font-bold text-green-500 truncate">{userStats?.tasksCompleted || 0}</div>
+              <div className="min-w-0 px-1 flex-1">
+                <div className="text-lg sm:text-xl font-bold text-green-500 leading-tight">{userStats?.tasksCompleted || 0}</div>
                 <div className="text-xs text-muted-foreground font-medium">Tasks</div>
               </div>
             </div>
