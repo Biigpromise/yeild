@@ -9,6 +9,7 @@ import { TasksTab } from "@/components/dashboard/TasksTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { 
   BarChart3, 
   Target, 
@@ -76,9 +77,20 @@ export default function Dashboard() {
       <header className="border-b bg-card">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold">Dashboard</h1>
-            <div className="text-sm text-muted-foreground">
-              Welcome back, {userProfile?.display_name || user?.user_metadata?.name || user?.email?.split('@')[0]}!
+            <Avatar className="h-12 w-12">
+              <AvatarImage 
+                src={userProfile?.profile_picture_url || user?.user_metadata?.avatar_url} 
+                alt="Profile picture" 
+              />
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                {(userProfile?.display_name || user?.user_metadata?.name || user?.email?.split('@')[0])?.charAt(0)?.toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-bold text-primary glow-text">YEILD</h1>
+              <div className="text-sm text-muted-foreground">
+                Welcome back, {userProfile?.display_name || user?.user_metadata?.name || user?.email?.split('@')[0]}!
+              </div>
             </div>
           </div>
           
