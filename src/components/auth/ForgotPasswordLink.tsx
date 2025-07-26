@@ -10,7 +10,7 @@ export const ForgotPasswordLink: React.FC<ForgotPasswordLinkProps> = ({ userType
   const navigate = useNavigate();
 
   const handleForgotPassword = () => {
-    navigate('/forgot-password');
+    navigate('/reset-password');
   };
 
   return (
