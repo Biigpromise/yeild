@@ -75,10 +75,11 @@ export default {
 				// YEILD Brand Colors
 				yeild: {
 					yellow: {
-						DEFAULT: '#FFDE59',
-						dark: '#FFD100',
+						DEFAULT: 'hsl(var(--yeild-yellow))',
+						dark: 'hsl(var(--yeild-yellow-dark))',
 					},
-					black: '#0A0A0A',
+					black: 'hsl(var(--yeild-black))',
+					accent: 'hsl(var(--yeild-accent))',
 				},
 			},
 			borderRadius: {
@@ -121,7 +122,9 @@ export default {
 			},
 			boxShadow: {
 				'yeild-card': '0 10px 30px -15px rgba(0, 0, 0, 0.3)',
-				'yeild-button': '0 10px 20px -10px rgba(255, 222, 89, 0.5)'
+				'yeild-button': '0 10px 20px -10px hsl(48 100% 67% / 0.5)',
+				'yeild-glow': '0 0 30px hsl(48 100% 67% / 0.4)',
+				'yeild-glow-lg': '0 0 50px hsl(48 100% 67% / 0.6)'
 			}
 		}
 	},

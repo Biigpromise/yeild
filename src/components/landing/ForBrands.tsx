@@ -9,7 +9,7 @@ export const ForBrands = () => {
     <section className="py-20 bg-gray-900/50">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4 text-yeild-yellow">For Brands</h2>
+          <h2 className="text-4xl font-bold mb-4 text-primary">For Brands</h2>
         </div>
         
         <div className="grid md:grid-cols-1 gap-8 max-w-2xl mx-auto">
@@ -21,7 +21,7 @@ export const ForBrands = () => {
               </CardDescription>
               <Button 
                 asChild
-                className="bg-white text-black hover:bg-gray-200 w-fit"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 w-fit shadow-yeild-button"
               >
                 <Link to="/brand-signup">
                   Partner With Us
