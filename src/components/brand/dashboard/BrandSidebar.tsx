@@ -220,10 +220,10 @@ export function BrandSidebar({ profile, wallet }: BrandSidebarProps) {
                 <SidebarMenuButton asChild className="p-0">
                   <button 
                     onClick={handleSignOut}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 w-full"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-red-500/20 hover:border-red-500/40 w-full"
                   >
                     <LogOut className="w-5 h-5 flex-shrink-0" />
-                    {!collapsed && <span className="flex-1 truncate text-left">Sign Out</span>}
+                    {!collapsed && <span className="flex-1 truncate text-left font-medium">Sign Out</span>}
                   </button>
                 </SidebarMenuButton>
               </SidebarMenuItem>

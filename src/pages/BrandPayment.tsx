@@ -249,6 +249,16 @@ const BrandPayment = () => {
                   <p className="text-sm text-gray-300">
                     Your payment is secured by Flutterwave's industry-leading encryption and security measures.
                   </p>
+                  {/* Payment Mode Indicator */}
+                  <div className="mt-4 p-3 bg-amber-500/20 border border-amber-500/40 rounded-lg">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                      <span className="text-amber-400 text-sm font-medium">TEST MODE</span>
+                    </div>
+                    <p className="text-xs text-amber-300/80 mt-1">
+                      You're in test mode. No real charges will be made.
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
