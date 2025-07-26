@@ -23,9 +23,13 @@ export const BrandNotifications = () => {
   const { data: notifications, isLoading } = useQuery({
     queryKey: ['brand-notifications'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data, error } = await supabase
         .from('brand_notifications')
         .select('*')
+        .eq('brand_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

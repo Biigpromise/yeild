@@ -95,22 +95,24 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         hasSeenOnboarding
       });
       
-        // Show onboarding for new users (both brand and regular)
-        if (!hasSeenOnboarding) {
-          // For brand users, show immediately
-          // For regular users, show immediately as well (removing email confirmation requirement)
-          console.log('OnboardingProvider: Starting onboarding timer');
-          
-          setUserType(isBrand ? 'brand' : 'user');
-          
-          // Show onboarding after a short delay to allow page to load
-          const timer = setTimeout(() => {
-            console.log('OnboardingProvider: Showing onboarding for', isBrand ? 'brand' : 'user');
-            setShowOnboarding(true);
-          }, 1000);
-          
-          return () => clearTimeout(timer);
-        }
+      // Only show onboarding for new users who haven't seen it
+      if (!hasSeenOnboarding) {
+        console.log('OnboardingProvider: Starting onboarding timer');
+        
+        setUserType(isBrand ? 'brand' : 'user');
+        
+        // Show onboarding after a shorter delay to prevent getting stuck
+        const timer = setTimeout(() => {
+          console.log('OnboardingProvider: Showing onboarding for', isBrand ? 'brand' : 'user');
+          setShowOnboarding(true);
+        }, 500);
+        
+        return () => clearTimeout(timer);
+      } else {
+        // If user has seen onboarding but still showing, hide it
+        console.log('OnboardingProvider: User has seen onboarding, hiding it');
+        setShowOnboarding(false);
+      }
     }
   }, [user, brandStatus]);
 
