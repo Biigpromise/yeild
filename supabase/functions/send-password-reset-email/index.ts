@@ -1,4 +1,5 @@
 
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -6,6 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+const PRODUCTION_DOMAIN = 'https://yeildsocials.com';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -29,7 +32,7 @@ serve(async (req) => {
     )
 
     // Always use production domain for reset URL
-    const resetUrl = 'https://yeildsocials.com/reset-password'
+    const resetUrl = `${PRODUCTION_DOMAIN}/reset-password`
 
     console.log('Generating password reset for:', email, 'Redirect to:', resetUrl)
 
@@ -107,12 +110,14 @@ serve(async (req) => {
       </html>
     `
 
-    // Use priority sending for password reset emails
+    // Send with highest priority for instant delivery
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${resendApiKey}`,
         'Content-Type': 'application/json',
+        'X-Priority': '1',
+        'Importance': 'high'
       },
       body: JSON.stringify({
         from: 'YIELD <noreply@yeildsocials.com>',
@@ -121,8 +126,13 @@ serve(async (req) => {
         html: emailHtml,
         tags: [
           { name: 'category', value: 'password_reset' },
-          { name: 'priority', value: 'high' }
-        ]
+          { name: 'priority', value: 'urgent' }
+        ],
+        headers: {
+          'X-Priority': '1',
+          'X-MSMail-Priority': 'High',
+          'Importance': 'high'
+        }
       }),
     })
 
@@ -155,3 +165,4 @@ serve(async (req) => {
     )
   }
 })
+

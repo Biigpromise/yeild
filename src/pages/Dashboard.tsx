@@ -1,126 +1,67 @@
-
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
-import { useDashboard } from '@/hooks/useDashboard';
-import { SimplifiedDashboardStats } from '@/components/dashboard/SimplifiedDashboardStats';
-import { DashboardNavTabs } from '@/components/dashboard/DashboardNavTabs';
-import { DashboardCTA } from '@/components/dashboard/DashboardCTA';
-import { DashboardProgress } from '@/components/dashboard/DashboardProgress';
-import { DashboardErrorBoundary, DashboardErrorFallback } from '@/components/dashboard/DashboardErrorBoundary';
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { OnboardingTutorial } from '@/components/OnboardingTutorial';
-import { WalletTab } from '@/components/dashboard/WalletTab';
-import { ReferralsTab } from '@/components/dashboard/ReferralsTab';
-import { ProfileTab } from '@/components/dashboard/ProfileTab';
-import { LeaderboardTab } from '@/components/dashboard/LeaderboardTab';
-import { SocialTab } from '@/components/dashboard/SocialTab';
-import { StoriesTab } from '@/components/dashboard/StoriesTab';
-import { TasksTab } from '@/components/dashboard/TasksTab';
-import { SettingsTab } from '@/components/dashboard/SettingsTab';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { EmailConfirmationBanner } from "@/components/EmailConfirmationBanner";
 
-const Dashboard: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const { user } = useAuth();
-  
-  const {
-    userStats,
-    loading,
-    error,
-    loadUserData
-  } = useDashboard();
+export default function Dashboard() {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const tab = searchParams.get('tab') || 'dashboard';
-    setActiveTab(tab);
-  }, [searchParams]);
+    const checkUser = async () => {
+      if (!user) {
+        console.log('No user found, redirecting to auth');
+        navigate('/auth');
+        return;
+      }
 
-  const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId);
-    if (tabId === 'dashboard') {
-      setSearchParams({});
-    } else {
-      setSearchParams({ tab: tabId });
+      setLoading(false);
+    };
+
+    checkUser();
+  }, [user, navigate]);
+
+  const handleSignOut = async () => {
+    try {
+      console.log('Signing out user');
+      await signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast.error('Failed to sign out');
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-yeild-yellow" />
-          <p className="text-muted-foreground">Loading your dashboard...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yeild-yellow"></div>
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div className="bg-background min-h-screen">
-        <DashboardErrorFallback 
-          error={error} 
-          onRetry={loadUserData}
-        />
-      </div>
-    );
-  }
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'wallet':
-        return <WalletTab />;
-      case 'referral':
-        return <ReferralsTab />;
-      case 'profile':
-        return <ProfileTab />;
-      case 'leaderboard':
-        return <LeaderboardTab />;
-      case 'social':
-        return <SocialTab />;
-      case 'stories':
-        return <StoriesTab />;
-      case 'tasks':
-        return <TasksTab userStats={userStats} />;
-      case 'settings':
-        return <SettingsTab />;
-      default:
-        return (
-          <>
-            {/* Stats Grid */}
-            <SimplifiedDashboardStats userStats={userStats} />
-            
-            {/* Central CTA */}
-            <DashboardCTA />
-            
-            {/* Progress Section */}
-            <DashboardProgress userStats={userStats} />
-          </>
-        );
-    }
-  };
 
   return (
-    <DashboardErrorBoundary>
-      <div className="bg-background min-h-screen text-foreground">
-        {/* Dashboard Header */}
-        <DashboardHeader user={user} onTabChange={handleTabChange} />
-        
-        <div className="max-w-md mx-auto px-4 py-6">
-          {/* Navigation Tabs */}
-          <DashboardNavTabs activeTab={activeTab} onTabChange={handleTabChange} />
-          
-          {/* Tab Content */}
-          {renderTabContent()}
+    <div className="min-h-screen bg-black">
+      <EmailConfirmationBanner />
+      <nav className="bg-gray-900 border-b border-gray-700">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="text-white font-bold text-lg">Dashboard</div>
+          <button
+            onClick={handleSignOut}
+            className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded"
+          >
+            Sign Out
+          </button>
         </div>
-        
-        {/* Onboarding Tutorial */}
-        <OnboardingTutorial />
-      </div>
-    </DashboardErrorBoundary>
-  );
-};
+      </nav>
 
-export default Dashboard;
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        <h2 className="text-2xl font-semibold text-white mb-4">Welcome to your Dashboard!</h2>
+        <p className="text-gray-400">This is a protected route. Only authenticated users can access this page.</p>
+      </main>
+    </div>
+  );
+}
