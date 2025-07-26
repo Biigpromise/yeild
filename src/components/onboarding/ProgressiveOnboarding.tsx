@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { ChevronRight, ChevronLeft, UserPlus, Search, Upload, DollarSign, Trophy, Users, Star, CheckCircle } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 
-const ProgressiveOnboarding = () => {
+interface ProgressiveOnboardingProps {
+  onComplete?: () => void;
+}
+
+const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplete }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
 
@@ -175,7 +179,12 @@ const ProgressiveOnboarding = () => {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      navigate('/dashboard');
+      // Complete onboarding instead of navigating directly
+      if (onComplete) {
+        onComplete();
+      } else {
+        navigate('/dashboard');
+      }
     }
   };
 
@@ -186,7 +195,12 @@ const ProgressiveOnboarding = () => {
   };
 
   const handleSkip = () => {
-    navigate('/dashboard');
+    // Skip onboarding instead of navigating directly
+    if (onComplete) {
+      onComplete();
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   return (

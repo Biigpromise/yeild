@@ -11,21 +11,12 @@ interface OnboardingFlowProps {
 }
 
 const OnboardingFlowContent: React.FC<OnboardingFlowProps> = ({ userType, onComplete }) => {
-  const [currentStep, setCurrentStep] = useState(0);
-
   if (userType === 'brand') {
     return <BrandOnboarding onComplete={onComplete} />;
   }
 
-  const handleBirdProgressionComplete = () => {
-    setCurrentStep(1);
-  };
-
-  // Show bird progression first, then main onboarding
-  if (currentStep === 0) {
-  return <BirdProgressionOnboarding onComplete={handleBirdProgressionComplete} />;
-  }
-  
+  // For regular users, show the simplified progressive onboarding
+  // Skip the bird progression for now to avoid getting users stuck
   return <NewUserOnboarding onComplete={onComplete} />;
 };
 

@@ -300,14 +300,23 @@ const ModernUserOnboarding: React.FC<ModernUserOnboardingProps> = ({ onComplete 
           </AnimatePresence>
           
           <div className="flex justify-between mt-8">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 1}
-              className="border-white/20 text-white hover:bg-white/10 disabled:opacity-30"
-            >
-              Previous
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentStep === 1}
+                className="border-white/20 text-white hover:bg-white/10 disabled:opacity-30"
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                onClick={onComplete}
+                className="border-white/20 text-white hover:bg-white/10"
+              >
+                Skip All
+              </Button>
+            </div>
             
             <Button
               onClick={handleNext}
