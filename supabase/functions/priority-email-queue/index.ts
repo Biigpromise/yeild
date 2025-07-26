@@ -73,9 +73,9 @@ serve(async (req) => {
             subject: email.subject,
             html: email.html,
             tags: [
-              { name: 'category', value: email.email_type },
-              { name: 'priority', value: email.priority },
-              { name: 'domain', value: 'yeildsocials.com' }
+              email.email_type,
+              email.priority,
+              'yeildsocials'
             ],
             // Add high priority headers for faster processing
             headers: {
