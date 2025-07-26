@@ -13,9 +13,10 @@ export const useRealTimeNotifications = (userId: string | null) => {
     // Load initial notifications
     loadNotifications();
 
-    // Set up real-time listener for new notifications
+    // Set up real-time listener for new notifications with unique channel name
+    const channelName = `user-notifications-${userId}-${Date.now()}`;
     const channel = supabase
-      .channel(`user-notifications-${userId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -39,6 +40,7 @@ export const useRealTimeNotifications = (userId: string | null) => {
       .subscribe();
 
     return () => {
+      console.log('Cleaning up subscription', channelName);
       supabase.removeChannel(channel);
     };
   }, [userId]);

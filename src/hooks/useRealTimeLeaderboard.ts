@@ -10,8 +10,9 @@ export const useRealTimeLeaderboard = () => {
     loadLeaderboard();
 
     // Set up real-time subscription for profile updates
+    const channelName = `leaderboard-updates-${Date.now()}`;
     const channel = supabase
-      .channel('leaderboard-updates')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {

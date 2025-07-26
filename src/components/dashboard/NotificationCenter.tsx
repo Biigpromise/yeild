@@ -26,7 +26,8 @@ export const NotificationCenter: React.FC = () => {
   useEffect(() => {
     if (user?.id) {
       loadNotifications();
-      setupRealTimeUpdates();
+      const cleanup = setupRealTimeUpdates();
+      return cleanup;
     }
   }, [user?.id]);
 
@@ -59,8 +60,9 @@ export const NotificationCenter: React.FC = () => {
   const setupRealTimeUpdates = () => {
     if (!user?.id) return;
 
+    const channelName = `dashboard-notifications-${user.id}-${Date.now()}`;
     const channel = supabase
-      .channel('dashboard-notifications')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -102,6 +104,7 @@ export const NotificationCenter: React.FC = () => {
       .subscribe();
 
     return () => {
+      console.log('Cleaning up subscription', channelName);
       supabase.removeChannel(channel);
     };
   };
