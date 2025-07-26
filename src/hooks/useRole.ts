@@ -18,14 +18,6 @@ export const useRole = (requiredRole?: string) => {
         return;
       }
 
-      // Check if user is hardcoded admin
-      if (user.email === 'yeildsocials@gmail.com') {
-        setRole('admin');
-        setHasRequiredRole(!requiredRole || requiredRole === 'admin');
-        setLoading(false);
-        return;
-      }
-
       try {
         const { data, error } = await supabase
           .from('user_roles')
