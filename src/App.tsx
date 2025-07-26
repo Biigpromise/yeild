@@ -54,7 +54,7 @@ function App() {
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
                 
                 <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/brand-dashboard" element={<BrandDashboard />} />
+                <Route path="/brand-dashboard/*" element={<BrandDashboard />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
