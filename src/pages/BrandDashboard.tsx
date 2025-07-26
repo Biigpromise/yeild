@@ -69,7 +69,7 @@ const BrandDashboard = () => {
         <BrandSidebar profile={profile} wallet={wallet} />
         
         <main className="flex-1 overflow-auto">
-          <div className="container mx-auto p-6">
+          <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
             <Routes>
               <Route
                 path="/"

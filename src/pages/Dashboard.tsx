@@ -19,18 +19,25 @@ import {
   User,
   Heart,
   BookOpen,
-  Settings
+  Settings,
+  Bell,
+  LogOut
 } from "lucide-react";
 import { SettingsTab } from "@/components/dashboard/SettingsTab";
 import { SocialTab } from "@/components/dashboard/SocialTab";
 import { WalletTab } from "@/components/dashboard/WalletTab";
 import { ReferralsTab } from "@/components/dashboard/ReferralsTab";
+import { NotificationCenter } from "@/components/dashboard/NotificationCenter";
+import { ProfileEditModal } from "@/components/dashboard/ProfileEditModal";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
-  const { userProfile, userStats, loading, error } = useDashboard();
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const { userProfile, userStats, loading, error, loadUserData } = useDashboard();
 
   const handleSignOut = async () => {
     try {
@@ -77,17 +84,22 @@ export default function Dashboard() {
       <header className="border-b bg-card">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Avatar className="h-12 w-12">
-              <AvatarImage 
-                src={userProfile?.profile_picture_url || user?.user_metadata?.avatar_url} 
-                alt="Profile picture" 
-              />
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                {(userProfile?.display_name || user?.user_metadata?.name || user?.email?.split('@')[0])?.charAt(0)?.toUpperCase() || 'U'}
-              </AvatarFallback>
-            </Avatar>
+            <button
+              onClick={() => setIsProfileModalOpen(true)}
+              className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full"
+            >
+              <Avatar className="h-12 w-12 hover:ring-2 hover:ring-primary transition-all cursor-pointer">
+                <AvatarImage 
+                  src={userProfile?.profile_picture_url || user?.user_metadata?.avatar_url} 
+                  alt="Profile picture" 
+                />
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                  {(userProfile?.display_name || user?.user_metadata?.name || user?.email?.split('@')[0])?.charAt(0)?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+            </button>
             <div className="flex flex-col">
-              <h1 className="text-2xl font-bold text-primary glow-text">YEILD</h1>
+              <h1 className="text-2xl font-bold text-warning glow-text">YEILD</h1>
               <div className="text-sm text-muted-foreground">
                 Welcome back, {userProfile?.display_name || user?.user_metadata?.name || user?.email?.split('@')[0]}!
               </div>
@@ -95,16 +107,47 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-1">
-                <Target className="h-4 w-4 text-primary" />
-                <span className="font-medium">{userStats?.points || 0}</span>
-                <span className="text-muted-foreground">points</span>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-lg font-bold text-foreground">{userStats?.points || 0}</div>
+                <div className="text-xs text-muted-foreground">Points</div>
               </div>
-              <div className="flex items-center gap-1">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                <span className="font-medium">Level {userStats?.level || 1}</span>
+              <div>
+                <div className="text-lg font-bold text-foreground">{userStats?.level || 1}</div>
+                <div className="text-xs text-muted-foreground">Level</div>
               </div>
+              <div>
+                <div className="text-lg font-bold text-foreground">{userStats?.tasksCompleted || 0}</div>
+                <div className="text-xs text-muted-foreground">Tasks</div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="h-5 w-5" />
+                    <Badge 
+                      variant="secondary" 
+                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-warning text-black"
+                    >
+                      3
+                    </Badge>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="end">
+                  <NotificationCenter />
+                </PopoverContent>
+              </Popover>
+              
+              <Button 
+                onClick={handleSignOut}
+                variant="ghost" 
+                size="icon"
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
             </div>
           </div>
         </div>
@@ -169,6 +212,13 @@ export default function Dashboard() {
           </TabsContent>
         </Tabs>
       </main>
+      
+      <ProfileEditModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        userProfile={userProfile}
+        onProfileUpdate={loadUserData}
+      />
     </div>
   );
 }
