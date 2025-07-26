@@ -258,7 +258,7 @@ const ProgressiveAuthFlow = () => {
                     </div>
                     <Button
                       onClick={() => setCurrentStep('password')}
-                      className="w-full bg-warning hover:bg-warning/90 text-black py-3 text-lg font-semibold"
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-lg font-semibold shadow-yeild-button hover:shadow-yeild-glow transition-all duration-300"
                       disabled={!formData.email}
                     >
                       Continue
@@ -383,7 +383,7 @@ const ProgressiveAuthFlow = () => {
 
                 <Button
                   onClick={handleNext}
-                  className="w-full bg-warning hover:bg-warning/90 text-black py-3 text-lg font-semibold"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-lg font-semibold shadow-yeild-button hover:shadow-yeild-glow transition-all duration-300"
                   disabled={!formData.email}
                 >
                   Continue
@@ -478,7 +478,7 @@ const ProgressiveAuthFlow = () => {
 
                 <Button
                   onClick={handleNext}
-                  className="w-full bg-warning hover:bg-warning/90 text-black py-3 text-lg font-semibold"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-lg font-semibold shadow-yeild-button hover:shadow-yeild-glow transition-all duration-300"
                   disabled={!formData.password || isLoading}
                 >
                   {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Continue')}
@@ -518,7 +518,7 @@ const ProgressiveAuthFlow = () => {
 
                 <Button
                   onClick={handleNext}
-                  className="w-full bg-warning hover:bg-warning/90 text-black py-3 text-lg font-semibold"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-lg font-semibold shadow-yeild-button hover:shadow-yeild-glow transition-all duration-300"
                   disabled={!formData.name || isLoading}
                 >
                   {isLoading ? 'Creating account...' : 'Create Account'}
