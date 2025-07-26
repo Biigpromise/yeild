@@ -35,6 +35,7 @@ interface TaskSubmission {
   task_id: string;
   evidence: string;
   evidence_file_url: string;
+  evidence_files?: string[];
   status: string;
   submitted_at: string;
   reviewed_at?: string;
@@ -433,22 +434,70 @@ export const TaskSubmissionsManager: React.FC = () => {
                             <p className="text-sm mt-1 p-3 bg-muted rounded">{submission.evidence}</p>
                           </div>
                           
-                          {submission.evidence_file_url && (
+                          {(submission.evidence_files && submission.evidence_files.length > 0) || submission.evidence_file_url ? (
                             <div>
-                              <label className="text-sm font-medium">Evidence File:</label>
-                              <div className="mt-1">
-                                <a 
-                                  href={submission.evidence_file_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-2 text-blue-600 hover:underline"
-                                >
-                                  View Evidence File
-                                  <ExternalLink className="h-4 w-4" />
-                                </a>
+                              <label className="text-sm font-medium">Evidence Files:</label>
+                              <div className="mt-2 space-y-2">
+                                {submission.evidence_files && submission.evidence_files.length > 0 ? (
+                                  <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+                                    {submission.evidence_files.map((fileUrl, index) => (
+                                      <div key={index} className="relative group">
+                                        <img 
+                                          src={fileUrl}
+                                          alt={`Evidence ${index + 1}`}
+                                          className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
+                                          onClick={() => window.open(fileUrl, '_blank')}
+                                          onError={(e) => {
+                                            // If image fails to load, show a placeholder or file link
+                                            e.currentTarget.style.display = 'none';
+                                            const link = e.currentTarget.nextElementSibling as HTMLElement;
+                                            if (link) link.style.display = 'block';
+                                          }}
+                                        />
+                                        <a 
+                                          href={fileUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="hidden text-xs text-blue-600 hover:underline"
+                                        >
+                                          File {index + 1}
+                                        </a>
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                          <ExternalLink className="h-4 w-4 text-white" />
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : submission.evidence_file_url ? (
+                                  <div className="relative group max-w-32">
+                                    <img 
+                                      src={submission.evidence_file_url}
+                                      alt="Evidence"
+                                      className="w-24 h-24 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
+                                      onClick={() => window.open(submission.evidence_file_url, '_blank')}
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                        const link = e.currentTarget.nextElementSibling as HTMLElement;
+                                        if (link) link.style.display = 'block';
+                                      }}
+                                    />
+                                    <a 
+                                      href={submission.evidence_file_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="hidden inline-flex items-center gap-2 text-blue-600 hover:underline text-sm"
+                                    >
+                                      View Evidence File
+                                      <ExternalLink className="h-4 w-4" />
+                                    </a>
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                      <ExternalLink className="h-4 w-4 text-white" />
+                                    </div>
+                                  </div>
+                                ) : null}
                               </div>
                             </div>
-                          )}
+                          ) : null}
                           
                           <div>
                             <label className="text-sm font-medium">Points:</label>

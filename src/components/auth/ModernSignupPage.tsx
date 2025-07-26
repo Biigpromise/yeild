@@ -247,11 +247,11 @@ const ModernSignupPage: React.FC<ModernSignupPageProps> = ({ userType, onBack })
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className={`w-full py-6 rounded-xl bg-gradient-to-r ${gradientClass} hover:opacity-90 transition-all duration-300 text-white font-semibold text-lg shadow-lg hover:shadow-xl`}
+                  className="w-full py-6 rounded-xl bg-[#F5D800] hover:bg-[#E6C300] transition-all duration-300 text-black font-semibold text-lg shadow-lg hover:shadow-xl"
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                       {currentStep === 'signup' ? 'Creating Account...' : 'Signing In...'}
                     </div>
                   ) : (

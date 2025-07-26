@@ -258,7 +258,7 @@ const ProgressiveAuthFlow = () => {
                     </div>
                     <Button
                       onClick={() => setCurrentStep('password')}
-                      className="w-full bg-warning hover:bg-warning/90 text-black py-3 text-lg font-semibold"
+                      className="w-full bg-[#F5D800] hover:bg-[#E6C300] text-black py-3 text-lg font-semibold"
                       disabled={!formData.email}
                     >
                       Continue
@@ -380,7 +380,7 @@ const ProgressiveAuthFlow = () => {
 
                   <Button
                     onClick={handleNext}
-                    className="w-full bg-warning hover:bg-warning/90 text-black py-3 text-lg font-semibold"
+                    className="w-full bg-[#F5D800] hover:bg-[#E6C300] text-black py-3 text-lg font-semibold"
                     disabled={!formData.email}
                   >
                     Continue
@@ -451,7 +451,7 @@ const ProgressiveAuthFlow = () => {
 
                 <Button
                   onClick={handleNext}
-                  className="w-full bg-warning hover:bg-warning/90 text-black py-3 text-lg font-semibold"
+                  className="w-full bg-[#F5D800] hover:bg-[#E6C300] text-black py-3 text-lg font-semibold"
                   disabled={!formData.password || isLoading}
                 >
                   {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Continue')}
@@ -491,7 +491,7 @@ const ProgressiveAuthFlow = () => {
 
                 <Button
                   onClick={handleNext}
-                  className="w-full bg-warning hover:bg-warning/90 text-black py-3 text-lg font-semibold"
+                  className="w-full bg-[#F5D800] hover:bg-[#E6C300] text-black py-3 text-lg font-semibold"
                   disabled={!formData.name || isLoading}
                 >
                   {isLoading ? 'Creating account...' : 'Create Account'}
