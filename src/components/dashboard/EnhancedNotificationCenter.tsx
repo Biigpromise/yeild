@@ -100,7 +100,7 @@ export const EnhancedNotificationCenter: React.FC = () => {
 
   const setupRealTimeUpdates = () => {
     const channel = supabase
-      .channel('notifications-updates')
+      .channel('enhanced-notifications-updates')
       .on(
         'postgres_changes',
         {

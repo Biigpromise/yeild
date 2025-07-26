@@ -36,7 +36,7 @@ export const StoryReel: React.FC = () => {
     
     // Set up realtime subscription for story updates
     const channel = supabase
-      .channel('stories-updates')
+      .channel('story-reel-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'stories' }, () => {
         fetchStories();
       })

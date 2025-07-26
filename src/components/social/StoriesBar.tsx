@@ -41,7 +41,7 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({ onStoryView }) => {
     
     const setupRealtimeSubscription = () => {
       channel = supabase
-        .channel('stories_updates')
+        .channel('stories-bar-updates')
         .on(
           'postgres_changes',
           {
