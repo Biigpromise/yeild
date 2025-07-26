@@ -79,97 +79,23 @@ export const useAuthOperations = () => {
         }
       }
 
-      // Send verification email using priority queue for instant delivery
+          // Send verification email using Supabase's built-in method with proper redirect
       if (data.user && !data.user.email_confirmed_at) {
         try {
-          const displayName = data.user.user_metadata?.name || data.user.email?.split('@')[0];
-          const confirmationUrl = `${PRODUCTION_DOMAIN}/auth/callback`;
-
-          const verificationEmail = {
-            to: data.user.email,
-            subject: "✅ Verify your YEILD account - Action Required",
-            html: `
-              <!DOCTYPE html>
-              <html>
-              <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Verify Your YEILD Account</title>
-              </head>
-              <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                  <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to YEILD!</h1>
-                  <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Hi ${displayName}, let's verify your account</p>
-                </div>
-                
-                <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
-                  <p style="font-size: 16px; margin-bottom: 20px;">
-                    Thank you for signing up with YEILD! To complete your registration and access your account, please verify your email address by clicking the button below.
-                  </p>
-                  
-                  <div style="text-align: center; margin: 30px 0;">
-                    <a href="${confirmationUrl}" 
-                       style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                              color: white; 
-                              padding: 15px 30px; 
-                              text-decoration: none; 
-                              border-radius: 8px; 
-                              font-weight: bold; 
-                              font-size: 16px;
-                              display: inline-block;
-                              box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-                      Verify My Account
-                    </a>
-                  </div>
-                  
-                  <p style="font-size: 14px; color: #666; margin-top: 30px;">
-                    If the button doesn't work, you can also copy and paste this link into your browser:
-                  </p>
-                  <p style="background: #f8f9fa; padding: 15px; border-radius: 5px; word-break: break-all; font-size: 14px; margin: 15px 0;">
-                    <a href="${confirmationUrl}" style="color: #667eea;">${confirmationUrl}</a>
-                  </p>
-                  
-                  <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
-                  
-                  <h3 style="color: #333; margin-bottom: 15px;">What's Next?</h3>
-                  <ul style="color: #666; font-size: 14px;">
-                    <li>Complete your profile setup</li>
-                    <li>Start earning points by completing tasks</li>
-                    <li>Invite friends and earn referral bonuses</li>
-                    <li>Redeem your points for rewards</li>
-                  </ul>
-                  
-                  <p style="font-size: 14px; color: #666; margin-top: 30px;">
-                    If you didn't create this account, please ignore this email or contact our support team.
-                  </p>
-                </div>
-                
-                <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
-                  <p style="margin: 0; font-size: 14px; color: #666;">
-                    Best regards,<br>
-                    <strong>The YEILD Team</strong>
-                  </p>
-                  <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
-                    © 2024 YEILD. All rights reserved.
-                  </p>
-                </div>
-              </body>
-              </html>
-            `,
-            priority: 'high' as const,
-            email_type: 'verification'
-          };
-
-          // Use priority queue for instant delivery
-          const { error: queueError } = await supabase.functions.invoke('priority-email-queue', {
-            body: { emails: [verificationEmail] }
+          // Use Supabase's default email for better reliability
+          const { error: emailError } = await supabase.auth.resend({
+            type: 'signup',
+            email: data.user.email,
+            options: {
+              emailRedirectTo: redirectUrl
+            }
           });
 
-          if (queueError) {
-            console.error('Priority email queue failed:', queueError);
+          if (emailError) {
+            console.error('Email verification failed:', emailError);
             toast.warning("Account created but verification email couldn't be sent. You can request a new one later.");
           } else {
-            console.log('Verification email queued for priority delivery');
+            console.log('Verification email sent successfully');
             toast.success("Account created! Please check your email to verify your account.");
           }
         } catch (emailError) {
@@ -388,87 +314,26 @@ export const useAuthOperations = () => {
         return { error };
       }
 
-      // Create password reset email with high priority using production domain
-      const resetEmail = {
-        to: email,
-        subject: "🔑 Reset your YEILD password - Action Required",
-        html: `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Reset Your YEILD Password</title>
-          </head>
-          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-              <h1 style="color: white; margin: 0; font-size: 28px;">Password Reset</h1>
-              <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Reset your YEILD account password</p>
-            </div>
-            
-            <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
-              <p style="font-size: 16px; margin-bottom: 20px;">
-                We received a request to reset your YEILD account password. Click the button below to create a new password:
-              </p>
-              
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${PRODUCTION_DOMAIN}/reset-password" 
-                   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                          color: white; 
-                          padding: 15px 30px; 
-                          text-decoration: none; 
-                          border-radius: 8px; 
-                          font-weight: bold; 
-                          font-size: 16px;
-                          display: inline-block;
-                          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-                  Reset My Password
-                </a>
-              </div>
-              
-              <p style="font-size: 14px; color: #666; margin-top: 30px;">
-                If you didn't request this password reset, please ignore this email. Your password will remain unchanged.
-              </p>
-              
-              <p style="font-size: 14px; color: #666; margin-top: 15px;">
-                For security reasons, this link will expire in 1 hour.
-              </p>
-            </div>
-            
-            <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
-              <p style="margin: 0; font-size: 14px; color: #666;">
-                Best regards,<br>
-                <strong>The YEILD Team</strong>
-              </p>
-              <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
-                © 2024 YEILD. All rights reserved.
-              </p>
-            </div>
-          </body>
-          </html>
-        `,
-        priority: 'high' as const,
-        email_type: 'password_reset'
-      };
+      // Check if email exists before attempting reset
+      const { exists } = await checkEmailExists(email);
+      
+      if (!exists) {
+        return { 
+          error: { 
+            message: "No account found with this email address. Please check your email or sign up for a new account." 
+          } 
+        };
+      }
 
-      // Use priority queue for instant delivery
-      const { error: queueError } = await supabase.functions.invoke('priority-email-queue', {
-        body: { emails: [resetEmail] }
+      // Use Supabase's default password reset for better reliability
+      const resetUrl = `${PRODUCTION_DOMAIN}/reset-password`;
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: resetUrl
       });
       
-      if (queueError) {
-        console.error("Priority password reset queue error:", queueError);
-        
-        // Fallback to Supabase's default password reset with production domain
-        const resetUrl = `${PRODUCTION_DOMAIN}/reset-password`;
-        const { error: fallbackError } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: resetUrl
-        });
-        
-        if (fallbackError) {
-          const friendlyMessage = handleAuthError(fallbackError, 'password reset');
-          return { error: { ...fallbackError, message: friendlyMessage } };
-        }
+      if (resetError) {
+        const friendlyMessage = handleAuthError(resetError, 'password reset');
+        return { error: { ...resetError, message: friendlyMessage } };
       }
 
       console.log("AuthContext: Password reset email sent successfully");
@@ -489,80 +354,18 @@ export const useAuthOperations = () => {
         return { error };
       }
 
-      const displayName = email.split('@')[0];
-      const confirmationUrl = `${PRODUCTION_DOMAIN}/auth/callback`;
-
-      const verificationEmail = {
-        to: email,
-        subject: "✅ Verify your YEILD account - Action Required",
-        html: `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Verify Your YEILD Account</title>
-          </head>
-          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-              <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to YEILD!</h1>
-              <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Hi ${displayName}, let's verify your account</p>
-            </div>
-            
-            <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
-              <p style="font-size: 16px; margin-bottom: 20px;">
-                Please verify your email address by clicking the button below to complete your YEILD account setup.
-              </p>
-              
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${confirmationUrl}" 
-                   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                          color: white; 
-                          padding: 15px 30px; 
-                          text-decoration: none; 
-                          border-radius: 8px; 
-                          font-weight: bold; 
-                          font-size: 16px;
-                          display: inline-block;
-                          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-                  Verify My Account
-                </a>
-              </div>
-            </div>
-            
-            <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
-              <p style="margin: 0; font-size: 14px; color: #666;">
-                Best regards,<br>
-                <strong>The YEILD Team</strong>
-              </p>
-            </div>
-          </body>
-          </html>
-        `,
-        priority: 'high' as const,
-        email_type: 'verification'
-      };
-
-      // Use priority queue for instant delivery
-      const { error: queueError } = await supabase.functions.invoke('priority-email-queue', {
-        body: { emails: [verificationEmail] }
-      });
-
-      if (queueError) {
-        console.error('Priority confirmation queue failed:', queueError);
-        // Fallback to Supabase's default resend with production domain
-        const { error: fallbackError } = await supabase.auth.resend({
-          type: 'signup',
-          email: email,
-          options: {
-            emailRedirectTo: `${PRODUCTION_DOMAIN}/auth/callback`
-          }
-        });
-        
-        if (fallbackError) {
-          const friendlyMessage = handleAuthError(fallbackError, 'resend confirmation');
-          return { error: { ...fallbackError, message: friendlyMessage } };
+      // Use Supabase's default resend for better reliability
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${PRODUCTION_DOMAIN}/auth/callback`
         }
+      });
+      
+      if (resendError) {
+        const friendlyMessage = handleAuthError(resendError, 'resend confirmation');
+        return { error: { ...resendError, message: friendlyMessage } };
       }
 
       console.log("AuthContext: Confirmation email resent successfully");

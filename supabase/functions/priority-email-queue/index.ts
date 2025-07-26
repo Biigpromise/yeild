@@ -61,29 +61,47 @@ serve(async (req) => {
 
         console.log(`Sending high-priority ${email.email_type} email to:`, email.to)
 
+        // Validate email data before sending
+        if (!email.to || !email.subject || !email.html) {
+          throw new Error(`Invalid email data: missing required fields`);
+        }
+
+        // Clean and validate tags
+        const validTags = [];
+        if (email.email_type && email.email_type.trim()) {
+          validTags.push(email.email_type.trim());
+        }
+        if (email.priority && email.priority.trim()) {
+          validTags.push(email.priority.trim());
+        }
+        validTags.push('yeildsocials');
+
+        const emailPayload = {
+          from: 'YIELD <noreply@yeildsocials.com>',
+          to: Array.isArray(email.to) ? email.to : [email.to],
+          subject: email.subject,
+          html: email.html,
+          ...(validTags.length > 0 && { tags: validTags }),
+          headers: {
+            'X-Priority': '1',
+            'X-MSMail-Priority': 'High',
+            'Importance': 'high'
+          }
+        };
+
+        console.log('Sending email payload:', JSON.stringify({ 
+          to: emailPayload.to, 
+          subject: emailPayload.subject, 
+          tags: emailPayload.tags 
+        }));
+
         const emailResponse = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${resendApiKey}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            from: 'YIELD <noreply@yeildsocials.com>',
-            to: [email.to],
-            subject: email.subject,
-            html: email.html,
-            tags: [
-              email.email_type,
-              email.priority,
-              'yeildsocials'
-            ],
-            // Add high priority headers for faster processing
-            headers: {
-              'X-Priority': '1',
-              'X-MSMail-Priority': 'High',
-              'Importance': 'high'
-            }
-          }),
+          body: JSON.stringify(emailPayload),
         })
 
         const emailResult = await emailResponse.json()
