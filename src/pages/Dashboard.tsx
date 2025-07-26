@@ -99,7 +99,7 @@ export default function Dashboard() {
               </Avatar>
             </button>
             <div className="flex flex-col">
-              <h1 className="text-2xl font-bold text-warning glow-text">YEILD</h1>
+              <h1 className="text-2xl font-bold text-warning glow-text shadow-glow-yellow">YEILD</h1>
               <div className="text-sm text-muted-foreground">
                 Welcome back, {userProfile?.display_name || user?.user_metadata?.name || user?.email?.split('@')[0]}!
               </div>
@@ -107,18 +107,18 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-4">
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <div className="text-lg font-bold text-foreground">{userStats?.points || 0}</div>
-                <div className="text-xs text-muted-foreground">Points</div>
+            <div className="grid grid-cols-3 gap-6 text-center">
+              <div className="bg-card/50 rounded-lg p-3 border border-border/50">
+                <div className="text-2xl font-bold text-warning mb-1">{userStats?.points || 0}</div>
+                <div className="text-sm text-muted-foreground">Points</div>
               </div>
-              <div>
-                <div className="text-lg font-bold text-foreground">{userStats?.level || 1}</div>
-                <div className="text-xs text-muted-foreground">Level</div>
+              <div className="bg-card/50 rounded-lg p-3 border border-border/50">
+                <div className="text-2xl font-bold text-primary mb-1">{userStats?.level || 1}</div>
+                <div className="text-sm text-muted-foreground">Level</div>
               </div>
-              <div>
-                <div className="text-lg font-bold text-foreground">{userStats?.tasksCompleted || 0}</div>
-                <div className="text-xs text-muted-foreground">Tasks</div>
+              <div className="bg-card/50 rounded-lg p-3 border border-border/50">
+                <div className="text-2xl font-bold text-green-500 mb-1">{userStats?.tasksCompleted || 0}</div>
+                <div className="text-sm text-muted-foreground">Tasks</div>
               </div>
             </div>
             
@@ -128,8 +128,7 @@ export default function Dashboard() {
                   <Button variant="ghost" size="icon" className="relative">
                     <Bell className="h-5 w-5" />
                     <Badge 
-                      variant="secondary" 
-                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-warning text-black"
+                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 text-white hover:bg-red-600"
                     >
                       3
                     </Badge>

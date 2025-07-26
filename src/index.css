@@ -224,6 +224,12 @@
   .animate-glow {
     animation: glow 3s ease-in-out infinite alternate;
   }
+
+  .glow-text {
+    text-shadow: 0 0 10px hsl(48 100% 67% / 0.5), 
+                 0 0 20px hsl(48 100% 67% / 0.3), 
+                 0 0 30px hsl(48 100% 67% / 0.2);
+  }
   
   @keyframes pulse-subtle {
     0%, 100% { opacity: 1; }

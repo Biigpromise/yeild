@@ -131,7 +131,9 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
           <div>
             <Label className="text-sm font-medium">Task</Label>
             <p className="text-sm font-semibold mt-1">{task.title}</p>
-            <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
+            <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 mt-2">
+              <p className="text-sm font-medium text-warning">{task.description}</p>
+            </div>
           </div>
 
           <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">

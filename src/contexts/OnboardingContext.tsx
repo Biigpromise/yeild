@@ -95,11 +95,10 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         hasSeenOnboarding
       });
       
-      // Show onboarding for new users (both brand and regular)
-      if (!hasSeenOnboarding) {
-        // For brand users, show immediately
-        // For regular users, require email confirmation
-        if (isBrand || user.email_confirmed_at) {
+        // Show onboarding for new users (both brand and regular)
+        if (!hasSeenOnboarding) {
+          // For brand users, show immediately
+          // For regular users, show immediately as well (removing email confirmation requirement)
           console.log('OnboardingProvider: Starting onboarding timer');
           
           setUserType(isBrand ? 'brand' : 'user');
@@ -112,7 +111,6 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
           
           return () => clearTimeout(timer);
         }
-      }
     }
   }, [user, brandStatus]);
 

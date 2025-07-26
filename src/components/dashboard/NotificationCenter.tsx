@@ -198,7 +198,7 @@ export const NotificationCenter: React.FC = () => {
           <Bell className="h-5 w-5" />
           <h3 className="font-semibold">Notifications</h3>
           {unreadCount > 0 && (
-            <Badge variant="destructive" className="text-xs">
+            <Badge className="text-xs bg-red-500 text-white hover:bg-red-600">
               {unreadCount}
             </Badge>
           )}

@@ -247,7 +247,7 @@ const ModernSignupPage: React.FC<ModernSignupPageProps> = ({ userType, onBack })
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-6 rounded-xl bg-[#F5D800] hover:bg-[#E6C300] transition-all duration-300 text-black font-semibold text-lg shadow-lg hover:shadow-xl"
+                  className="w-full py-6 rounded-xl bg-warning hover:bg-warning/90 transition-all duration-300 text-black font-semibold text-lg shadow-lg hover:shadow-xl"
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">

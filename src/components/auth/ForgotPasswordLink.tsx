@@ -18,7 +18,7 @@ export const ForgotPasswordLink: React.FC<ForgotPasswordLinkProps> = ({ userType
       <button
         type="button"
         onClick={handleForgotPassword}
-        className="text-sm text-[#F5D800] hover:text-[#E6C300] underline transition-colors font-medium"
+        className="text-sm text-warning hover:text-warning/80 underline transition-colors font-medium"
       >
         Forgot your password?
       </button>
