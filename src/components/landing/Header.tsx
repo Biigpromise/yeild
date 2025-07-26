@@ -64,7 +64,7 @@ export const Header = () => {
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </DropdownMenuItem>
-                  {!isAdmin() && (
+                  {!isAdmin && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => setShowAdminSetup(true)}>
