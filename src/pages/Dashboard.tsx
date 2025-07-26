@@ -16,8 +16,14 @@ import {
   Users, 
   Gift,
   User,
-  LogOut
+  Heart,
+  BookOpen,
+  Settings
 } from "lucide-react";
+import { SettingsTab } from "@/components/dashboard/SettingsTab";
+import { SocialTab } from "@/components/dashboard/SocialTab";
+import { WalletTab } from "@/components/dashboard/WalletTab";
+import { ReferralsTab } from "@/components/dashboard/ReferralsTab";
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
@@ -88,16 +94,6 @@ export default function Dashboard() {
                 <span className="font-medium">Level {userStats?.level || 1}</span>
               </div>
             </div>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSignOut}
-              className="flex items-center gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
           </div>
         </div>
       </header>
@@ -105,7 +101,7 @@ export default function Dashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-fit lg:grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6 lg:w-fit lg:grid-cols-6">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -114,6 +110,10 @@ export default function Dashboard() {
               <Target className="h-4 w-4" />
               <span className="hidden sm:inline">Tasks</span>
             </TabsTrigger>
+            <TabsTrigger value="social" className="flex items-center gap-2">
+              <Heart className="h-4 w-4" />
+              <span className="hidden sm:inline">Social</span>
+            </TabsTrigger>
             <TabsTrigger value="wallet" className="flex items-center gap-2">
               <Wallet className="h-4 w-4" />
               <span className="hidden sm:inline">Wallet</span>
@@ -121,6 +121,10 @@ export default function Dashboard() {
             <TabsTrigger value="referral" className="flex items-center gap-2">
               <Gift className="h-4 w-4" />
               <span className="hidden sm:inline">Referral</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Settings</span>
             </TabsTrigger>
           </TabsList>
 
@@ -136,44 +140,20 @@ export default function Dashboard() {
             <TasksTab />
           </TabsContent>
 
+          <TabsContent value="social" className="space-y-6">
+            <SocialTab />
+          </TabsContent>
+
           <TabsContent value="wallet" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Wallet className="h-5 w-5" />
-                  Wallet Management
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">Wallet Coming Soon</h3>
-                  <p className="text-muted-foreground">
-                    Manage your earnings and withdrawals here.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <WalletTab />
           </TabsContent>
 
           <TabsContent value="referral" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Gift className="h-5 w-5" />
-                  Referral Program
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">Referral Program Coming Soon</h3>
-                  <p className="text-muted-foreground">
-                    Invite friends and earn bonus points for each successful referral.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <ReferralsTab />
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <SettingsTab />
           </TabsContent>
         </Tabs>
       </main>
