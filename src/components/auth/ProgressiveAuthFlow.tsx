@@ -70,7 +70,7 @@ const ProgressiveAuthFlow = () => {
       if (userType === 'brand') {
         navigate('/brand-dashboard');
       } else {
-        navigate('/onboarding');
+        navigate('/dashboard');
       }
     }
   }, [user, loading, navigate]);
