@@ -108,8 +108,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create reset link
-    const resetUrl = `${req.headers.get('origin') || 'https://stehjqdbncykevpokcvj.supabase.co'}/reset-password?token=${resetToken}`;
+    // Create reset link - use your custom domain first, fallback to origin
+    const baseUrl = 'https://yeildsocials.com';
+    const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+    console.log('Generated reset URL:', resetUrl);
 
     // Validate email parameters before sending
     if (!email || !email.includes('@')) {
