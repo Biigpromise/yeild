@@ -104,6 +104,7 @@ serve(async (req) => {
     `
 
     // Use priority email queue for instant delivery
+    console.log('Calling priority email queue for:', email)
     const { data: emailQueueData, error: emailQueueError } = await supabaseClient.functions.invoke('priority-email-queue', {
       body: {
         emails: [{
@@ -115,6 +116,8 @@ serve(async (req) => {
         }]
       }
     })
+
+    console.log('Priority queue response:', { data: emailQueueData, error: emailQueueError })
 
     if (emailQueueError) {
       console.error('Priority email queue error:', emailQueueError)
