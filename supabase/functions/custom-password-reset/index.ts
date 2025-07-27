@@ -74,11 +74,13 @@ const handler = async (req: Request): Promise<Response> => {
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
     // Clean up any existing tokens for this user (remove unused/expired tokens)
+    const currentTime = new Date().toISOString();
+    console.log('Cleaning up old tokens for:', email);
     const { error: cleanupError } = await supabase
       .from('password_reset_tokens')
       .delete()
       .eq('email', email)
-      .or('used_at.is.null,expires_at.lt.now()');
+      .or(`used_at.is.not.null,expires_at.lt.${currentTime}`);
 
     if (cleanupError) {
       console.error('Error cleaning up old tokens:', cleanupError);
@@ -111,6 +113,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email via Resend (using verified domain)
     console.log('Sending password reset email to:', email);
+    console.log('Using email from address: YIELD <noreply@yeildsocials.com>');
+    
     const emailResponse = await resend.emails.send({
       from: 'YIELD <noreply@yeildsocials.com>',
       to: [email],
@@ -157,17 +161,85 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (emailResponse.error) {
-      console.error('Resend error:', JSON.stringify(emailResponse.error, null, 2));
-      return new Response(
-        JSON.stringify({ 
-          error: 'Failed to send reset email',
-          details: emailResponse.error.message || 'Unknown email service error'
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
+      console.error('Resend error details:', {
+        error: emailResponse.error,
+        statusCode: emailResponse.error?.statusCode,
+        name: emailResponse.error?.name,
+        message: emailResponse.error?.message
+      });
+      
+      // Check if it's a domain verification issue
+      if (emailResponse.error?.message?.includes('Invalid') || emailResponse.error?.statusCode === 422) {
+        console.error('Possible domain verification issue. Trying with default domain...');
+        
+        // Fallback to default domain
+        const fallbackResponse = await resend.emails.send({
+          from: 'YIELD <onboarding@resend.dev>',
+          to: [email],
+          subject: 'Reset Your YIELD Password',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="text-align: center; padding: 20px 0;">
+                <h1 style="color: #333; font-size: 24px;">Reset Your Password</h1>
+              </div>
+              
+              <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <p style="color: #555; font-size: 16px; line-height: 1.5;">
+                  We received a request to reset your password for your YIELD account.
+                </p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${resetUrl}" 
+                     style="background: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                    Reset Password
+                  </a>
+                </div>
+                
+                <p style="color: #666; font-size: 14px;">
+                  This link will expire in 1 hour for security reasons.
+                </p>
+                
+                <p style="color: #666; font-size: 14px;">
+                  If you didn't request this password reset, you can safely ignore this email.
+                </p>
+              </div>
+              
+              <div style="text-align: center; padding: 20px 0; border-top: 1px solid #eee; margin-top: 30px;">
+                <p style="color: #999; font-size: 12px;">
+                  © 2024 YIELD. All rights reserved.
+                </p>
+              </div>
+            </div>
+          `,
+        });
+        
+        if (fallbackResponse.error) {
+          console.error('Fallback email also failed:', fallbackResponse.error);
+          return new Response(
+            JSON.stringify({ 
+              error: 'Failed to send reset email',
+              details: 'Both custom domain and fallback failed'
+            }),
+            {
+              status: 500,
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            }
+          );
+        } else {
+          console.log('Fallback email sent successfully');
         }
-      );
+      } else {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Failed to send reset email',
+            details: emailResponse.error.message || 'Unknown email service error'
+          }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
     }
 
     console.log('Password reset email sent successfully to:', email);
