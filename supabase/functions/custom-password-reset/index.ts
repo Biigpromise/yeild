@@ -51,9 +51,11 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('Processing password reset request for:', email);
 
     // Check if user exists in auth.users
-    const { data: authUser, error: authError } = await supabase.auth.admin.getUserByEmail(email);
+    const { data: { users }, error: authError } = await supabase.auth.admin.listUsers({
+      filter: `email.eq.${email}`
+    });
     
-    if (authError || !authUser?.user) {
+    if (authError || !users || users.length === 0) {
       console.log('User not found in auth system:', email);
       // Return success anyway to prevent email enumeration
       return new Response(
@@ -64,6 +66,8 @@ const handler = async (req: Request): Promise<Response> => {
         }
       );
     }
+    
+    const authUser = users[0];
 
     // Generate secure token
     const resetToken = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, '');
@@ -80,7 +84,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { error: insertError } = await supabase
       .from('password_reset_tokens')
       .insert({
-        user_id: authUser.user.id,
+        user_id: authUser.id,
         email: email,
         token: resetToken,
         expires_at: expiresAt.toISOString(),
