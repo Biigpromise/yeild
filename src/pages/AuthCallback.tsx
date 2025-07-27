@@ -23,8 +23,49 @@ const AuthCallback = () => {
           setStatus('success');
           setMessage('Authentication successful! Redirecting...');
           
-          // Redirect based on user type or default to dashboard
-          const userType = data.session.user.user_metadata?.user_type;
+          // Check URL parameters for OAuth context
+          const userType = searchParams.get('user_type') || data.session.user.user_metadata?.user_type;
+          
+          // For brand OAuth users, ensure proper role assignment
+          if (userType === 'brand') {
+            try {
+              // Ensure brand role is assigned
+              const { data: roleData } = await supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', data.session.user.id)
+                .eq('role', 'brand')
+                .single();
+
+              if (!roleData) {
+                await supabase
+                  .from('user_roles')
+                  .insert({
+                    user_id: data.session.user.id,
+                    role: 'brand'
+                  });
+              }
+
+              // Create brand profile if doesn't exist
+              const { data: brandProfile } = await supabase
+                .from('brand_profiles')
+                .select('id')
+                .eq('user_id', data.session.user.id)
+                .single();
+
+              if (!brandProfile) {
+                await supabase
+                  .from('brand_profiles')
+                  .insert({
+                    user_id: data.session.user.id,
+                    company_name: data.session.user.user_metadata?.name || 'Brand User',
+                    industry: 'Other'
+                  });
+              }
+            } catch (error) {
+              console.error('Error setting up brand user:', error);
+            }
+          }
           
           setTimeout(() => {
             if (userType === 'brand') {

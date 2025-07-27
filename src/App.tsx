@@ -26,10 +26,23 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { useOnboarding } from "@/contexts/OnboardingContext";
+import { useMaintenanceMode } from "@/hooks/useMaintenanceMode";
+import MaintenanceMode from "@/components/maintenance/MaintenanceMode";
+import { useAuth } from "@/contexts/AuthContext";
 import "./App.css";
 
 const AppContent = () => {
   const { showOnboarding, userType, completeOnboarding } = useOnboarding();
+  const { isMaintenanceMode, loading: maintenanceLoading } = useMaintenanceMode();
+  const { user } = useAuth();
+  
+  // Check if user is admin to bypass maintenance mode
+  const isAdmin = user?.email === 'yeildsocials@gmail.com';
+  
+  // Show maintenance mode for non-admin users when enabled
+  if (!maintenanceLoading && isMaintenanceMode && !isAdmin) {
+    return <MaintenanceMode />;
+  }
   
   return (
     <>
