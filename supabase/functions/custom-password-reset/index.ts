@@ -73,18 +73,18 @@ const handler = async (req: Request): Promise<Response> => {
     const resetToken = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, '');
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
-    // Clean up any existing tokens for this user (remove unused/expired tokens)
-    const currentTime = new Date().toISOString();
-    console.log('Cleaning up old tokens for:', email);
+    // Clean up ALL existing tokens for this email to prevent confusion
+    console.log('Cleaning up all old tokens for:', email);
     const { error: cleanupError } = await supabase
       .from('password_reset_tokens')
       .delete()
-      .eq('email', email)
-      .or(`used_at.is.not.null,expires_at.lt.${currentTime}`);
+      .eq('email', email);
 
     if (cleanupError) {
       console.error('Error cleaning up old tokens:', cleanupError);
       // Continue anyway - this is not critical
+    } else {
+      console.log('Successfully cleaned up all old tokens for email');
     }
 
     // Store reset token in database

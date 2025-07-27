@@ -24,22 +24,42 @@ const CustomResetPassword = () => {
 
   useEffect(() => {
     const validateToken = async () => {
+      console.log('=== TOKEN VALIDATION DEBUG ===');
+      console.log('Token from URL:', token);
+      console.log('Token length:', token ? token.length : 'null');
+      
       if (!token) {
+        console.log('ERROR: No token provided in URL');
         setValidatingToken(false);
         setTokenValid(false);
         return;
       }
 
       try {
+        console.log('Checking token in database...');
+        
         // Check if token exists and is not expired
         const { data: tokenData, error } = await supabase
           .from('password_reset_tokens')
-          .select('user_id, email, expires_at, used_at')
+          .select('user_id, email, expires_at, used_at, created_at')
           .eq('token', token)
           .single();
 
-        if (error || !tokenData) {
-          console.error('Token validation error:', error);
+        console.log('Database query result:', { tokenData, error });
+
+        if (error) {
+          if (error.code === 'PGRST116') {
+            console.log('ERROR: Token not found in database');
+          } else {
+            console.error('ERROR: Database error:', error);
+          }
+          setTokenValid(false);
+          setValidatingToken(false);
+          return;
+        }
+
+        if (!tokenData) {
+          console.log('ERROR: No token data returned');
           setTokenValid(false);
           setValidatingToken(false);
           return;
@@ -48,9 +68,17 @@ const CustomResetPassword = () => {
         // Check if token is expired
         const now = new Date();
         const expiresAt = new Date(tokenData.expires_at);
+        const createdAt = new Date(tokenData.created_at);
+        
+        console.log('Time check:', {
+          now: now.toISOString(),
+          expiresAt: expiresAt.toISOString(),
+          createdAt: createdAt.toISOString(),
+          isExpired: now > expiresAt
+        });
         
         if (now > expiresAt) {
-          console.log('Token is expired');
+          console.log('ERROR: Token is expired');
           setTokenValid(false);
           setValidatingToken(false);
           return;
@@ -58,12 +86,16 @@ const CustomResetPassword = () => {
 
         // Check if token has already been used
         if (tokenData.used_at) {
-          console.log('Token has already been used');
+          console.log('ERROR: Token has already been used at:', tokenData.used_at);
           setTokenValid(false);
           setValidatingToken(false);
           return;
         }
 
+        console.log('SUCCESS: Token is valid');
+        console.log('Email:', tokenData.email);
+        console.log('User ID:', tokenData.user_id);
+        
         setTokenValid(true);
         setEmail(tokenData.email);
         setUserId(tokenData.user_id);
@@ -196,6 +228,10 @@ const CustomResetPassword = () => {
               <CardTitle className="text-2xl text-foreground">Invalid Reset Link</CardTitle>
               <p className="text-muted-foreground text-sm mt-2">
                 This password reset link is invalid, expired, or has already been used.
+              </p>
+              <p className="text-muted-foreground text-xs mt-2 bg-muted p-2 rounded">
+                Make sure you're using the link from the most recent password reset email.
+                Check the browser console for detailed error information.
               </p>
             </div>
           </CardHeader>
