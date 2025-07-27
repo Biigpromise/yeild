@@ -24,15 +24,8 @@ export const APP_CONFIG = {
   
   // Get the display domain (what users see in referral links)
   getDisplayDomain: () => {
-    // For development environments, use the current origin to ensure functionality
-    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
-    
-    if (currentOrigin.includes('localhost') || currentOrigin.includes('.lovableproject.com')) {
-      return currentOrigin;
-    }
-    
-    // For production, use the custom domain
-    return APP_CONFIG.customDomain || currentOrigin;
+    // Always use the custom domain for referral links to ensure proper branding
+    return APP_CONFIG.customDomain;
   },
   
   // Application name and branding

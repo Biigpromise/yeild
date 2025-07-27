@@ -3,38 +3,38 @@ import { OnboardingStep } from '@/components/ui/onboarding-tutorial';
 
 export const defaultOnboardingSteps: OnboardingStep[] = [
   {
-    id: 'welcome',
-    title: 'Welcome to YEILD!',
-    description: 'Let\'s take a quick tour of your new dashboard and show you how to get started earning rewards.',
+    id: 'success-stories',
+    title: 'Real Success Stories',
+    description: 'Meet users who\'ve earned thousands through YEILD. Sarah earned $2,847 in 3 months, Mike made $1,923 as a side hustle.',
     target: '[data-onboarding="dashboard"]',
     position: 'bottom'
   },
   {
-    id: 'tasks',
-    title: 'Browse Tasks',
-    description: 'Find and complete tasks to earn points and rewards. Tasks are categorized by difficulty and reward amount.',
+    id: 'task-earnings',
+    title: 'Easy Tasks, Real Money',
+    description: 'Complete simple tasks from brands and earn $5-$50 per task. Over 47,000 tasks completed today with instant payouts.',
     target: '[data-onboarding="tasks"]',
     position: 'bottom'
   },
   {
-    id: 'profile',
-    title: 'Your Profile',
-    description: 'Track your progress, level, and achievements. Build your reputation to unlock better tasks.',
-    target: '[data-onboarding="profile"]',
+    id: 'bird-referrals',
+    title: 'Bird Referral System',
+    description: 'Fly higher with referrals! Start as a Dove, become a Phoenix. Each referral earns you 10-30 points plus exclusive perks.',
+    target: '[data-onboarding="referrals"]',
     position: 'bottom'
   },
   {
-    id: 'rewards',
-    title: 'Redeem Rewards',
-    description: 'Exchange your earned points for real rewards, gift cards, and cash withdrawals.',
-    target: '[data-onboarding="rewards"]',
-    position: 'bottom'
-  },
-  {
-    id: 'leaderboard',
-    title: 'Compete & Climb',
-    description: 'See where you rank among other users and compete for top positions to earn bonus rewards.',
+    id: 'community-growth',
+    title: 'Thriving Community',
+    description: 'Join 125,000+ active users and 387 brands. Track your progress on leaderboards and compete for bonus rewards.',
     target: '[data-onboarding="leaderboard"]',
+    position: 'bottom'
+  },
+  {
+    id: 'start-earning',
+    title: 'Ready to Earn?',
+    description: 'Your YEILD wallet is ready! Complete your first task today and join the thousands earning daily through our platform.',
+    target: '[data-onboarding="profile"]',
     position: 'bottom'
   }
 ];
