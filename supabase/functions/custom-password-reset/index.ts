@@ -111,53 +111,31 @@ const handler = async (req: Request): Promise<Response> => {
     // Create reset link
     const resetUrl = `${req.headers.get('origin') || 'https://stehjqdbncykevpokcvj.supabase.co'}/reset-password?token=${resetToken}`;
 
-    // Send email via Resend (using verified domain)
+    // Validate email parameters before sending
+    if (!email || !email.includes('@')) {
+      console.error('Invalid email format:', email);
+      return new Response(
+        JSON.stringify({ error: 'Invalid email address format' }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // Send email via Resend (simplified version to avoid validation errors)
     console.log('Sending password reset email to:', email);
-    console.log('Using email from address: YIELD <noreply@yeildsocials.com>');
+    console.log('Using simplified email format...');
     
     const emailResponse = await resend.emails.send({
       from: 'YIELD <noreply@yeildsocials.com>',
       to: [email],
       subject: 'Reset Your YIELD Password',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="text-align: center; padding: 20px 0;">
-            <h1 style="color: #333; font-size: 24px;">Reset Your Password</h1>
-          </div>
-          
-          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <p style="color: #555; font-size: 16px; line-height: 1.5;">
-              We received a request to reset your password for your YIELD account.
-            </p>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${resetUrl}" 
-                 style="background: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-                Reset Password
-              </a>
-            </div>
-            
-            <p style="color: #666; font-size: 14px;">
-              This link will expire in 1 hour for security reasons.
-            </p>
-            
-            <p style="color: #666; font-size: 14px;">
-              If you didn't request this password reset, you can safely ignore this email.
-            </p>
-          </div>
-          
-          <div style="text-align: center; padding: 20px 0; border-top: 1px solid #eee; margin-top: 30px;">
-            <p style="color: #999; font-size: 12px;">
-              © 2024 YIELD. All rights reserved.
-            </p>
-          </div>
-        </div>
-      `,
-      tags: ['password-reset', 'authentication'],
-      headers: {
-        'X-Priority': '1',
-        'X-MSMail-Priority': 'High',
-      },
+      html: `<h2>Reset Your Password</h2>
+<p>We received a request to reset your password for your YIELD account.</p>
+<p><a href="${resetUrl}">Click here to reset your password</a></p>
+<p>This link will expire in 1 hour for security reasons.</p>
+<p>If you didn't request this password reset, you can safely ignore this email.</p>`
     });
 
     if (emailResponse.error) {
