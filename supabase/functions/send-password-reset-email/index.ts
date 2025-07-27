@@ -103,25 +103,44 @@ serve(async (req) => {
       </html>
     `
 
-    // Use priority email queue for instant delivery
-    console.log('Calling priority email queue for:', email)
-    const { data: emailQueueData, error: emailQueueError } = await supabaseClient.functions.invoke('priority-email-queue', {
-      body: {
-        emails: [{
-          to: email,
-          subject: 'Reset Your YIELD Password - Action Required',
-          html: emailHtml,
-          priority: 'high',
-          email_type: 'password_reset'
-        }]
-      }
+    // Send email directly with Resend for immediate delivery
+    const resendApiKey = Deno.env.get('RESEND_API_KEY')
+    
+    if (!resendApiKey) {
+      console.error('RESEND_API_KEY not found')
+      throw new Error('Email service not configured')
+    }
+
+    console.log('Sending password reset email directly via Resend for:', email)
+
+    // Send with highest priority headers for fastest delivery
+    const emailResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+        'X-Priority': '1',
+        'Importance': 'high'
+      },
+      body: JSON.stringify({
+        from: 'YIELD <noreply@yeildsocials.com>',
+        to: [email],
+        subject: 'Reset Your YIELD Password - Action Required',
+        html: emailHtml,
+        tags: ['password_reset', 'urgent'],
+        headers: {
+          'X-Priority': '1',
+          'X-MSMail-Priority': 'High',
+          'Importance': 'high'
+        }
+      }),
     })
 
-    console.log('Priority queue response:', { data: emailQueueData, error: emailQueueError })
+    const emailResult = await emailResponse.json()
 
-    if (emailQueueError) {
-      console.error('Priority email queue error:', emailQueueError)
-      throw new Error('Failed to send password reset email')
+    if (!emailResponse.ok) {
+      console.error('Resend API error:', emailResult)
+      throw new Error('Failed to send email')
     }
 
     console.log('Password reset email sent successfully to:', email)
