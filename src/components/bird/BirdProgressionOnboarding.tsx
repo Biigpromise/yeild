@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Trophy, DollarSign, Users, Target, ChevronRight, SkipForward } from 'lucide-react';
 import { RealisticPhoenixBird } from './RealisticPhoenixBird';
+import { RealisticHawkBird } from './RealisticHawkBird';
+import { RealisticEagleBird } from './RealisticEagleBird';
+import { RealisticFalconBird } from './RealisticFalconBird';
 
 interface BirdLevel {
   name: string;
@@ -19,11 +22,11 @@ interface BirdLevel {
 
 const birdLevels: BirdLevel[] = [
   { name: 'Dove', emoji: '🕊️', minReferrals: 0, minPoints: 0, earningRate: 10, description: 'Starting your journey', color: '#94A3B8' },
-  { name: 'Sparrow', emoji: '🐦', minReferrals: 5, minPoints: 250, earningRate: 15, description: 'Building momentum', color: '#A78BFA' },
-  { name: 'Hawk', emoji: '🦅', minReferrals: 20, minPoints: 1000, earningRate: 20, description: 'Active community builder', color: '#34D399' },
-  { name: 'Eagle', emoji: '🦅', minReferrals: 50, minPoints: 2500, earningRate: 25, description: 'Skilled referral expert', color: '#F59E0B' },
-  { name: 'Falcon', emoji: '🦅', minReferrals: 100, minPoints: 5000, earningRate: 30, description: 'Master of networking', color: '#8B5CF6' },
-  { name: 'Phoenix', emoji: '🐦‍🔥', minReferrals: 1000, minPoints: 25000, earningRate: 35, description: 'Legendary champion', color: '#F97316' },
+  { name: 'Sparrow', emoji: '🐦', minReferrals: 5, minPoints: 0, earningRate: 15, description: 'Building momentum', color: '#A78BFA' },
+  { name: 'Hawk', emoji: 'hawk', minReferrals: 20, minPoints: 0, earningRate: 20, description: 'Sharp focus and strategic growth', color: '#8B4513' },
+  { name: 'Eagle', emoji: 'eagle', minReferrals: 50, minPoints: 0, earningRate: 25, description: 'Soaring high with impressive achievements', color: '#DAA520' },
+  { name: 'Falcon', emoji: 'falcon', minReferrals: 100, minPoints: 0, earningRate: 30, description: 'Lightning-fast growth and precision', color: '#4682B4' },
+  { name: 'Phoenix', emoji: 'phoenix', minReferrals: 1000, minPoints: 0, earningRate: 35, description: 'Legendary status - risen from the ashes', color: '#FF4500' },
 ];
 
 interface BirdProgressionOnboardingProps {
@@ -57,8 +60,14 @@ export const BirdProgressionOnboarding: React.FC<BirdProgressionOnboardingProps>
                     className="w-12 h-12 rounded-full flex items-center justify-center text-2xl"
                     style={{ backgroundColor: level.color + '20', border: `2px solid ${level.color}` }}
                   >
-                    {level.name === 'Phoenix' ? (
+                    {level.emoji === 'phoenix' ? (
                       <RealisticPhoenixBird size="sm" animate={false} />
+                    ) : level.emoji === 'hawk' ? (
+                      <RealisticHawkBird size="sm" animate={false} />
+                    ) : level.emoji === 'eagle' ? (
+                      <RealisticEagleBird size="sm" animate={false} />
+                    ) : level.emoji === 'falcon' ? (
+                      <RealisticFalconBird size="sm" animate={false} />
                     ) : (
                       level.emoji
                     )}

@@ -6,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Lock, Target, DollarSign, Trophy, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { RealisticPhoenixBird } from './RealisticPhoenixBird';
+import { RealisticHawkBird } from './RealisticHawkBird';
+import { RealisticEagleBird } from './RealisticEagleBird';
+import { RealisticFalconBird } from './RealisticFalconBird';
 
 interface BirdLevel {
   id: number;
@@ -31,11 +34,11 @@ interface BirdProgressionModalProps {
 
 const allBirdLevels: BirdLevel[] = [
   { id: 1, name: 'Dove', emoji: '🕊️', min_referrals: 0, min_points: 0, description: 'New to the YIELD community', color: '#94A3B8', earningRate: 10 },
-  { id: 2, name: 'Sparrow', emoji: '🐦', min_referrals: 5, min_points: 250, description: 'Getting started with referrals', color: '#A78BFA', earningRate: 15 },
-  { id: 3, name: 'Hawk', emoji: '🦅', min_referrals: 20, min_points: 1000, description: 'Active community builder', color: '#34D399', earningRate: 20 },
-  { id: 4, name: 'Eagle', emoji: '🦅', min_referrals: 50, min_points: 2500, description: 'Skilled referral expert', color: '#F59E0B', earningRate: 25 },
-  { id: 5, name: 'Falcon', emoji: '🦅', min_referrals: 100, min_points: 5000, description: 'Master of networking', color: '#8B5CF6', earningRate: 30 },
-  { id: 6, name: 'Phoenix', emoji: '🐦‍🔥', min_referrals: 1000, min_points: 25000, description: 'Legendary YIELD champion', color: '#F97316', earningRate: 35 },
+  { id: 2, name: 'Sparrow', emoji: '🐦', min_referrals: 5, min_points: 0, description: 'Getting started with referrals', color: '#A78BFA', earningRate: 15 },
+  { id: 3, name: 'Hawk', emoji: 'hawk', min_referrals: 20, min_points: 0, description: 'Sharp focus and strategic growth', color: '#8B4513', earningRate: 20 },
+  { id: 4, name: 'Eagle', emoji: 'eagle', min_referrals: 50, min_points: 0, description: 'Soaring high with impressive achievements', color: '#DAA520', earningRate: 25 },
+  { id: 5, name: 'Falcon', emoji: 'falcon', min_referrals: 100, min_points: 0, description: 'Lightning-fast growth and precision', color: '#4682B4', earningRate: 30 },
+  { id: 6, name: 'Phoenix', emoji: 'phoenix', min_referrals: 1000, min_points: 0, description: 'Legendary status - risen from the ashes', color: '#FF4500', earningRate: 35 },
 ];
 
 export const BirdProgressionModal: React.FC<BirdProgressionModalProps> = ({
@@ -113,8 +116,14 @@ export const BirdProgressionModal: React.FC<BirdProgressionModalProps> = ({
                         borderColor: bird.color 
                       }}
                     >
-                      {bird.name === 'Phoenix' ? (
+                      {bird.emoji === 'phoenix' ? (
                         <RealisticPhoenixBird size="sm" animate={current} />
+                      ) : bird.emoji === 'hawk' ? (
+                        <RealisticHawkBird size="sm" animate={current} />
+                      ) : bird.emoji === 'eagle' ? (
+                        <RealisticEagleBird size="sm" animate={current} />
+                      ) : bird.emoji === 'falcon' ? (
+                        <RealisticFalconBird size="sm" animate={current} />
                       ) : (
                         bird.emoji
                       )}
