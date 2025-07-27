@@ -41,7 +41,7 @@ const AppContent = () => {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/brand-auth" element={<BrandAuth />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<CustomResetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/brand-onboarding" element={<BrandOnboarding />} />
         <Route
