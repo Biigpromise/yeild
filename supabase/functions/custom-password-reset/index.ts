@@ -73,12 +73,17 @@ const handler = async (req: Request): Promise<Response> => {
     const resetToken = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, '');
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
-    // Clean up any existing tokens for this user
-    await supabase
+    // Clean up any existing tokens for this user (remove unused/expired tokens)
+    const { error: cleanupError } = await supabase
       .from('password_reset_tokens')
       .delete()
       .eq('email', email)
-      .neq('used_at', null);
+      .or('used_at.is.null,expires_at.lt.now()');
+
+    if (cleanupError) {
+      console.error('Error cleaning up old tokens:', cleanupError);
+      // Continue anyway - this is not critical
+    }
 
     // Store reset token in database
     const { error: insertError } = await supabase
@@ -104,9 +109,10 @@ const handler = async (req: Request): Promise<Response> => {
     // Create reset link
     const resetUrl = `${req.headers.get('origin') || 'https://stehjqdbncykevpokcvj.supabase.co'}/reset-password?token=${resetToken}`;
 
-    // Send email via Resend
+    // Send email via Resend (using verified domain)
+    console.log('Sending password reset email to:', email);
     const emailResponse = await resend.emails.send({
-      from: 'YIELD <noreply@yeildsocials.com>',
+      from: 'YIELD <onboarding@resend.dev>',
       to: [email],
       subject: 'Reset Your YIELD Password',
       html: `
@@ -151,9 +157,12 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (emailResponse.error) {
-      console.error('Resend error:', emailResponse.error);
+      console.error('Resend error:', JSON.stringify(emailResponse.error, null, 2));
       return new Response(
-        JSON.stringify({ error: 'Failed to send reset email' }),
+        JSON.stringify({ 
+          error: 'Failed to send reset email',
+          details: emailResponse.error.message || 'Unknown email service error'
+        }),
         {
           status: 500,
           headers: { "Content-Type": "application/json", ...corsHeaders },
