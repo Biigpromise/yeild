@@ -8,15 +8,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const PRODUCTION_DOMAIN = 'https://yeildsocials.com';
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { email } = await req.json()
+    const { email, redirectTo } = await req.json()
     
     if (!email) {
       return new Response(
@@ -31,8 +29,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Always use production domain for reset URL
-    const resetUrl = `${PRODUCTION_DOMAIN}/reset-password`
+    // Use provided redirect URL or fallback to referer header or default
+    const refererHeader = req.headers.get('referer');
+    const originDomain = refererHeader ? new URL(refererHeader).origin : 'https://yeildsocials.com';
+    const resetUrl = redirectTo || `${originDomain}/reset-password`
 
     console.log('Generating password reset for:', email, 'Redirect to:', resetUrl)
 

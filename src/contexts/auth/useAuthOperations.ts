@@ -307,37 +307,34 @@ export const useAuthOperations = () => {
 
   const resetPassword = async (email: string) => {
     try {
-      console.log("AuthContext: Using custom password reset for:", email);
+      console.log("AuthContext: Using Supabase native password reset for:", email);
       
       if (!email) {
         const error = new Error("Email is required");
         return { error };
       }
 
-      // Call our custom password reset edge function (bypasses Supabase's broken email system)
-      const { data, error: functionError } = await supabase.functions.invoke('custom-password-reset', {
-        body: { email }
+      // Use dynamic domain detection
+      const currentDomain = window.location.origin;
+      const redirectTo = `${currentDomain}/reset-password`;
+
+      console.log("AuthContext: Reset redirect URL:", redirectTo);
+
+      // Use Supabase's native resetPasswordForEmail with custom redirect
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectTo
       });
       
-      if (functionError) {
-        console.error("AuthContext: Custom password reset function error:", functionError);
+      if (error) {
+        console.error("AuthContext: Supabase password reset error:", error);
         return { 
           error: { 
-            message: "Failed to send password reset email. Please try again in a few moments." 
+            message: error.message || "Failed to send password reset email. Please try again." 
           } 
         };
       }
 
-      if (data?.error) {
-        console.error("AuthContext: Custom password reset response error:", data.error);
-        return { 
-          error: { 
-            message: data.error 
-          } 
-        };
-      }
-
-      console.log("AuthContext: Custom password reset email sent successfully");
+      console.log("AuthContext: Password reset email sent successfully");
       return { error: null };
     } catch (error) {
       console.error("AuthContext: Password reset unexpected error:", error);
