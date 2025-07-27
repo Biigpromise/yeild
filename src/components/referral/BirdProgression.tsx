@@ -34,6 +34,15 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
   const calculateProgress = () => {
     if (!nextBirdLevel) return 100;
     
+    // If points requirement is 0 or undefined, only calculate based on referrals
+    if (!nextBirdLevel.min_points || nextBirdLevel.min_points === 0) {
+      const referralProgress = nextBirdLevel.min_referrals > 0 
+        ? (activeReferrals / nextBirdLevel.min_referrals) * 100 
+        : 100;
+      return Math.min(referralProgress, 100);
+    }
+    
+    // Legacy calculation for levels that still require points
     const referralProgress = nextBirdLevel.min_referrals > 0 
       ? (activeReferrals / nextBirdLevel.min_referrals) * 100 
       : 100;
@@ -122,12 +131,14 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
                 </div>
                 <div className="text-blue-600">Active Referrals</div>
               </div>
-              <div className="text-center p-2 bg-green-100 rounded">
-                <div className="font-semibold text-green-800">
-                  {userPoints} / {nextBirdLevel.min_points}
+              {nextBirdLevel.min_points > 0 && (
+                <div className="text-center p-2 bg-green-100 rounded">
+                  <div className="font-semibold text-green-800">
+                    {userPoints} / {nextBirdLevel.min_points}
+                  </div>
+                  <div className="text-green-600">Points Earned</div>
                 </div>
-                <div className="text-green-600">Points Earned</div>
-              </div>
+              )}
             </div>
           </div>
         )}

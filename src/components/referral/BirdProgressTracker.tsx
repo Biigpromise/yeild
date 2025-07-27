@@ -114,11 +114,17 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
   const calculateProgress = () => {
     if (!nextLevel) return 100; // Max level reached
     
+    // Since we removed point requirements (min_points = 0), only calculate based on referrals
+    if (nextLevel.min_points === 0) {
+      return Math.min((userStats.active_referrals_count / nextLevel.min_referrals) * 100, 100);
+    }
+    
+    // Legacy calculation for levels that still require points
     const referralProgress = userStats.active_referrals_count / nextLevel.min_referrals * 100;
     const pointsProgress = userStats.points / nextLevel.min_points * 100;
     
     // Return the minimum progress (both requirements must be met)
-    return Math.min(referralProgress, pointsProgress);
+    return Math.min(Math.min(referralProgress, pointsProgress), 100);
   };
 
   const progress = calculateProgress();
@@ -190,12 +196,14 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
                   {userStats.active_referrals_count}/{nextLevel.min_referrals} referrals
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-yellow-500" />
-                <span>
-                  {userStats.points}/{nextLevel.min_points} points
-                </span>
-              </div>
+              {nextLevel.min_points > 0 && (
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-yellow-500" />
+                  <span>
+                    {userStats.points}/{nextLevel.min_points} points
+                  </span>
+                </div>
+              )}
             </div>
             
             {(nextLevel.referrals_needed > 0 || nextLevel.points_needed > 0) && (
@@ -213,8 +221,10 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
           <div className="text-sm font-medium mb-2">Bird Level Milestones</div>
           <div className="flex justify-between">
             {allLevels.slice(0, 6).map((level) => {
-              const isAchieved = userStats.active_referrals_count >= level.min_referrals && 
-                               userStats.points >= level.min_points;
+              // Updated logic: only check referrals if min_points is 0
+              const isAchieved = level.min_points === 0 
+                ? userStats.active_referrals_count >= level.min_referrals
+                : userStats.active_referrals_count >= level.min_referrals && userStats.points >= level.min_points;
               const isCurrent = currentLevel.id === level.id;
               
               return (
