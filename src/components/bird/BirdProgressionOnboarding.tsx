@@ -18,13 +18,12 @@ interface BirdLevel {
 }
 
 const birdLevels: BirdLevel[] = [
-  { name: 'Dove', emoji: '🕊️', minReferrals: 0, minPoints: 0, earningRate: 5, description: 'Starting your journey', color: '#94A3B8' },
-  { name: 'Sparrow', emoji: '🐦', minReferrals: 3, minPoints: 500, earningRate: 8, description: 'Building momentum', color: '#A78BFA' },
-  { name: 'Robin', emoji: '🐦‍⬛', minReferrals: 7, minPoints: 1200, earningRate: 12, description: 'Active community member', color: '#34D399' },
-  { name: 'Eagle', emoji: '🦅', minReferrals: 15, minPoints: 2500, earningRate: 15, description: 'Skilled achiever', color: '#F59E0B' },
-  { name: 'Hawk', emoji: '🦅', minReferrals: 25, minPoints: 5000, earningRate: 20, description: 'Expert level', color: '#EF4444' },
-  { name: 'Falcon', emoji: '🦅', minReferrals: 40, minPoints: 8000, earningRate: 25, description: 'Master of the platform', color: '#8B5CF6' },
-  { name: 'Phoenix', emoji: '🔥', minReferrals: 60, minPoints: 12000, earningRate: 30, description: 'Legendary champion', color: '#F97316' },
+  { name: 'Dove', emoji: '🕊️', minReferrals: 0, minPoints: 0, earningRate: 10, description: 'Starting your journey', color: '#94A3B8' },
+  { name: 'Sparrow', emoji: '🐦', minReferrals: 5, minPoints: 250, earningRate: 15, description: 'Building momentum', color: '#A78BFA' },
+  { name: 'Hawk', emoji: '🦅', minReferrals: 20, minPoints: 1000, earningRate: 20, description: 'Active community builder', color: '#34D399' },
+  { name: 'Eagle', emoji: '🦅', minReferrals: 50, minPoints: 2500, earningRate: 25, description: 'Skilled referral expert', color: '#F59E0B' },
+  { name: 'Falcon', emoji: '🦅', minReferrals: 100, minPoints: 5000, earningRate: 30, description: 'Master of networking', color: '#8B5CF6' },
+  { name: 'Phoenix', emoji: '🐦‍🔥', minReferrals: 1000, minPoints: 25000, earningRate: 35, description: 'Legendary champion', color: '#F97316' },
 ];
 
 interface BirdProgressionOnboardingProps {
@@ -108,10 +107,11 @@ export const BirdProgressionOnboarding: React.FC<BirdProgressionOnboardingProps>
                     <span className="text-white font-semibold">Phoenix Benefits</span>
                   </div>
                   <ul className="text-sm text-gray-300 space-y-1">
-                    <li>• Highest earning rate: $30 per task</li>
+                    <li>• Highest earning rate: $35 per task</li>
                     <li>• Exclusive Phoenix rewards and badges</li>
                     <li>• Priority support and early access</li>
                     <li>• Special recognition on leaderboards</li>
+                    <li>• Elite status and legendary recognition</li>
                   </ul>
                 </div>
               )}

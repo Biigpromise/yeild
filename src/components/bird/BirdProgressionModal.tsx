@@ -30,13 +30,12 @@ interface BirdProgressionModalProps {
 }
 
 const allBirdLevels: BirdLevel[] = [
-  { id: 1, name: 'Dove', emoji: '🕊️', min_referrals: 0, min_points: 0, description: 'New to the YIELD community', color: '#94A3B8', earningRate: 5 },
-  { id: 2, name: 'Sparrow', emoji: '🐦', min_referrals: 3, min_points: 500, description: 'Getting started with tasks', color: '#A78BFA', earningRate: 8 },
-  { id: 3, name: 'Robin', emoji: '🐦‍⬛', min_referrals: 7, min_points: 1200, description: 'Active community member', color: '#34D399', earningRate: 12 },
-  { id: 4, name: 'Eagle', emoji: '🦅', min_referrals: 15, min_points: 2500, description: 'Skilled task completer', color: '#F59E0B', earningRate: 15 },
-  { id: 5, name: 'Hawk', emoji: '🦅', min_referrals: 25, min_points: 5000, description: 'Expert level achiever', color: '#EF4444', earningRate: 20 },
-  { id: 6, name: 'Falcon', emoji: '🦅', min_referrals: 40, min_points: 8000, description: 'Master of the platform', color: '#8B5CF6', earningRate: 25 },
-  { id: 7, name: 'Phoenix', emoji: '🔥', min_referrals: 60, min_points: 12000, description: 'Legendary YIELD champion', color: '#F97316', earningRate: 30 },
+  { id: 1, name: 'Dove', emoji: '🕊️', min_referrals: 0, min_points: 0, description: 'New to the YIELD community', color: '#94A3B8', earningRate: 10 },
+  { id: 2, name: 'Sparrow', emoji: '🐦', min_referrals: 5, min_points: 250, description: 'Getting started with referrals', color: '#A78BFA', earningRate: 15 },
+  { id: 3, name: 'Hawk', emoji: '🦅', min_referrals: 20, min_points: 1000, description: 'Active community builder', color: '#34D399', earningRate: 20 },
+  { id: 4, name: 'Eagle', emoji: '🦅', min_referrals: 50, min_points: 2500, description: 'Skilled referral expert', color: '#F59E0B', earningRate: 25 },
+  { id: 5, name: 'Falcon', emoji: '🦅', min_referrals: 100, min_points: 5000, description: 'Master of networking', color: '#8B5CF6', earningRate: 30 },
+  { id: 6, name: 'Phoenix', emoji: '🐦‍🔥', min_referrals: 1000, min_points: 25000, description: 'Legendary YIELD champion', color: '#F97316', earningRate: 35 },
 ];
 
 export const BirdProgressionModal: React.FC<BirdProgressionModalProps> = ({

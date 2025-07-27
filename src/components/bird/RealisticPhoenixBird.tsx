@@ -20,61 +20,159 @@ export const RealisticPhoenixBird: React.FC<RealisticPhoenixBirdProps> = ({
     xl: 'w-24 h-24 text-6xl'
   };
 
-  const phoenixEmoji = '🔥'; // Using fire emoji as the most realistic phoenix representation
+  const phoenixEmoji = '🐦‍🔥'; // Using real phoenix bird emoji
 
   return (
     <motion.div
-      className={`${sizeClasses[size]} ${className} relative flex items-center justify-center`}
+      className={`${sizeClasses[size]} ${className} relative flex items-center justify-center cursor-pointer group`}
       animate={animate ? {
-        scale: [1, 1.1, 1],
-        rotate: [0, 5, -5, 0],
+        scale: [1, 1.05, 1],
+        rotate: [0, 2, -2, 0],
       } : {}}
+      whileHover={{
+        scale: 1.15,
+        rotate: [0, 3, -3, 0],
+        transition: { duration: 0.3, ease: "easeOut" }
+      }}
       transition={{
-        duration: 3,
+        duration: 4,
         repeat: Infinity,
         ease: "easeInOut"
       }}
     >
-      {/* Phoenix fire effect background */}
-      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 opacity-20 animate-pulse" />
+      {/* Enhanced fire effect background - intensifies on hover */}
+      <motion.div 
+        className="absolute inset-0 rounded-full bg-gradient-to-r from-red-500 via-orange-500 to-yellow-400 opacity-20"
+        animate={{ 
+          scale: [1, 1.2, 1],
+          opacity: [0.2, 0.3, 0.2]
+        }}
+        whileHover={{
+          scale: [1.2, 1.4, 1.2],
+          opacity: [0.3, 0.5, 0.3],
+          transition: { duration: 0.6, repeat: Infinity }
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
       
-      {/* Glow effect */}
-      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-400 to-orange-400 opacity-30 blur-sm animate-pulse" />
+      {/* Golden glow effect - brightens on hover */}
+      <motion.div 
+        className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-400 via-yellow-400 to-red-400 opacity-30 blur-sm"
+        animate={{
+          scale: [1, 1.1, 1],
+          opacity: [0.3, 0.4, 0.3]
+        }}
+        whileHover={{
+          scale: [1.3, 1.5, 1.3],
+          opacity: [0.5, 0.7, 0.5],
+          transition: { duration: 0.4, repeat: Infinity }
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+
+      {/* Outer energy ring - appears on hover */}
+      <motion.div 
+        className="absolute inset-0 rounded-full border-2 border-yellow-400 opacity-0 group-hover:opacity-60"
+        animate={{
+          scale: [1.5, 1.8, 1.5],
+          rotate: [0, 360]
+        }}
+        transition={{
+          duration: 4,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+      />
       
-      {/* Phoenix symbol */}
-      <span className="relative z-10 filter drop-shadow-md">
+      {/* Phoenix symbol with color transition */}
+      <motion.span 
+        className="relative z-10 filter drop-shadow-lg"
+        whileHover={{
+          filter: "drop-shadow(0 0 8px rgba(255, 215, 0, 0.8))",
+          textShadow: "0 0 10px rgba(255, 165, 0, 0.8)"
+        }}
+        style={{
+          background: "linear-gradient(45deg, #ff6b35, #f7931e, #ffd700)",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          WebkitTextFillColor: "transparent"
+        }}
+      >
         {phoenixEmoji}
-      </span>
+      </motion.span>
       
-      {/* Sparkle effects */}
+      {/* Enhanced floating particles */}
       {animate && (
         <>
           <motion.div
-            className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full opacity-80"
+            className="absolute -top-2 -right-2 w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full opacity-80"
             animate={{
-              scale: [0, 1, 0],
-              opacity: [0, 1, 0]
+              scale: [0, 1.2, 0],
+              opacity: [0, 1, 0],
+              y: [-5, -15, -5],
+              x: [0, 5, 0]
             }}
             transition={{
-              duration: 2,
+              duration: 2.5,
               repeat: Infinity,
-              delay: 0.5
+              delay: 0.3
             }}
           />
           <motion.div
-            className="absolute -bottom-1 -left-1 w-1 h-1 bg-orange-400 rounded-full opacity-80"
+            className="absolute -bottom-2 -left-2 w-2 h-2 bg-gradient-to-br from-red-400 to-orange-400 rounded-full opacity-80"
             animate={{
               scale: [0, 1, 0],
-              opacity: [0, 1, 0]
+              opacity: [0, 1, 0],
+              y: [5, 15, 5],
+              x: [0, -5, 0]
             }}
             transition={{
               duration: 2,
               repeat: Infinity,
-              delay: 1
+              delay: 1.2
+            }}
+          />
+          <motion.div
+            className="absolute top-0 left-0 w-1.5 h-1.5 bg-yellow-300 rounded-full opacity-70"
+            animate={{
+              scale: [0, 1, 0],
+              opacity: [0, 0.8, 0],
+              rotate: [0, 180, 360],
+              x: [-10, 10, -10],
+              y: [-10, 10, -10]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              delay: 1.8
             }}
           />
         </>
       )}
+
+      {/* Wing flutter effect on hover */}
+      <motion.div
+        className="absolute inset-0 opacity-0 group-hover:opacity-30"
+        animate={{
+          scaleX: [1, 1.1, 1, 0.9, 1],
+          scaleY: [1, 0.95, 1, 1.05, 1]
+        }}
+        transition={{
+          duration: 0.8,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      >
+        <div className="w-full h-full bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent rounded-full" />
+      </motion.div>
     </motion.div>
   );
 };
