@@ -123,7 +123,7 @@ serve(async (req) => {
         'Importance': 'high'
       },
       body: JSON.stringify({
-        from: 'YIELD <noreply@yeildsocials.com>',
+        from: 'YIELD <onboarding@resend.dev>',
         to: [email],
         subject: 'Reset Your YIELD Password - Action Required',
         html: emailHtml,
