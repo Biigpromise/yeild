@@ -307,29 +307,38 @@ export const useAuthOperations = () => {
 
   const resetPassword = async (email: string) => {
     try {
-      console.log("AuthContext: Using Supabase native password reset for:", email);
+      console.log("AuthContext: Using edge function for password reset:", email);
       
       if (!email) {
         const error = new Error("Email is required");
         return { error };
       }
 
-      // Use dynamic domain detection
+      // Use dynamic domain for redirect
       const currentDomain = window.location.origin;
       const redirectTo = `${currentDomain}/reset-password`;
 
       console.log("AuthContext: Reset redirect URL:", redirectTo);
 
-      // Use Supabase's native resetPasswordForEmail with custom redirect
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectTo
+      // Call our custom password reset edge function with dynamic redirect
+      const { data, error: functionError } = await supabase.functions.invoke('send-password-reset-email', {
+        body: { email, redirectTo }
       });
       
-      if (error) {
-        console.error("AuthContext: Supabase password reset error:", error);
+      if (functionError) {
+        console.error("AuthContext: Password reset function error:", functionError);
         return { 
           error: { 
-            message: error.message || "Failed to send password reset email. Please try again." 
+            message: "Failed to send password reset email. Please try again in a few moments." 
+          } 
+        };
+      }
+
+      if (data?.error) {
+        console.error("AuthContext: Password reset response error:", data.error);
+        return { 
+          error: { 
+            message: data.error 
           } 
         };
       }
