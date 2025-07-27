@@ -6,11 +6,14 @@ import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, Building, Globe, CheckCircle 
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { EmailConfirmationPending } from '@/components/auth/EmailConfirmationPending';
 
 const BrandSignUpFlow = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -70,7 +73,7 @@ const BrandSignUpFlow = () => {
           }
         };
 
-        const { error } = await signUp(
+        const { user, error } = await signUp(
           signUpData.email, 
           signUpData.password, 
           signUpData.options.data.name,
@@ -85,8 +88,9 @@ const BrandSignUpFlow = () => {
         if (error) {
           toast.error(error.message);
         } else {
-          toast.success("Brand account created successfully!");
-          navigate('/brand-dashboard');
+          // Show email confirmation pending screen
+          setPendingEmail(formData.email);
+          setShowEmailConfirmation(true);
         }
       }
     } catch (error: any) {
@@ -99,6 +103,18 @@ const BrandSignUpFlow = () => {
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  if (showEmailConfirmation) {
+    return (
+      <EmailConfirmationPending 
+        email={pendingEmail}
+        onBack={() => {
+          setShowEmailConfirmation(false);
+          setPendingEmail('');
+        }}
+      />
+    );
+  }
 
   if (loading) {
     return (

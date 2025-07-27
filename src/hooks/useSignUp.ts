@@ -131,35 +131,7 @@ export const useSignUp = () => {
       });
 
       if (authError) {
-        console.error('Supabase auth error:', authError);
-        
-        // If there's an issue with the default confirmation email, try our custom one
-        if (authError.message?.includes('email') || authError.message?.includes('confirmation')) {
-          try {
-            console.log('Attempting to send custom verification email...');
-            const { error: customEmailError } = await supabase.functions.invoke('send-verification-email', {
-              body: {
-                email: data.email,
-                name: data.name,
-                confirmationUrl: `${window.location.origin}/auth/callback`
-              }
-            });
-            
-            if (customEmailError) {
-              console.error('Custom email also failed:', customEmailError);
-              throw authError; // Fall back to original error
-            } else {
-              console.log('Custom verification email sent successfully');
-              toast.success('Account created! Please check your email for verification.');
-              return { success: true, data: { user: { email: data.email }, session: null } };
-            }
-          } catch (emailError) {
-            console.error('Failed to send custom verification email:', emailError);
-            throw authError; // Fall back to original error
-          }
-        } else {
-          throw authError;
-        }
+        throw authError;
       }
 
       if (!authData.user) {
@@ -181,21 +153,8 @@ export const useSignUp = () => {
       return { success: true, data: authData };
     } catch (error: any) {
       console.error('Sign up error:', error);
-      
-      // Provide more specific error messages
-      let errorMessage = 'Failed to create account';
-      if (error.message?.includes('email')) {
-        errorMessage = 'Error sending confirmation email. Please try again or contact support.';
-      } else if (error.message?.includes('already registered')) {
-        errorMessage = 'This email address is already registered. Please try logging in instead.';
-      } else if (error.message?.includes('password')) {
-        errorMessage = 'Password must be at least 6 characters long.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      toast.error(errorMessage);
-      return { success: false, error: errorMessage };
+      toast.error(error.message || 'Failed to create account');
+      return { success: false, error: error.message };
     } finally {
       setIsLoading(false);
     }
