@@ -57,6 +57,7 @@ export const referralService = {
   async checkReferralActivation(userId: string) {
     try {
       return await withRetry(async () => {
+        // Call the check_and_activate_referral function
         const { data, error } = await supabase
           .rpc('check_and_activate_referral', { user_id: userId });
 
@@ -64,7 +65,8 @@ export const referralService = {
           throw new Error(`Failed to check referral activation: ${error.message}`);
         }
 
-        return data;
+        // Return updated stats after potential activation
+        return await this.getReferralStats(userId);
       }, 'checkReferralActivation');
     } catch (error) {
       console.error('Error checking referral activation:', error);

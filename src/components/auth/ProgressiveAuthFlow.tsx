@@ -39,27 +39,34 @@ const ProgressiveAuthFlow = () => {
   useEffect(() => {
     const typeParam = searchParams.get('type');
     const modeParam = searchParams.get('mode');
+    const refParam = searchParams.get('ref');
     
-    console.log("URL analysis:", { typeParam, modeParam });
+    console.log("URL analysis:", { typeParam, modeParam, refParam });
     
     // Set user type if specified
     if (typeParam && (typeParam === 'user' || typeParam === 'brand')) {
       setFormData(prev => ({ ...prev, userType: typeParam as 'user' | 'brand' }));
     }
     
-    // Check for explicit signin mode
+    // Check for explicit signup mode or referral link
+    const isSignupMode = modeParam === 'signup' || refParam;
     const isSigninMode = modeParam === 'signin' || typeParam === 'signin';
     
-    // For URLs like /auth?type=user or /auth?type=brand, default to sign-in since most are returning users
-    if (typeParam === 'user' || typeParam === 'brand') {
+    // If referral code is present, default to signup mode
+    if (refParam) {
+      console.log("Referral signup detected:", refParam);
+      setIsLogin(false);
+      setCurrentStep('userType'); // Let them choose user type
+    } else if (typeParam === 'user' || typeParam === 'brand') {
+      // For URLs like /auth?type=user or /auth?type=brand, default to sign-in since most are returning users
       setIsLogin(true);
       setCurrentStep('email'); // Skip user type selection for specific types
     } else if (isSigninMode) {
       setIsLogin(true);
       setCurrentStep('email');
-    } else if (typeParam && (typeParam === 'user' || typeParam === 'brand')) {
-      // For sign-up mode with type specified
-      setCurrentStep('email');
+    } else if (isSignupMode) {
+      setIsLogin(false);
+      setCurrentStep('userType');
     }
   }, [searchParams]);
 
