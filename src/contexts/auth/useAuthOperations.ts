@@ -79,23 +79,26 @@ export const useAuthOperations = () => {
         }
       }
 
-          // Send verification email using Supabase's built-in method with proper redirect
+      // Send verification email using our custom email service
       if (data.user && !data.user.email_confirmed_at) {
         try {
-          // Use Supabase's default email for better reliability
-          const { error: emailError } = await supabase.auth.resend({
-            type: 'signup',
-            email: data.user.email,
-            options: {
-              emailRedirectTo: redirectUrl
+          // Use our custom email service for better control
+          const emailResponse = await supabase.functions.invoke('email-service', {
+            body: {
+              type: 'email_verification',
+              email: data.user.email,
+              data: {
+                confirmationUrl: redirectUrl,
+                name: name || data.user.email?.split('@')[0]
+              }
             }
           });
 
-          if (emailError) {
-            console.error('Email verification failed:', emailError);
+          if (emailResponse.error) {
+            console.error('Email verification failed:', emailResponse.error);
             toast.warning("Account created but verification email couldn't be sent. You can request a new one later.");
           } else {
-            console.log('Verification email sent successfully');
+            console.log('Verification email sent successfully via custom service');
             toast.success("Account created! Please check your email to verify your account.");
           }
         } catch (emailError) {
@@ -307,32 +310,45 @@ export const useAuthOperations = () => {
 
   const resetPassword = async (email: string) => {
     try {
-      console.log("AuthContext: Using Supabase built-in password reset:", email);
+      console.log("AuthContext: Using custom email service for password reset:", email);
       
       if (!email) {
         const error = new Error("Email is required");
         return { error };
       }
 
-      // Use Supabase's built-in password reset with proper redirect
-      const redirectTo = `${window.location.origin}/reset-password`;
-
-      console.log("AuthContext: Reset redirect URL:", redirectTo);
-
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectTo
+      // Generate password reset link using Supabase
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
       });
       
-      if (error) {
-        console.error("AuthContext: Password reset error:", error);
+      if (resetError) {
+        console.error("AuthContext: Supabase reset error:", resetError);
         return { 
           error: { 
             message: "Failed to send password reset email. Please check your email address and try again." 
           } 
         };
       }
+      
+      // Send custom email using our email service
+      const emailResponse = await supabase.functions.invoke('email-service', {
+        body: {
+          type: 'password_reset',
+          email,
+          data: {
+            resetUrl: `${window.location.origin}/reset-password`
+          }
+        }
+      });
 
-      console.log("AuthContext: Password reset email sent successfully");
+      if (emailResponse.error) {
+        console.error('Email service error:', emailResponse.error);
+        // Still return success if Supabase reset worked
+        console.log('Supabase reset succeeded but custom email failed - user can still reset');
+      }
+
+      console.log("AuthContext: Password reset process completed successfully");
       return { error: null };
     } catch (error) {
       console.error("AuthContext: Password reset unexpected error:", error);
@@ -346,33 +362,34 @@ export const useAuthOperations = () => {
 
   const resendConfirmation = async (email: string) => {
     try {
-      console.log("AuthContext: Resending confirmation email for:", email);
+      console.log("AuthContext: Resending confirmation email using custom service for:", email);
       
       if (!email) {
         const error = new Error("Email is required");
         return { error };
       }
 
-      // Use Supabase's default resend for better reliability
-      const { error: resendError } = await supabase.auth.resend({
-        type: 'signup',
-        email: email,
-        options: {
-          emailRedirectTo: `${PRODUCTION_DOMAIN}/auth/callback`
+      // Use our custom email service for email verification
+      const emailResponse = await supabase.functions.invoke('email-service', {
+        body: {
+          type: 'email_verification',
+          email,
+          data: {
+            confirmationUrl: `${PRODUCTION_DOMAIN}/auth/callback`
+          }
         }
       });
-      
-      if (resendError) {
-        const friendlyMessage = handleAuthError(resendError, 'resend confirmation');
-        return { error: { ...resendError, message: friendlyMessage } };
+
+      if (emailResponse.error) {
+        console.error('Email service error:', emailResponse.error);
+        return { error: { message: "Failed to send confirmation email. Please try again." } };
       }
 
-      console.log("AuthContext: Confirmation email resent successfully");
+      console.log("AuthContext: Confirmation email sent successfully via custom service");
       return { error: null };
     } catch (error) {
       console.error("AuthContext: Resend confirmation unexpected error:", error);
-      const friendlyMessage = handleAuthError(error, 'resend confirmation');
-      return { error: { message: friendlyMessage } };
+      return { error: { message: "Failed to send confirmation email. Please try again." } };
     }
   };
 
