@@ -55,6 +55,12 @@ export const BirdProgressionModal: React.FC<BirdProgressionModalProps> = ({
   const currentLevelIndex = getCurrentLevelIndex();
 
   const calculateProgress = (bird: BirdLevel) => {
+    // If points requirement is 0, only calculate based on referrals
+    if (bird.min_points === 0) {
+      return Math.min((userStats.referrals / Math.max(1, bird.min_referrals)) * 100, 100);
+    }
+    
+    // Legacy calculation for levels that still require points
     if (userStats.referrals >= bird.min_referrals && userStats.points >= bird.min_points) {
       return 100;
     }
@@ -66,6 +72,10 @@ export const BirdProgressionModal: React.FC<BirdProgressionModalProps> = ({
   };
 
   const isUnlocked = (bird: BirdLevel) => {
+    // If points requirement is 0, only check referrals
+    if (bird.min_points === 0) {
+      return userStats.referrals >= bird.min_referrals;
+    }
     return userStats.referrals >= bird.min_referrals && userStats.points >= bird.min_points;
   };
 
@@ -160,10 +170,12 @@ export const BirdProgressionModal: React.FC<BirdProgressionModalProps> = ({
                         <Users className="h-3 w-3 text-yeild-yellow" />
                         <span>{bird.min_referrals} referrals</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Target className="h-3 w-3 text-yeild-yellow" />
-                        <span>{bird.min_points} points</span>
-                      </div>
+                      {bird.min_points > 0 && (
+                        <div className="flex items-center gap-1">
+                          <Target className="h-3 w-3 text-yeild-yellow" />
+                          <span>{bird.min_points} points</span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-1">
                         <DollarSign className="h-3 w-3 text-yeild-yellow" />
                         <span className="font-semibold">${bird.earningRate}/task</span>
@@ -179,8 +191,8 @@ export const BirdProgressionModal: React.FC<BirdProgressionModalProps> = ({
                         </div>
                         <Progress value={progress} className="h-2" />
                         <div className="text-xs text-gray-400">
-                          Need: {Math.max(0, bird.min_referrals - userStats.referrals)} more referrals, {' '}
-                          {Math.max(0, bird.min_points - userStats.points)} more points
+                          Need: {Math.max(0, bird.min_referrals - userStats.referrals)} more referrals
+                          {bird.min_points > 0 && `, ${Math.max(0, bird.min_points - userStats.points)} more points`}
                         </div>
                       </div>
                     )}

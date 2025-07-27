@@ -54,12 +54,21 @@ export const BirdStatusDisplay: React.FC = () => {
   const displayBird = currentBird || defaultBird;
 
   // Calculate progress to next level
-  const progressToNext = nextBird ? Math.min(100, 
-    Math.max(
-      (userStats.referrals / Math.max(1, nextBird.min_referrals - displayBird.min_referrals)) * 50,
-      (userStats.points / Math.max(1, nextBird.min_points - displayBird.min_points)) * 50
-    )
-  ) : 100;
+  const progressToNext = nextBird ? (() => {
+    // If points requirement is 0, only calculate based on referrals
+    if (nextBird.min_points === 0) {
+      const referralsNeeded = nextBird.min_referrals - displayBird.min_referrals;
+      return Math.min(100, (userStats.referrals - displayBird.min_referrals) / Math.max(1, referralsNeeded) * 100);
+    }
+    
+    // Legacy calculation for levels that still require points
+    return Math.min(100, 
+      Math.max(
+        (userStats.referrals / Math.max(1, nextBird.min_referrals - displayBird.min_referrals)) * 50,
+        (userStats.points / Math.max(1, nextBird.min_points - displayBird.min_points)) * 50
+      )
+    );
+  })() : 100;
 
   return (
     <>
@@ -157,8 +166,8 @@ export const BirdStatusDisplay: React.FC = () => {
               <Progress value={progressToNext} className="h-2 bg-gray-700" />
               
               <div className="text-xs text-gray-400 text-center">
-                Need: {Math.max(0, nextBird.min_referrals - userStats.referrals)} referrals, {' '}
-                {Math.max(0, nextBird.min_points - userStats.points)} points
+                Need: {Math.max(0, nextBird.min_referrals - userStats.referrals)} referrals
+                {nextBird.min_points > 0 && `, ${Math.max(0, nextBird.min_points - userStats.points)} points`}
               </div>
             </div>
           )}
