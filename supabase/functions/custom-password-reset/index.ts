@@ -112,7 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email via Resend (using verified domain)
     console.log('Sending password reset email to:', email);
     const emailResponse = await resend.emails.send({
-      from: 'YIELD <onboarding@resend.dev>',
+      from: 'YIELD <noreply@yeildsocials.com>',
       to: [email],
       subject: 'Reset Your YIELD Password',
       html: `
