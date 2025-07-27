@@ -78,7 +78,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" data-onboarding="dashboard">
       <EmailConfirmationBanner />
       
       {/* Header */}
@@ -88,6 +88,7 @@ export default function Dashboard() {
             <button
               onClick={() => setIsProfileModalOpen(true)}
               className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full"
+              data-onboarding="profile"
             >
               <Avatar className="h-10 w-10 sm:h-12 sm:w-12 hover:ring-2 hover:ring-primary transition-all cursor-pointer">
                 <AvatarImage 
@@ -108,7 +109,7 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-2 sm:gap-4">
-            <div className="grid grid-cols-3 gap-6 sm:gap-8 text-center">
+            <div className="grid grid-cols-3 gap-6 sm:gap-8 text-center" data-onboarding="leaderboard">
               <div className="min-w-0 px-1 flex-1">
                 <div className="text-lg sm:text-xl font-bold text-warning leading-tight">{userStats?.points || 0}</div>
                 <div className="text-xs text-muted-foreground font-medium">Points</div>
@@ -163,7 +164,7 @@ export default function Dashboard() {
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="tasks" className="flex items-center gap-2">
+            <TabsTrigger value="tasks" className="flex items-center gap-2" data-onboarding="tasks">
               <Target className="h-4 w-4" />
               <span className="hidden sm:inline">Tasks</span>
             </TabsTrigger>
@@ -175,7 +176,7 @@ export default function Dashboard() {
               <Wallet className="h-4 w-4" />
               <span className="hidden sm:inline">Wallet</span>
             </TabsTrigger>
-            <TabsTrigger value="referral" className="flex items-center gap-2">
+            <TabsTrigger value="referral" className="flex items-center gap-2" data-onboarding="referrals">
               <Gift className="h-4 w-4" />
               <span className="hidden sm:inline">Referral</span>
             </TabsTrigger>

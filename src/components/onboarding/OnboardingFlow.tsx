@@ -1,9 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import NewUserOnboarding from './NewUserOnboarding';
+import ProgressiveOnboarding from './ProgressiveOnboarding';
 import BrandOnboarding from './BrandOnboarding';
-import { BirdProgressionOnboarding } from '@/components/bird/BirdProgressionOnboarding';
 
 interface OnboardingFlowProps {
   userType: 'user' | 'brand';
@@ -15,9 +14,8 @@ const OnboardingFlowContent: React.FC<OnboardingFlowProps> = ({ userType, onComp
     return <BrandOnboarding onComplete={onComplete} />;
   }
 
-  // For regular users, show the simplified progressive onboarding
-  // Skip the bird progression for now to avoid getting users stuck
-  return <NewUserOnboarding onComplete={onComplete} />;
+  // Use the new ProgressiveOnboarding with 5 enticing slides
+  return <ProgressiveOnboarding onComplete={onComplete} />;
 };
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = (props) => {
