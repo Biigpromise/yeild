@@ -11,6 +11,7 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [deliveryStatus, setDeliveryStatus] = useState<'sending' | 'sent' | 'error' | null>(null);
   const navigate = useNavigate();
   const { resetPassword } = useAuth();
 
@@ -23,18 +24,22 @@ const ForgotPassword = () => {
     }
 
     setIsLoading(true);
+    setDeliveryStatus('sending');
     
     try {
       const { error } = await resetPassword(email);
 
       if (error) {
+        setDeliveryStatus('error');
         toast.error(error.message);
       } else {
+        setDeliveryStatus('sent');
         setEmailSent(true);
-        toast.success("Password reset email sent! Check your inbox.");
+        toast.success("Password reset email sent instantly! Check your inbox.");
       }
     } catch (error: any) {
       console.error('Password reset error:', error);
+      setDeliveryStatus('error');
       toast.error("An unexpected error occurred while sending reset email");
     } finally {
       setIsLoading(false);
