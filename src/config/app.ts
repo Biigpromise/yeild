@@ -37,9 +37,12 @@ export const APP_CONFIG = {
     minPointsForActivation: 50,
     minTasksForActivation: 1,
     tiers: {
-      bronze: { min: 0, pointsPerReferral: 10 },
-      silver: { min: 5, pointsPerReferral: 20 },
-      gold: { min: 15, pointsPerReferral: 30 }
+      dove: { min: 0, pointsPerReferral: 10 },      // Starting level
+      sparrow: { min: 5, pointsPerReferral: 15 },   // 5 referrals
+      hawk: { min: 20, pointsPerReferral: 20 },     // 20 referrals  
+      eagle: { min: 50, pointsPerReferral: 25 },    // 50 referrals
+      falcon: { min: 100, pointsPerReferral: 30 },  // 100 referrals
+      phoenix: { min: 500, pointsPerReferral: 35 }  // 500 referrals
     }
   }
 };

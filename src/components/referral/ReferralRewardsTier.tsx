@@ -14,30 +14,60 @@ export const ReferralRewardsTier: React.FC<ReferralRewardsTierProps> = ({
   const getTierInfo = (count: number) => {
     if (count < 5) {
       return {
-        tier: 'Bronze',
+        tier: 'Dove',
         pointsPerReferral: 10,
         icon: Star,
-        color: 'bg-amber-100 text-amber-800 border-amber-300',
-        nextTier: 'Silver',
+        color: 'bg-slate-100 text-slate-800 border-slate-300',
+        nextTier: 'Sparrow',
         nextTierAt: 5,
         remaining: 5 - count
       };
-    } else if (count < 15) {
+    } else if (count < 20) {
       return {
-        tier: 'Silver',
+        tier: 'Sparrow',
+        pointsPerReferral: 15,
+        icon: Award,
+        color: 'bg-green-100 text-green-800 border-green-300',
+        nextTier: 'Hawk',
+        nextTierAt: 20,
+        remaining: 20 - count
+      };
+    } else if (count < 50) {
+      return {
+        tier: 'Hawk',
         pointsPerReferral: 20,
         icon: Award,
-        color: 'bg-gray-100 text-gray-800 border-gray-300',
-        nextTier: 'Gold',
-        nextTierAt: 15,
-        remaining: 15 - count
+        color: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+        nextTier: 'Eagle',
+        nextTierAt: 50,
+        remaining: 50 - count
+      };
+    } else if (count < 100) {
+      return {
+        tier: 'Eagle',
+        pointsPerReferral: 25,
+        icon: Crown,
+        color: 'bg-red-100 text-red-800 border-red-300',
+        nextTier: 'Falcon',
+        nextTierAt: 100,
+        remaining: 100 - count
+      };
+    } else if (count < 500) {
+      return {
+        tier: 'Falcon',
+        pointsPerReferral: 30,
+        icon: Crown,
+        color: 'bg-purple-100 text-purple-800 border-purple-300',
+        nextTier: 'Phoenix',
+        nextTierAt: 500,
+        remaining: 500 - count
       };
     } else {
       return {
-        tier: 'Gold',
-        pointsPerReferral: 30,
+        tier: 'Phoenix',
+        pointsPerReferral: 35,
         icon: Crown,
-        color: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+        color: 'bg-pink-100 text-pink-800 border-pink-300',
         nextTier: null,
         nextTierAt: null,
         remaining: 0
@@ -85,21 +115,36 @@ export const ReferralRewardsTier: React.FC<ReferralRewardsTierProps> = ({
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="p-2 bg-amber-50 rounded-lg">
-            <div className="text-sm font-medium text-amber-800">Bronze</div>
-            <div className="text-xs text-amber-600">10 pts/referral</div>
-            <div className="text-xs text-amber-600">0-4 referrals</div>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 text-center">
+          <div className="p-2 bg-slate-50 rounded-lg">
+            <div className="text-xs font-medium text-slate-800">🕊️ Dove</div>
+            <div className="text-xs text-slate-600">10 pts/ref</div>
+            <div className="text-xs text-slate-600">0-4 refs</div>
           </div>
-          <div className="p-2 bg-gray-50 rounded-lg">
-            <div className="text-sm font-medium text-gray-800">Silver</div>
-            <div className="text-xs text-gray-600">20 pts/referral</div>
-            <div className="text-xs text-gray-600">5-14 referrals</div>
+          <div className="p-2 bg-green-50 rounded-lg">
+            <div className="text-xs font-medium text-green-800">🐦 Sparrow</div>
+            <div className="text-xs text-green-600">15 pts/ref</div>
+            <div className="text-xs text-green-600">5-19 refs</div>
           </div>
           <div className="p-2 bg-yellow-50 rounded-lg">
-            <div className="text-sm font-medium text-yellow-800">Gold</div>
-            <div className="text-xs text-yellow-600">30 pts/referral</div>
-            <div className="text-xs text-yellow-600">15+ referrals</div>
+            <div className="text-xs font-medium text-yellow-800">🦅 Hawk</div>
+            <div className="text-xs text-yellow-600">20 pts/ref</div>
+            <div className="text-xs text-yellow-600">20-49 refs</div>
+          </div>
+          <div className="p-2 bg-red-50 rounded-lg">
+            <div className="text-xs font-medium text-red-800">🦅🔥 Eagle</div>
+            <div className="text-xs text-red-600">25 pts/ref</div>
+            <div className="text-xs text-red-600">50-99 refs</div>
+          </div>
+          <div className="p-2 bg-purple-50 rounded-lg">
+            <div className="text-xs font-medium text-purple-800">🐦‍🔥 Falcon</div>
+            <div className="text-xs text-purple-600">30 pts/ref</div>
+            <div className="text-xs text-purple-600">100-499 refs</div>
+          </div>
+          <div className="p-2 bg-pink-50 rounded-lg">
+            <div className="text-xs font-medium text-pink-800">🔥🕊️ Phoenix</div>
+            <div className="text-xs text-pink-600">35 pts/ref</div>
+            <div className="text-xs text-pink-600">500+ refs</div>
           </div>
         </div>
       </CardContent>
