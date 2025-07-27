@@ -310,9 +310,9 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="h-screen bg-black text-white flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-6">
+      <div className="flex items-center justify-between p-4 flex-shrink-0">
         <div className="text-center flex-1">
           <span className="text-yeild-yellow text-2xl font-bold">YEILD</span>
         </div>
@@ -325,7 +325,7 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
       </div>
 
       {/* Progress Indicator */}
-      <div className="px-6 mb-8">
+      <div className="px-6 mb-4 flex-shrink-0">
         <div className="flex space-x-2">
           {slides.map((_, index) => (
             <div
@@ -338,8 +338,8 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 px-6 pb-6">
+      {/* Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto px-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
@@ -347,7 +347,7 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
-            className="h-full"
+            className="pb-4"
           >
             <div className="text-center mb-8">
               <h1 className="text-3xl md:text-4xl font-bold mb-2 text-white">
@@ -365,8 +365,8 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
         </AnimatePresence>
       </div>
 
-      {/* Navigation */}
-      <div className="px-6 pb-6">
+      {/* Navigation - Fixed at bottom */}
+      <div className="px-6 py-4 flex-shrink-0 border-t border-white/10">
         <div className="flex items-center justify-between max-w-2xl mx-auto">
           <Button
             onClick={handlePrev}
