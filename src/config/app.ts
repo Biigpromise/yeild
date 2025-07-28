@@ -50,7 +50,7 @@ export const APP_CONFIG = {
 // Helper function to generate referral links with proper domain handling
 export const generateReferralLink = (referralCode: string): string => {
   const domain = APP_CONFIG.getDisplayDomain();
-  return `${domain}/auth?mode=signup&ref=${referralCode}`;
+  return `${domain}/?ref=${referralCode}`;
 };
 
 // Helper function to extract referral code from URL

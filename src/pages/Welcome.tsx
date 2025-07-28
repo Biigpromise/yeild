@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, Users, Building2 } from 'lucide-react';
+import { extractReferralCode } from '@/config/app';
 
 const Welcome: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [logoAnimated, setLogoAnimated] = useState(false);
 
   useEffect(() => {
@@ -15,6 +17,15 @@ const Welcome: React.FC = () => {
     }, 500);
     return () => clearTimeout(timer);
   }, []);
+
+  // Check for referral code and redirect to signup
+  useEffect(() => {
+    const referralCode = searchParams.get('ref');
+    if (referralCode) {
+      // Redirect to signup with referral code
+      navigate(`/auth?mode=signup&ref=${referralCode}`);
+    }
+  }, [searchParams, navigate]);
 
   const handleUserSignup = () => {
     navigate('/auth?type=user');
