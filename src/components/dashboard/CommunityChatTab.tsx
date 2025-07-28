@@ -438,59 +438,61 @@ export const CommunityChatTab = () => {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center h-full bg-black">
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800">
         <div className="text-center">
-          <MessageCircle className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-lg text-muted-foreground">Please log in to access community chat</p>
+          <MessageCircle className="h-16 w-16 mx-auto mb-4 text-white/80" />
+          <p className="text-lg text-white/90">Please log in to access community chat</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full bg-black text-white">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 text-white">
       <ChatHeader activeUsers={activeUsers} />
 
       {/* Chat Unlock Banner */}
       {!canPostInChat && (
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 border-b border-gray-800 flex-shrink-0">
-          <Card className="bg-black/50 border-gray-700">
-            <CardHeader className="pb-2">
+        <div className="p-6 flex-shrink-0">
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-yellow-400/20 rounded-full">
+                <Lock className="h-6 w-6 text-yellow-300" />
+              </div>
+              <h3 className="text-xl font-semibold text-white">Unlock Chat Posting</h3>
+            </div>
+            <p className="text-white/80 mb-4">
+              Complete these requirements to start posting in the community chat:
+            </p>
+            <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <Lock className="h-5 w-5 text-yellow-400" />
-                <CardTitle className="text-base text-white">Unlock Chat Posting</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-gray-300 mb-2 text-sm">
-                Complete these requirements to start posting in the community chat:
-              </p>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Target className={`h-3 w-3 ${tasksCompleted >= 1 ? 'text-green-400' : 'text-gray-400'}`} />
-                  <span className={`text-xs ${tasksCompleted >= 1 ? 'text-green-400' : 'text-gray-300'}`}>
-                    Complete {tasksNeeded > 0 ? `${tasksNeeded} more` : ''} task{tasksNeeded !== 1 ? 's' : ''} 
-                    {tasksCompleted >= 1 ? ' ✓' : ` (${tasksCompleted}/1)`}
-                  </span>
+                <div className={`p-1.5 rounded-full ${tasksCompleted >= 1 ? 'bg-green-400/20' : 'bg-white/10'}`}>
+                  <Target className={`h-4 w-4 ${tasksCompleted >= 1 ? 'text-green-300' : 'text-white/60'}`} />
                 </div>
-                <div className="flex items-center gap-2">
-                  <Users className={`h-3 w-3 ${activeReferrals >= 3 ? 'text-green-400' : 'text-gray-400'}`} />
-                  <span className={`text-xs ${activeReferrals >= 3 ? 'text-green-400' : 'text-gray-300'}`}>
-                    Get {referralsNeeded > 0 ? `${referralsNeeded} more` : ''} active referral{referralsNeeded !== 1 ? 's' : ''}
-                    {activeReferrals >= 3 ? ' ✓' : ` (${activeReferrals}/3)`}
-                  </span>
-                </div>
+                <span className={`${tasksCompleted >= 1 ? 'text-green-300' : 'text-white/80'}`}>
+                  Complete {tasksNeeded > 0 ? `${tasksNeeded} more` : ''} task{tasksNeeded !== 1 ? 's' : ''} 
+                  {tasksCompleted >= 1 ? ' ✓' : ` (${tasksCompleted}/1)`}
+                </span>
               </div>
-              <p className="text-xs text-gray-400 mt-2">
-                You can still view all messages and interact with the community!
-              </p>
-            </CardContent>
-          </Card>
+              <div className="flex items-center gap-3">
+                <div className={`p-1.5 rounded-full ${activeReferrals >= 3 ? 'bg-green-400/20' : 'bg-white/10'}`}>
+                  <Users className={`h-4 w-4 ${activeReferrals >= 3 ? 'text-green-300' : 'text-white/60'}`} />
+                </div>
+                <span className={`${activeReferrals >= 3 ? 'text-green-300' : 'text-white/80'}`}>
+                  Get {referralsNeeded > 0 ? `${referralsNeeded} more` : ''} active referral{referralsNeeded !== 1 ? 's' : ''}
+                  {activeReferrals >= 3 ? ' ✓' : ` (${activeReferrals}/3)`}
+                </span>
+              </div>
+            </div>
+            <p className="text-white/60 mt-4 text-sm">
+              You can still view all messages and interact with the community!
+            </p>
+          </div>
         </div>
       )}
 
       {/* Feed */}
-      <div className="flex-1 overflow-y-auto bg-black min-h-0">
+      <div className="flex-1 overflow-y-auto min-h-0 px-6">
         {loading ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
