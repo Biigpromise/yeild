@@ -13,15 +13,7 @@ additional_redirect_urls = [
   "https://yeildsocials.com/brand-dashboard", 
   "https://yeildsocials.com/admin", 
   "https://yeildsocials.com/login",
-  "https://yeildsocials.com/reset-password",
-  "https://yeild.lovable.app", 
-  "https://yeild.lovable.app/auth/callback", 
-  "https://yeild.lovable.app/dashboard", 
-  "https://yeild.lovable.app/brand-dashboard", 
-  "https://yeild.lovable.app/admin", 
-  "https://yeild.lovable.app/login",
-  "https://yeild.lovable.app/reset-password",
-  "https://lovable.dev"
+  "https://yeildsocials.com/reset-password"
 ]
 
 [auth.email]
