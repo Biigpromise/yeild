@@ -1,8 +1,8 @@
+
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Send, Image, X } from 'lucide-react';
+import { Send, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -12,103 +12,89 @@ interface MessageInputProps {
 }
 
 export const MessageInput: React.FC<MessageInputProps> = ({ onMessageSent }) => {
-  const { user } = useAuth();
   const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [mediaFile, setMediaFile] = useState<File | null>(null);
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type and size
-    if (!file.type.startsWith('image/')) {
-      toast.error('Only image files are allowed');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      toast.error('File size must be less than 5MB');
-      return;
-    }
-
-    setMediaFile(file);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setMediaPreview(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const clearMedia = () => {
-    setMediaFile(null);
-    setMediaPreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const uploadMedia = async (file: File): Promise<string | null> => {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
-      
-      const { data, error } = await supabase.storage
-        .from('chat-media')
-        .upload(fileName, file);
-
-      if (error) throw error;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('chat-media')
-        .getPublicUrl(data.path);
-
-      return publicUrl;
-    } catch (error) {
-      console.error('Error uploading media:', error);
-      toast.error('Failed to upload media');
-      return null;
-    }
-  };
-
   const sendMessage = async () => {
-    if (!user || (!message.trim() && !mediaFile)) return;
+    if (!message.trim() || !user || sending) return;
 
-    setUploading(true);
-
+    setSending(true);
     try {
-      let mediaUrl = null;
-      
-      if (mediaFile) {
-        mediaUrl = await uploadMedia(mediaFile);
-        if (!mediaUrl) {
-          setUploading(false);
-          return;
-        }
-      }
-
       const { error } = await supabase
         .from('messages')
         .insert({
           content: message.trim(),
-          user_id: user.id,
-          media_url: mediaUrl
+          user_id: user.id
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error sending message:', error);
+        // Don't show the specific eligibility error to avoid confusion
+        toast.error('Unable to send message. Please try again later.');
+        return;
+      }
 
-      // Clear form
       setMessage('');
-      clearMedia();
       onMessageSent();
-      toast.success('Message sent!');
     } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error('Failed to send message');
+      console.error('Unexpected error sending message:', error);
+      toast.error('Failed to send message. Please try again.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('chat-media')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat-media')
+        .getPublicUrl(uploadData.path);
+
+      const { error: messageError } = await supabase
+        .from('messages')
+        .insert({
+          content: `📷 ${file.name}`,
+          media_url: publicUrl,
+          user_id: user.id
+        });
+
+      if (messageError) {
+        console.error('Error sending image message:', messageError);
+        toast.error('Unable to send image. Please try again later.');
+        return;
+      }
+
+      toast.success('Image shared successfully!');
+      onMessageSent();
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image. Please try again.');
     } finally {
       setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -120,67 +106,45 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onMessageSent }) => 
   };
 
   return (
-    <div className="p-4 border-t bg-background">
-      {/* Media Preview */}
-      {mediaPreview && (
-        <div className="mb-3 relative inline-block">
-          <img 
-            src={mediaPreview} 
-            alt="Media preview"
-            className="h-20 w-20 object-cover rounded border"
-          />
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            className="absolute -top-2 -right-2 h-6 w-6 p-0"
-            onClick={clearMedia}
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        </div>
-      )}
-
-      {/* Input Area */}
-      <div className="flex gap-2">
-        <div className="flex-1 relative">
+    <div className="p-3 md:p-4">
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            disabled={uploading}
-            className="pr-12"
-          />
-          
-          {/* File Upload Button */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-          >
-            <Image className="h-4 w-4" />
-          </Button>
-          
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            className="hidden"
+            placeholder="Type a message..."
+            disabled={sending || uploading}
+            className="bg-muted border-border"
           />
         </div>
-
-        <Button 
-          onClick={sendMessage}
-          disabled={(!message.trim() && !mediaFile) || uploading}
+        
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleImageUpload}
+          accept="image/*"
+          className="hidden"
+        />
+        
+        <Button
+          variant="ghost"
           size="sm"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={sending || uploading}
+          className="text-muted-foreground hover:text-foreground"
         >
-          {uploading ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+          <Image className="h-4 w-4" />
+        </Button>
+        
+        <Button
+          onClick={sendMessage}
+          disabled={!message.trim() || sending || uploading}
+          size="sm"
+          className="min-w-[60px]"
+        >
+          {sending ? (
+            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
           ) : (
             <Send className="h-4 w-4" />
           )}

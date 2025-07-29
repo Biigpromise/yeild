@@ -43,6 +43,9 @@ export const handleAuthError = (error: any, operation: string): string => {
     'Too many requests': 'Too many attempts detected. Please wait 15 minutes before trying again.',
     'weak_password': 'Password is too weak. Please use at least 8 characters with uppercase, lowercase, and numbers.',
     'rate_limit_exceeded': 'Too many attempts. Please wait before trying again.',
+    'For security purposes, you can only request this once every 60 seconds': 'Please wait 60 seconds before requesting another password reset.',
+    'Unable to validate email address: invalid format': 'Please enter a valid email address.',
+    'Password reset requested': 'Password reset email sent successfully. Please check your inbox.',
   };
 
   // Check for specific error patterns
@@ -50,6 +53,11 @@ export const handleAuthError = (error: any, operation: string): string => {
     if (error?.message?.includes(pattern)) {
       return message;
     }
+  }
+
+  // Special handling for password reset success (Supabase returns success as "error")
+  if (operation === 'password reset' && !error?.message?.includes('error') && !error?.message?.includes('fail')) {
+    return 'Password reset email sent successfully. Please check your inbox.';
   }
 
   // Fallback error message

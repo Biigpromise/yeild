@@ -111,7 +111,7 @@ export const CommunityChatTab = () => {
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !user || !canPost) return;
+    if (!newMessage.trim() || !user) return;
 
     try {
       const { error } = await supabase
@@ -199,15 +199,15 @@ export const CommunityChatTab = () => {
   }
 
   return (
-    <Card className="h-full max-h-[600px] flex flex-col bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800">
+    <Card className="h-full max-h-[600px] flex flex-col bg-black border-gray-800">
       {/* Header */}
-      <CardHeader className="bg-white/10 backdrop-blur-sm border-b border-white/20 p-4 flex-shrink-0">
+      <CardHeader className="bg-gray-900 border-b border-gray-800 p-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-xl font-bold text-white mb-1">Community Chat</CardTitle>
-            <p className="text-white/80 text-sm">Connect with other members</p>
+            <p className="text-gray-400 text-sm">Connect with other members</p>
           </div>
-          <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+          <Badge variant="secondary" className="bg-gray-800 text-white border-gray-700">
             {messages.length} messages
           </Badge>
         </div>
@@ -220,11 +220,11 @@ export const CommunityChatTab = () => {
             {messages.map((message) => (
               <div
                 key={message.id}
-                className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20 hover:bg-white/15 transition-colors"
+                className="bg-gray-900 rounded-lg p-4 border border-gray-800 hover:bg-gray-800 transition-colors"
                 onClick={() => incrementMessageView(message.id)}
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
                     {message.profiles?.profile_picture_url ? (
                       <img
                         src={message.profiles.profile_picture_url}
@@ -243,23 +243,23 @@ export const CommunityChatTab = () => {
                       <span className="font-medium text-white">
                         {message.profiles?.name || 'Anonymous'}
                       </span>
-                      <span className="text-white/60 text-xs">
+                      <span className="text-gray-500 text-xs">
                         {format(new Date(message.created_at), 'HH:mm')}
                       </span>
                       {message.views_count > 0 && (
-                        <Badge variant="outline" className="text-xs bg-white/10 text-white border-white/30">
+                        <Badge variant="outline" className="text-xs bg-gray-800 text-gray-300 border-gray-700">
                           {message.views_count} views
                         </Badge>
                       )}
                     </div>
                     
-                    <div className="text-white/90">
+                    <div className="text-gray-200">
                       {message.content}
                       {message.media_url && (
                         <img
                           src={message.media_url}
                           alt="Shared media"
-                          className="mt-2 max-w-sm rounded-lg border border-white/20"
+                          className="mt-2 max-w-sm rounded-lg border border-gray-700"
                         />
                       )}
                     </div>
@@ -270,9 +270,9 @@ export const CommunityChatTab = () => {
 
             {messages.length === 0 && (
               <div className="text-center py-12">
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-white/20">
+                <div className="bg-gray-900 rounded-lg p-8 border border-gray-800">
                   <h3 className="text-xl font-semibold text-white mb-2">Welcome to Community Chat!</h3>
-                  <p className="text-white/80">Be the first to start a conversation.</p>
+                  <p className="text-gray-400">Be the first to start a conversation.</p>
                 </div>
               </div>
             )}
@@ -283,7 +283,7 @@ export const CommunityChatTab = () => {
       </CardContent>
 
       {/* Message Input */}
-      <div className="bg-white/10 backdrop-blur-sm border-t border-white/20 p-4 flex-shrink-0">
+      <div className="bg-gray-900 border-t border-gray-800 p-4 flex-shrink-0">
         {canPost ? (
           <div className="flex items-center gap-2">
             <div className="flex-1 relative">
@@ -292,7 +292,7 @@ export const CommunityChatTab = () => {
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/60 focus:bg-white/30"
+                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:bg-gray-700"
               />
             </div>
             
@@ -308,7 +308,7 @@ export const CommunityChatTab = () => {
               onClick={() => fileInputRef.current?.click()}
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-white/20 border border-white/30"
+              className="text-white hover:bg-gray-800 border border-gray-700"
             >
               <Image className="w-4 h-4" />
             </Button>
@@ -316,14 +316,14 @@ export const CommunityChatTab = () => {
             <Button
               onClick={sendMessage}
               disabled={!newMessage.trim()}
-              className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
+              className="bg-blue-600 hover:bg-blue-700 text-white border border-blue-600"
             >
               <Send className="w-4 h-4" />
             </Button>
           </div>
         ) : (
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-            <p className="text-white/90 text-center font-medium">
+          <div className="bg-gray-900 rounded-lg p-4 border border-gray-800">
+            <p className="text-gray-300 text-center font-medium">
               🔒 Complete at least 1 task and get 3+ active referrals to participate in chat
             </p>
           </div>
