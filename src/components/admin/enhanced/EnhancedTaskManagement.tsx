@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,11 +33,11 @@ interface ActualTaskSubmission {
   evidence_files?: any;
   point_breakdown?: any;
   point_explanation?: string;
-  profiles?: {
+  user_profile?: {
     name?: string;
     email?: string;
   } | null;
-  tasks?: {
+  task_details?: {
     title: string;
     points: number;
   } | null;
@@ -55,7 +54,6 @@ export const EnhancedTaskManagement: React.FC = () => {
   const {
     tasks,
     setTasks,
-    submissions,
     searchTerm,
     setSearchTerm,
     statusFilter,
@@ -65,12 +63,8 @@ export const EnhancedTaskManagement: React.FC = () => {
     setShowCreateForm,
     deleteLoading,
     handleDeleteTask,
-    handleSubmissionUpdate,
     filteredTasks,
-    pendingSubmissions,
     activeTasksCount,
-    totalSubmissions,
-    approvedSubmissions,
     loadData,
   } = useAdminTaskManagement();
 
@@ -93,26 +87,43 @@ export const EnhancedTaskManagement: React.FC = () => {
           .from('task_submissions')
           .select(`
             *,
-            profiles (name, email),
-            tasks (title, points)
+            user_profile:profiles!task_submissions_user_id_fkey (name, email),
+            task_details:tasks!task_submissions_task_id_fkey (title, points)
           `)
           .order('submitted_at', { ascending: false });
 
-        if (error) throw error;
-
-        const submissionsData: ActualTaskSubmission[] = (submissions || []).map(sub => ({
-          ...sub,
-          profiles: sub.profiles || null,
-          tasks: sub.tasks || null
-        }));
-        setRealSubmissions(submissionsData);
+        if (error) {
+          console.error('Supabase query error:', error);
+          // Fallback query without joins if the foreign keys don't exist
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .from('task_submissions')
+            .select('*')
+            .order('submitted_at', { ascending: false });
+          
+          if (fallbackError) throw fallbackError;
+          
+          const submissionsData: ActualTaskSubmission[] = (fallbackData || []).map(sub => ({
+            ...sub,
+            user_profile: null,
+            task_details: null
+          }));
+          setRealSubmissions(submissionsData);
+        } else {
+          const submissionsData: ActualTaskSubmission[] = (submissions || []).map(sub => ({
+            ...sub,
+            user_profile: sub.user_profile || null,
+            task_details: sub.task_details || null
+          }));
+          setRealSubmissions(submissionsData);
+        }
         
-        // Calculate stats
+        // Calculate stats using the submissions data
+        const dataToUse = submissions || [];
         const stats = {
-          total: submissionsData.length,
-          pending: submissionsData.filter(s => s.status === 'pending').length,
-          approved: submissionsData.filter(s => s.status === 'approved').length,
-          rejected: submissionsData.filter(s => s.status === 'rejected').length,
+          total: dataToUse.length,
+          pending: dataToUse.filter(s => s.status === 'pending').length,
+          approved: dataToUse.filter(s => s.status === 'approved').length,
+          rejected: dataToUse.filter(s => s.status === 'rejected').length,
         };
         setSubmissionStats(stats);
       } catch (error) {
@@ -167,16 +178,16 @@ export const EnhancedTaskManagement: React.FC = () => {
         .from('task_submissions')
         .select(`
           *,
-          profiles (name, email),
-          tasks (title, points)
+          user_profile:profiles!task_submissions_user_id_fkey (name, email),
+          task_details:tasks!task_submissions_task_id_fkey (title, points)
         `)
         .order('submitted_at', { ascending: false });
 
       if (submissions) {
         const submissionsData: ActualTaskSubmission[] = (submissions || []).map(sub => ({
           ...sub,
-          profiles: sub.profiles || null,
-          tasks: sub.tasks || null
+          user_profile: sub.user_profile || null,
+          task_details: sub.task_details || null
         }));
         setRealSubmissions(submissionsData);
         const stats = {
@@ -381,6 +392,7 @@ export const EnhancedTaskManagement: React.FC = () => {
         </TabsList>
 
         <TabsContent value="tasks" className="space-y-4">
+          
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -458,10 +470,10 @@ export const EnhancedTaskManagement: React.FC = () => {
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <h3 className="font-semibold">
-                        {submission.tasks?.title || 'Task Title'}
+                        {submission.task_details?.title || 'Task Title'}
                       </h3>
                       <p className="text-sm text-gray-600 mt-1">
-                        Submitted by: {submission.profiles?.name || submission.profiles?.email || 'Unknown User'}
+                        Submitted by: {submission.user_profile?.name || submission.user_profile?.email || 'Unknown User'}
                       </p>
                       <div className="flex items-center gap-4 mt-2">
                         <Badge 
@@ -476,7 +488,7 @@ export const EnhancedTaskManagement: React.FC = () => {
                           {submission.status}
                         </Badge>
                         <span className="text-sm text-gray-500">
-                          {submission.tasks?.points || 0} points
+                          {submission.task_details?.points || 0} points
                         </span>
                         <span className="text-sm text-gray-500">
                           {new Date(submission.submitted_at).toLocaleDateString()}
@@ -504,11 +516,11 @@ export const EnhancedTaskManagement: React.FC = () => {
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
                                   <Label className="text-sm font-medium">Task:</Label>
-                                  <p className="text-sm mt-1">{submission.tasks?.title}</p>
+                                  <p className="text-sm mt-1">{submission.task_details?.title}</p>
                                 </div>
                                 <div>
                                   <Label className="text-sm font-medium">User:</Label>
-                                  <p className="text-sm mt-1">{submission.profiles?.name || submission.profiles?.email}</p>
+                                  <p className="text-sm mt-1">{submission.user_profile?.name || submission.user_profile?.email}</p>
                                 </div>
                                 <div>
                                   <Label className="text-sm font-medium">Status:</Label>
