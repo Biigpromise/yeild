@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,11 +11,44 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAdminTaskManagement } from '../hooks/useAdminTaskManagement';
 import { enhancedTaskManagementService } from '@/services/admin/enhancedTaskManagementService';
-import { taskSubmissionService } from '@/services/taskSubmissionService';
-import { TaskSubmission } from '@/services/types/taskTypes';
+import { supabase } from '@/integrations/supabase/client';
 import { ImageModal } from '../ImageModal';
 import { Search, Plus, Edit, Trash2, Eye, CheckCircle, XCircle, Clock, Image as ImageIcon, ExternalLink, FileText, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+
+// Define the actual database structure for task submissions
+interface DatabaseTaskSubmission {
+  id: string;
+  task_id: string;
+  user_id: string;
+  evidence: string;
+  submission_text: string;
+  status: string;
+  submitted_at: string;
+  reviewed_at?: string;
+  admin_notes?: string;
+  image_url?: string;
+  calculated_points?: number;
+  evidence_file_url?: string;
+  evidence_files?: any;
+  point_breakdown?: any;
+  point_explanation?: string;
+  profiles?: {
+    name: string;
+    email: string;
+  };
+  tasks?: {
+    title: string;
+    points: number;
+  };
+}
+
+interface SubmissionStats {
+  total: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+}
 
 export const EnhancedTaskManagement: React.FC = () => {
   const {
@@ -40,9 +72,9 @@ export const EnhancedTaskManagement: React.FC = () => {
     loadData,
   } = useAdminTaskManagement();
 
-  const [selectedSubmission, setSelectedSubmission] = useState<TaskSubmission | null>(null);
-  const [realSubmissions, setRealSubmissions] = useState<TaskSubmission[]>([]);
-  const [submissionStats, setSubmissionStats] = useState({
+  const [selectedSubmission, setSelectedSubmission] = useState<DatabaseTaskSubmission | null>(null);
+  const [realSubmissions, setRealSubmissions] = useState<DatabaseTaskSubmission[]>([]);
+  const [submissionStats, setSubmissionStats] = useState<SubmissionStats>({
     total: 0,
     pending: 0,
     approved: 0,
@@ -55,11 +87,27 @@ export const EnhancedTaskManagement: React.FC = () => {
   React.useEffect(() => {
     const loadSubmissions = async () => {
       try {
-        const [allSubmissions, stats] = await Promise.all([
-          taskSubmissionService.getAllSubmissions(),
-          taskSubmissionService.getSubmissionStats()
-        ]);
-        setRealSubmissions(allSubmissions);
+        const { data: submissions, error } = await supabase
+          .from('task_submissions')
+          .select(`
+            *,
+            profiles (name, email),
+            tasks (title, points)
+          `)
+          .order('submitted_at', { ascending: false });
+
+        if (error) throw error;
+
+        const submissionsData = submissions || [];
+        setRealSubmissions(submissionsData);
+        
+        // Calculate stats
+        const stats = {
+          total: submissionsData.length,
+          pending: submissionsData.filter(s => s.status === 'pending').length,
+          approved: submissionsData.filter(s => s.status === 'approved').length,
+          rejected: submissionsData.filter(s => s.status === 'rejected').length,
+        };
         setSubmissionStats(stats);
       } catch (error) {
         console.error('Error loading submissions:', error);
@@ -91,26 +139,46 @@ export const EnhancedTaskManagement: React.FC = () => {
     }
   };
 
-  const handleViewSubmission = (submission: TaskSubmission) => {
+  const handleViewSubmission = (submission: DatabaseTaskSubmission) => {
     setSelectedSubmission(submission);
   };
 
   const handleUpdateSubmission = async (submissionId: string, status: 'approved' | 'rejected', notes?: string) => {
     try {
-      const success = await taskSubmissionService.updateSubmissionStatus(submissionId, status, notes);
-      if (success) {
-        // Reload submissions data
-        const [allSubmissions, stats] = await Promise.all([
-          taskSubmissionService.getAllSubmissions(),
-          taskSubmissionService.getSubmissionStats()
-        ]);
-        setRealSubmissions(allSubmissions);
+      const { error } = await supabase
+        .from('task_submissions')
+        .update({
+          status,
+          admin_notes: notes,
+          reviewed_at: new Date().toISOString()
+        })
+        .eq('id', submissionId);
+
+      if (error) throw error;
+
+      // Reload submissions data
+      const { data: submissions } = await supabase
+        .from('task_submissions')
+        .select(`
+          *,
+          profiles (name, email),
+          tasks (title, points)
+        `)
+        .order('submitted_at', { ascending: false });
+
+      if (submissions) {
+        setRealSubmissions(submissions);
+        const stats = {
+          total: submissions.length,
+          pending: submissions.filter(s => s.status === 'pending').length,
+          approved: submissions.filter(s => s.status === 'approved').length,
+          rejected: submissions.filter(s => s.status === 'rejected').length,
+        };
         setSubmissionStats(stats);
-        setSelectedSubmission(null);
-        toast.success(`Submission ${status} successfully`);
-      } else {
-        toast.error('Failed to update submission');
       }
+      
+      setSelectedSubmission(null);
+      toast.success(`Submission ${status} successfully`);
     } catch (error) {
       console.error('Error updating submission:', error);
       toast.error('Failed to update submission');
@@ -122,10 +190,10 @@ export const EnhancedTaskManagement: React.FC = () => {
     setImageModalOpen(true);
   };
 
-  const renderSubmissionEvidence = (submission: TaskSubmission) => {
+  const renderSubmissionEvidence = (submission: DatabaseTaskSubmission) => {
     console.log('Rendering evidence for submission:', submission);
     
-    if (!submission.evidence) {
+    if (!submission.evidence && !submission.evidence_files && !submission.evidence_file_url) {
       return (
         <div className="p-4 bg-gray-50 rounded-lg">
           <div className="flex items-center gap-2 text-gray-500">
@@ -136,35 +204,31 @@ export const EnhancedTaskManagement: React.FC = () => {
       );
     }
 
-    let evidenceData;
+    let evidenceData: any = {};
     try {
       // Check for evidence_files array first (new multi-file format)
       if (submission?.evidence_files && Array.isArray(submission.evidence_files)) {
         evidenceData = { images: submission.evidence_files };
-      } else if (typeof submission.evidence === 'string') {
-        try {
-          const parsed = JSON.parse(submission.evidence);
-          // Check for evidence_files in parsed object
-          if (parsed.evidence_files && Array.isArray(parsed.evidence_files)) {
-            evidenceData = { images: parsed.evidence_files };
-          } else {
-            evidenceData = parsed;
-          }
-        } catch (parseError) {
-          // If JSON parsing fails, treat as plain text
-          evidenceData = { description: submission.evidence };
-        }
-      } else if (typeof submission.evidence === 'object') {
-        evidenceData = submission.evidence;
-        // Check for evidence_files in object
-        if (evidenceData.evidence_files && Array.isArray(evidenceData.evidence_files)) {
-          evidenceData = { images: evidenceData.evidence_files };
-        }
+      } else if (submission?.evidence_files) {
+        evidenceData = { images: [submission.evidence_files] };
       } else if (submission?.evidence_file_url) {
-        // Fallback to single file URL
-        evidenceData = { image: submission.evidence_file_url };
-      } else {
-        evidenceData = { description: 'No evidence provided' };
+        evidenceData = { images: [submission.evidence_file_url] };
+      } else if (submission.evidence) {
+        if (typeof submission.evidence === 'string') {
+          try {
+            const parsed = JSON.parse(submission.evidence);
+            evidenceData = parsed;
+          } catch (parseError) {
+            evidenceData = { description: submission.evidence };
+          }
+        } else {
+          evidenceData = submission.evidence;
+        }
+      }
+
+      // Handle submission_text as evidence
+      if (submission.submission_text && !evidenceData.description) {
+        evidenceData.description = submission.submission_text;
       }
     } catch (error) {
       console.error('Error parsing evidence:', error);
@@ -228,29 +292,6 @@ export const EnhancedTaskManagement: React.FC = () => {
           </div>
         )}
 
-        {/* Handle single image URL */}
-        {evidenceData.image && !evidenceData.images && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <ImageIcon className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium">Photo Evidence</span>
-            </div>
-            <div className="relative group w-fit">
-              <img 
-                src={evidenceData.image} 
-                alt="Evidence"
-                className="w-full max-w-sm h-32 object-cover rounded-lg border border-gray-200 cursor-pointer"
-                onClick={() => openImageModal(evidenceData.image)}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIxIDlWN0E0IDQgMCAwIDAgMTcgM0g3QTQgNCAwIDAgMCAzIDdWMTdBNCA0IDAgMCAwIDcgMjFIOUwyMSA5WiIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0yMSA5TDkgMjEiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K';
-                  console.error('Failed to load image:', evidenceData.image);
-                }}
-              />
-            </div>
-          </div>
-        )}
-
         {/* Handle text evidence */}
         {evidenceData.description && (
           <div className="space-y-2">
@@ -264,21 +305,8 @@ export const EnhancedTaskManagement: React.FC = () => {
           </div>
         )}
 
-        {/* Handle text field evidence */}
-        {evidenceData.text && !evidenceData.description && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium">Text Evidence</span>
-            </div>
-            <div className="p-3 bg-gray-50 rounded-lg border">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{evidenceData.text}</p>
-            </div>
-          </div>
-        )}
-
         {/* Fallback for unknown format */}
-        {!evidenceData.images && !evidenceData.image && !evidenceData.description && !evidenceData.text && (
+        {!evidenceData.images && !evidenceData.description && (
           <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
             <div className="flex items-center gap-2 text-yellow-700">
               <AlertCircle className="h-4 w-4" />
