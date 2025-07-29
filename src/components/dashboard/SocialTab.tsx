@@ -32,48 +32,37 @@ const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetError
   </div>
 );
 
-const LoadingFallback = () => (
-  <div className="flex items-center justify-center h-64">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-      <p className="text-muted-foreground">Loading social features...</p>
-    </div>
-  </div>
-);
-
 export const SocialTab: React.FC = () => {
   return (
-    <div className="h-full flex flex-col bg-background">
-      {/* Bird Status Display - Full width, no padding */}
+    <div className="space-y-6">
+      {/* Bird Status Display */}
       <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <div className="flex-shrink-0">
-          <BirdStatusDisplay />
-        </div>
+        <BirdStatusDisplay />
       </ErrorBoundary>
       
-      <Tabs defaultValue="community" className="flex-1 flex flex-col">
-        <TabsList className="grid w-full grid-cols-3 mx-2 md:mx-4">
+      <Tabs defaultValue="community" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="community">Community Chat</TabsTrigger>
           <TabsTrigger value="stories">Stories</TabsTrigger>
           <TabsTrigger value="feed">Social Feed</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="community" className="flex-1 min-h-0 overflow-hidden px-2 md:px-4">
+        <TabsContent value="community" className="mt-6">
           <ErrorBoundary FallbackComponent={ErrorFallback}>
             <CommunityChatTab />
           </ErrorBoundary>
         </TabsContent>
         
-        <TabsContent value="stories" className="flex-shrink-0 px-2 md:px-4 py-2 md:py-4">
+        <TabsContent value="stories" className="mt-6">
           <ErrorBoundary FallbackComponent={ErrorFallback}>
             <div>
-              <h2 className="text-base md:text-lg font-semibold mb-2 md:mb-4 text-foreground">Stories</h2>
+              <h2 className="text-lg font-semibold mb-4 text-foreground">Stories</h2>
               <StoriesBar />
             </div>
           </ErrorBoundary>
         </TabsContent>
         
-        <TabsContent value="feed" className="flex-1 min-h-0 overflow-hidden">
+        <TabsContent value="feed" className="mt-6">
           <ErrorBoundary FallbackComponent={ErrorFallback}>
             <SocialHub />
           </ErrorBoundary>

@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Message {
   id: string;
@@ -190,94 +192,98 @@ export const CommunityChatTab = () => {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 flex flex-col">
+    <Card className="h-full max-h-[600px] flex flex-col bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800">
       {/* Header */}
-      <div className="bg-white/10 backdrop-blur-sm border-b border-white/20 p-4">
+      <CardHeader className="bg-white/10 backdrop-blur-sm border-b border-white/20 p-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white mb-1">Community Chat</h1>
+            <CardTitle className="text-xl font-bold text-white mb-1">Community Chat</CardTitle>
             <p className="text-white/80 text-sm">Connect with other members</p>
           </div>
           <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
             {messages.length} messages
           </Badge>
         </div>
-      </div>
+      </CardHeader>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20 hover:bg-white/15 transition-colors"
-            onClick={() => incrementMessageView(message.id)}
-          >
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                {message.profiles?.profile_picture_url ? (
-                  <img
-                    src={message.profiles.profile_picture_url}
-                    alt="Profile"
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="text-white font-medium text-sm">
-                    {message.profiles?.name?.charAt(0)?.toUpperCase() || '?'}
-                  </span>
-                )}
-              </div>
-              
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-medium text-white">
-                    {message.profiles?.name || 'Anonymous'}
-                  </span>
-                  <span className="text-white/60 text-xs">
-                    {format(new Date(message.created_at), 'HH:mm')}
-                  </span>
-                  {message.views_count > 0 && (
-                    <Badge variant="outline" className="text-xs bg-white/10 text-white border-white/30">
-                      {message.views_count} views
-                    </Badge>
-                  )}
+      <CardContent className="flex-1 p-0 overflow-hidden">
+        <ScrollArea className="h-full p-4">
+          <div className="space-y-4">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20 hover:bg-white/15 transition-colors"
+                onClick={() => incrementMessageView(message.id)}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                    {message.profiles?.profile_picture_url ? (
+                      <img
+                        src={message.profiles.profile_picture_url}
+                        alt="Profile"
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white font-medium text-sm">
+                        {message.profiles?.name?.charAt(0)?.toUpperCase() || '?'}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-medium text-white">
+                        {message.profiles?.name || 'Anonymous'}
+                      </span>
+                      <span className="text-white/60 text-xs">
+                        {format(new Date(message.created_at), 'HH:mm')}
+                      </span>
+                      {message.views_count > 0 && (
+                        <Badge variant="outline" className="text-xs bg-white/10 text-white border-white/30">
+                          {message.views_count} views
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <div className="text-white/90">
+                      {message.content}
+                      {message.media_url && (
+                        <img
+                          src={message.media_url}
+                          alt="Shared media"
+                          className="mt-2 max-w-sm rounded-lg border border-white/20"
+                        />
+                      )}
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="text-white/90">
-                  {message.content}
-                  {message.media_url && (
-                    <img
-                      src={message.media_url}
-                      alt="Shared media"
-                      className="mt-2 max-w-sm rounded-lg border border-white/20"
-                    />
-                  )}
-                </div>
               </div>
-            </div>
-          </div>
-        ))}
+            ))}
 
-        {messages.length === 0 && (
-          <div className="text-center py-12">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-white/20">
-              <h3 className="text-xl font-semibold text-white mb-2">Welcome to Community Chat!</h3>
-              <p className="text-white/80">Be the first to start a conversation.</p>
-            </div>
+            {messages.length === 0 && (
+              <div className="text-center py-12">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-white/20">
+                  <h3 className="text-xl font-semibold text-white mb-2">Welcome to Community Chat!</h3>
+                  <p className="text-white/80">Be the first to start a conversation.</p>
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
           </div>
-        )}
-        
-        <div ref={messagesEndRef} />
-      </div>
+        </ScrollArea>
+      </CardContent>
 
       {/* Message Input */}
-      <div className="bg-white/10 backdrop-blur-sm border-t border-white/20 p-4">
+      <div className="bg-white/10 backdrop-blur-sm border-t border-white/20 p-4 flex-shrink-0">
         {canPost ? (
           <div className="flex items-center gap-2">
             <div className="flex-1 relative">
@@ -317,12 +323,12 @@ export const CommunityChatTab = () => {
           </div>
         ) : (
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-            <p className="text-white/80 text-center">
+            <p className="text-white/90 text-center font-medium">
               🔒 Complete at least 1 task and get 3+ active referrals to participate in chat
             </p>
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 };
