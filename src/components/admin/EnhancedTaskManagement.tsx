@@ -10,28 +10,35 @@ import { ImageModal } from './ImageModal';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
-interface TaskSubmission {
+// Define the actual database structure for task submissions - matching the database exactly
+interface DatabaseTaskSubmission {
   id: string;
-  user_id: string;
   task_id: string;
-  content: string;
-  evidence_urls: string[];
-  status: 'pending' | 'approved' | 'declined';
+  user_id: string;
+  evidence: string;
+  submission_text?: string;
+  status: string;
   submitted_at: string;
-  admin_feedback?: string;
-  decline_reason?: string;
+  reviewed_at?: string;
+  admin_notes?: string;
+  image_url?: string;
+  calculated_points?: number;
+  evidence_file_url?: string;
+  evidence_files?: any;
+  point_breakdown?: any;
+  point_explanation?: string;
   profiles?: {
-    name: string;
-    email: string;
-  };
+    name?: string;
+    email?: string;
+  } | null;
   tasks?: {
     title: string;
     points: number;
-  };
+  } | null;
 }
 
 export const EnhancedTaskManagement = () => {
-  const [submissions, setSubmissions] = useState<TaskSubmission[]>([]);
+  const [submissions, setSubmissions] = useState<DatabaseTaskSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageModalOpen, setImageModalOpen] = useState(false);
@@ -53,8 +60,19 @@ export const EnhancedTaskManagement = () => {
         `)
         .order('submitted_at', { ascending: false });
 
-      if (error) throw error;
-      setSubmissions(data || []);
+      if (error) {
+        console.error('Error fetching submissions:', error);
+        // Fallback query without joins if there are relationship issues
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('task_submissions')
+          .select('*')
+          .order('submitted_at', { ascending: false });
+        
+        if (fallbackError) throw fallbackError;
+        setSubmissions(fallbackData || []);
+      } else {
+        setSubmissions(data || []);
+      }
     } catch (error) {
       console.error('Error fetching submissions:', error);
       toast.error('Failed to fetch task submissions');
@@ -63,13 +81,13 @@ export const EnhancedTaskManagement = () => {
     }
   };
 
-  const handleApprove = async (submission: TaskSubmission) => {
+  const handleApprove = async (submission: DatabaseTaskSubmission) => {
     try {
       const { error } = await supabase
         .from('task_submissions')
         .update({
           status: 'approved',
-          admin_feedback: feedbackText[submission.id] || null
+          admin_notes: feedbackText[submission.id] || null
         })
         .eq('id', submission.id);
 
@@ -83,14 +101,14 @@ export const EnhancedTaskManagement = () => {
     }
   };
 
-  const handleDecline = async (submission: TaskSubmission, reason: string) => {
+  const handleDecline = async (submission: DatabaseTaskSubmission, reason: string) => {
     try {
       const { error } = await supabase
         .from('task_submissions')
         .update({
           status: 'declined',
           decline_reason: reason,
-          admin_feedback: feedbackText[submission.id] || null
+          admin_notes: feedbackText[submission.id] || null
         })
         .eq('id', submission.id);
 
@@ -173,38 +191,54 @@ export const EnhancedTaskManagement = () => {
             </CardHeader>
             
             <CardContent className="space-y-4">
-              {submission.content && (
+              {(submission.evidence || submission.submission_text) && (
                 <div>
                   <h4 className="font-medium text-foreground mb-2">Submission Content:</h4>
                   <p className="text-muted-foreground bg-muted/50 p-3 rounded-lg text-sm">
-                    {submission.content}
+                    {submission.submission_text || submission.evidence}
                   </p>
                 </div>
               )}
 
-              {submission.evidence_urls && submission.evidence_urls.length > 0 && (
+              {((submission.evidence_files && Array.isArray(submission.evidence_files) && submission.evidence_files.length > 0) || submission.evidence_file_url) && (
                 <div>
                   <h4 className="font-medium text-foreground mb-2 flex items-center gap-2">
                     <Image className="w-4 h-4" />
-                    Evidence ({submission.evidence_urls.length})
+                    Evidence
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {submission.evidence_urls.map((url, index) => (
-                      <div
-                        key={index}
-                        className="relative group cursor-pointer bg-muted/50 rounded-lg overflow-hidden hover:bg-muted/70 transition-colors"
-                        onClick={() => openImageModal(url)}
-                      >
-                        <img
-                          src={url}
-                          alt={`Evidence ${index + 1}`}
-                          className="w-full h-24 object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                          <Eye className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {submission.evidence_files && Array.isArray(submission.evidence_files) ? 
+                      submission.evidence_files.map((url: string, index: number) => (
+                        <div
+                          key={index}
+                          className="relative group cursor-pointer bg-muted/50 rounded-lg overflow-hidden hover:bg-muted/70 transition-colors"
+                          onClick={() => openImageModal(url)}
+                        >
+                          <img
+                            src={url}
+                            alt={`Evidence ${index + 1}`}
+                            className="w-full h-24 object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                            <Eye className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )) : submission.evidence_file_url && (
+                        <div
+                          className="relative group cursor-pointer bg-muted/50 rounded-lg overflow-hidden hover:bg-muted/70 transition-colors"
+                          onClick={() => openImageModal(submission.evidence_file_url!)}
+                        >
+                          <img
+                            src={submission.evidence_file_url}
+                            alt="Evidence"
+                            className="w-full h-24 object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                            <Eye className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </div>
+                      )
+                    }
                   </div>
                 </div>
               )}
@@ -282,13 +316,13 @@ export const EnhancedTaskManagement = () => {
                 </div>
               )}
 
-              {submission.admin_feedback && (
+              {submission.admin_notes && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <h4 className="font-medium text-blue-800 mb-1 flex items-center gap-2">
                     <MessageSquare className="w-4 h-4" />
                     Admin Feedback:
                   </h4>
-                  <p className="text-blue-700 text-sm">{submission.admin_feedback}</p>
+                  <p className="text-blue-700 text-sm">{submission.admin_notes}</p>
                 </div>
               )}
             </CardContent>

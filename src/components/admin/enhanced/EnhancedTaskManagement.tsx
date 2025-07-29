@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ import { Search, Plus, Edit, Trash2, Eye, CheckCircle, XCircle, Clock, Image as 
 import { toast } from 'sonner';
 
 // Define the actual database structure for task submissions - matching the database exactly
-interface ActualTaskSubmission {
+interface DatabaseTaskSubmission {
   id: string;
   task_id: string;
   user_id: string;
@@ -68,8 +69,8 @@ export const EnhancedTaskManagement: React.FC = () => {
     loadData,
   } = useAdminTaskManagement();
 
-  const [selectedSubmission, setSelectedSubmission] = useState<ActualTaskSubmission | null>(null);
-  const [realSubmissions, setRealSubmissions] = useState<ActualTaskSubmission[]>([]);
+  const [selectedSubmission, setSelectedSubmission] = useState<DatabaseTaskSubmission | null>(null);
+  const [realSubmissions, setRealSubmissions] = useState<DatabaseTaskSubmission[]>([]);
   const [submissionStats, setSubmissionStats] = useState<SubmissionStats>({
     total: 0,
     pending: 0,
@@ -85,45 +86,44 @@ export const EnhancedTaskManagement: React.FC = () => {
       try {
         const { data: submissions, error } = await supabase
           .from('task_submissions')
-          .select(`
-            *,
-            user_profile:profiles!task_submissions_user_id_fkey (name, email),
-            task_details:tasks!task_submissions_task_id_fkey (title, points)
-          `)
+          .select('*')
           .order('submitted_at', { ascending: false });
 
-        if (error) {
-          console.error('Supabase query error:', error);
-          // Fallback query without joins if the foreign keys don't exist
-          const { data: fallbackData, error: fallbackError } = await supabase
-            .from('task_submissions')
-            .select('*')
-            .order('submitted_at', { ascending: false });
-          
-          if (fallbackError) throw fallbackError;
-          
-          const submissionsData: ActualTaskSubmission[] = (fallbackData || []).map(sub => ({
+        if (error) throw error;
+
+        // Get user and task details separately due to potential relationship issues
+        const submissionsWithDetails: DatabaseTaskSubmission[] = [];
+        
+        for (const sub of submissions || []) {
+          // Get user profile
+          const { data: userProfile } = await supabase
+            .from('profiles')
+            .select('name, email')
+            .eq('id', sub.user_id)
+            .single();
+
+          // Get task details
+          const { data: taskDetails } = await supabase
+            .from('tasks')
+            .select('title, points')
+            .eq('id', sub.task_id)
+            .single();
+
+          submissionsWithDetails.push({
             ...sub,
-            user_profile: null,
-            task_details: null
-          }));
-          setRealSubmissions(submissionsData);
-        } else {
-          const submissionsData: ActualTaskSubmission[] = (submissions || []).map(sub => ({
-            ...sub,
-            user_profile: sub.user_profile || null,
-            task_details: sub.task_details || null
-          }));
-          setRealSubmissions(submissionsData);
+            user_profile: userProfile,
+            task_details: taskDetails
+          });
         }
         
-        // Calculate stats using the submissions data
-        const dataToUse = submissions || [];
+        setRealSubmissions(submissionsWithDetails);
+        
+        // Calculate stats
         const stats = {
-          total: dataToUse.length,
-          pending: dataToUse.filter(s => s.status === 'pending').length,
-          approved: dataToUse.filter(s => s.status === 'approved').length,
-          rejected: dataToUse.filter(s => s.status === 'rejected').length,
+          total: submissionsWithDetails.length,
+          pending: submissionsWithDetails.filter(s => s.status === 'pending').length,
+          approved: submissionsWithDetails.filter(s => s.status === 'approved').length,
+          rejected: submissionsWithDetails.filter(s => s.status === 'rejected').length,
         };
         setSubmissionStats(stats);
       } catch (error) {
@@ -156,7 +156,7 @@ export const EnhancedTaskManagement: React.FC = () => {
     }
   };
 
-  const handleViewSubmission = (submission: ActualTaskSubmission) => {
+  const handleViewSubmission = (submission: DatabaseTaskSubmission) => {
     setSelectedSubmission(submission);
   };
 
@@ -176,25 +176,38 @@ export const EnhancedTaskManagement: React.FC = () => {
       // Reload submissions data
       const { data: submissions } = await supabase
         .from('task_submissions')
-        .select(`
-          *,
-          user_profile:profiles!task_submissions_user_id_fkey (name, email),
-          task_details:tasks!task_submissions_task_id_fkey (title, points)
-        `)
+        .select('*')
         .order('submitted_at', { ascending: false });
 
       if (submissions) {
-        const submissionsData: ActualTaskSubmission[] = (submissions || []).map(sub => ({
-          ...sub,
-          user_profile: sub.user_profile || null,
-          task_details: sub.task_details || null
-        }));
-        setRealSubmissions(submissionsData);
+        const submissionsWithDetails: DatabaseTaskSubmission[] = [];
+        
+        for (const sub of submissions) {
+          const { data: userProfile } = await supabase
+            .from('profiles')
+            .select('name, email')
+            .eq('id', sub.user_id)
+            .single();
+
+          const { data: taskDetails } = await supabase
+            .from('tasks')
+            .select('title, points')
+            .eq('id', sub.task_id)
+            .single();
+
+          submissionsWithDetails.push({
+            ...sub,
+            user_profile: userProfile,
+            task_details: taskDetails
+          });
+        }
+        
+        setRealSubmissions(submissionsWithDetails);
         const stats = {
-          total: submissionsData.length,
-          pending: submissionsData.filter(s => s.status === 'pending').length,
-          approved: submissionsData.filter(s => s.status === 'approved').length,
-          rejected: submissionsData.filter(s => s.status === 'rejected').length,
+          total: submissionsWithDetails.length,
+          pending: submissionsWithDetails.filter(s => s.status === 'pending').length,
+          approved: submissionsWithDetails.filter(s => s.status === 'approved').length,
+          rejected: submissionsWithDetails.filter(s => s.status === 'rejected').length,
         };
         setSubmissionStats(stats);
       }
@@ -212,7 +225,7 @@ export const EnhancedTaskManagement: React.FC = () => {
     setImageModalOpen(true);
   };
 
-  const renderSubmissionEvidence = (submission: ActualTaskSubmission) => {
+  const renderSubmissionEvidence = (submission: DatabaseTaskSubmission) => {
     console.log('Rendering evidence for submission:', submission);
     
     if (!submission.evidence && !submission.evidence_files && !submission.evidence_file_url) {
