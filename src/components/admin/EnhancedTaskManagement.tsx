@@ -81,12 +81,28 @@ export const EnhancedTaskManagement = () => {
         
         setSubmissions(transformedData);
       } else {
-        // Transform the data to match our interface
-        const transformedData: DatabaseTaskSubmission[] = data?.map(item => ({
-          ...item,
-          profiles: item.profiles || null,
-          tasks: item.tasks || null
-        })) || [];
+        // Transform the data to match our interface, handling potential relationship errors
+        const transformedData: DatabaseTaskSubmission[] = data?.map(item => {
+          // Type guard to check if profiles is valid
+          const hasValidProfile = item.profiles && 
+            typeof item.profiles === 'object' && 
+            item.profiles !== null &&
+            !Array.isArray(item.profiles) &&
+            'name' in item.profiles;
+            
+          // Type guard to check if tasks is valid  
+          const hasValidTask = item.tasks &&
+            typeof item.tasks === 'object' &&
+            item.tasks !== null &&
+            !Array.isArray(item.tasks) &&
+            'title' in item.tasks;
+          
+          return {
+            ...item,
+            profiles: hasValidProfile ? (item.profiles as { name?: string; email?: string }) : null,
+            tasks: hasValidTask ? (item.tasks as { title: string; points: number }) : null
+          };
+        }) || [];
         
         setSubmissions(transformedData);
       }
