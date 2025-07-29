@@ -35,13 +35,13 @@ interface ActualTaskSubmission {
   point_breakdown?: any;
   point_explanation?: string;
   profiles?: {
-    name: string;
-    email: string;
-  };
+    name?: string;
+    email?: string;
+  } | null;
   tasks?: {
     title: string;
     points: number;
-  };
+  } | null;
 }
 
 interface SubmissionStats {
@@ -54,6 +54,7 @@ interface SubmissionStats {
 export const EnhancedTaskManagement: React.FC = () => {
   const {
     tasks,
+    setTasks,
     submissions,
     searchTerm,
     setSearchTerm,
@@ -99,7 +100,11 @@ export const EnhancedTaskManagement: React.FC = () => {
 
         if (error) throw error;
 
-        const submissionsData: ActualTaskSubmission[] = submissions || [];
+        const submissionsData: ActualTaskSubmission[] = (submissions || []).map(sub => ({
+          ...sub,
+          profiles: sub.profiles || null,
+          tasks: sub.tasks || null
+        }));
         setRealSubmissions(submissionsData);
         
         // Calculate stats
@@ -168,7 +173,11 @@ export const EnhancedTaskManagement: React.FC = () => {
         .order('submitted_at', { ascending: false });
 
       if (submissions) {
-        const submissionsData: ActualTaskSubmission[] = submissions;
+        const submissionsData: ActualTaskSubmission[] = (submissions || []).map(sub => ({
+          ...sub,
+          profiles: sub.profiles || null,
+          tasks: sub.tasks || null
+        }));
         setRealSubmissions(submissionsData);
         const stats = {
           total: submissionsData.length,
