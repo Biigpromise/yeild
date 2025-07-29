@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAdminTaskManagement } from '../hooks/useAdminTaskManagement';
 import { enhancedTaskManagementService } from '@/services/admin/enhancedTaskManagementService';
 import { taskSubmissionService } from '@/services/taskSubmissionService';
+import { TaskSubmission } from '@/services/types/taskTypes';
+import { ImageModal } from '../ImageModal';
 import { Search, Plus, Edit, Trash2, Eye, CheckCircle, XCircle, Clock, Image as ImageIcon, ExternalLink, FileText, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -37,14 +40,16 @@ export const EnhancedTaskManagement: React.FC = () => {
     loadData,
   } = useAdminTaskManagement();
 
-  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
-  const [realSubmissions, setRealSubmissions] = useState<any[]>([]);
+  const [selectedSubmission, setSelectedSubmission] = useState<TaskSubmission | null>(null);
+  const [realSubmissions, setRealSubmissions] = useState<TaskSubmission[]>([]);
   const [submissionStats, setSubmissionStats] = useState({
     total: 0,
     pending: 0,
     approved: 0,
     rejected: 0,
   });
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
 
   // Load real submission data
   React.useEffect(() => {
@@ -86,7 +91,7 @@ export const EnhancedTaskManagement: React.FC = () => {
     }
   };
 
-  const handleViewSubmission = (submission: any) => {
+  const handleViewSubmission = (submission: TaskSubmission) => {
     setSelectedSubmission(submission);
   };
 
@@ -112,7 +117,12 @@ export const EnhancedTaskManagement: React.FC = () => {
     }
   };
 
-  const renderSubmissionEvidence = (submission: any) => {
+  const openImageModal = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    setImageModalOpen(true);
+  };
+
+  const renderSubmissionEvidence = (submission: TaskSubmission) => {
     console.log('Rendering evidence for submission:', submission);
     
     if (!submission.evidence) {
@@ -188,7 +198,8 @@ export const EnhancedTaskManagement: React.FC = () => {
                     <img 
                       src={imageUrl} 
                       alt={`Evidence ${index + 1}`}
-                      className="w-full h-32 object-cover transition-transform group-hover:scale-105"
+                      className="w-full h-32 object-cover transition-transform group-hover:scale-105 cursor-pointer"
+                      onClick={() => openImageModal(imageUrl)}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIxIDlWN0E0IDQgMCAwIDAgMTcgM0g3QTQgNCAwIDAgMCAzIDdWMTdBNCA0IDAgMCAwIDcgMjFIOUwyMSA5WiIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0yMSA5TDkgMjEiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K';
@@ -201,9 +212,12 @@ export const EnhancedTaskManagement: React.FC = () => {
                         size="sm"
                         variant="secondary"
                         className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => window.open(imageUrl, '_blank')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openImageModal(imageUrl);
+                        }}
                       >
-                        <ExternalLink className="h-3 w-3 mr-1" />
+                        <Eye className="h-3 w-3 mr-1" />
                         View
                       </Button>
                     </div>
@@ -226,7 +240,7 @@ export const EnhancedTaskManagement: React.FC = () => {
                 src={evidenceData.image} 
                 alt="Evidence"
                 className="w-full max-w-sm h-32 object-cover rounded-lg border border-gray-200 cursor-pointer"
-                onClick={() => window.open(evidenceData.image, '_blank')}
+                onClick={() => openImageModal(evidenceData.image)}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIxIDlWN0E0IDQgMCAwIDAgMTcgM0g3QTQgNCAwIDAgMCAzIDdWMTdBNCA0IDAgMCAwIDcgMjFIOUwyMSA5WiIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0yMSA5TDkgMjEiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K';
@@ -357,7 +371,6 @@ export const EnhancedTaskManagement: React.FC = () => {
             </Button>
           </div>
 
-          {/* Tasks List */}
           <div className="space-y-4">
             {filteredTasks.map((task) => (
               <Card key={task.id}>
@@ -570,6 +583,13 @@ export const EnhancedTaskManagement: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ImageModal
+        open={imageModalOpen}
+        onOpenChange={setImageModalOpen}
+        imageUrl={selectedImage}
+        title="Task Evidence"
+      />
     </div>
   );
 };
