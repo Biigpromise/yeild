@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,13 +17,13 @@ import { ImageModal } from '../ImageModal';
 import { Search, Plus, Edit, Trash2, Eye, CheckCircle, XCircle, Clock, Image as ImageIcon, ExternalLink, FileText, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Define the actual database structure for task submissions
-interface DatabaseTaskSubmission {
+// Define the actual database structure for task submissions - matching the database exactly
+interface ActualTaskSubmission {
   id: string;
   task_id: string;
   user_id: string;
   evidence: string;
-  submission_text: string;
+  submission_text?: string;
   status: string;
   submitted_at: string;
   reviewed_at?: string;
@@ -72,8 +73,8 @@ export const EnhancedTaskManagement: React.FC = () => {
     loadData,
   } = useAdminTaskManagement();
 
-  const [selectedSubmission, setSelectedSubmission] = useState<DatabaseTaskSubmission | null>(null);
-  const [realSubmissions, setRealSubmissions] = useState<DatabaseTaskSubmission[]>([]);
+  const [selectedSubmission, setSelectedSubmission] = useState<ActualTaskSubmission | null>(null);
+  const [realSubmissions, setRealSubmissions] = useState<ActualTaskSubmission[]>([]);
   const [submissionStats, setSubmissionStats] = useState<SubmissionStats>({
     total: 0,
     pending: 0,
@@ -98,7 +99,7 @@ export const EnhancedTaskManagement: React.FC = () => {
 
         if (error) throw error;
 
-        const submissionsData = submissions || [];
+        const submissionsData: ActualTaskSubmission[] = submissions || [];
         setRealSubmissions(submissionsData);
         
         // Calculate stats
@@ -139,7 +140,7 @@ export const EnhancedTaskManagement: React.FC = () => {
     }
   };
 
-  const handleViewSubmission = (submission: DatabaseTaskSubmission) => {
+  const handleViewSubmission = (submission: ActualTaskSubmission) => {
     setSelectedSubmission(submission);
   };
 
@@ -167,12 +168,13 @@ export const EnhancedTaskManagement: React.FC = () => {
         .order('submitted_at', { ascending: false });
 
       if (submissions) {
-        setRealSubmissions(submissions);
+        const submissionsData: ActualTaskSubmission[] = submissions;
+        setRealSubmissions(submissionsData);
         const stats = {
-          total: submissions.length,
-          pending: submissions.filter(s => s.status === 'pending').length,
-          approved: submissions.filter(s => s.status === 'approved').length,
-          rejected: submissions.filter(s => s.status === 'rejected').length,
+          total: submissionsData.length,
+          pending: submissionsData.filter(s => s.status === 'pending').length,
+          approved: submissionsData.filter(s => s.status === 'approved').length,
+          rejected: submissionsData.filter(s => s.status === 'rejected').length,
         };
         setSubmissionStats(stats);
       }
@@ -190,7 +192,7 @@ export const EnhancedTaskManagement: React.FC = () => {
     setImageModalOpen(true);
   };
 
-  const renderSubmissionEvidence = (submission: DatabaseTaskSubmission) => {
+  const renderSubmissionEvidence = (submission: ActualTaskSubmission) => {
     console.log('Rendering evidence for submission:', submission);
     
     if (!submission.evidence && !submission.evidence_files && !submission.evidence_file_url) {
