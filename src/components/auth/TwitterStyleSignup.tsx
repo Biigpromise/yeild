@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,6 +18,7 @@ interface SignupData {
 }
 
 const TwitterStyleSignup = () => {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [signupData, setSignupData] = useState<SignupData>({
@@ -62,7 +64,7 @@ const TwitterStyleSignup = () => {
         setError(error.message);
       } else {
         // Redirect to progressive onboarding after Google signup
-        window.location.href = '/onboarding';
+        navigate('/onboarding');
       }
     } catch (error: any) {
       setError(error.message);
@@ -86,7 +88,7 @@ const TwitterStyleSignup = () => {
         setError(error.message);
       } else {
         // Redirect to progressive onboarding
-        window.location.href = '/onboarding';
+        navigate('/onboarding');
       }
     } catch (error: any) {
       setError('An unexpected error occurred');
@@ -422,7 +424,7 @@ const TwitterStyleSignup = () => {
               We've sent a confirmation link to {signupData.contact}. Click the link to verify your account and get started!
             </p>
             <Button 
-              onClick={() => window.location.href = '/login'}
+              onClick={() => navigate('/login')}
               className="w-full bg-yeild-yellow text-black hover:bg-yellow-400 py-6 text-lg font-bold rounded-full"
             >
               Continue to Login

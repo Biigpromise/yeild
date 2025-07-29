@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthContextType } from "./auth/types";
@@ -21,6 +22,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const navigate = useNavigate();
   const { user, session, loading, setUser, setSession, setLoading } = useAuthState();
   const authOperations = useAuthOperations();
 
@@ -114,7 +116,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           // Auto-redirect admin email to admin dashboard
           if (session?.user?.email === 'yeildsocials@gmail.com') {
-            window.location.href = '/admin';
+            navigate('/admin');
           }
         } else if (event === 'TOKEN_REFRESHED') {
           console.log("Token refreshed");

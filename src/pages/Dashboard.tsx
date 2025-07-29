@@ -68,7 +68,7 @@ export default function Dashboard() {
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
             <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>
+            <Button onClick={() => loadUserData()}>
               Try Again
             </Button>
           </CardContent>
