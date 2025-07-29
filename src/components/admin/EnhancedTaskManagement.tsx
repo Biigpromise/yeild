@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +28,7 @@ interface DatabaseTaskSubmission {
   evidence_files?: any;
   point_breakdown?: any;
   point_explanation?: string;
+  decline_reason?: string;
   profiles?: {
     name?: string;
     email?: string;
@@ -69,9 +71,24 @@ export const EnhancedTaskManagement = () => {
           .order('submitted_at', { ascending: false });
         
         if (fallbackError) throw fallbackError;
-        setSubmissions(fallbackData || []);
+        
+        // Transform the data to match our interface
+        const transformedData: DatabaseTaskSubmission[] = fallbackData?.map(item => ({
+          ...item,
+          profiles: null,
+          tasks: null
+        })) || [];
+        
+        setSubmissions(transformedData);
       } else {
-        setSubmissions(data || []);
+        // Transform the data to match our interface
+        const transformedData: DatabaseTaskSubmission[] = data?.map(item => ({
+          ...item,
+          profiles: item.profiles || null,
+          tasks: item.tasks || null
+        })) || [];
+        
+        setSubmissions(transformedData);
       }
     } catch (error) {
       console.error('Error fetching submissions:', error);
