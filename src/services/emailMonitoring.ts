@@ -166,4 +166,28 @@ export class EmailMonitoringService {
       return null;
     }
   }
+
+  // Add method to check API key configuration
+  static async checkEmailConfiguration() {
+    try {
+      console.log('Checking email service configuration...');
+      
+      const testResponse = await supabase.functions.invoke('email-service', {
+        body: {
+          type: 'test',
+          email: 'test@example.com'
+        }
+      });
+
+      if (testResponse.error) {
+        console.error('Email service configuration error:', testResponse.error);
+        return { configured: false, error: testResponse.error.message };
+      }
+
+      return { configured: true };
+    } catch (error) {
+      console.error('Error checking email configuration:', error);
+      return { configured: false, error: 'Unable to verify email service configuration' };
+    }
+  }
 }
