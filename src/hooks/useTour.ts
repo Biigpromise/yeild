@@ -73,7 +73,8 @@ export const useTour = () => {
     if (!user) return;
 
     try {
-      await supabase
+      // First update the database
+      const { error } = await supabase
         .from('user_tours')
         .upsert({
           user_id: user.id,
@@ -82,6 +83,12 @@ export const useTour = () => {
           updated_at: new Date().toISOString()
         });
 
+      if (error) {
+        console.error('Error completing tour:', error);
+        return;
+      }
+
+      // Only update state after successful database update
       setTourState(prev => ({ ...prev, tourCompleted: true }));
     } catch (error) {
       console.error('Error completing tour:', error);

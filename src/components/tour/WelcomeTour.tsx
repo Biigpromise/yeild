@@ -159,12 +159,12 @@ export const WelcomeTour: React.FC<WelcomeTourProps> = ({ isOpen, onComplete, on
   const handleComplete = async () => {
     await updateTourProgress(currentStep, true);
     toast.success('Welcome tour completed! 🎉');
-    onComplete();
+    await onComplete();
   };
 
   const handleSkip = async () => {
     await updateTourProgress(currentStep, true);
-    onSkip();
+    await onSkip();
   };
 
   if (!isVisible) return null;

@@ -33,14 +33,14 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
     setForceShowTour(true);
   };
 
-  const handleCompleteTour = () => {
+  const handleCompleteTour = async () => {
     setForceShowTour(false);
-    completeTour();
+    await completeTour();
   };
 
-  const handleSkipTour = () => {
+  const handleSkipTour = async () => {
     setForceShowTour(false);
-    completeTour();
+    await completeTour();
   };
 
   const value: TourContextType = {
