@@ -17,7 +17,7 @@ import { AdminAnalytics } from './analytics/AdminAnalytics';
 import { AdminFinancial } from './financial/AdminFinancial';
 import { AdminNotifications } from './notifications/AdminNotifications';
 import { AdminSettings } from './settings/AdminSettings';
-import { TaskSubmissionsManager } from './TaskSubmissionsManager';
+import { EnhancedTaskManagement } from './enhanced/EnhancedTaskManagement';
 import { AdminUserActions } from './AdminUserActions';
 import { AdminSignOutMenu } from './AdminSignOutMenu';
 
@@ -106,7 +106,7 @@ export const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="tasks">
-            <TaskSubmissionsManager />
+            <EnhancedTaskManagement />
           </TabsContent>
 
           <TabsContent value="analytics">

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { TaskSubmissionModal } from "./TaskSubmissionModal";
+import { TaskSocialMediaDisplay } from "./tasks/TaskSocialMediaDisplay";
 import { taskService, Task, TaskCategory } from "@/services/taskService";
 import { taskSubmissionService } from "@/services/tasks/taskSubmissionService";
 import { Search, Filter, Calendar, Star, Trophy, Target, ArrowLeft } from "lucide-react";
@@ -213,7 +214,14 @@ const Tasks = () => {
                   <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
                     {task.description}
                   </p>
-                  <div className="flex items-center justify-between">
+                  
+                  {/* Show social media links if available */}
+                  <TaskSocialMediaDisplay 
+                    socialLinks={task.social_media_links} 
+                    taskTitle={task.title}
+                  />
+                  
+                  <div className="flex items-center justify-between mt-4">
                     <div className="flex items-center gap-2">
                       <Trophy className="h-4 w-4 text-yellow-500" />
                       <span className="font-bold text-primary text-sm">{task.points} points</span>
@@ -222,6 +230,7 @@ const Tasks = () => {
                       size="sm" 
                       disabled={isSubmitted}
                       className={isSubmitted ? "cursor-not-allowed" : ""}
+                      onClick={() => handleTaskClick(task)}
                     >
                       {isSubmitted ? "Submitted" : "Start Task"}
                     </Button>

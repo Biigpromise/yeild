@@ -11,6 +11,7 @@ import { taskService, Task } from "@/services/taskService";
 import { taskSubmissionService } from "@/services/tasks/taskSubmissionService";
 import { useTaskSubmissionPersistence } from "@/hooks/useTaskSubmissionPersistence";
 import { MultipleMediaUpload } from "./posts/MultipleMediaUpload";
+import { TaskSocialMediaDisplay } from "./tasks/TaskSocialMediaDisplay";
 
 interface TaskSubmissionModalProps {
   task: Task | null;
@@ -143,6 +144,12 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
             </div>
             <span className="text-sm font-bold text-green-600">{task.points} points</span>
           </div>
+
+          {/* Show social media links if available */}
+          <TaskSocialMediaDisplay 
+            socialLinks={task.social_media_links} 
+            taskTitle={task.title}
+          />
 
           <div>
             <Label htmlFor="evidence-files" className="text-sm font-medium">
