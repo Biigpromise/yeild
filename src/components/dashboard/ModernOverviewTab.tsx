@@ -11,9 +11,9 @@ import {
   Users, 
   Clock,
   ArrowUpRight,
-  Sparkles,
   Trophy
 } from 'lucide-react';
+import { YieldLogo } from '@/components/ui/YieldLogo';
 import { StatsDashboard } from '@/components/StatsDashboard';
 
 interface ModernOverviewTabProps {
@@ -36,7 +36,7 @@ export const ModernOverviewTab: React.FC<ModernOverviewTabProps> = ({ userStats 
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
             <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-              <Sparkles className="h-8 w-8 text-primary" />
+              <YieldLogo size={32} />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-foreground">Welcome back!</h1>

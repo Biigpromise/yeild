@@ -23,7 +23,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [sidebarState, setSidebarState] = useState<'hidden' | 'collapsed' | 'expanded'>('expanded');
   const { userProfile, userStats, loading, error, loadUserData } = useDashboard();
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -39,7 +39,11 @@ export default function Dashboard() {
   };
 
   const handleToggleSidebar = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
+    setSidebarState(current => {
+      if (current === 'expanded') return 'collapsed';
+      if (current === 'collapsed') return 'hidden';
+      return 'expanded';
+    });
   };
 
   if (loading) {
@@ -100,30 +104,46 @@ export default function Dashboard() {
       <EmailConfirmationBanner />
       
       {/* Modern Sidebar */}
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0",
-        isSidebarCollapsed ? "w-16" : "w-64"
-      )}>
-        <ModernDashboardSidebar
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          userProfile={userProfile}
-          userStats={userStats}
-          unreadCount={unreadCount}
-          onSignOut={handleSignOut}
-          isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={handleToggleSidebar}
+      {sidebarState !== 'hidden' && (
+        <div className={cn(
+          "fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out lg:relative lg:translate-x-0",
+          sidebarState === 'collapsed' ? "w-16" : "w-64",
+          "lg:block"
+        )}>
+          <ModernDashboardSidebar
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            userProfile={userProfile}
+            userStats={userStats}
+            unreadCount={unreadCount}
+            onSignOut={handleSignOut}
+            isCollapsed={sidebarState === 'collapsed'}
+            onToggleCollapse={handleToggleSidebar}
+          />
+        </div>
+      )}
+      
+      {/* Backdrop for mobile */}
+      {sidebarState !== 'hidden' && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={handleToggleSidebar}
         />
-      </div>
+      )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className={cn(
+        "flex-1 flex flex-col min-w-0 transition-all duration-300",
+        sidebarState === 'hidden' && "lg:ml-0",
+        sidebarState === 'collapsed' && "lg:ml-16", 
+        sidebarState === 'expanded' && "lg:ml-64"
+      )}>
         {/* Modern Header */}
         <ModernDashboardHeader
           onToggleSidebar={handleToggleSidebar}
           unreadCount={unreadCount}
           onUnreadCountChange={setUnreadCount}
-          isSidebarCollapsed={isSidebarCollapsed}
+          isSidebarCollapsed={sidebarState === 'collapsed'}
         />
 
         {/* Content */}
