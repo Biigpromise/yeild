@@ -60,14 +60,16 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   return (
     <div className={cn(
-      "h-screen bg-background border-r border-border transition-all duration-300 flex flex-col",
+      "h-full bg-card border-r border-border transition-all duration-300 flex flex-col shadow-sm",
       collapsed ? "w-16" : "w-64"
     )}>
       {/* Header */}
-      <div className="p-4 border-b border-border flex items-center justify-between">
+      <div className="p-4 border-b border-border flex items-center justify-between bg-gradient-to-r from-primary/5 to-primary/10">
         {!collapsed && (
           <div>
-            <h1 className="text-xl font-bold text-foreground">Admin Panel</h1>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              Admin Panel
+            </h1>
             <p className="text-sm text-muted-foreground">Platform Management</p>
           </div>
         )}
@@ -75,7 +77,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           variant="ghost"
           size="sm"
           onClick={onToggleCollapse}
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 hover:bg-primary/10"
         >
           {collapsed ? (
             <ChevronRight className="h-4 w-4" />
@@ -86,7 +88,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-2 space-y-1">
+      <nav className="flex-1 p-3 space-y-2">
         {navigationItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -96,9 +98,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               key={item.id}
               variant={isActive ? "secondary" : "ghost"}
               className={cn(
-                "w-full justify-start gap-3 h-11",
+                "w-full justify-start gap-3 h-12 rounded-lg transition-all duration-200",
                 collapsed && "justify-center px-2",
-                isActive && "bg-primary/10 text-primary border-primary/20"
+                isActive && "bg-primary/15 text-primary border-l-4 border-primary shadow-md hover:bg-primary/20",
+                !isActive && "hover:bg-muted/60 hover:scale-[1.02]"
               )}
               onClick={() => onTabChange(item.id)}
             >
@@ -112,11 +115,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       </nav>
 
       {/* Footer */}
-      <div className="p-2 border-t border-border">
+      <div className="p-3 border-t border-border bg-muted/30">
         <Button
           variant="ghost"
           className={cn(
-            "w-full justify-start gap-3 h-11 text-red-600 hover:text-red-700 hover:bg-red-50",
+            "w-full justify-start gap-3 h-12 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10 transition-all duration-200",
             collapsed && "justify-center px-2"
           )}
           onClick={handleSignOut}
