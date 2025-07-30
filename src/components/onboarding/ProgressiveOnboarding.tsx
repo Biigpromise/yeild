@@ -20,32 +20,20 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
       subtitle: 'Meet users earning thousands on YEILD',
       content: (
         <div className="space-y-8">
-          {/* Success Stories */}
-          <div className="space-y-6">
+          {/* Success Stories - Condensed */}
+          <div className="space-y-4">
             {[
               { 
                 name: "Sarah M.", 
                 earnings: "$2,847", 
                 period: "3 months",
-                quote: "Started with simple tasks, now I'm earning consistently!",
-                tasks: "127 tasks completed",
                 image: "👩‍💼"
               },
               { 
                 name: "Mike D.", 
                 earnings: "$1,923", 
                 period: "2 months",
-                quote: "Perfect side hustle during my commute to work",
-                tasks: "89 tasks completed",
                 image: "👨‍💻"
-              },
-              { 
-                name: "Jessica L.", 
-                earnings: "$3,241", 
-                period: "4 months",
-                quote: "Bird referral system helped me earn even more!",
-                tasks: "156 tasks + 23 referrals",
-                image: "👩‍🎓"
               }
             ].map((user, index) => (
               <motion.div
@@ -53,18 +41,16 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.2 }}
-                className="bg-gradient-to-r from-yeild-yellow/10 to-yellow-600/10 p-6 rounded-xl border border-yeild-yellow/30"
+                className="bg-gradient-to-r from-yeild-yellow/10 to-yellow-600/10 p-4 rounded-xl border border-yeild-yellow/30"
               >
-                <div className="flex items-start space-x-4">
-                  <div className="text-4xl">{user.image}</div>
+                <div className="flex items-center space-x-4">
+                  <div className="text-3xl">{user.image}</div>
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <span className="font-bold text-lg text-white">{user.name}</span>
-                      <span className="text-2xl font-bold text-yeild-yellow">{user.earnings}</span>
+                    <div className="flex items-center space-x-3">
+                      <span className="font-bold text-white">{user.name}</span>
+                      <span className="text-xl font-bold text-yeild-yellow">{user.earnings}</span>
                       <span className="text-white/60 text-sm">in {user.period}</span>
                     </div>
-                    <p className="text-white/80 mb-2">"{user.quote}"</p>
-                    <p className="text-white/60 text-sm">{user.tasks}</p>
                   </div>
                 </div>
               </motion.div>
@@ -85,29 +71,25 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
       subtitle: 'Start earning $5-$50 per task',
       content: (
         <div className="space-y-8">
-          {/* Task Examples */}
-          <div className="grid gap-4">
+          {/* Task Examples - Condensed */}
+          <div className="grid gap-3">
             {[
-              { task: "Social Media Engagement", pay: "$15", time: "5 mins", icon: "👍" },
-              { task: "Product Review", pay: "$25", time: "10 mins", icon: "⭐" },
-              { task: "App Testing", pay: "$35", time: "15 mins", icon: "📱" },
-              { task: "Survey Completion", pay: "$12", time: "8 mins", icon: "📝" }
+              { task: "Social Media Engagement", pay: "$15", icon: "👍" },
+              { task: "Product Review", pay: "$25", icon: "⭐" },
+              { task: "App Testing", pay: "$35", icon: "📱" }
             ].map((task, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white/5 p-4 rounded-xl flex items-center justify-between border border-white/10"
+                className="bg-white/5 p-3 rounded-xl flex items-center justify-between border border-white/10"
               >
-                <div className="flex items-center space-x-4">
-                  <div className="text-2xl">{task.icon}</div>
-                  <div>
-                    <h4 className="font-bold text-white">{task.task}</h4>
-                    <p className="text-white/60 text-sm">{task.time} to complete</p>
-                  </div>
+                <div className="flex items-center space-x-3">
+                  <div className="text-xl">{task.icon}</div>
+                  <h4 className="font-bold text-white text-sm">{task.task}</h4>
                 </div>
-                <div className="text-2xl font-bold text-yeild-yellow">{task.pay}</div>
+                <div className="text-xl font-bold text-yeild-yellow">{task.pay}</div>
               </motion.div>
             ))}
           </div>
@@ -136,31 +118,27 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
             <p className="text-white/60">Each referral level unlocks bigger rewards and exclusive perks</p>
           </div>
           
-          {/* Bird Levels */}
-          <div className="space-y-4">
+          {/* Bird Levels - Condensed */}
+          <div className="space-y-3">
             {[
-              { name: "🕊️ Dove", referrals: "1-4", points: "10 pts", description: "Your journey begins" },
-              { name: "🦅 Hawk", referrals: "5-19", points: "20 pts", description: "Exclusive tasks unlocked" },
-              { name: "🦅 Eagle", referrals: "20-99", points: "30 pts", description: "Premium task access" },
-              { name: "🔥 Phoenix", referrals: "100+", points: "50 pts", description: "Maximum earning potential" }
+              { name: "🕊️ Dove", referrals: "1-4", points: "10 pts" },
+              { name: "🦅 Hawk", referrals: "5-19", points: "20 pts" },
+              { name: "🔥 Phoenix", referrals: "100+", points: "50 pts" }
             ].map((bird, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white/5 p-4 rounded-xl border border-white/10 flex items-center justify-between"
+                className="bg-white/5 p-3 rounded-xl border border-white/10 flex items-center justify-between"
               >
-                <div className="flex items-center space-x-4">
-                  <div className="text-2xl">{bird.name.split(' ')[0]}</div>
-                  <div>
-                    <h4 className="font-bold text-white">{bird.name.split(' ').slice(1).join(' ')}</h4>
-                    <p className="text-white/60 text-sm">{bird.description}</p>
-                  </div>
+                <div className="flex items-center space-x-3">
+                  <div className="text-xl">{bird.name.split(' ')[0]}</div>
+                  <h4 className="font-bold text-white text-sm">{bird.name.split(' ').slice(1).join(' ')}</h4>
                 </div>
                 <div className="text-right">
-                  <div className="text-yeild-yellow font-bold">{bird.points}</div>
-                  <div className="text-white/60 text-sm">{bird.referrals} refs</div>
+                  <div className="text-yeild-yellow font-bold text-sm">{bird.points}</div>
+                  <div className="text-white/60 text-xs">{bird.referrals} refs</div>
                 </div>
               </motion.div>
             ))}
@@ -180,46 +158,25 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
       subtitle: 'Join thousands earning together',
       content: (
         <div className="space-y-8">
-          {/* Live Stats */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Live Stats - Condensed */}
+          <div className="grid grid-cols-2 gap-3">
             {[
-              { number: "125,487", label: "Active Users", trend: "+2,341 today" },
-              { number: "387", label: "Top Brands", trend: "+12 this week" },
-              { number: "$892K", label: "Paid Out", trend: "+$23K today" },
-              { number: "4.9★", label: "User Rating", trend: "From 15K reviews" }
+              { number: "125K+", label: "Active Users" },
+              { number: "387", label: "Top Brands" },
+              { number: "$892K", label: "Paid Out" },
+              { number: "4.9★", label: "User Rating" }
             ].map((stat, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="text-center p-4 bg-white/5 rounded-xl border border-white/10"
+                className="text-center p-3 bg-white/5 rounded-xl border border-white/10"
               >
-                <div className="text-xl md:text-2xl font-bold text-yeild-yellow">{stat.number}</div>
-                <div className="text-white font-medium text-sm">{stat.label}</div>
-                <div className="text-white/60 text-xs mt-1">{stat.trend}</div>
+                <div className="text-lg font-bold text-yeild-yellow">{stat.number}</div>
+                <div className="text-white font-medium text-xs">{stat.label}</div>
               </motion.div>
             ))}
-          </div>
-
-          {/* Leaderboard Preview */}
-          <div className="bg-white/5 p-6 rounded-xl border border-white/10">
-            <h4 className="font-bold text-white mb-4 text-center">🏆 Top Earners This Month</h4>
-            <div className="space-y-3">
-              {[
-                { rank: 1, name: "Alex K.", earnings: "$4,523", badge: "🥇" },
-                { rank: 2, name: "Maria S.", earnings: "$3,847", badge: "🥈" },
-                { rank: 3, name: "David L.", earnings: "$3,201", badge: "🥉" }
-              ].map((user, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-xl">{user.badge}</span>
-                    <span className="text-white font-medium">{user.name}</span>
-                  </div>
-                  <span className="text-yeild-yellow font-bold">{user.earnings}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       )
@@ -246,26 +203,26 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
             </p>
           </div>
 
-          {/* Quick Start Steps */}
-          <div className="space-y-4">
+          {/* Quick Start Steps - Condensed */}
+          <div className="space-y-3">
             {[
-              { step: 1, action: "Browse available tasks", reward: "See instant pay rates" },
-              { step: 2, action: "Complete your first task", reward: "Earn $5-$50" },
-              { step: 3, action: "Share your referral code", reward: "Start building your bird level" }
+              { step: 1, action: "Browse tasks", reward: "Earn $5-$50" },
+              { step: 2, action: "Complete tasks", reward: "Instant payouts" },
+              { step: 3, action: "Refer friends", reward: "Higher earnings" }
             ].map((item, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5 + index * 0.1 }}
-                className="bg-white/5 p-4 rounded-xl flex items-center space-x-4 border border-white/10"
+                className="bg-white/5 p-3 rounded-xl flex items-center space-x-3 border border-white/10"
               >
-                <div className="w-8 h-8 bg-yeild-yellow rounded-full flex items-center justify-center">
-                  <span className="text-black font-bold text-sm">{item.step}</span>
+                <div className="w-6 h-6 bg-yeild-yellow rounded-full flex items-center justify-center">
+                  <span className="text-black font-bold text-xs">{item.step}</span>
                 </div>
                 <div className="flex-1 text-left">
-                  <div className="text-white font-medium">{item.action}</div>
-                  <div className="text-yeild-yellow text-sm">{item.reward}</div>
+                  <div className="text-white font-medium text-sm">{item.action}</div>
+                  <div className="text-yeild-yellow text-xs">{item.reward}</div>
                 </div>
               </motion.div>
             ))}
@@ -338,8 +295,8 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
         </div>
       </div>
 
-      {/* Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto px-6">
+      {/* Content - Fixed height to prevent scrolling */}
+      <div className="flex-1 px-6 flex flex-col">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
@@ -347,18 +304,18 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
-            className="pb-4"
+            className="flex-1 flex flex-col"
           >
-            <div className="text-center mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold mb-2 text-white">
+            <div className="text-center mb-6">
+              <h1 className="text-2xl md:text-3xl font-bold mb-2 text-white">
                 {slides[currentSlide].title}
               </h1>
-              <p className="text-white/60 text-lg">
+              <p className="text-white/60">
                 {slides[currentSlide].subtitle}
               </p>
             </div>
 
-            <div className="max-w-2xl mx-auto">
+            <div className="flex-1 max-w-2xl mx-auto w-full">
               {slides[currentSlide].content}
             </div>
           </motion.div>
