@@ -152,16 +152,7 @@ const handler = async (req: Request): Promise<Response> => {
     const subject = type === 'signup' ? 'Your Sign Up Verification Code' : 'Your Sign In Verification Code';
     const action = type === 'signup' ? 'complete your registration' : 'sign in to your account';
     
-    // For development/testing, just log the code instead of sending email
-    console.log(`✅ Verification code for ${email}: ${code}`);
-    console.log(`Email would be sent with subject: ${subject}`);
-    
-    // Simulate successful email sending for development
-    const emailResult = { id: 'dev-' + Date.now() };
-    const emailError = null;
-    
-    // Uncomment below for production with proper Resend domain setup:
-    /*
+    // Send email with verification code
     const { data: emailResult, error: emailError } = await resend.emails.send({
       from: "YieldApp <noreply@resend.dev>",
       to: [email],
@@ -184,7 +175,9 @@ const handler = async (req: Request): Promise<Response> => {
       `,
       text: `Your verification code is: ${code}. This code will expire in 10 minutes.`
     });
-    */
+    
+    // Also log for development debugging
+    console.log(`✅ Verification code for ${email}: ${code}`);
 
     if (emailError) {
       console.error('Error sending email:', emailError);
