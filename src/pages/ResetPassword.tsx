@@ -21,53 +21,117 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if we have the recovery token from the email link
-    const token = searchParams.get('token');
-    const type = searchParams.get('type');
-    
-    // Also check for legacy access_token/refresh_token format
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
-    
-    if (token && type === 'recovery') {
-      // Handle Supabase recovery link format
-      const verifyRecoveryToken = async () => {
-        const { data, error } = await supabase.auth.verifyOtp({
-          token_hash: token,
-          type: 'recovery'
-        });
+    const handlePasswordReset = async () => {
+      // Log all URL parameters for debugging
+      const allParams: { [key: string]: string } = {};
+      searchParams.forEach((value, key) => {
+        allParams[key] = value;
+      });
+      console.log('All URL parameters:', allParams);
 
-        if (error) {
-          console.error('Error verifying recovery token:', error);
+      // Check for different parameter formats that Supabase might use
+      const token = searchParams.get('token');
+      const tokenHash = searchParams.get('token_hash');
+      const type = searchParams.get('type');
+      const accessToken = searchParams.get('access_token');
+      const refreshToken = searchParams.get('refresh_token');
+      const code = searchParams.get('code');
+
+      // Try to handle Supabase recovery link with token_hash
+      if (tokenHash && type === 'recovery') {
+        console.log('Attempting to verify OTP with token_hash');
+        try {
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: 'recovery'
+          });
+
+          if (error) {
+            console.error('Error verifying recovery token:', error);
+            setValidLink(false);
+          } else {
+            console.log('Recovery token verified successfully', data);
+            setValidLink(true);
+          }
+        } catch (err) {
+          console.error('Exception during token verification:', err);
           setValidLink(false);
-        } else {
-          console.log('Recovery token verified successfully');
-          setValidLink(true);
         }
-      };
+        return;
+      }
 
-      verifyRecoveryToken();
-    } else if (accessToken && refreshToken) {
+      // Try to handle with regular token parameter
+      if (token && type === 'recovery') {
+        console.log('Attempting to verify OTP with token');
+        try {
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: token,
+            type: 'recovery'
+          });
+
+          if (error) {
+            console.error('Error verifying recovery token:', error);
+            setValidLink(false);
+          } else {
+            console.log('Recovery token verified successfully', data);
+            setValidLink(true);
+          }
+        } catch (err) {
+          console.error('Exception during token verification:', err);
+          setValidLink(false);
+        }
+        return;
+      }
+
+      // Try to handle authorization code flow
+      if (code) {
+        console.log('Attempting to exchange code for session');
+        try {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+          if (error) {
+            console.error('Error exchanging code for session:', error);
+            setValidLink(false);
+          } else {
+            console.log('Code exchanged successfully', data);
+            setValidLink(true);
+          }
+        } catch (err) {
+          console.error('Exception during code exchange:', err);
+          setValidLink(false);
+        }
+        return;
+      }
+
       // Handle legacy access_token/refresh_token format
-      const setSession = async () => {
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
+      if (accessToken && refreshToken) {
+        console.log('Attempting to set session with access/refresh tokens');
+        try {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
 
-        if (error) {
-          console.error('Error setting session:', error);
+          if (error) {
+            console.error('Error setting session:', error);
+            setValidLink(false);
+          } else {
+            console.log('Session set successfully');
+            setValidLink(true);
+          }
+        } catch (err) {
+          console.error('Exception during session setting:', err);
           setValidLink(false);
-        } else {
-          setValidLink(true);
         }
-      };
+        return;
+      }
 
-      setSession();
-    } else {
-      console.error('Missing recovery token or tokens for password reset');
+      // If no recognized parameters found
+      console.error('No valid reset parameters found in URL');
       setValidLink(false);
-    }
+    };
+
+    handlePasswordReset();
   }, [searchParams]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
