@@ -173,8 +173,10 @@ const ModernAuthFlow = () => {
           toast.success("Welcome back!");
         }
       } else {
+        console.log('Starting signup process for:', formData.email);
+        
         const redirectUrl = `${window.location.origin}/auth/callback`;
-        const { error } = await signUp(
+        const { error, user } = await signUp(
           formData.email, 
           formData.password, 
           formData.name, 
@@ -184,23 +186,82 @@ const ModernAuthFlow = () => {
         );
         
         if (error) {
+          console.error('Signup error:', error);
           const friendlyError = handleAuthError(error, 'sign up');
           toast.error(friendlyError);
-        } else {
-          setCurrentStep('complete');
-          toast.success("Account created! Please check your email to verify your account.");
+          return;
+        }
+
+        if (user) {
+          console.log('User created successfully:', user.email);
           
-          setTimeout(() => {
-            if (formData.userType === 'brand') {
-              navigate('/brand-onboarding');
-            } else {
-              navigate('/onboarding');
+          // For regular users, show success and redirect
+          if (formData.userType === 'user') {
+            setCurrentStep('complete');
+            toast.success("Account created successfully! Please check your email to verify your account.");
+            
+            // Try to send custom verification email, but don't block the flow if it fails
+            try {
+              const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
+                body: {
+                  email: formData.email,
+                  name: formData.name,
+                  confirmationUrl: `${window.location.origin}/auth/callback`
+                }
+              });
+              
+              if (emailError) {
+                console.warn('Custom verification email failed, using default:', emailError);
+              } else {
+                console.log('Custom verification email sent successfully');
+              }
+            } catch (emailError) {
+              console.warn('Failed to send custom verification email:', emailError);
+              // Don't show error to user, Supabase will send default email
             }
-          }, 2000);
+            
+            setTimeout(() => {
+              navigate('/onboarding');
+            }, 2000);
+          }
+          
+          // For brand users, send brand confirmation email
+          else if (formData.userType === 'brand') {
+            setCurrentStep('complete');
+            toast.success("Account created! Please check your email to verify your account.");
+            
+            // Try to send brand confirmation email
+            try {
+              const { error: brandEmailError } = await supabase.functions.invoke('send-brand-confirmation-email', {
+                body: { 
+                  email: formData.email, 
+                  companyName: formData.name || 'Your Company'
+                }
+              });
+              
+              if (brandEmailError) {
+                console.warn('Brand confirmation email failed:', brandEmailError);
+                toast.warning("Account created, but we had an issue sending the confirmation email. Please contact support if you don't receive it.");
+              } else {
+                console.log('Brand confirmation email sent successfully');
+              }
+            } catch (emailError) {
+              console.warn('Failed to send brand confirmation email:', emailError);
+              toast.warning("Account created, but we had an issue sending the confirmation email. Please contact support if you don't receive it.");
+            }
+            
+            setTimeout(() => {
+              navigate('/brand-onboarding');
+            }, 2000);
+          }
+        } else {
+          console.error('No user returned from signup');
+          toast.error("Account creation failed. Please try again.");
         }
       }
     } catch (error: any) {
-      toast.error("An unexpected error occurred");
+      console.error('Unexpected error in handleSubmit:', error);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -706,42 +767,50 @@ const ModernAuthFlow = () => {
                   <p className="text-muted-foreground text-lg">This will be displayed on your profile</p>
                 </div>
 
-                <div className="space-y-6">
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-warning/20 rounded-2xl blur-xl group-focus-within:blur-2xl transition-all duration-300"></div>
-                    <div className="relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl p-1 group-focus-within:border-primary/50">
-                      <div className="flex items-center px-4 py-4">
-                        <User className="w-5 h-5 text-muted-foreground mr-3" />
-                        <input
-                          type="text"
-                          placeholder="Enter your full name"
-                          value={formData.name}
-                          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                          className="flex-1 bg-transparent text-foreground text-lg placeholder-muted-foreground focus:outline-none"
-                          autoFocus
-                        />
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  if (formData.name && !isLoading) {
+                    handleSubmit();
+                  }
+                }}>
+                  <div className="space-y-6">
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-warning/20 rounded-2xl blur-xl group-focus-within:blur-2xl transition-all duration-300"></div>
+                      <div className="relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl p-1 group-focus-within:border-primary/50">
+                        <div className="flex items-center px-4 py-4">
+                          <User className="w-5 h-5 text-muted-foreground mr-3" />
+                          <input
+                            type="text"
+                            placeholder="Enter your full name"
+                            value={formData.name}
+                            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                            className="flex-1 bg-transparent text-foreground text-lg placeholder-muted-foreground focus:outline-none"
+                            autoFocus
+                            disabled={isLoading}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <Button
-                    onClick={handleNext}
-                    className="w-full h-14 bg-gradient-to-r from-primary to-warning hover:from-primary/90 hover:to-warning/90 text-white text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-                    disabled={!formData.name || isLoading}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Creating account...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5" />
-                        Create Account
-                      </div>
-                    )}
-                  </Button>
-                </div>
+                    <Button
+                      type="submit"
+                      className="w-full h-14 bg-gradient-to-r from-primary to-warning hover:from-primary/90 hover:to-warning/90 text-white text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                      disabled={!formData.name || isLoading}
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          Creating account...
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-5 h-5" />
+                          Create Account
+                        </div>
+                      )}
+                    </Button>
+                  </div>
+                </form>
               </motion.div>
             )}
 
