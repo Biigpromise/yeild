@@ -18,6 +18,7 @@ import ResetPassword from "./pages/ResetPassword";
 import CustomResetPassword from "./pages/CustomResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import VerifyResetCode from "./pages/VerifyResetCode";
+import VerifySignupCode from "./pages/VerifySignupCode";
 import CreateNewPassword from "./pages/CreateNewPassword";
 import Tasks from "./pages/Tasks";
 import Onboarding from "./pages/Onboarding";
@@ -69,6 +70,7 @@ const AppContent = () => {
         <Route path="/brand-auth" element={<BrandAuth />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-reset-code" element={<VerifyResetCode />} />
+        <Route path="/verify-signup-code" element={<VerifySignupCode />} />
         <Route path="/create-new-password" element={<CreateNewPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/custom-reset-password" element={<CustomResetPassword />} />

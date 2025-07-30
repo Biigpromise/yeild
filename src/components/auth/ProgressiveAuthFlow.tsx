@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { YieldLogo } from '@/components/ui/YieldLogo';
 
@@ -148,42 +149,32 @@ const ProgressiveAuthFlow = () => {
           toast.success('Welcome back!');
         }
       } else {
-        console.log('Attempting signup with:', {
-          email: formData.email,
-          password: '***',
-          name: formData.name,
-          userType: formData.userType
-        });
-        
-        const { error, user: newUser } = await signUp(
-          formData.email, 
-          formData.password, 
-          formData.name, 
-          formData.userType,
-          undefined, // userData
-          undefined // Disable email confirmations completely
-        );
-        
-        if (error) {
-          console.error('Sign up error:', error);
-          if (error.message.includes('already registered')) {
-            toast.error('Email already exists', {
-              action: {
-                label: 'Sign In',
-                onClick: () => {
-                  setIsLogin(true);
-                  setCurrentStep('password');
-                }
-              }
-            });
-          } else {
-            toast.error('Sign up failed: ' + error.message);
+        // For signup, send verification code instead of creating account immediately
+        console.log('Sending verification code for signup:', formData.email);
+
+        const { error } = await supabase.functions.invoke('send-verification-code', {
+          body: { 
+            email: formData.email,
+            type: 'signup'
           }
-        } else {
-          console.log('Signup successful:', newUser);
-          toast.success('Account created successfully!');
-          // Don't navigate immediately, let the auth state change handle it
+        });
+
+        if (error) {
+          console.error('Send verification code error:', error);
+          toast.error(error.message || 'Failed to send verification code');
+          return;
         }
+
+        toast.success('Verification code sent to your email!');
+        
+        // Navigate to verification page with form data in URL params
+        const searchParams = new URLSearchParams({
+          email: formData.email,
+          password: formData.password, // Store temporarily for account creation
+          name: formData.name || '',
+          userType: formData.userType || 'user'
+        });
+        navigate(`/verify-signup-code?${searchParams.toString()}`);
       }
     } catch (error: any) {
       console.error('Auth error:', error);
