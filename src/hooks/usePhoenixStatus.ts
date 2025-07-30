@@ -20,8 +20,8 @@ export const usePhoenixStatus = () => {
         if (profile) {
           const activeReferrals = profile.active_referrals_count || 0;
           const userPoints = profile.points || 0;
-          const birdLevel = userService.getBirdLevel(activeReferrals, userPoints);
-          setIsPhoenix(birdLevel.icon === 'phoenix');
+          const birdLevel = await userService.getBirdLevel(activeReferrals, userPoints);
+          setIsPhoenix(birdLevel.name === 'Phoenix');
         }
       } catch (error) {
         console.error('Error checking Phoenix status:', error);

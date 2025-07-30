@@ -611,23 +611,24 @@ export const userService = {
       }
 
       // Find the highest level the user qualifies for from database
-      let qualifiedLevel = birdLevels[0];
+      let qualifiedDbLevel = birdLevels[0];
       for (const level of birdLevels) {
         if (activeReferrals >= level.min_referrals && userPoints >= level.min_points) {
-          qualifiedLevel = {
-            id: level.id,
-            name: level.name,
-            icon: level.emoji,
-            color: level.color,
-            min_referrals: level.min_referrals,
-            min_points: level.min_points,
-            description: level.description,
-            benefits: level.benefits || []
-          };
+          qualifiedDbLevel = level;
         }
       }
 
-      return qualifiedLevel;
+      // Convert to ReferralBirdLevel format
+      return {
+        id: qualifiedDbLevel.id,
+        name: qualifiedDbLevel.name,
+        icon: qualifiedDbLevel.emoji,
+        color: qualifiedDbLevel.color,
+        min_referrals: qualifiedDbLevel.min_referrals,
+        min_points: qualifiedDbLevel.min_points,
+        description: qualifiedDbLevel.description,
+        benefits: qualifiedDbLevel.benefits || []
+      };
     } catch (error) {
       console.error('Error in getBirdLevel:', error);
       // Use hardcoded fallback

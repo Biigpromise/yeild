@@ -38,9 +38,9 @@ export const PhoenixUserProvider: React.FC<PhoenixUserProviderProps> = ({ childr
           setUserProfile(profile);
           const activeReferrals = profile.active_referrals_count || 0;
           const userPoints = profile.points || 0;
-          const birdLevel = userService.getBirdLevel(activeReferrals, userPoints);
+          const birdLevel = await userService.getBirdLevel(activeReferrals, userPoints);
           
-          const isPhoenixUser = birdLevel.icon === 'phoenix';
+          const isPhoenixUser = birdLevel.name === 'Phoenix';
           setIsPhoenix(isPhoenixUser);
           
           // Show welcome overlay for Phoenix users on login
