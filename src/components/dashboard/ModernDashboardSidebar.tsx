@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,8 @@ import {
   Bell,
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Crown
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -43,37 +44,51 @@ export const ModernDashboardSidebar: React.FC<ModernDashboardSidebarProps> = ({
   onProfileClick
 }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const navigationItems = [
     {
       id: 'overview',
       label: 'Overview',
       icon: BarChart3,
-      description: 'Dashboard & Analytics'
+      description: 'Dashboard & Analytics',
+      route: '/dashboard'
     },
     {
       id: 'tasks',
       label: 'Tasks',
       icon: Target,
-      description: 'Available Tasks'
+      description: 'Available Tasks',
+      route: '/tasks'
     },
     {
       id: 'social',
       label: 'Social',
       icon: Heart,
-      description: 'Community & Feed'
+      description: 'Community & Feed',
+      route: '/social'
     },
     {
       id: 'wallet',
       label: 'Wallet',
       icon: Wallet,
-      description: 'Points & Earnings'
+      description: 'Points & Earnings',
+      route: '/wallet'
     },
     {
       id: 'referral',
       label: 'Referrals',
       icon: Gift,
-      description: 'Invite Friends'
+      description: 'Invite Friends',
+      route: '/referrals'
+    },
+    {
+      id: 'birds',
+      label: 'Birds',
+      icon: Crown,
+      description: 'Badge System',
+      route: '/birds'
     }
   ];
 
@@ -82,7 +97,8 @@ export const ModernDashboardSidebar: React.FC<ModernDashboardSidebarProps> = ({
       id: 'settings',
       label: 'Settings',
       icon: Settings,
-      description: 'Account Settings'
+      description: 'Account Settings',
+      route: '/dashboard' // Keep settings as a tab within dashboard
     }
   ];
 
@@ -170,12 +186,19 @@ export const ModernDashboardSidebar: React.FC<ModernDashboardSidebarProps> = ({
         <nav className="space-y-1 px-3">
           {navigationItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id;
+            const isActive = location.pathname === item.route || 
+              (item.id === 'overview' && location.pathname === '/dashboard');
             
             return (
               <button
                 key={item.id}
-                onClick={() => onTabChange(item.id)}
+                onClick={() => {
+                  if (item.route) {
+                    navigate(item.route);
+                  } else {
+                    onTabChange(item.id);
+                  }
+                }}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left",
                   isActive 
@@ -201,12 +224,19 @@ export const ModernDashboardSidebar: React.FC<ModernDashboardSidebarProps> = ({
       <div className="p-3 border-t border-border/60 space-y-1">
         {bottomItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activeTab === item.id;
+          const isActive = activeTab === item.id && location.pathname === '/dashboard';
           
           return (
             <button
               key={item.id}
-              onClick={() => onTabChange(item.id)}
+              onClick={() => {
+                if (item.route === '/dashboard') {
+                  navigate('/dashboard');
+                  onTabChange(item.id);
+                } else {
+                  onTabChange(item.id);
+                }
+              }}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left",
                 isActive 
