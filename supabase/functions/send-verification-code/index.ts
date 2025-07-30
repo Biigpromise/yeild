@@ -43,8 +43,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Check if user exists for signin
     if (type === 'signin') {
-      const { data: existingUser } = await supabase.auth.admin.getUserByEmail(email);
-      if (!existingUser.user) {
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
+        
+      if (!existingUser) {
         return new Response(
           JSON.stringify({ error: 'No account found with this email address' }),
           { 
@@ -57,8 +62,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Check if user already exists for signup
     if (type === 'signup') {
-      const { data: existingUser } = await supabase.auth.admin.getUserByEmail(email);
-      if (existingUser.user) {
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
+        
+      if (existingUser) {
         return new Response(
           JSON.stringify({ error: 'An account with this email already exists' }),
           { 
