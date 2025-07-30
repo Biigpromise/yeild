@@ -28,7 +28,7 @@ const ProgressiveAuthFlow = () => {
     userType: ''
   });
 
-  const { signIn, signUp, user, loading } = useAuth();
+  const { signIn, signUp, user, loading, resetPassword } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -39,6 +39,8 @@ const ProgressiveAuthFlow = () => {
     
     if (typeParam && (typeParam === 'user' || typeParam === 'brand')) {
       setFormData(prev => ({ ...prev, userType: typeParam as 'user' | 'brand' }));
+      // Start from email step when userType is pre-selected
+      setCurrentStep('email');
       setIsLogin(true);
     } else if (modeParam === 'signup') {
       setIsLogin(false);
@@ -61,7 +63,6 @@ const ProgressiveAuthFlow = () => {
     if (!validateCurrentStep()) return;
 
     if (currentStep === 'email') {
-      // Check if user exists to determine if login or signup
       setCurrentStep('password');
     } else if (currentStep === 'password') {
       if (isLogin) {
@@ -70,6 +71,7 @@ const ProgressiveAuthFlow = () => {
         setCurrentStep('name');
       }
     } else if (currentStep === 'name') {
+      // If userType is already set (from URL params), skip to submission
       if (formData.userType) {
         await handleSubmit();
       } else {
@@ -177,7 +179,28 @@ const ProgressiveAuthFlow = () => {
 
   const handleUserTypeSelect = (type: 'user' | 'brand') => {
     setFormData(prev => ({ ...prev, userType: type }));
-    handleNext();
+    // Auto-submit after user type selection
+    setTimeout(() => handleSubmit(), 100);
+  };
+
+  const handleForgotPassword = async () => {
+    if (!formData.email || !formData.email.includes('@')) {
+      toast.error('Please enter your email first');
+      setCurrentStep('email');
+      return;
+    }
+    
+    try {
+      const { error } = await resetPassword(formData.email);
+      
+      if (error) {
+        toast.error('Failed to send reset email');
+      } else {
+        toast.success('Password reset email sent!');
+      }
+    } catch (error) {
+      toast.error('Something went wrong');
+    }
   };
 
   if (loading) {
@@ -292,7 +315,7 @@ const ProgressiveAuthFlow = () => {
               {currentStep !== 'userType' && (
                 <Button
                   onClick={handleNext}
-                  disabled={isLoading || !validateCurrentStep()}
+                  disabled={isLoading}
                   className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl transition-colors"
                 >
                   {isLoading ? (
@@ -303,6 +326,19 @@ const ProgressiveAuthFlow = () => {
                     'Next'
                   )}
                 </Button>
+              )}
+
+              {/* Forgot Password Link */}
+              {currentStep === 'password' && isLogin && (
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-sm text-warning hover:text-warning/80 underline transition-colors font-medium"
+                  >
+                    Forgot your password?
+                  </button>
+                </div>
               )}
 
               {/* Toggle login/signup */}
