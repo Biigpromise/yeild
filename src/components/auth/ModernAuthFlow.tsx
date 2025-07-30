@@ -175,14 +175,13 @@ const ModernAuthFlow = () => {
       } else {
         console.log('Starting signup process for:', formData.email);
         
-        const redirectUrl = `${window.location.origin}/auth/callback`;
         const { error, user } = await signUp(
           formData.email, 
           formData.password, 
           formData.name, 
           formData.userType,
-          {},
-          redirectUrl
+          { email_confirm: false }, // Skip email confirmation since we already verified with code
+          undefined // No redirect URL needed since we're not using email confirmation
         );
         
         if (error) {
@@ -198,7 +197,7 @@ const ModernAuthFlow = () => {
           // For regular users, show success and redirect
           if (formData.userType === 'user') {
             setCurrentStep('complete');
-            toast.success("Account created successfully! Please check your email to verify your account.");
+            toast.success("Account created successfully! Redirecting to your dashboard...");
             
             setTimeout(() => {
               navigate('/onboarding');
@@ -208,7 +207,7 @@ const ModernAuthFlow = () => {
           // For brand users, show success and next steps
           else if (formData.userType === 'brand') {
             setCurrentStep('complete');
-            toast.success("Account created successfully! Please check your email to verify your account, then complete your brand application.");
+            toast.success("Account created successfully! Complete your brand application to get started.");
             
             setTimeout(() => {
               navigate('/brand-onboarding');
