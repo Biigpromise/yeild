@@ -170,7 +170,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Update attempt count
+    // Update attempt count only
     const { error: updateAttemptError } = await supabase
       .from('email_verification_codes')
       .update({ 
@@ -183,27 +183,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.error('Error updating attempt count:', updateAttemptError);
     }
 
-    // Mark the code as verified
-    const { error: updateError } = await supabase
-      .from('email_verification_codes')
-      .update({ 
-        verified_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', existingCode.id);
-
-    if (updateError) {
-      console.error('Error updating verification code:', updateError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to verify code' }),
-        { 
-          status: 500, 
-          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
-        }
-      );
-    }
-
-    console.log('Verification code marked as verified successfully');
+    console.log('Code validation successful, proceeding with verification...');
 
     // For signin, create a magic link for auto sign-in
     if (type === 'signin') {
@@ -241,12 +221,14 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // For signup or failed magic link, return success without magic link
-    console.log('Returning success response without magic link');
+    // For signup, return success without marking as verified yet
+    // The code will be marked as verified by the frontend after successful account creation
+    console.log('Returning success response for signup verification');
     return new Response(
       JSON.stringify({ 
         success: true, 
         token: existingCode.token,
+        codeId: existingCode.id,
         message: 'Code verified successfully' 
       }),
       { 

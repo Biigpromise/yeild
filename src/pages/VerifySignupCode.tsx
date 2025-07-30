@@ -65,7 +65,7 @@ export default function VerifySignupCode() {
 
       console.log('Code verified, creating account...');
       
-      // Now create the actual Supabase account
+      // Now create the actual Supabase account with email confirmation disabled
       const { data: signupData, error: signupError } = await supabase.auth.signUp({
         email,
         password,
@@ -85,6 +85,20 @@ export default function VerifySignupCode() {
       }
 
       console.log('Account created successfully:', signupData);
+      
+      // Only mark the code as verified after successful account creation
+      if (verifyData.codeId) {
+        try {
+          await supabase.functions.invoke('mark-code-verified', {
+            body: { codeId: verifyData.codeId }
+          });
+          console.log('Verification code marked as used');
+        } catch (markError) {
+          console.error('Error marking code as verified:', markError);
+          // Don't fail the signup for this - it's just cleanup
+        }
+      }
+      
       toast.success('Account created successfully!');
 
       // Show onboarding after successful account creation
