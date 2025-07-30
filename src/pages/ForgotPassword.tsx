@@ -34,8 +34,9 @@ const ForgotPassword = () => {
         toast.error(error.message);
       } else {
         setDeliveryStatus('sent');
-        setEmailSent(true);
-        toast.success("Password reset email sent instantly! Check your inbox.");
+        toast.success("Verification code sent! Check your inbox.");
+        // Navigate to code verification page
+        navigate(`/verify-reset-code?email=${encodeURIComponent(email)}`);
       }
     } catch (error: any) {
       console.error('Password reset error:', error);
@@ -71,7 +72,7 @@ const ForgotPassword = () => {
             </CardTitle>
             {!emailSent && (
               <p className="text-muted-foreground text-sm mt-2">
-                Enter your email and we'll send you a reset link
+                Enter your email and we'll send you a 6-digit verification code
               </p>
             )}
           </div>
@@ -84,7 +85,7 @@ const ForgotPassword = () => {
               </div>
               <div className="space-y-2">
                 <p className="text-foreground">
-                  We've sent a password reset link to
+                  We've sent a verification code to
                 </p>
                 <p className="font-medium text-foreground">{email}</p>
               </div>
@@ -123,7 +124,7 @@ const ForgotPassword = () => {
                 disabled={isLoading}
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 font-medium"
               >
-                {isLoading ? "Sending..." : "Send reset email"}
+                {isLoading ? "Sending..." : "Send verification code"}
               </Button>
 
               <div className="text-center">

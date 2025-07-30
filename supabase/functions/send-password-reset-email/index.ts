@@ -35,9 +35,10 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Generate custom password reset token
+    // Generate custom password reset token and 6-digit code
     const resetToken = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+    const { data: resetCode } = await supabaseAdmin.rpc('generate_reset_code');
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
 
     // Get user ID from email
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.listUsers();
@@ -51,13 +52,14 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('User not found');
     }
 
-    // Store the reset token in database
+    // Store the reset token and code in database
     const { error: tokenError } = await supabaseAdmin
       .from('password_reset_tokens')
       .insert({
         user_id: user.id,
         email: email,
         token: resetToken,
+        reset_code: resetCode,
         expires_at: expiresAt.toISOString()
       });
 
@@ -66,63 +68,60 @@ const handler = async (req: Request): Promise<Response> => {
       throw tokenError;
     }
 
-    const resetLink = `https://yeildsocials.com/custom-reset-password?token=${resetToken}`;
-    console.log('Generated custom reset token successfully');
+    console.log('Generated custom reset token and code successfully');
 
     // Send the password reset email
     const emailResponse = await resend.emails.send({
       from: "YEILD <noreply@yeildsocials.com>",
       to: [email],
-      subject: "🔐 Reset Your YEILD Password",
+      subject: "🔐 Your YEILD Password Reset Code",
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Reset Your YEILD Password</title>
+          <title>Your YEILD Password Reset Code</title>
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">🔐 Password Reset</h1>
-            <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Let's get you back into your YEILD account</p>
+            <h1 style="color: white; margin: 0; font-size: 28px;">🔐 Password Reset Code</h1>
+            <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Your verification code is ready</p>
           </div>
           
           <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
             <p style="font-size: 16px; margin-bottom: 20px;">
-              We received a request to reset your YEILD password. Click the button below to create a new password:
+              Here's your 6-digit verification code to reset your YEILD password:
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${resetLink}" 
-                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                        color: white; 
-                        padding: 15px 30px; 
-                        text-decoration: none; 
-                        border-radius: 8px; 
-                        font-weight: bold; 
-                        font-size: 16px;
-                        display: inline-block;
-                        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-                Reset My Password
-              </a>
+              <div style="background: #f8f9fa; 
+                          border: 2px dashed #667eea; 
+                          padding: 20px; 
+                          border-radius: 8px; 
+                          display: inline-block;">
+                <div style="font-size: 36px; 
+                           font-weight: bold; 
+                           letter-spacing: 8px; 
+                           color: #667eea; 
+                           font-family: 'Courier New', monospace;">
+                  ${resetCode}
+                </div>
+              </div>
             </div>
             
-            <p style="font-size: 14px; color: #666; margin-top: 30px;">
-              If the button doesn't work, you can also copy and paste this link into your browser:
-            </p>
-            <p style="background: #f8f9fa; padding: 15px; border-radius: 5px; word-break: break-all; font-size: 14px; margin: 15px 0;">
-              <a href="${resetLink}" style="color: #667eea;">${resetLink}</a>
+            <p style="font-size: 14px; color: #666; text-align: center; margin: 20px 0;">
+              <strong>This code expires in 10 minutes</strong>
             </p>
             
             <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
             
             <p style="font-size: 14px; color: #666;">
-              <strong>Didn't request this?</strong> You can safely ignore this email. Your password won't be changed unless you click the link above.
+              <strong>Didn't request this?</strong> You can safely ignore this email. Your password won't be changed unless you enter this code.
             </p>
             
             <p style="font-size: 14px; color: #666;">
-              This link will expire in 24 hours for security reasons.
+              For security, this code will expire in 10 minutes.
             </p>
           </div>
           

@@ -8,9 +8,9 @@ const corsHeaders = {
 };
 
 interface UpdatePasswordRequest {
-  userId: string;
-  password: string;
   token: string;
+  password: string;
+  email: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -22,11 +22,11 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { userId, password, token }: UpdatePasswordRequest = await req.json();
-    console.log('Processing password update for user:', userId);
+    const { token, password, email }: UpdatePasswordRequest = await req.json();
+    console.log('Processing password update for email:', email);
 
-    if (!userId || !password || !token) {
-      throw new Error('User ID, password, and token are required');
+    if (!token || !password || !email) {
+      throw new Error('Token, password, and email are required');
     }
 
     // Create Supabase client with service role key
@@ -35,12 +35,12 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Verify the token is still valid
+    // Verify the token is still valid and verified
     const { data: tokenData, error: tokenError } = await supabaseAdmin
       .from('password_reset_tokens')
-      .select('user_id, email, expires_at, used_at')
+      .select('user_id, email, expires_at, used_at, verified_at')
       .eq('token', token)
-      .eq('user_id', userId)
+      .eq('email', email)
       .single();
 
     if (tokenError) {
@@ -65,9 +65,14 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Reset token has already been used');
     }
 
+    // Check if code was verified
+    if (!tokenData.verified_at) {
+      throw new Error('Reset code must be verified first');
+    }
+
     // Update user password using admin client
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      userId,
+      tokenData.user_id,
       { password: password }
     );
 
@@ -87,7 +92,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Don't fail the request for this, password was already updated
     }
 
-    console.log('Password updated successfully for user:', userId);
+    console.log('Password updated successfully for user:', tokenData.user_id);
 
     return new Response(
       JSON.stringify({ 
