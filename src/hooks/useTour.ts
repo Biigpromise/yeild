@@ -73,18 +73,20 @@ export const useTour = () => {
     if (!user) return;
 
     try {
-      // First update the database
+      // First update the database using UPDATE instead of UPSERT to avoid constraint issues
       const { error } = await supabase
         .from('user_tours')
-        .upsert({
-          user_id: user.id,
+        .update({
           tour_completed: true,
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        });
+        })
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Error completing tour:', error);
+        // Force state update even if database update fails to unblock UI
+        setTourState(prev => ({ ...prev, tourCompleted: true }));
         return;
       }
 
@@ -92,6 +94,8 @@ export const useTour = () => {
       setTourState(prev => ({ ...prev, tourCompleted: true }));
     } catch (error) {
       console.error('Error completing tour:', error);
+      // Force state update to unblock UI
+      setTourState(prev => ({ ...prev, tourCompleted: true }));
     }
   };
 

@@ -111,6 +111,7 @@ export const WelcomeTour: React.FC<WelcomeTourProps> = ({ isOpen, onComplete, on
       // Add tour-active class to body to prevent scrolling
       document.body.classList.add('tour-active');
     } else {
+      // Hide tour immediately when isOpen becomes false
       setIsVisible(false);
       document.body.classList.remove('tour-active');
     }
@@ -122,17 +123,21 @@ export const WelcomeTour: React.FC<WelcomeTourProps> = ({ isOpen, onComplete, on
 
   const updateTourProgress = async (step: number, completed: boolean = false) => {
     if (!user) return;
-
+    
     try {
-      await supabase
+      const { error } = await supabase
         .from('user_tours')
-        .upsert({
-          user_id: user.id,
+        .update({
           tour_step: step,
           tour_completed: completed,
           completed_at: completed ? new Date().toISOString() : null,
           updated_at: new Date().toISOString()
-        });
+        })
+        .eq('user_id', user.id);
+        
+      if (error) {
+        console.error('Error updating tour progress:', error);
+      }
     } catch (error) {
       console.error('Error updating tour progress:', error);
     }
