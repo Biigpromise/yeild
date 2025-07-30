@@ -55,6 +55,9 @@ verify_jwt = true
 [functions.send-brand-confirmation-email]
 verify_jwt = false
 
+[functions.send-password-reset-email]
+verify_jwt = false
+
 [functions.send-user-notification]
 verify_jwt = true
 

@@ -318,18 +318,18 @@ export const useAuthOperations = () => {
         return { error };
       }
 
-      // Use the standard Supabase password reset
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
+      // Use our custom password reset email function instead of Supabase's built-in service
+      const { error: resetError } = await supabase.functions.invoke('send-password-reset-email', {
+        body: { email }
       });
       
       if (resetError) {
-        console.error("AuthContext: Password reset error:", resetError);
+        console.error("AuthContext: Password reset function error:", resetError);
         const friendlyMessage = handleAuthError(resetError, 'password reset');
         return { error: { message: friendlyMessage } };
       }
       
-      console.log("AuthContext: Password reset email sent successfully");
+      console.log("AuthContext: Password reset email sent successfully via custom function");
       return { error: null };
     } catch (error) {
       console.error("AuthContext: Password reset unexpected error:", error);
