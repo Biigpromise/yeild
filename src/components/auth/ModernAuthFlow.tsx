@@ -66,10 +66,13 @@ const ModernAuthFlow = () => {
 
   useEffect(() => {
     if (!loading && user) {
+      // Prevent infinite redirects by checking current path
+      const currentPath = window.location.pathname;
       const userType = user.user_metadata?.user_type;
-      if (userType === 'brand') {
+      
+      if (userType === 'brand' && !currentPath.includes('/brand-dashboard')) {
         navigate('/brand-dashboard');
-      } else {
+      } else if (userType !== 'brand' && !currentPath.includes('/dashboard')) {
         navigate('/dashboard');
       }
     }

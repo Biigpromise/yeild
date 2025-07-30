@@ -69,7 +69,7 @@ export const ChatInterface: React.FC = () => {
         .from('profiles')
         .select('tasks_completed, active_referrals_count, can_post_in_chat')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (profileData) {
         setEligibility({
@@ -141,7 +141,7 @@ export const ChatInterface: React.FC = () => {
               )
             `)
             .eq('id', payload.new.id)
-            .single();
+            .maybeSingle();
 
           if (data) {
             setMessages(prev => [...prev, data]);

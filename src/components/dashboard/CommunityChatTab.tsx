@@ -72,9 +72,10 @@ export const CommunityChatTab = () => {
         .from('profiles')
         .select('can_post_in_chat, tasks_completed, active_referrals_count')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) return;
 
       const eligible = (data.tasks_completed >= 1 && data.active_referrals_count >= 3) || data.can_post_in_chat;
       setCanPost(eligible);

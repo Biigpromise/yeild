@@ -50,10 +50,14 @@ export const ProfileTab: React.FC = () => {
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error loading profile:', error);
+        return;
+      }
+      if (!data) {
+        console.error('Profile not found');
         return;
       }
 

@@ -63,7 +63,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
         .select('id')
         .eq('message_id', message.id)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       setLiked(!!data);
     } catch (error) {

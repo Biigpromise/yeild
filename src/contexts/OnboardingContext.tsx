@@ -42,8 +42,8 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         // Check multiple sources for brand status
         const [rolesResponse, profileResponse, applicationResponse] = await Promise.all([
           supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'brand'),
-          supabase.from('brand_profiles').select('*').eq('user_id', user.id).single(),
-          supabase.from('brand_applications').select('*').eq('user_id', user.id).single()
+          supabase.from('brand_profiles').select('*').eq('user_id', user.id).maybeSingle(),
+          supabase.from('brand_applications').select('*').eq('user_id', user.id).maybeSingle()
         ]);
 
         const hasBrandRole = rolesResponse.data && rolesResponse.data.length > 0;

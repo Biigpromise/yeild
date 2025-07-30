@@ -52,7 +52,7 @@ export const WalletTab: React.FC = () => {
         .from('yield_wallets')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error loading wallet:', error);

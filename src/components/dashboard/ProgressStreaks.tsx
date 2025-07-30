@@ -50,7 +50,7 @@ export const ProgressStreaks: React.FC = () => {
         .from('profiles')
         .select('last_login_at, created_at')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       const calculateLoginStreak = () => {
         if (!profile?.last_login_at) return 0;

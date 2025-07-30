@@ -62,9 +62,10 @@ const Profile = () => {
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error('Profile not found');
 
       const profileData: UserProfile = {
         id: data.id,

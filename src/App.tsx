@@ -31,6 +31,7 @@ import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useMaintenanceMode } from "@/hooks/useMaintenanceMode";
 import MaintenanceMode from "@/components/maintenance/MaintenanceMode";
 import { useAuth } from "@/contexts/AuthContext";
+import { ErrorBoundaryWrapper } from "@/components/ErrorBoundaryWrapper";
 import "./App.css";
 
 const AppContent = () => {
@@ -66,7 +67,9 @@ const AppContent = () => {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <ErrorBoundaryWrapper>
+                <Dashboard />
+              </ErrorBoundaryWrapper>
             </ProtectedRoute>
           }
         />
@@ -74,7 +77,9 @@ const AppContent = () => {
           path="/brand-dashboard/*"
           element={
             <RoleBasedRoute requiredRole="brand">
-              <BrandDashboard />
+              <ErrorBoundaryWrapper>
+                <BrandDashboard />
+              </ErrorBoundaryWrapper>
             </RoleBasedRoute>
           }
         />

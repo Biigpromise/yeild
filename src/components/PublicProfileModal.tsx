@@ -64,9 +64,10 @@ export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error('Profile not found');
       setProfile(data);
     } catch (error) {
       console.error('Error loading user profile:', error);
@@ -84,7 +85,7 @@ export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({
         .select('id')
         .eq('follower_id', user.id)
         .eq('following_id', userId)
-        .single();
+        .maybeSingle();
 
       setIsFollowing(!!data);
     } catch (error) {
