@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Eye, EyeOff, Shield } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Shield, CheckCircle } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +17,7 @@ const CustomResetPassword = () => {
   const [tokenValid, setTokenValid] = useState(false);
   const [email, setEmail] = useState('');
   const [userId, setUserId] = useState('');
+  const [passwordChanged, setPasswordChanged] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -153,12 +154,7 @@ const CustomResetPassword = () => {
         // Don't fail the process if token update fails
       }
 
-      toast.success("Password updated successfully! You can now sign in with your new password.");
-      
-      // Redirect to auth page after a short delay
-      setTimeout(() => {
-        navigate('/auth');
-      }, 2000);
+      setPasswordChanged(true);
 
     } catch (error: any) {
       console.error('Password reset error:', error);
@@ -256,6 +252,41 @@ const CustomResetPassword = () => {
                 Back to Sign In
               </Button>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (passwordChanged) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-card border-border">
+          <CardHeader className="space-y-4">
+            <div className="flex items-center gap-4">
+              <img 
+                src="/lovable-uploads/54ccebd1-9d4c-452f-b0a9-0b9de0fcfebf.png" 
+                alt="YEILD Logo" 
+                className="w-8 h-8 object-contain"
+              />
+            </div>
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <CheckCircle className="w-8 h-8 text-primary" />
+              </div>
+              <CardTitle className="text-2xl text-foreground">Password Changed</CardTitle>
+              <p className="text-muted-foreground text-sm mt-2">
+                Your password has been successfully updated
+              </p>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <Button
+              onClick={() => navigate('/auth')}
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 font-medium"
+            >
+              Continue to YEILD
+            </Button>
           </CardContent>
         </Card>
       </div>

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Lock } from 'lucide-react';
+import { Eye, EyeOff, Lock, CheckCircle } from 'lucide-react';
 
 export default function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -16,6 +16,7 @@ export default function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [validLink, setValidLink] = useState<boolean | null>(null);
+  const [passwordChanged, setPasswordChanged] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -73,8 +74,7 @@ export default function ResetPassword() {
         return;
       }
 
-      toast.success('Password reset successfully! You can now sign in with your new password.');
-      navigate('/auth');
+      setPasswordChanged(true);
     } catch (error) {
       console.error('Unexpected error:', error);
       toast.error('An unexpected error occurred. Please try again.');
@@ -124,6 +124,34 @@ export default function ResetPassword() {
               className="w-full"
             >
               Back to Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (passwordChanged) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md bg-card border-border">
+          <CardHeader className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-8 h-8 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-xl text-foreground">Password Changed</CardTitle>
+              <p className="text-muted-foreground text-sm mt-2">
+                Your password has been successfully updated
+              </p>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={() => navigate('/auth')}
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Continue to YEILD
             </Button>
           </CardContent>
         </Card>
