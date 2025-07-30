@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,19 +26,21 @@ const CustomResetPassword = () => {
 
   useEffect(() => {
     const validateToken = async () => {
-      console.log('=== TOKEN VALIDATION DEBUG ===');
+      console.log('=== CUSTOM RESET PASSWORD DEBUG ===');
+      console.log('Current URL:', window.location.href);
       console.log('Token from URL:', token);
-      console.log('Token length:', token ? token.length : 'null');
+      console.log('All search params:', Object.fromEntries(searchParams.entries()));
       
       if (!token) {
         console.log('ERROR: No token provided in URL');
+        toast.error('Invalid reset link - no token found');
         setValidatingToken(false);
         setTokenValid(false);
         return;
       }
 
       try {
-        console.log('Checking token in database...');
+        console.log('Validating token in database...');
         
         // Check if token exists and is not expired
         const { data: tokenData, error } = await supabase
@@ -46,13 +49,14 @@ const CustomResetPassword = () => {
           .eq('token', token)
           .single();
 
-        console.log('Database query result:', { tokenData, error });
+        console.log('Token validation result:', { tokenData, error });
 
         if (error) {
+          console.error('Token validation error:', error);
           if (error.code === 'PGRST116') {
-            console.log('ERROR: Token not found in database');
+            toast.error('Invalid reset link - token not found');
           } else {
-            console.error('ERROR: Database error:', error);
+            toast.error('Error validating reset link');
           }
           setTokenValid(false);
           setValidatingToken(false);
@@ -61,6 +65,7 @@ const CustomResetPassword = () => {
 
         if (!tokenData) {
           console.log('ERROR: No token data returned');
+          toast.error('Invalid reset link - no data found');
           setTokenValid(false);
           setValidatingToken(false);
           return;
@@ -69,17 +74,16 @@ const CustomResetPassword = () => {
         // Check if token is expired
         const now = new Date();
         const expiresAt = new Date(tokenData.expires_at);
-        const createdAt = new Date(tokenData.created_at);
         
-        console.log('Time check:', {
+        console.log('Token expiry check:', {
           now: now.toISOString(),
           expiresAt: expiresAt.toISOString(),
-          createdAt: createdAt.toISOString(),
           isExpired: now > expiresAt
         });
         
         if (now > expiresAt) {
           console.log('ERROR: Token is expired');
+          toast.error('Reset link has expired');
           setTokenValid(false);
           setValidatingToken(false);
           return;
@@ -87,29 +91,31 @@ const CustomResetPassword = () => {
 
         // Check if token has already been used
         if (tokenData.used_at) {
-          console.log('ERROR: Token has already been used at:', tokenData.used_at);
+          console.log('ERROR: Token has already been used');
+          toast.error('Reset link has already been used');
           setTokenValid(false);
           setValidatingToken(false);
           return;
         }
 
         console.log('SUCCESS: Token is valid');
-        console.log('Email:', tokenData.email);
-        console.log('User ID:', tokenData.user_id);
-        
         setTokenValid(true);
         setEmail(tokenData.email);
         setUserId(tokenData.user_id);
         setValidatingToken(false);
+        
       } catch (error) {
         console.error('Token validation unexpected error:', error);
+        toast.error('Error validating reset link');
         setTokenValid(false);
         setValidatingToken(false);
       }
     };
 
-    validateToken();
-  }, [token]);
+    // Add a small delay to ensure the component is mounted
+    const timeoutId = setTimeout(validateToken, 100);
+    return () => clearTimeout(timeoutId);
+  }, [token, searchParams]);
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,8 +140,6 @@ const CustomResetPassword = () => {
     try {
       console.log('Attempting to update password for user:', userId);
 
-      // First, we need to sign in the user temporarily to update their password
-      // Use the service role client to update the password directly
       const { data, error: updateError } = await supabase.functions.invoke('update-user-password', {
         body: { 
           userId: userId,
@@ -143,6 +147,8 @@ const CustomResetPassword = () => {
           token: token
         }
       });
+
+      console.log('Password update response:', { data, updateError });
 
       if (updateError) {
         console.error('Password update error:', updateError);
@@ -175,7 +181,6 @@ const CustomResetPassword = () => {
     }
 
     try {
-      // Call our custom password reset function
       const { error } = await supabase.functions.invoke('send-password-reset-email', {
         body: { email }
       });
@@ -191,6 +196,19 @@ const CustomResetPassword = () => {
     }
   };
 
+  // Prevent navigation away from this page during token validation
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (validatingToken || (tokenValid && !passwordChanged)) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [validatingToken, tokenValid, passwordChanged]);
+
   if (validatingToken) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
@@ -198,6 +216,7 @@ const CustomResetPassword = () => {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
             <p className="text-muted-foreground">Verifying reset link...</p>
+            <p className="text-xs text-muted-foreground mt-2">Token: {token?.substring(0, 10)}...</p>
           </CardContent>
         </Card>
       </div>
@@ -211,7 +230,7 @@ const CustomResetPassword = () => {
           <CardHeader className="space-y-4">
             <div className="flex items-center gap-4">
               <Button
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/forgot-password')}
                 variant="ghost"
                 size="sm"
                 className="text-muted-foreground hover:text-foreground hover:bg-secondary p-2"
@@ -228,10 +247,6 @@ const CustomResetPassword = () => {
               <CardTitle className="text-2xl text-foreground">Invalid Reset Link</CardTitle>
               <p className="text-muted-foreground text-sm mt-2">
                 This password reset link is invalid, expired, or has already been used.
-              </p>
-              <p className="text-muted-foreground text-xs mt-2 bg-muted p-2 rounded">
-                Make sure you're using the link from the most recent password reset email.
-                Check the browser console for detailed error information.
               </p>
             </div>
           </CardHeader>
@@ -250,10 +265,10 @@ const CustomResetPassword = () => {
 
               <Button
                 variant="outline"
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/forgot-password')}
                 className="w-full py-3"
               >
-                Back to Sign In
+                Back to Forgot Password
               </Button>
             </div>
           </CardContent>
@@ -303,7 +318,7 @@ const CustomResetPassword = () => {
         <CardHeader className="space-y-4">
           <div className="flex items-center gap-4">
             <Button
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/forgot-password')}
               variant="ghost"
               size="sm"
               className="text-muted-foreground hover:text-foreground hover:bg-secondary p-2"
@@ -319,7 +334,7 @@ const CustomResetPassword = () => {
           <div className="text-center">
             <CardTitle className="text-2xl text-foreground">Set New Password</CardTitle>
             <p className="text-muted-foreground text-sm mt-2">
-              Enter your new password below
+              Enter your new password for {email}
             </p>
           </div>
         </CardHeader>
@@ -397,10 +412,10 @@ const CustomResetPassword = () => {
               <Button
                 type="button"
                 variant="link"
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/forgot-password')}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
-                Back to Sign In
+                Back to Forgot Password
               </Button>
             </div>
           </form>
