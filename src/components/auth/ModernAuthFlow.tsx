@@ -323,21 +323,16 @@ const ModernAuthFlow = () => {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
                   >
-                    <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-warning/20 rounded-2xl blur-xl group-focus-within:blur-2xl transition-all duration-300"></div>
-                      <div className="relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl p-1">
-                        <div className="flex items-center px-4 py-4">
-                          <Mail className="w-5 h-5 text-muted-foreground mr-3" />
-                          <input
-                            type="email"
-                            placeholder="Enter your email address"
-                            value={formData.email}
-                            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                            className="flex-1 bg-transparent text-foreground text-lg placeholder-muted-foreground focus:outline-none"
-                            autoFocus
-                          />
-                        </div>
-                      </div>
+                    <div className="relative">
+                      <Mail className="absolute left-0 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                      <input
+                        type="email"
+                        placeholder="Enter your email address"
+                        value={formData.email}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        className="w-full bg-transparent text-foreground text-lg pl-8 py-4 border-0 border-b-2 border-border focus:border-primary focus:outline-none placeholder-muted-foreground"
+                        autoFocus
+                      />
                     </div>
                     <Button
                       onClick={() => setCurrentStep('password')}
@@ -514,21 +509,16 @@ const ModernAuthFlow = () => {
                   }
                 }}>
                   <div className="space-y-6">
-                    <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-warning/20 rounded-2xl blur-xl group-focus-within:blur-2xl transition-all duration-300"></div>
-                      <div className="relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl p-1 group-focus-within:border-primary/50">
-                        <div className="flex items-center px-4 py-4">
-                          <Mail className="w-5 h-5 text-muted-foreground mr-3" />
-                          <input
-                            type="email"
-                            placeholder="Enter your email address"
-                            value={formData.email}
-                            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                            className="flex-1 bg-transparent text-foreground text-lg placeholder-muted-foreground focus:outline-none"
-                            autoFocus
-                          />
-                        </div>
-                      </div>
+                    <div className="relative">
+                      <Mail className="absolute left-0 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                      <input
+                        type="email"
+                        placeholder="Enter your email address"
+                        value={formData.email}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        className="w-full bg-transparent text-foreground text-lg pl-8 py-4 border-0 border-b-2 border-border focus:border-primary focus:outline-none placeholder-muted-foreground"
+                        autoFocus
+                      />
                     </div>
 
                     <Button
