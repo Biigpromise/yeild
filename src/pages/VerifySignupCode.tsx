@@ -65,39 +65,30 @@ export default function VerifySignupCode() {
 
       console.log('Code verified, creating account...');
       
-      // Now create the actual Supabase account with email confirmation disabled
-      const { data: signupData, error: signupError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            name,
-            user_type: userType
-          }
+      // Create account using our custom edge function (bypasses email confirmation issues)
+      const { data: createUserData, error: createUserError } = await supabase.functions.invoke('create-verified-user', {
+        body: {
+          email,
+          password,
+          name,
+          userType,
+          codeId: verifyData.codeId
         }
       });
 
-      if (signupError) {
-        console.error('Account creation error:', signupError);
-        toast.error(signupError.message || 'Failed to create account');
+      if (createUserError) {
+        console.error('Account creation error:', createUserError);
+        toast.error(createUserError.message || 'Failed to create account');
         return;
       }
 
-      console.log('Account created successfully:', signupData);
-      
-      // Only mark the code as verified after successful account creation
-      if (verifyData.codeId) {
-        try {
-          await supabase.functions.invoke('mark-code-verified', {
-            body: { codeId: verifyData.codeId }
-          });
-          console.log('Verification code marked as used');
-        } catch (markError) {
-          console.error('Error marking code as verified:', markError);
-          // Don't fail the signup for this - it's just cleanup
-        }
+      if (!createUserData.success) {
+        console.error('Account creation failed:', createUserData.message);
+        toast.error(createUserData.message || 'Failed to create account');
+        return;
       }
+
+      console.log('Account created successfully:', createUserData);
       
       toast.success('Account created successfully!');
 
