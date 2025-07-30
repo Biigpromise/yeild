@@ -56,7 +56,7 @@ export const useAuthOperations = () => {
       provider: provider as any,
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
-        data: {
+        queryParams: {
           user_type: userType
         }
       }
