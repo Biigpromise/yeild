@@ -23,6 +23,10 @@ import CreateNewPassword from "./pages/CreateNewPassword";
 import Tasks from "./pages/Tasks";
 import Onboarding from "./pages/Onboarding";
 import BrandOnboarding from "./pages/BrandOnboarding";
+import Social from "./pages/Social";
+import Wallet from "./pages/Wallet";
+import Referrals from "./pages/Referrals";
+import Birds from "./pages/Birds";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { RoleBasedRoute } from "@/components/RoleBasedRoute";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -110,6 +114,38 @@ const AppContent = () => {
             <RoleBasedRoute requiredRole="admin">
               <AdminDashboard />
             </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/social"
+          element={
+            <ProtectedRoute>
+              <Social />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/wallet"
+          element={
+            <ProtectedRoute>
+              <Wallet />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/referrals"
+          element={
+            <ProtectedRoute>
+              <Referrals />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/birds"
+          element={
+            <ProtectedRoute>
+              <Birds />
+            </ProtectedRoute>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
