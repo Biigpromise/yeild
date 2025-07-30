@@ -64,19 +64,39 @@ export const taskAnnouncementService = {
 
   // Get published announcements for users
   async getPublishedAnnouncements() {
-    const { data, error } = await supabase
+    // First get the announcements
+    const { data: announcements, error: announcementsError } = await supabase
       .from('brand_task_announcements')
       .select(`
         *,
-        brand_profiles!inner(company_name, logo_url),
         user_task_interests(id, interest_level)
       `)
       .eq('status', 'published')
       .eq('is_active', true)
       .order('estimated_launch_date', { ascending: true, nullsFirst: false });
 
-    if (error) throw error;
-    return data;
+    if (announcementsError) throw announcementsError;
+    if (!announcements || announcements.length === 0) return [];
+
+    // Get unique brand IDs
+    const brandIds = [...new Set(announcements.map(a => a.brand_id))];
+
+    // Fetch brand profiles separately
+    const { data: brandProfiles, error: profilesError } = await supabase
+      .from('brand_profiles')
+      .select('user_id, company_name, logo_url')
+      .in('user_id', brandIds);
+
+    if (profilesError) throw profilesError;
+
+    // Create a map for quick lookup
+    const profilesMap = new Map(brandProfiles?.map(p => [p.user_id, p]) || []);
+
+    // Combine the data
+    return announcements.map(announcement => ({
+      ...announcement,
+      brand_profiles: profilesMap.get(announcement.brand_id) || null
+    }));
   },
 
   // Publish an announcement (send notifications)
@@ -175,7 +195,8 @@ export const taskAnnouncementService = {
 
   // Get user's interests
   async getUserInterests(userId: string) {
-    const { data, error } = await supabase
+    // First get user interests
+    const { data: interests, error: interestsError } = await supabase
       .from('user_task_interests')
       .select(`
         *,
@@ -185,14 +206,37 @@ export const taskAnnouncementService = {
           description,
           status,
           estimated_launch_date,
-          brand_profiles!inner(company_name)
+          brand_id
         )
       `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return data;
+    if (interestsError) throw interestsError;
+    if (!interests || interests.length === 0) return [];
+
+    // Get unique brand IDs from the announcements
+    const brandIds = [...new Set(interests.map(i => i.brand_task_announcements.brand_id))];
+
+    // Fetch brand profiles separately
+    const { data: brandProfiles, error: profilesError } = await supabase
+      .from('brand_profiles')
+      .select('user_id, company_name')
+      .in('user_id', brandIds);
+
+    if (profilesError) throw profilesError;
+
+    // Create a map for quick lookup
+    const profilesMap = new Map(brandProfiles?.map(p => [p.user_id, p]) || []);
+
+    // Combine the data
+    return interests.map(interest => ({
+      ...interest,
+      brand_task_announcements: {
+        ...interest.brand_task_announcements,
+        brand_profiles: profilesMap.get(interest.brand_task_announcements.brand_id) || null
+      }
+    }));
   },
 
   // Get announcement analytics for brands

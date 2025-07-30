@@ -42,20 +42,45 @@ export const UpcomingTasksTab: React.FC = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // First get the announcements
+      const { data: announcements, error: announcementsError } = await supabase
         .from('brand_task_announcements')
         .select(`
           *,
-          brand_profiles!inner(company_name, logo_url),
           user_task_interests(id, interest_level)
         `)
         .eq('status', 'published')
         .eq('is_active', true)
         .order('estimated_launch_date', { ascending: true, nullsFirst: false });
 
-      if (error) throw error;
+      if (announcementsError) throw announcementsError;
 
-      setAnnouncements((data as any) || []);
+      if (!announcements || announcements.length === 0) {
+        setAnnouncements([]);
+        return;
+      }
+
+      // Get unique brand IDs
+      const brandIds = [...new Set(announcements.map(a => a.brand_id))];
+
+      // Fetch brand profiles separately
+      const { data: brandProfiles, error: profilesError } = await supabase
+        .from('brand_profiles')
+        .select('user_id, company_name, logo_url')
+        .in('user_id', brandIds);
+
+      if (profilesError) throw profilesError;
+
+      // Create a map for quick lookup
+      const profilesMap = new Map(brandProfiles?.map(p => [p.user_id, p]) || []);
+
+      // Combine the data
+      const enrichedAnnouncements = announcements.map(announcement => ({
+        ...announcement,
+        brand_profiles: profilesMap.get(announcement.brand_id) || null
+      }));
+
+      setAnnouncements(enrichedAnnouncements as any);
     } catch (error) {
       console.error('Error fetching announcements:', error);
       toast.error('Failed to load upcoming tasks');
