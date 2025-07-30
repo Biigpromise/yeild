@@ -152,9 +152,17 @@ const ModernAuthFlow = () => {
       // Ensure proper redirect for brands
       setTimeout(() => {
         navigate(formData.userType === 'brand' ? '/brand-dashboard' : '/dashboard');
-      }, 500);
+      }, 1000);
     } else {
-      setCurrentStep('password');
+      // For signup verification, redirect to appropriate onboarding
+      toast.success("Email verified! Setting up your account...");
+      setTimeout(() => {
+        if (formData.userType === 'brand') {
+          navigate('/brand-onboarding');
+        } else {
+          navigate('/onboarding');
+        }
+      }, 1000);
     }
   };
 

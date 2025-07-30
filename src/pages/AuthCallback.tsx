@@ -73,9 +73,9 @@ const AuthCallback = () => {
             } else if (data.session.user.email === 'yeildsocials@gmail.com') {
               navigate('/admin');
             } else {
-              navigate('/dashboard');
+              navigate('/onboarding');
             }
-          }, 2000);
+          }, 1000);
         } else {
           // Try to handle the auth callback
           const { error: callbackError } = await supabase.auth.getUser();

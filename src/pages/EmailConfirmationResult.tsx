@@ -35,10 +35,17 @@ const EmailConfirmationResult = () => {
         setStatus('success');
         setMessage('Your email has been confirmed successfully!');
         
-        // Redirect to dashboard after 3 seconds
+        // Check user session and redirect appropriately
+        const { data: sessionData } = await supabase.auth.getSession();
+        const userType = sessionData?.session?.user?.user_metadata?.user_type;
+        
         setTimeout(() => {
-          navigate('/dashboard');
-        }, 3000);
+          if (userType === 'brand') {
+            navigate('/brand-dashboard');
+          } else {
+            navigate('/onboarding');
+          }
+        }, 2000);
 
       } catch (error: any) {
         setStatus('error');
