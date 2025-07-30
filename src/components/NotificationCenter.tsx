@@ -28,51 +28,11 @@ type Notification = {
   actionUrl?: string;
 };
 
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    type: "reward",
-    title: "Reward Earned!",
-    message: "You've earned 50 points for completing the survey task",
-    timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-    read: false
-  },
-  {
-    id: "2",
-    type: "achievement",
-    title: "New Achievement Unlocked!",
-    message: "Congratulations! You've unlocked the 'Early Bird' badge",
-    timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-    read: false
-  },
-  {
-    id: "3",
-    type: "referral",
-    title: "Referral Bonus",
-    message: "Your friend Alex Johnson joined using your referral link! You earned 100 bonus points",
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    read: true
-  },
-  {
-    id: "4",
-    type: "system",
-    title: "New Tasks Available",
-    message: "3 new tasks have been added. Check them out to earn more rewards!",
-    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-    read: true
-  },
-  {
-    id: "5",
-    type: "task",
-    title: "Task Deadline Reminder",
-    message: "The 'Share on Social Media' task expires in 2 hours",
-    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-    read: true
-  }
-];
+// Empty notifications - real data will come from API
+const mockNotifications: Notification[] = [];
 
 export const NotificationCenter = () => {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<NotificationType | "all">("all");
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -136,19 +96,7 @@ export const NotificationCenter = () => {
     ? notifications 
     : notifications.filter(n => n.type === filter);
 
-  // Simulate real-time notifications
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Randomly show a toast notification
-      if (Math.random() < 0.1) { // 10% chance every 30 seconds
-        const notificationTypes = ["New task available!", "Achievement unlocked!", "Referral bonus earned!"];
-        const randomNotification = notificationTypes[Math.floor(Math.random() * notificationTypes.length)];
-        toast.success(randomNotification);
-      }
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // Remove mock real-time notifications since we're removing mock data
 
   return (
     <div className="space-y-6">

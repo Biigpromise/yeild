@@ -71,7 +71,7 @@ export const ProgressStreaks: React.FC = () => {
           id: 'login',
           type: 'login',
           current: calculateLoginStreak(),
-          longest: 7, // Mock data - would track in database
+          longest: userStreaks?.find(s => s.streak_type === 'login')?.longest_streak || 0,
           icon: <Calendar className="h-5 w-5" />,
           title: 'Login Streak',
           description: 'Consecutive days logged in',
@@ -92,22 +92,24 @@ export const ProgressStreaks: React.FC = () => {
         {
           id: 'community',
           type: 'community',
-          current: 3, // Mock data - would calculate from messages
-          longest: 8,
+          current: userStreaks?.find(s => s.streak_type === 'community')?.current_streak || 0,
+          longest: userStreaks?.find(s => s.streak_type === 'community')?.longest_streak || 0,
           icon: <MessageSquare className="h-5 w-5" />,
           title: 'Community Streak',
           description: 'Daily community participation',
-          color: 'bg-purple-500'
+          color: 'bg-purple-500',
+          lastActivity: userStreaks?.find(s => s.streak_type === 'community')?.last_activity_date
         },
         {
           id: 'points',
           type: 'points',
-          current: 5, // Mock data - would calculate from point transactions
-          longest: 12,
+          current: userStreaks?.find(s => s.streak_type === 'points')?.current_streak || 0,
+          longest: userStreaks?.find(s => s.streak_type === 'points')?.longest_streak || 0,
           icon: <TrendingUp className="h-5 w-5" />,
           title: 'Earning Streak',
           description: 'Points earned daily',
-          color: 'bg-yellow-500'
+          color: 'bg-yellow-500',
+          lastActivity: userStreaks?.find(s => s.streak_type === 'points')?.last_activity_date
         }
       ];
 

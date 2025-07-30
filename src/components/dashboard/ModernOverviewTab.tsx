@@ -52,7 +52,7 @@ export const ModernOverviewTab: React.FC<ModernOverviewTabProps> = ({ userStats 
                 <span className="text-sm font-medium text-muted-foreground">Total Points</span>
               </div>
               <div className="text-2xl font-bold text-foreground">{userStats?.points?.toLocaleString() || 0}</div>
-              <div className="text-xs text-muted-foreground">+{Math.floor(Math.random() * 100)} this week</div>
+              <div className="text-xs text-muted-foreground">Keep up the great work!</div>
             </div>
 
             {/* Level Card */}
@@ -180,18 +180,9 @@ export const ModernOverviewTab: React.FC<ModernOverviewTabProps> = ({ userStats 
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/40">
-                <div className="p-2 rounded-lg bg-green-500/10">
-                  <Award className="h-4 w-4 text-green-500" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium text-sm">Task completed</div>
-                  <div className="text-xs text-muted-foreground">Earned 50 points • 2 hours ago</div>
-                </div>
-                <Badge variant="secondary">+50 pts</Badge>
-              </div>
-            ))}
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No recent activity to display</p>
+            </div>
           </div>
         </CardContent>
       </Card>
