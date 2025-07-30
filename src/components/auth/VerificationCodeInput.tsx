@@ -29,72 +29,106 @@ export const VerificationCodeInput: React.FC<VerificationCodeInputProps> = ({
 
   const handleVerifyCode = useCallback(async () => {
     if (code.length !== 6) {
-      toast.error('Please enter a complete 6-digit code');
+      setValidationError('Please enter a complete 6-digit code');
+      return;
+    }
+    
+    if (code === lastAttemptCode) {
+      setValidationError('You just tried this code. Please check your email for the correct code.');
       return;
     }
 
     setIsVerifying(true);
+    setValidationError('');
+    setLastAttemptCode(code);
+
     try {
-      const { data, error } = await supabase.functions.invoke('verify-signup-code', {
-        body: { email, code, type }
+      const response = await supabase.functions.invoke('verify-signup-code', {
+        body: { 
+          email, 
+          code, 
+          type 
+        }
       });
 
-      // Handle edge function errors
-      if (error) {
-        console.error('Edge function error:', error);
-        setLastAttemptCode(code);
+      console.log('Verification response:', response);
+
+      // Handle function invocation errors
+      if (response.error) {
+        console.error('Function invocation error:', response.error);
         
-        if (error.message.includes('not found or expired')) {
-          setValidationError('Code expired or invalid');
-          toast.error('Verification code has expired or is invalid. Please request a new code.');
-        } else if (error.message.includes('attempt limit')) {
-          setValidationError('Too many attempts');
-          toast.error('Too many attempts. Please request a new verification code.');
-        } else {
-          setValidationError('Verification failed');
-          toast.error('Failed to verify code. Please try again or request a new code.');
+        // Try to extract meaningful error from the response
+        let errorMessage = 'Verification failed. Please try again.';
+        
+        if (response.error.message) {
+          const message = response.error.message;
+          if (message.includes('Edge Function returned a non-2xx status code')) {
+            errorMessage = 'Invalid or expired verification code. Please request a new one.';
+          } else {
+            errorMessage = message;
+          }
         }
+        
+        toast.error(errorMessage);
+        setValidationError(errorMessage);
         return;
       }
 
-      // Handle successful response
+      const { data } = response;
+      
       if (data?.success) {
-        toast.success('Code verified successfully!');
+        // Handle already verified codes that return success
+        if (data.alreadyVerified) {
+          toast.success('Already verified! Signing you in...');
+        } else {
+          toast.success(data.message || 'Code verified successfully!');
+        }
         
-        // For signin with magic link
-        if (type === 'signin' && data.magicLink) {
-          window.location.href = data.magicLink;
+        // Handle magic link for signin
+        if (data.magicLink && type === 'signin') {
+          try {
+            setTimeout(() => {
+              window.location.href = data.magicLink;
+            }, 1000);
+          } catch (linkError) {
+            console.error('Magic link redirect failed:', linkError);
+            // Fallback: call onVerified to continue with normal flow
+            onVerified(data.token);
+          }
           return;
         }
         
         onVerified(data.token);
       } else {
-        // Handle API errors with specific messages
-        setLastAttemptCode(code);
-        const errorMessage = data?.error || 'Invalid verification code';
+        // Handle API errors with specific messaging
+        const errorMessage = data?.error || 'Unknown error occurred';
         
         if (errorMessage.includes('expired')) {
-          setValidationError('Code expired');
-          toast.error('Verification code has expired. Please request a new code.');
-        } else if (errorMessage.includes('attempt')) {
-          setValidationError('Too many attempts');
-          toast.error('Too many failed attempts. Please request a new verification code.');
+          toast.error('Verification code has expired. Please request a new one.');
+        } else if (errorMessage.includes('invalid') || errorMessage.includes('Invalid')) {
+          toast.error('Invalid verification code. Please check and try again.');
+        } else if (errorMessage.includes('too many attempts')) {
+          toast.error('Too many attempts. Please request a new verification code.');
+        } else if (errorMessage.includes('already been used') || errorMessage.includes('already used')) {
+          toast.error('This code has already been used. Please request a new one.');
+        } else if (errorMessage.includes('not found')) {
+          toast.error('Verification code not found. Please request a new one.');
         } else {
-          setValidationError('Invalid code');
           toast.error(errorMessage);
         }
+        
+        setValidationError(errorMessage);
       }
     } catch (error: any) {
       console.error('Verification error:', error);
-      setLastAttemptCode(code);
       
-      // More specific error handling
-      if (error.message.includes('fetch')) {
-        setValidationError('Network error');
+      // Handle network and other errors
+      if (error.message?.includes('fetch') || error.message?.includes('network')) {
         toast.error('Network error. Please check your connection and try again.');
+        setValidationError('Network error occurred');
       } else {
-        setValidationError('Verification failed');
         toast.error('An unexpected error occurred. Please try again.');
+        setValidationError('An unexpected error occurred');
       }
     } finally {
       setIsVerifying(false);

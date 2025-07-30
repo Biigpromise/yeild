@@ -39,47 +39,114 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Verifying code for email:', email, 'type:', type);
 
-    // Find the verification code
-    const { data: verificationCode, error: findError } = await supabase
+    // Find the verification code - first check if it exists
+    const { data: existingCode, error: existingError } = await supabase
       .from('email_verification_codes')
       .select('*')
       .eq('email', email)
       .eq('verification_code', code)
-      .is('used_at', null)
-      .is('verified_at', null)
-      .gt('expires_at', new Date().toISOString())
       .maybeSingle();
 
-    if (findError || !verificationCode) {
-      console.log('Verification code not found or expired');
-      
-      // Get current attempt count and increment it
-      const { data: currentCode } = await supabase
-        .from('email_verification_codes')
-        .select('attempt_count')
-        .eq('email', email)
-        .eq('verification_code', code)
-        .maybeSingle();
-        
-      if (currentCode) {
-        await supabase
-          .from('email_verification_codes')
-          .update({ 
-            attempt_count: (currentCode.attempt_count || 0) + 1,
-            updated_at: new Date().toISOString()
-          })
-          .eq('email', email)
-          .eq('verification_code', code);
-      }
-
+    if (existingError) {
+      console.error('Database error:', existingError);
       return new Response(
-        JSON.stringify({ error: 'Invalid or expired verification code' }),
+        JSON.stringify({ error: 'Database error occurred' }),
+        { 
+          status: 500, 
+          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        }
+      );
+    }
+
+    if (!existingCode) {
+      console.log('Verification code not found');
+      return new Response(
+        JSON.stringify({ error: 'Invalid verification code' }),
         { 
           status: 400, 
           headers: { 'Content-Type': 'application/json', ...corsHeaders } 
         }
       );
     }
+
+    // Check if already verified
+    if (existingCode.verified_at) {
+      console.log('Code already verified, checking for existing magic link');
+      
+      // For signin, if already verified, generate a new magic link
+      if (type === 'signin') {
+        try {
+          const { data: magicLink, error: linkError } = await supabase.auth.admin.generateLink({
+            type: 'magiclink',
+            email: email,
+            options: {
+              redirectTo: `${Deno.env.get('SITE_URL') || 'http://localhost:5173'}/`
+            }
+          });
+
+          if (!linkError && magicLink) {
+            return new Response(
+              JSON.stringify({ 
+                success: true, 
+                token: existingCode.token,
+                magicLink: magicLink.properties?.action_link,
+                message: 'Code already verified, signing you in...',
+                alreadyVerified: true
+              }),
+              { 
+                status: 200, 
+                headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+              }
+            );
+          }
+        } catch (linkError) {
+          console.error('Error generating new magic link:', linkError);
+        }
+      }
+      
+      return new Response(
+        JSON.stringify({ error: 'This verification code has already been used. Please request a new one.' }),
+        { 
+          status: 400, 
+          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        }
+      );
+    }
+
+    // Check if expired
+    if (new Date(existingCode.expires_at) < new Date()) {
+      console.log('Verification code expired');
+      return new Response(
+        JSON.stringify({ error: 'Verification code has expired. Please request a new one.' }),
+        { 
+          status: 400, 
+          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        }
+      );
+    }
+
+    // Check if used
+    if (existingCode.used_at) {
+      console.log('Verification code already used');
+      return new Response(
+        JSON.stringify({ error: 'This verification code has already been used. Please request a new one.' }),
+        { 
+          status: 400, 
+          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        }
+      );
+    }
+
+    // Increment attempt count
+    await supabase
+      .from('email_verification_codes')
+      .update({ 
+        attempt_count: (existingCode.attempt_count || 0) + 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', existingCode.id);
+
+    const verificationCode = existingCode;
 
     // Check attempt limit
     if (verificationCode.attempt_count >= 5) {
