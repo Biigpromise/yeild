@@ -25,6 +25,7 @@ interface ProfileHeaderProps {
   onAvatarUpload?: () => void;
   onRemoveAvatar?: () => void;
   onFileSelect?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onAvatarClick?: () => void;
   // New editing props
   isEditing?: boolean;
   onEditClick?: () => void;
@@ -39,6 +40,7 @@ export const ProfileHeader = ({
   onAvatarUpload = () => {},
   onRemoveAvatar = () => {},
   onFileSelect = () => {},
+  onAvatarClick = () => {},
   isEditing = false,
   onEditClick = () => {},
   onSave = () => {},
@@ -88,6 +90,7 @@ export const ProfileHeader = ({
             onAvatarUpload={onAvatarUpload}
             onRemoveAvatar={onRemoveAvatar}
             onFileSelect={onFileSelect}
+            onAvatarClick={onAvatarClick}
           />
           
           <div className="flex-1 space-y-3">

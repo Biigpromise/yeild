@@ -119,6 +119,7 @@ export default function Dashboard() {
             onSignOut={handleSignOut}
             isCollapsed={sidebarState === 'collapsed'}
             onToggleCollapse={handleToggleSidebar}
+            onProfileClick={() => setIsProfileModalOpen(true)}
           />
         </div>
       )}

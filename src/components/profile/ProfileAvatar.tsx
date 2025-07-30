@@ -15,6 +15,7 @@ interface ProfileAvatarProps {
   onAvatarUpload: () => void;
   onRemoveAvatar: () => void;
   onFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onAvatarClick?: () => void;
 }
 
 export const ProfileAvatar = ({ 
@@ -22,7 +23,8 @@ export const ProfileAvatar = ({
   isUploadingAvatar, 
   onAvatarUpload, 
   onRemoveAvatar, 
-  onFileSelect 
+  onFileSelect,
+  onAvatarClick
 }: ProfileAvatarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -41,7 +43,10 @@ export const ProfileAvatar = ({
       />
       
       <div className="relative">
-        <Avatar className="h-24 w-24 border-2 border-gray-600">
+        <Avatar 
+          className="h-24 w-24 border-2 border-gray-600 cursor-pointer hover:border-primary transition-colors"
+          onClick={onAvatarClick}
+        >
           <AvatarImage src={user.avatar} alt={user.name} />
           <AvatarFallback className="text-2xl bg-gray-700 text-white">
             {user.name.charAt(0).toUpperCase()}

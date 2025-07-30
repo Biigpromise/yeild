@@ -28,6 +28,7 @@ interface ModernDashboardSidebarProps {
   onSignOut: () => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  onProfileClick?: () => void;
 }
 
 export const ModernDashboardSidebar: React.FC<ModernDashboardSidebarProps> = ({
@@ -38,7 +39,8 @@ export const ModernDashboardSidebar: React.FC<ModernDashboardSidebarProps> = ({
   unreadCount,
   onSignOut,
   isCollapsed,
-  onToggleCollapse
+  onToggleCollapse,
+  onProfileClick
 }) => {
   const { user } = useAuth();
 
@@ -117,9 +119,11 @@ export const ModernDashboardSidebar: React.FC<ModernDashboardSidebarProps> = ({
 
         {/* User Profile */}
         <div className={cn(
-          "flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20",
+          "flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 cursor-pointer hover:bg-gradient-to-r hover:from-primary/15 hover:to-primary/10 transition-all duration-200",
           isCollapsed && "justify-center p-2"
-        )}>
+        )}
+        onClick={onProfileClick}
+        >
           <Avatar className="h-10 w-10 border-2 border-primary/20">
             <AvatarImage 
               src={userProfile?.profile_picture_url || user?.user_metadata?.avatar_url} 
