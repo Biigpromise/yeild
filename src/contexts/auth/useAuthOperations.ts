@@ -119,6 +119,12 @@ export const useAuthOperations = () => {
         throw new Error(error.message || 'Failed to send password reset email');
       }
 
+      // Check if the response indicates failure
+      if (data && !data.success) {
+        console.error('Password reset failed:', data.error);
+        throw new Error(data.error || 'Failed to send password reset email');
+      }
+
       console.log('Password reset email sent successfully');
       return { error: null };
     } catch (error: any) {

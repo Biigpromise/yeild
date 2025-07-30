@@ -40,17 +40,32 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: resetCode } = await supabaseAdmin.rpc('generate_reset_code');
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
 
-    // Get user ID from email
-    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.listUsers();
-    if (userError) {
-      console.error('Error fetching users:', userError);
-      throw userError;
+    // Check if user exists by querying profiles table
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .single();
+
+    if (profileError || !profile) {
+      console.log('User not found in profiles:', email);
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'No account found with this email address. Please check your email or sign up for a new account.',
+          code: 'USER_NOT_FOUND'
+        }),
+        {
+          status: 404,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        }
+      );
     }
 
-    const user = userData.users.find(u => u.email === email);
-    if (!user) {
-      throw new Error('User not found');
-    }
+    const user = { id: profile.id };
 
     // Store the reset token and code in database
     const { error: tokenError } = await supabaseAdmin
