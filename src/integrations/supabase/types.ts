@@ -1004,6 +1004,45 @@ export type Database = {
         }
         Relationships: []
       }
+      email_verification_codes: {
+        Row: {
+          attempt_count: number | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          token: string
+          updated_at: string
+          used_at: string | null
+          verification_code: string
+          verified_at: string | null
+        }
+        Insert: {
+          attempt_count?: number | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          token: string
+          updated_at?: string
+          used_at?: string | null
+          verification_code: string
+          verified_at?: string | null
+        }
+        Update: {
+          attempt_count?: number | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          updated_at?: string
+          used_at?: string | null
+          verification_code?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       faqs: {
         Row: {
           answer: string
@@ -3267,6 +3306,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_expired_verification_codes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       credit_user_account: {
         Args: { user_id: string; amount: number; reference: string }
         Returns: undefined
@@ -3276,6 +3319,10 @@ export type Database = {
         Returns: string
       }
       generate_reset_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_verification_code: {
         Args: Record<PropertyKey, never>
         Returns: string
       }

@@ -63,3 +63,12 @@ verify_jwt = true
 
 [functions.email-service]
 verify_jwt = false
+
+[functions.verify-reset-code]
+verify_jwt = false
+
+[functions.send-verification-code]
+verify_jwt = false
+
+[functions.verify-signup-code]
+verify_jwt = false

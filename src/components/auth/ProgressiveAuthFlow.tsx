@@ -10,14 +10,17 @@ import { toast } from 'sonner';
 import { InputValidator } from '@/services/validation/inputValidator';
 import { handleAuthError } from '@/contexts/auth/authErrorHandler';
 import { ForgotPasswordLink } from './ForgotPasswordLink';
+import { VerificationCodeInput } from './VerificationCodeInput';
+import { supabase } from '@/integrations/supabase/client';
 
-type StepType = 'userType' | 'email' | 'password' | 'name' | 'complete';
+type StepType = 'userType' | 'email' | 'password' | 'name' | 'verification' | 'complete';
 
 interface FormData {
   email: string;
   password: string;
   name: string;
   userType: 'user' | 'brand' | '';
+  verificationToken?: string;
 }
 
 const ProgressiveAuthFlow = () => {
@@ -83,7 +86,7 @@ const ProgressiveAuthFlow = () => {
   }, [user, loading, navigate]);
 
   const getStepProgress = () => {
-    const steps = isLogin ? ['userType', 'email', 'password'] : ['userType', 'email', 'password', 'name'];
+    const steps = isLogin ? ['userType', 'email', 'verification'] : ['userType', 'email', 'verification', 'password', 'name'];
     const currentIndex = steps.indexOf(currentStep);
     return ((currentIndex + 1) / steps.length) * 100;
   };
@@ -96,7 +99,7 @@ const ProgressiveAuthFlow = () => {
   const handleNext = async () => {
     if (currentStep === 'email') {
       if (!InputValidator.email(formData.email)) return;
-      setCurrentStep('password');
+      await sendVerificationCode();
     } else if (currentStep === 'password') {
       if (!InputValidator.password(formData.password)) return;
       if (isLogin) {
@@ -110,13 +113,54 @@ const ProgressiveAuthFlow = () => {
     }
   };
 
+  const sendVerificationCode = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-verification-code', {
+        body: { 
+          email: formData.email, 
+          type: isLogin ? 'signin' : 'signup' 
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        setFormData(prev => ({ ...prev, verificationToken: data.token }));
+        setCurrentStep('verification');
+        toast.success('Verification code sent to your email!');
+      } else {
+        toast.error(data.error || 'Failed to send verification code');
+      }
+    } catch (error: any) {
+      console.error('Send code error:', error);
+      toast.error(error.message || 'Failed to send verification code');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleBack = () => {
     if (currentStep === 'email') {
       // In login mode, go back to userType which will show signin interface
       setCurrentStep('userType');
-    } else if (currentStep === 'password') {
+    } else if (currentStep === 'verification') {
       setCurrentStep('email');
+    } else if (currentStep === 'password') {
+      setCurrentStep('verification');
     } else if (currentStep === 'name') {
+      setCurrentStep('password');
+    }
+  };
+
+  const handleVerificationComplete = (token: string) => {
+    setFormData(prev => ({ ...prev, verificationToken: token }));
+    if (isLogin) {
+      // For sign in, verification completes the process
+      toast.success("Successfully signed in!");
+      navigate(formData.userType === 'brand' ? '/brand-dashboard' : '/dashboard');
+    } else {
+      // For sign up, continue to password step
       setCurrentStep('password');
     }
   };
@@ -444,6 +488,17 @@ const ProgressiveAuthFlow = () => {
                   )}
                 </div>
               </motion.div>
+            )}
+
+            {/* Verification Step */}
+            {currentStep === 'verification' && (
+              <VerificationCodeInput
+                email={formData.email}
+                type={isLogin ? 'signin' : 'signup'}
+                onVerified={handleVerificationComplete}
+                onBack={handleBack}
+                onResend={sendVerificationCode}
+              />
             )}
 
             {/* Password Step */}
