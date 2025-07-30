@@ -15,18 +15,18 @@ interface BirdLevel {
   emoji: string;
   minReferrals: number;
   minPoints: number;
-  earningRate: number;
+  pointsPerTask: number;
   description: string;
   color: string;
 }
 
 const birdLevels: BirdLevel[] = [
-  { name: 'Dove', emoji: '🕊️', minReferrals: 0, minPoints: 0, earningRate: 10, description: 'Starting your journey', color: '#94A3B8' },
-  { name: 'Sparrow', emoji: '🐦', minReferrals: 5, minPoints: 0, earningRate: 15, description: 'Building momentum', color: '#A78BFA' },
-  { name: 'Hawk', emoji: 'hawk', minReferrals: 20, minPoints: 0, earningRate: 20, description: 'Sharp focus and strategic growth', color: '#8B4513' },
-  { name: 'Eagle', emoji: 'eagle', minReferrals: 50, minPoints: 0, earningRate: 25, description: 'Soaring high with impressive achievements', color: '#DAA520' },
-  { name: 'Falcon', emoji: 'falcon', minReferrals: 100, minPoints: 0, earningRate: 30, description: 'Lightning-fast growth and precision', color: '#4682B4' },
-  { name: 'Phoenix', emoji: 'phoenix', minReferrals: 1000, minPoints: 0, earningRate: 35, description: 'Legendary status - risen from the ashes', color: '#FF4500' },
+  { name: 'Dove', emoji: '🕊️', minReferrals: 0, minPoints: 0, pointsPerTask: 50, description: 'Starting your journey', color: '#94A3B8' },
+  { name: 'Sparrow', emoji: '🐦', minReferrals: 5, minPoints: 0, pointsPerTask: 75, description: 'Building momentum', color: '#A78BFA' },
+  { name: 'Hawk', emoji: 'hawk', minReferrals: 20, minPoints: 0, pointsPerTask: 125, description: 'Sharp focus and strategic growth', color: '#8B4513' },
+  { name: 'Eagle', emoji: 'eagle', minReferrals: 50, minPoints: 0, pointsPerTask: 175, description: 'Soaring high with impressive achievements', color: '#DAA520' },
+  { name: 'Falcon', emoji: 'falcon', minReferrals: 100, minPoints: 0, pointsPerTask: 225, description: 'Lightning-fast growth and precision', color: '#4682B4' },
+  { name: 'Phoenix', emoji: 'phoenix', minReferrals: 500, minPoints: 0, pointsPerTask: 300, description: 'Legendary status - risen from the ashes', color: '#FF4500' },
 ];
 
 interface BirdProgressionOnboardingProps {
@@ -79,7 +79,7 @@ export const BirdProgressionOnboarding: React.FC<BirdProgressionOnboardingProps>
                 </div>
                 <div className="text-right">
                   <Badge className="text-white" style={{ backgroundColor: level.color }}>
-                    ${level.earningRate}/task
+                    {level.pointsPerTask} pts/task
                   </Badge>
                 </div>
               </div>
@@ -103,8 +103,8 @@ export const BirdProgressionOnboarding: React.FC<BirdProgressionOnboardingProps>
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-yeild-yellow" />
                   <div>
-                    <p className="text-sm text-gray-400">Earning Rate</p>
-                    <p className="text-white font-semibold">${level.earningRate} per task</p>
+                    <p className="text-sm text-gray-400">Points Per Task</p>
+                    <p className="text-white font-semibold">{level.pointsPerTask} points</p>
                   </div>
                 </div>
               </div>
@@ -116,7 +116,7 @@ export const BirdProgressionOnboarding: React.FC<BirdProgressionOnboardingProps>
                     <span className="text-white font-semibold">Phoenix Benefits</span>
                   </div>
                   <ul className="text-sm text-gray-300 space-y-1">
-                    <li>• Highest earning rate: $35 per task</li>
+                    <li>• Highest earning rate: 300 points per task</li>
                     <li>• Exclusive Phoenix rewards and badges</li>
                     <li>• Priority support and early access</li>
                     <li>• Special recognition on leaderboards</li>

@@ -18,7 +18,8 @@ interface BirdLevel {
   min_points: number;
   description: string;
   color: string;
-  earningRate: number;
+  pointsPerTask?: number;
+  earningRate?: number;
 }
 
 interface BirdProgressionModalProps {
@@ -33,12 +34,12 @@ interface BirdProgressionModalProps {
 }
 
 const allBirdLevels: BirdLevel[] = [
-  { id: 1, name: 'Dove', emoji: '🕊️', min_referrals: 0, min_points: 0, description: 'New to the YIELD community', color: '#94A3B8', earningRate: 10 },
-  { id: 2, name: 'Sparrow', emoji: '🐦', min_referrals: 5, min_points: 0, description: 'Getting started with referrals', color: '#A78BFA', earningRate: 15 },
-  { id: 3, name: 'Hawk', emoji: 'hawk', min_referrals: 20, min_points: 0, description: 'Sharp focus and strategic growth', color: '#8B4513', earningRate: 20 },
-  { id: 4, name: 'Eagle', emoji: 'eagle', min_referrals: 50, min_points: 0, description: 'Soaring high with impressive achievements', color: '#DAA520', earningRate: 25 },
-  { id: 5, name: 'Falcon', emoji: 'falcon', min_referrals: 100, min_points: 0, description: 'Lightning-fast growth and precision', color: '#4682B4', earningRate: 30 },
-  { id: 6, name: 'Phoenix', emoji: 'phoenix', min_referrals: 1000, min_points: 0, description: 'Legendary status - risen from the ashes', color: '#FF4500', earningRate: 35 },
+  { id: 1, name: 'Dove', emoji: '🕊️', min_referrals: 0, min_points: 0, description: 'New to the YIELD community', color: '#94A3B8', pointsPerTask: 50 },
+  { id: 2, name: 'Sparrow', emoji: '🐦', min_referrals: 5, min_points: 0, description: 'Getting started with referrals', color: '#A78BFA', pointsPerTask: 75 },
+  { id: 3, name: 'Hawk', emoji: 'hawk', min_referrals: 20, min_points: 0, description: 'Sharp focus and strategic growth', color: '#8B4513', pointsPerTask: 125 },
+  { id: 4, name: 'Eagle', emoji: 'eagle', min_referrals: 50, min_points: 0, description: 'Soaring high with impressive achievements', color: '#DAA520', pointsPerTask: 175 },
+  { id: 5, name: 'Falcon', emoji: 'falcon', min_referrals: 100, min_points: 0, description: 'Lightning-fast growth and precision', color: '#4682B4', pointsPerTask: 225 },
+  { id: 6, name: 'Phoenix', emoji: 'phoenix', min_referrals: 500, min_points: 0, description: 'Legendary status - risen from the ashes', color: '#FF4500', pointsPerTask: 300 },
 ];
 
 export const BirdProgressionModal: React.FC<BirdProgressionModalProps> = ({
@@ -178,7 +179,7 @@ export const BirdProgressionModal: React.FC<BirdProgressionModalProps> = ({
                       )}
                       <div className="flex items-center gap-1">
                         <DollarSign className="h-3 w-3 text-yeild-yellow" />
-                        <span className="font-semibold">${bird.earningRate}/task</span>
+                        <span className="font-semibold">{bird.pointsPerTask || (bird.earningRate ? bird.earningRate * 10 : 50)} pts/task</span>
                       </div>
                     </div>
 
