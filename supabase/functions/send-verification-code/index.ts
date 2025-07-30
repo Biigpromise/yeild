@@ -2,8 +2,6 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -21,6 +19,33 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Validate environment variables first
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing required environment variables');
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { 
+          status: 500, 
+          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        }
+      );
+    }
+
+    if (!resendApiKey) {
+      console.error('Missing RESEND_API_KEY environment variable');
+      return new Response(
+        JSON.stringify({ error: 'Email service configuration error' }),
+        { 
+          status: 500, 
+          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        }
+      );
+    }
+
     const { email, type }: SendCodeRequest = await req.json();
 
     if (!email || !type) {
@@ -33,20 +58,41 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid email format' }),
+        { 
+          status: 400, 
+          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        }
+      );
+    }
+
     // Initialize Supabase client with service role key
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     console.log('Sending verification code for email:', email, 'type:', type);
 
-    // Check if user exists for signin - check in auth.users table
+    // Check if user exists for signin - use efficient getUserByEmail
     if (type === 'signin') {
-      const { data: existingUser, error: checkError } = await supabase.auth.admin.listUsers();
+      console.log('Checking if user exists for signin:', email);
+      const { data: existingUser, error: checkError } = await supabase.auth.admin.getUserByEmail(email);
       
       if (checkError) {
         console.error('Error checking existing user for signin:', checkError);
+        // If user not found, treat as user doesn't exist (not a server error)
+        if (checkError.message?.includes('User not found')) {
+          return new Response(
+            JSON.stringify({ error: 'No account found with this email address' }),
+            { 
+              status: 400, 
+              headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+            }
+          );
+        }
+        // Other errors are server errors
         return new Response(
           JSON.stringify({ error: 'Failed to verify email address' }),
           { 
@@ -56,59 +102,76 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
       
-      const userExists = existingUser.users.some(user => user.email === email);
-        
-      if (!userExists) {
+      if (!existingUser.user) {
+        console.log('User not found for signin:', email);
         return new Response(
           JSON.stringify({ error: 'No account found with this email address' }),
           { 
-            status: 404, 
+            status: 400, 
             headers: { 'Content-Type': 'application/json', ...corsHeaders } 
           }
         );
       }
+      
+      console.log('User found for signin:', existingUser.user.id);
     }
 
-    // Check if user already exists for signup - check in auth.users table  
+    // Check if user already exists for signup - use efficient getUserByEmail  
     if (type === 'signup') {
-      const { data: existingUser, error: checkError } = await supabase.auth.admin.listUsers();
+      console.log('Checking if user already exists for signup:', email);
+      const { data: existingUser, error: checkError } = await supabase.auth.admin.getUserByEmail(email);
       
+      // For signup, user NOT existing is the expected case
       if (checkError) {
-        console.error('Error checking existing user for signup:', checkError);
-        return new Response(
-          JSON.stringify({ error: 'Failed to verify email address' }),
-          { 
-            status: 500, 
-            headers: { 'Content-Type': 'application/json', ...corsHeaders } 
-          }
-        );
-      }
-      
-      const userExists = existingUser.users.some(user => user.email === email);
-        
-      if (userExists) {
+        if (checkError.message?.includes('User not found')) {
+          // This is expected for signup - user should not exist
+          console.log('User does not exist - good for signup:', email);
+        } else {
+          // Other errors are server errors
+          console.error('Error checking existing user for signup:', checkError);
+          return new Response(
+            JSON.stringify({ error: 'Failed to verify email address' }),
+            { 
+              status: 500, 
+              headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+            }
+          );
+        }
+      } else if (existingUser.user) {
+        // User already exists
+        console.log('User already exists for signup:', email);
         return new Response(
           JSON.stringify({ error: 'An account with this email already exists' }),
           { 
-            status: 409, 
+            status: 400, 
             headers: { 'Content-Type': 'application/json', ...corsHeaders } 
           }
         );
       }
     }
 
-    // Clean up expired codes first
-    await supabase.rpc('cleanup_expired_verification_codes');
+    // Clean up expired codes first (with error handling)
+    try {
+      await supabase.rpc('cleanup_expired_verification_codes');
+      console.log('Successfully cleaned up expired verification codes');
+    } catch (cleanupError) {
+      console.warn('Failed to cleanup expired codes, continuing:', cleanupError);
+      // Continue execution - this is not critical
+    }
 
     // Check for recent code (rate limiting)
-    const { data: recentCode } = await supabase
+    const { data: recentCode, error: rateLimitError } = await supabase
       .from('email_verification_codes')
       .select('created_at')
       .eq('email', email)
       .gte('created_at', new Date(Date.now() - 60000).toISOString()) // 1 minute
       .maybeSingle();
 
-    if (recentCode) {
+    if (rateLimitError) {
+      console.error('Error checking rate limit:', rateLimitError);
+      // Continue without rate limiting check if database error occurs
+    } else if (recentCode) {
+      console.log('Rate limit triggered for email:', email);
       return new Response(
         JSON.stringify({ error: 'Please wait before requesting another code' }),
         { 
@@ -118,9 +181,22 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Generate verification code and token
-    const { data: codeResult } = await supabase.rpc('generate_verification_code');
-    const code = codeResult;
+    // Generate verification code and token with fallback
+    let code: string;
+    try {
+      const { data: codeResult, error: codeError } = await supabase.rpc('generate_verification_code');
+      if (codeError) {
+        throw new Error(`Database code generation failed: ${codeError.message}`);
+      }
+      code = codeResult;
+      console.log('Generated verification code using database function');
+    } catch (codeGenError) {
+      console.warn('Database code generation failed, using fallback:', codeGenError);
+      // Fallback: generate code locally
+      code = Math.floor(100000 + Math.random() * 900000).toString();
+      console.log('Generated verification code using fallback method');
+    }
+    
     const token = crypto.randomUUID();
 
     // Store verification code
@@ -144,11 +220,14 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Initialize Resend with validated API key
+    const resend = new Resend(resendApiKey);
+    
     // Send email with verification code
     const subject = type === 'signup' ? 'Your Sign Up Verification Code' : 'Your Sign In Verification Code';
     const action = type === 'signup' ? 'complete your registration' : 'sign in to your account';
     
-    // Send email with verification code
+    console.log('Attempting to send email via Resend...');
     const { data: emailResult, error: emailError } = await resend.emails.send({
       from: "Yeildsocials <noreply@yeildsocials.com>",
       to: [email],
