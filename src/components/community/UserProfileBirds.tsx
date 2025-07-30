@@ -28,10 +28,12 @@ export const UserProfileBirds: React.FC<UserProfileBirdsProps> = ({
     birdIcon: birdLevel.icon
   });
 
-  const getBirdEmoji = (iconName: string) => {
-    switch (iconName) {
+  const getBirdEmoji = (levelName: string) => {
+    switch (levelName.toLowerCase()) {
       case 'dove':
         return '🕊️';
+      case 'sparrow':
+        return '🐦';
       case 'hawk':
         return '🦅';
       case 'eagle':
@@ -45,7 +47,7 @@ export const UserProfileBirds: React.FC<UserProfileBirdsProps> = ({
     }
   };
 
-  const birdEmoji = getBirdEmoji(birdLevel.icon);
+  const birdEmoji = getBirdEmoji(birdLevel.name);
   const birdCount = Math.floor(tasksCompleted / 5) + 1; // 1 bird per 5 tasks completed
 
   if (compact) {

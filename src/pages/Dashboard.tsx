@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useTour } from "@/hooks/useTour";
 import { toast } from "sonner";
 import { EmailConfirmationBanner } from "@/components/EmailConfirmationBanner";
 import { StatsDashboard } from "@/components/StatsDashboard";
@@ -14,6 +15,7 @@ import { ReferralsTab } from "@/components/dashboard/ReferralsTab";
 import { ProfileEditModal } from "@/components/dashboard/ProfileEditModal";
 import { ModernDashboardSidebar } from "@/components/dashboard/ModernDashboardSidebar";
 import { ModernDashboardHeader } from "@/components/dashboard/ModernDashboardHeader";
+import { WelcomeTour } from "@/components/tour/WelcomeTour";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -26,6 +28,7 @@ export default function Dashboard() {
   const [sidebarState, setSidebarState] = useState<'hidden' | 'collapsed' | 'expanded'>('expanded');
   const { userProfile, userStats, loading, error, loadUserData } = useDashboard();
   const [unreadCount, setUnreadCount] = useState(0);
+  const { shouldShowTour, completeTour } = useTour();
 
   const handleSignOut = async () => {
     try {
@@ -166,6 +169,13 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+      
+      {/* Welcome Tour */}
+      <WelcomeTour
+        isOpen={shouldShowTour}
+        onComplete={completeTour}
+        onSkip={completeTour}
+      />
       
       {/* Profile Modal */}
       <ProfileEditModal

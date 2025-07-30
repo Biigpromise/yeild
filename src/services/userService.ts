@@ -90,7 +90,7 @@ export const BIRD_LEVELS: ReferralBirdLevel[] = [
     color: '#64748b',
     min_referrals: 0,
     min_points: 0,
-    description: 'Welcome to the nest! Start your journey.',
+    description: 'Starting your journey - Welcome to the family!',
     benefits: ['50 points per task completed']
   },
   {
@@ -99,8 +99,8 @@ export const BIRD_LEVELS: ReferralBirdLevel[] = [
     icon: '🐦',
     color: '#22c55e',
     min_referrals: 5,
-    min_points: 0,
-    description: 'Taking your first flights!',
+    min_points: 100,
+    description: 'Building connections - You are growing your network!',
     benefits: ['75 points per task completed', 'Priority support']
   },
   {
@@ -109,8 +109,8 @@ export const BIRD_LEVELS: ReferralBirdLevel[] = [
     icon: '🦅',
     color: '#eab308',
     min_referrals: 20,
-    min_points: 0,
-    description: 'Rising higher with growing influence!',
+    min_points: 500,
+    description: 'Sharp focus and precision - You are mastering the art of networking!',
     benefits: ['125 points per task completed', 'Enhanced rewards']
   },
   {
@@ -119,18 +119,18 @@ export const BIRD_LEVELS: ReferralBirdLevel[] = [
     icon: '🦅',
     color: '#ef4444',
     min_referrals: 50,
-    min_points: 0,
-    description: 'Soaring high with impressive referrals!',
+    min_points: 1500,
+    description: 'Soaring high with leadership - You command respect in your network!',
     benefits: ['175 points per task completed', 'Exclusive challenges', 'Priority review']
   },
   {
     id: 5,
     name: 'Falcon',
-    icon: '🐦‍🔥',
+    icon: '🦅',
     color: '#a855f7',
     min_referrals: 100,
-    min_points: 0,
-    description: 'Elite referrer with exceptional reach!',
+    min_points: 5000,
+    description: 'Speed and excellence - You are at the peak of performance!',
     benefits: ['225 points per task completed', 'VIP support', 'Special recognition']
   },
   {
@@ -138,9 +138,9 @@ export const BIRD_LEVELS: ReferralBirdLevel[] = [
     name: 'Phoenix',
     icon: '🔥',
     color: '#ec4899',
-    min_referrals: 500,
-    min_points: 0,
-    description: 'Legendary status achieved!',
+    min_referrals: 1000,
+    min_points: 50000,
+    description: 'Legendary status - Rising from the ashes stronger than ever!',
     benefits: ['300 points per task completed', 'Maximum rewards', 'VIP status', 'Early access']
   }
 ];

@@ -59,36 +59,41 @@ export const ModernDashboardSidebar: React.FC<ModernDashboardSidebarProps> = ({
       id: 'tasks',
       label: 'Tasks',
       icon: Target,
-      description: 'Available Tasks',
-      route: '/tasks'
+      description: 'Tasks & Opportunities',
+      route: '/tasks',
+      tourId: 'tasks-nav'
     },
     {
       id: 'social',
       label: 'Social',
       icon: Heart,
-      description: 'Community & Feed',
-      route: '/social'
+      description: 'Community & Posts',
+      route: '/social',
+      tourId: 'social-nav'
     },
     {
       id: 'wallet',
       label: 'Wallet',
       icon: Wallet,
-      description: 'Points & Earnings',
-      route: '/wallet'
+      description: 'Earnings & Payments',
+      route: '/wallet',
+      tourId: 'wallet-nav'
     },
     {
       id: 'referral',
       label: 'Referrals',
       icon: Gift,
       description: 'Invite Friends',
-      route: '/referrals'
+      route: '/referrals',
+      tourId: 'referrals-nav'
     },
     {
       id: 'birds',
       label: 'Birds',
       icon: Crown,
-      description: 'Badge System',
-      route: '/birds'
+      description: 'Level Progress',
+      route: '/birds',
+      tourId: 'birds-nav'
     }
   ];
 
@@ -206,6 +211,7 @@ export const ModernDashboardSidebar: React.FC<ModernDashboardSidebarProps> = ({
                     : "hover:bg-muted/60 text-muted-foreground hover:text-foreground",
                   isCollapsed && "justify-center"
                 )}
+                data-tour={item.tourId}
               >
                 <Icon className={cn("h-5 w-5", isActive && "text-primary-foreground")} />
                 {!isCollapsed && (

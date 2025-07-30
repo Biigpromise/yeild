@@ -3196,6 +3196,36 @@ export type Database = {
           },
         ]
       }
+      user_tours: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          tour_completed: boolean | null
+          tour_step: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          tour_completed?: boolean | null
+          tour_step?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          tour_completed?: boolean | null
+          tour_step?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       withdrawal_requests: {
         Row: {
           admin_notes: string | null
