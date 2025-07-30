@@ -3,7 +3,7 @@ import React from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -38,6 +38,7 @@ const AppContent = () => {
   const { showOnboarding, userType, completeOnboarding } = useOnboarding();
   const { isMaintenanceMode, loading: maintenanceLoading } = useMaintenanceMode();
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   // Check if user is admin to bypass maintenance mode
   const isAdmin = user?.email === 'yeildsocials@gmail.com';
@@ -51,9 +52,9 @@ const AppContent = () => {
     completeOnboarding();
     // Navigate based on user type after completing onboarding
     if (userType === 'brand') {
-      window.location.href = '/brand-dashboard';
+      navigate('/brand-dashboard');
     } else {
-      window.location.href = '/dashboard';
+      navigate('/dashboard');
     }
   };
   
