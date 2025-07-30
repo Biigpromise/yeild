@@ -205,30 +205,10 @@ const ModernAuthFlow = () => {
             }, 2000);
           }
           
-          // For brand users, send brand confirmation email with graceful fallback
+          // For brand users, show success and next steps
           else if (formData.userType === 'brand') {
             setCurrentStep('complete');
-            toast.success("Account created successfully! Please check your email to verify your account.");
-            
-            // Try to send custom brand confirmation email, but don't block flow if it fails
-            try {
-              const { error: brandEmailError } = await supabase.functions.invoke('send-brand-confirmation-email', {
-                body: { 
-                  email: formData.email, 
-                  companyName: formData.name || 'Your Company'
-                }
-              });
-              
-              if (brandEmailError) {
-                console.warn('Custom brand confirmation email failed, using default:', brandEmailError);
-                // Don't show error to user - Supabase will send default confirmation email
-              } else {
-                console.log('Custom brand confirmation email sent successfully');
-              }
-            } catch (emailError) {
-              console.warn('Failed to send custom brand confirmation email:', emailError);
-              // Don't show error to user - Supabase will send default confirmation email
-            }
+            toast.success("Account created successfully! Please check your email to verify your account, then complete your brand application.");
             
             setTimeout(() => {
               navigate('/brand-onboarding');
