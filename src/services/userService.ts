@@ -91,7 +91,7 @@ export const BIRD_LEVELS: ReferralBirdLevel[] = [
     min_referrals: 0,
     min_points: 0,
     description: 'Starting your journey - Welcome to the family!',
-    benefits: ['50 points per task completed']
+    benefits: ['Basic task access', 'Community participation']
   },
   {
     id: 2,
@@ -101,7 +101,7 @@ export const BIRD_LEVELS: ReferralBirdLevel[] = [
     min_referrals: 5,
     min_points: 100,
     description: 'Building connections - You are growing your network!',
-    benefits: ['75 points per task completed', 'Priority support']
+    benefits: ['Priority support', 'Enhanced rewards']
   },
   {
     id: 3,
@@ -111,7 +111,7 @@ export const BIRD_LEVELS: ReferralBirdLevel[] = [
     min_referrals: 20,
     min_points: 500,
     description: 'Sharp focus and precision - You are mastering the art of networking!',
-    benefits: ['125 points per task completed', 'Enhanced rewards']
+    benefits: ['Exclusive tasks', 'VIP badge']
   },
   {
     id: 4,
@@ -121,7 +121,7 @@ export const BIRD_LEVELS: ReferralBirdLevel[] = [
     min_referrals: 50,
     min_points: 1500,
     description: 'Soaring high with leadership - You command respect in your network!',
-    benefits: ['175 points per task completed', 'Exclusive challenges', 'Priority review']
+    benefits: ['Custom badge', 'Early access features']
   },
   {
     id: 5,
@@ -131,7 +131,7 @@ export const BIRD_LEVELS: ReferralBirdLevel[] = [
     min_referrals: 100,
     min_points: 5000,
     description: 'Speed and excellence - You are at the peak of performance!',
-    benefits: ['225 points per task completed', 'VIP support', 'Special recognition']
+    benefits: ['Mentor privileges', 'Exclusive content']
   },
   {
     id: 6,
@@ -141,7 +141,7 @@ export const BIRD_LEVELS: ReferralBirdLevel[] = [
     min_referrals: 1000,
     min_points: 50000,
     description: 'Legendary status - Rising from the ashes stronger than ever!',
-    benefits: ['300 points per task completed', 'Maximum rewards', 'VIP status', 'Early access']
+    benefits: ['Phoenix crown', 'Legend status', 'Special rewards']
   }
 ];
 
@@ -591,27 +591,98 @@ export const userService = {
     }
   },
 
-  getBirdLevel(activeReferrals: number, userPoints: number): ReferralBirdLevel {
-    let qualifiedLevel = BIRD_LEVELS[0];
-    
-    for (const level of BIRD_LEVELS) {
-      if (activeReferrals >= level.min_referrals && userPoints >= level.min_points) {
-        qualifiedLevel = level;
-      }
-    }
+  async getBirdLevel(activeReferrals: number, userPoints: number): Promise<ReferralBirdLevel> {
+    try {
+      const { data: birdLevels, error } = await supabase
+        .from('bird_levels')
+        .select('*')
+        .order('min_referrals', { ascending: true });
 
-    return qualifiedLevel;
+      if (error || !birdLevels) {
+        console.error('Error fetching bird levels:', error);
+        // Use hardcoded fallback
+        let qualifiedLevel = BIRD_LEVELS[0];
+        for (const level of BIRD_LEVELS) {
+          if (activeReferrals >= level.min_referrals && userPoints >= level.min_points) {
+            qualifiedLevel = level;
+          }
+        }
+        return qualifiedLevel;
+      }
+
+      // Find the highest level the user qualifies for from database
+      let qualifiedLevel = birdLevels[0];
+      for (const level of birdLevels) {
+        if (activeReferrals >= level.min_referrals && userPoints >= level.min_points) {
+          qualifiedLevel = {
+            id: level.id,
+            name: level.name,
+            icon: level.emoji,
+            color: level.color,
+            min_referrals: level.min_referrals,
+            min_points: level.min_points,
+            description: level.description,
+            benefits: level.benefits || []
+          };
+        }
+      }
+
+      return qualifiedLevel;
+    } catch (error) {
+      console.error('Error in getBirdLevel:', error);
+      // Use hardcoded fallback
+      let qualifiedLevel = BIRD_LEVELS[0];
+      for (const level of BIRD_LEVELS) {
+        if (activeReferrals >= level.min_referrals && userPoints >= level.min_points) {
+          qualifiedLevel = level;
+        }
+      }
+      return qualifiedLevel;
+    }
   },
 
-  getNextBirdLevel(activeReferrals: number, userPoints: number): ReferralBirdLevel | undefined {
-    const currentLevel = this.getBirdLevel(activeReferrals, userPoints);
-    const currentIndex = BIRD_LEVELS.findIndex(level => level.id === currentLevel.id);
-    
-    if (currentIndex < BIRD_LEVELS.length - 1) {
-      return BIRD_LEVELS[currentIndex + 1];
+  async getNextBirdLevel(activeReferrals: number, userPoints: number): Promise<ReferralBirdLevel | undefined> {
+    try {
+      const { data: birdLevels, error } = await supabase
+        .from('bird_levels')
+        .select('*')
+        .order('min_referrals', { ascending: true });
+
+      if (error || !birdLevels) {
+        console.error('Error fetching bird levels:', error);
+        const currentLevel = await this.getBirdLevel(activeReferrals, userPoints);
+        const currentIndex = BIRD_LEVELS.findIndex(level => level.id === currentLevel.id);
+        return currentIndex < BIRD_LEVELS.length - 1 ? BIRD_LEVELS[currentIndex + 1] : undefined;
+      }
+
+      // Find current level
+      let currentLevelIndex = 0;
+      for (let i = 0; i < birdLevels.length; i++) {
+        if (activeReferrals >= birdLevels[i].min_referrals && userPoints >= birdLevels[i].min_points) {
+          currentLevelIndex = i;
+        }
+      }
+
+      // Return next level if available
+      if (currentLevelIndex < birdLevels.length - 1) {
+        const nextLevel = birdLevels[currentLevelIndex + 1];
+        return {
+          id: nextLevel.id,
+          name: nextLevel.name,
+          icon: nextLevel.emoji,
+          color: nextLevel.color,
+          min_referrals: nextLevel.min_referrals,
+          min_points: nextLevel.min_points,
+          description: nextLevel.description,
+          benefits: nextLevel.benefits || []
+        };
+      }
+
+      return undefined;
+    } catch (error) {
+      console.error('Error in getNextBirdLevel:', error);
+      return undefined;
     }
-    
-    return undefined;
   },
 
   async updateUserStats(userId: string, stats: Partial<any>) {

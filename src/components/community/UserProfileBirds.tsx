@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { userService } from "@/services/userService";
 
@@ -18,15 +18,24 @@ export const UserProfileBirds: React.FC<UserProfileBirdsProps> = ({
   activeReferrals = 0,
   compact = false
 }) => {
-  // Get the correct bird level based on referrals and points
-  const birdLevel = userService.getBirdLevel(activeReferrals, points);
-  
-  console.log('UserProfileBirds rendering:', {
-    points,
-    activeReferrals,
-    birdLevel: birdLevel.name,
-    birdIcon: birdLevel.icon
+  const [birdLevel, setBirdLevel] = useState({
+    id: 1,
+    name: 'Dove',
+    icon: '🕊️',
+    color: '#64748b',
+    min_referrals: 0,
+    min_points: 0,
+    description: 'Starting your journey - Welcome to the family!',
+    benefits: ['Basic task access', 'Community participation']
   });
+
+  useEffect(() => {
+    const loadBirdLevel = async () => {
+      const level = await userService.getBirdLevel(activeReferrals, points);
+      setBirdLevel(level);
+    };
+    loadBirdLevel();
+  }, [activeReferrals, points]);
 
   const getBirdEmoji = (levelName: string) => {
     switch (levelName.toLowerCase()) {

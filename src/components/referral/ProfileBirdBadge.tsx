@@ -39,7 +39,7 @@ export const ProfileBirdBadge: React.FC<ProfileBirdBadgeProps> = ({
       if (error || !profile) {
         // If no profile found, user gets default qualification
         setIsQualified(true);
-        const level = userService.getBirdLevel(0, 0);
+        const level = await userService.getBirdLevel(0, 0);
         setBirdLevel(level);
       } else {
         const activeReferrals = profile.active_referrals_count || 0;
@@ -48,14 +48,14 @@ export const ProfileBirdBadge: React.FC<ProfileBirdBadgeProps> = ({
         
         // All users get a bird badge (even new users)
         setIsQualified(true);
-        const level = userService.getBirdLevel(activeReferrals, userPoints);
+        const level = await userService.getBirdLevel(activeReferrals, userPoints);
         setBirdLevel(level);
       }
     } catch (error) {
       console.error('Error loading bird level:', error);
       // On error, still show default bird badge
       setIsQualified(true);
-      const level = userService.getBirdLevel(0, 0);
+      const level = await userService.getBirdLevel(0, 0);
       setBirdLevel(level);
     } finally {
       setLoading(false);
@@ -69,15 +69,7 @@ export const ProfileBirdBadge: React.FC<ProfileBirdBadgeProps> = ({
 
   // Always show a bird badge for users
   if (!birdLevel) {
-    const defaultLevel = userService.getBirdLevel(0, 0);
-    return (
-      <BirdBadge 
-        birdLevel={defaultLevel} 
-        size={size} 
-        showName={showName}
-        className={className}
-      />
-    );
+    return null; // Will load async
   }
 
   return (
