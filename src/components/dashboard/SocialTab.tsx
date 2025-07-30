@@ -9,6 +9,7 @@ import { BirdStatusDisplay } from '@/components/bird/BirdStatusDisplay';
 // Import components directly to avoid lazy loading issues
 import { SocialHub } from '@/components/social/SocialHub';
 import { StoriesBar } from '@/components/social/StoriesBar';
+import { UpcomingTasksTab } from '@/components/social/UpcomingTasksTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CommunityChatTab } from '@/components/dashboard/CommunityChatTab';
 
@@ -41,8 +42,9 @@ export const SocialTab: React.FC = () => {
       </ErrorBoundary>
       
       <Tabs defaultValue="community" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="community">Community Chat</TabsTrigger>
+          <TabsTrigger value="upcoming">Upcoming Tasks</TabsTrigger>
           <TabsTrigger value="stories">Stories</TabsTrigger>
           <TabsTrigger value="feed">Social Feed</TabsTrigger>
         </TabsList>
@@ -50,6 +52,12 @@ export const SocialTab: React.FC = () => {
         <TabsContent value="community" className="mt-6">
           <ErrorBoundary FallbackComponent={ErrorFallback}>
             <CommunityChatTab />
+          </ErrorBoundary>
+        </TabsContent>
+        
+        <TabsContent value="upcoming" className="mt-6">
+          <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <UpcomingTasksTab />
           </ErrorBoundary>
         </TabsContent>
         

@@ -72,3 +72,6 @@ verify_jwt = false
 
 [functions.verify-signup-code]
 verify_jwt = false
+
+[functions.send-task-announcement-email]
+verify_jwt = false
