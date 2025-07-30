@@ -48,20 +48,29 @@ const handler = async (req: Request): Promise<Response> => {
       .is('used_at', null)
       .is('verified_at', null)
       .gt('expires_at', new Date().toISOString())
-      .single();
+      .maybeSingle();
 
     if (findError || !verificationCode) {
       console.log('Verification code not found or expired');
       
-      // Increment attempt count if token exists
-      await supabase
+      // Get current attempt count and increment it
+      const { data: currentCode } = await supabase
         .from('email_verification_codes')
-        .update({ 
-          attempt_count: supabase.raw('attempt_count + 1'),
-          updated_at: new Date().toISOString()
-        })
+        .select('attempt_count')
         .eq('email', email)
-        .eq('verification_code', code);
+        .eq('verification_code', code)
+        .maybeSingle();
+        
+      if (currentCode) {
+        await supabase
+          .from('email_verification_codes')
+          .update({ 
+            attempt_count: (currentCode.attempt_count || 0) + 1,
+            updated_at: new Date().toISOString()
+          })
+          .eq('email', email)
+          .eq('verification_code', code);
+      }
 
       return new Response(
         JSON.stringify({ error: 'Invalid or expired verification code' }),
