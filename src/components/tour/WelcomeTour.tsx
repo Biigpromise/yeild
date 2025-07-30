@@ -143,13 +143,13 @@ export const WelcomeTour: React.FC<WelcomeTourProps> = ({ isOpen, onComplete, on
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < tourSteps.length - 1) {
       const nextStep = currentStep + 1;
       setCurrentStep(nextStep);
-      updateTourProgress(nextStep);
+      await updateTourProgress(nextStep);
     } else {
-      handleComplete();
+      await handleComplete();
     }
   };
 
@@ -163,12 +163,14 @@ export const WelcomeTour: React.FC<WelcomeTourProps> = ({ isOpen, onComplete, on
 
   const handleComplete = async () => {
     await updateTourProgress(currentStep, true);
+    setIsVisible(false); // Immediately hide the tour
     toast.success('Welcome tour completed! 🎉');
     await onComplete();
   };
 
   const handleSkip = async () => {
     await updateTourProgress(currentStep, true);
+    setIsVisible(false); // Immediately hide the tour
     await onSkip();
   };
 
