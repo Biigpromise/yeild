@@ -199,7 +199,7 @@ const handler = async (req: Request): Promise<Response> => {
       
       try {
         const emailResponse = await resend.emails.send({
-          from: "yeildsocials <notifications@yeildsocials.com>",
+          from: "Yeildsocials <notifications@yeildsocials.com>",
           to: batch,
           subject: subject,
           html: htmlContent,

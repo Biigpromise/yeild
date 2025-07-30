@@ -54,7 +54,7 @@ serve(async (req) => {
 
     // Send the email using Resend with your verified domain
     const emailResponse = await resend.emails.send({
-      from: 'yeildsocials <noreply@yeildsocials.com>',
+      from: 'Yeildsocials <noreply@yeildsocials.com>',
       to: [email],
       subject: '✅ Confirm your yeildsocials brand account - Action Required',
       html: `
@@ -116,17 +116,17 @@ serve(async (req) => {
           <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
             <p style="margin: 0; font-size: 14px; color: #666;">
               Best regards,<br>
-              The yeildsocials Team
+              The Yeildsocials Team
             </p>
             <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
-              © 2024 yeildsocials. All rights reserved.
+              © 2024 Yeildsocials. All rights reserved.
             </p>
           </div>
         </body>
         </html>
       `,
       text: `
-Welcome to yeildsocials, ${companyName}!
+Welcome to Yeildsocials, ${companyName}!
 
 Thank you for signing up as a brand partner! To complete your registration, please confirm your email address by visiting this link:
 
@@ -141,7 +141,7 @@ What's Next?
 If you didn't create this account, please ignore this email.
 
 Best regards,
-The yeildsocials Team
+The Yeildsocials Team
       `.trim(),
     })
 
