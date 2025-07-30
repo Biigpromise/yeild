@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -27,6 +28,50 @@ export const VerificationCodeInput: React.FC<VerificationCodeInputProps> = ({
   const [validationError, setValidationError] = useState<string>('');
   const [lastAttemptCode, setLastAttemptCode] = useState<string>('');
 
+  const parseErrorMessage = (error: any): string => {
+    console.error('Parsing error:', error);
+    
+    // Handle network errors
+    if (!error) {
+      return 'An unexpected error occurred. Please try again.';
+    }
+    
+    // Handle string errors
+    if (typeof error === 'string') {
+      if (error.includes('Edge Function returned a non-2xx status code')) {
+        return 'Verification failed. Please check your code and try again.';
+      }
+      if (error.includes('failed to send a request')) {
+        return 'Network error. Please check your connection and try again.';
+      }
+      return error;
+    }
+    
+    // Handle error objects with message
+    if (error.message) {
+      const message = error.message;
+      
+      // Network/connection errors
+      if (message.includes('fetch') || message.includes('network') || message.includes('failed to send')) {
+        return 'Network error. Please check your connection and try again.';
+      }
+      
+      // Edge function errors
+      if (message.includes('Edge Function returned a non-2xx status code')) {
+        return 'Verification service unavailable. Please try again in a moment.';
+      }
+      
+      return message;
+    }
+    
+    // Handle error objects with details
+    if (error.details) {
+      return error.details;
+    }
+    
+    return 'Verification failed. Please try again.';
+  };
+
   const handleVerifyCode = useCallback(async () => {
     if (code.length !== 6) {
       setValidationError('Please enter a complete 6-digit code');
@@ -43,6 +88,8 @@ export const VerificationCodeInput: React.FC<VerificationCodeInputProps> = ({
     setLastAttemptCode(code);
 
     try {
+      console.log('Starting verification process for:', email, 'type:', type);
+      
       const response = await supabase.functions.invoke('verify-signup-code', {
         body: { 
           email, 
@@ -51,30 +98,20 @@ export const VerificationCodeInput: React.FC<VerificationCodeInputProps> = ({
         }
       });
 
-      console.log('Verification response:', response);
+      console.log('Raw verification response:', response);
 
-      // Handle function invocation errors
+      // Handle function invocation errors (network, deployment, etc.)
       if (response.error) {
         console.error('Function invocation error:', response.error);
         
-        // Try to extract meaningful error from the response
-        let errorMessage = 'Verification failed. Please try again.';
-        
-        if (response.error.message) {
-          const message = response.error.message;
-          if (message.includes('Edge Function returned a non-2xx status code')) {
-            errorMessage = 'Invalid or expired verification code. Please request a new one.';
-          } else {
-            errorMessage = message;
-          }
-        }
-        
+        const errorMessage = parseErrorMessage(response.error);
         toast.error(errorMessage);
         setValidationError(errorMessage);
         return;
       }
 
       const { data } = response;
+      console.log('Verification response data:', data);
       
       if (data?.success) {
         // Handle already verified codes that return success
@@ -86,60 +123,73 @@ export const VerificationCodeInput: React.FC<VerificationCodeInputProps> = ({
         
         // Handle magic link for signin
         if (data.magicLink && type === 'signin') {
+          console.log('Attempting magic link redirect...');
           try {
+            // Give user feedback before redirect
+            toast.success('Verified! Redirecting to dashboard...');
+            
+            // Small delay to show the toast, then redirect
             setTimeout(() => {
               window.location.href = data.magicLink;
-            }, 1000);
+            }, 1500);
+            
+            return;
           } catch (linkError) {
             console.error('Magic link redirect failed:', linkError);
+            toast.warning('Verification successful, but redirect failed. Please try signing in again.');
             // Fallback: call onVerified to continue with normal flow
             onVerified(data.token);
           }
-          return;
         }
         
+        // For signup or signin without magic link
         onVerified(data.token);
       } else {
         // Handle API errors with specific messaging
         const errorMessage = data?.error || 'Unknown error occurred';
+        console.error('Verification failed:', errorMessage);
+        
+        let userFriendlyMessage = errorMessage;
         
         if (errorMessage.includes('expired')) {
-          toast.error('Verification code has expired. Please request a new one.');
+          userFriendlyMessage = 'Verification code has expired. Please request a new one.';
         } else if (errorMessage.includes('invalid') || errorMessage.includes('Invalid')) {
-          toast.error('Invalid verification code. Please check and try again.');
-        } else if (errorMessage.includes('too many attempts')) {
-          toast.error('Too many attempts. Please request a new verification code.');
+          userFriendlyMessage = 'Invalid verification code. Please check and try again.';
+        } else if (errorMessage.includes('too many attempts') || errorMessage.includes('Too many')) {
+          userFriendlyMessage = 'Too many attempts. Please request a new verification code.';
         } else if (errorMessage.includes('already been used') || errorMessage.includes('already used')) {
-          toast.error('This code has already been used. Please request a new one.');
+          userFriendlyMessage = 'This code has already been used. Please request a new one.';
         } else if (errorMessage.includes('not found')) {
-          toast.error('Verification code not found. Please request a new one.');
-        } else {
-          toast.error(errorMessage);
+          userFriendlyMessage = 'Verification code not found. Please request a new one.';
+        } else if (errorMessage.includes('Database error') || errorMessage.includes('Server configuration')) {
+          userFriendlyMessage = 'Service temporarily unavailable. Please try again in a moment.';
         }
         
-        setValidationError(errorMessage);
+        toast.error(userFriendlyMessage);
+        setValidationError(userFriendlyMessage);
       }
     } catch (error: any) {
       console.error('Verification error:', error);
       
-      // Handle network and other errors
-      if (error.message?.includes('fetch') || error.message?.includes('network')) {
-        toast.error('Network error. Please check your connection and try again.');
-        setValidationError('Network error occurred');
-      } else {
-        toast.error('An unexpected error occurred. Please try again.');
-        setValidationError('An unexpected error occurred');
-      }
+      const errorMessage = parseErrorMessage(error);
+      toast.error(errorMessage);
+      setValidationError(errorMessage);
     } finally {
       setIsVerifying(false);
     }
-  }, [code, email, type, onVerified]);
+  }, [code, email, type, onVerified, lastAttemptCode]);
 
   const handleResendCode = useCallback(async () => {
     setIsResending(true);
+    setValidationError('');
     try {
       await onResend();
       setCode(''); // Clear the current code
+      setLastAttemptCode(''); // Reset last attempt tracking
+      toast.success('New verification code sent! Please check your email.');
+    } catch (error) {
+      console.error('Resend error:', error);
+      toast.error('Failed to resend code. Please try again.');
     } finally {
       setIsResending(false);
     }

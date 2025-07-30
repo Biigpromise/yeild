@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
@@ -19,9 +20,15 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, code, type }: VerifyCodeRequest = await req.json();
+    console.log('=== Starting verification process ===');
+    
+    const requestBody = await req.json();
+    console.log('Request body received:', { ...requestBody, code: '[REDACTED]' });
+    
+    const { email, code, type }: VerifyCodeRequest = requestBody;
 
     if (!email || !code || !type) {
+      console.log('Missing required fields:', { email: !!email, code: !!code, type: !!type });
       return new Response(
         JSON.stringify({ error: 'Email, code, and type are required' }),
         { 
@@ -32,14 +39,26 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Initialize Supabase client with service role key
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing Supabase environment variables');
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { 
+          status: 500, 
+          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    console.log('Supabase client initialized');
 
     console.log('Verifying code for email:', email, 'type:', type);
 
-    // Find the verification code - first check if it exists
+    // Find the verification code
     const { data: existingCode, error: existingError } = await supabase
       .from('email_verification_codes')
       .select('*')
@@ -48,7 +67,7 @@ const handler = async (req: Request): Promise<Response> => {
       .maybeSingle();
 
     if (existingError) {
-      console.error('Database error:', existingError);
+      console.error('Database error when fetching verification code:', existingError);
       return new Response(
         JSON.stringify({ error: 'Database error occurred' }),
         { 
@@ -59,7 +78,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     if (!existingCode) {
-      console.log('Verification code not found');
+      console.log('Verification code not found for email:', email);
       return new Response(
         JSON.stringify({ error: 'Invalid verification code' }),
         { 
@@ -69,27 +88,36 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    console.log('Found verification code:', {
+      id: existingCode.id,
+      verified_at: existingCode.verified_at,
+      expires_at: existingCode.expires_at,
+      attempt_count: existingCode.attempt_count
+    });
+
     // Check if already verified
     if (existingCode.verified_at) {
-      console.log('Code already verified, checking for existing magic link');
+      console.log('Code already verified at:', existingCode.verified_at);
       
-      // For signin, if already verified, generate a new magic link
+      // For signin with already verified code, try to generate a new magic link
       if (type === 'signin') {
         try {
+          console.log('Generating new magic link for already verified signin code');
           const { data: magicLink, error: linkError } = await supabase.auth.admin.generateLink({
             type: 'magiclink',
             email: email,
             options: {
-              redirectTo: `${Deno.env.get('SITE_URL') || 'http://localhost:5173'}/`
+              redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}/`
             }
           });
 
-          if (!linkError && magicLink) {
+          if (!linkError && magicLink?.properties?.action_link) {
+            console.log('Successfully generated new magic link');
             return new Response(
               JSON.stringify({ 
                 success: true, 
                 token: existingCode.token,
-                magicLink: magicLink.properties?.action_link,
+                magicLink: magicLink.properties.action_link,
                 message: 'Code already verified, signing you in...',
                 alreadyVerified: true
               }),
@@ -98,6 +126,8 @@ const handler = async (req: Request): Promise<Response> => {
                 headers: { 'Content-Type': 'application/json', ...corsHeaders } 
               }
             );
+          } else {
+            console.error('Failed to generate new magic link:', linkError);
           }
         } catch (linkError) {
           console.error('Error generating new magic link:', linkError);
@@ -115,7 +145,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Check if expired
     if (new Date(existingCode.expires_at) < new Date()) {
-      console.log('Verification code expired');
+      console.log('Verification code expired at:', existingCode.expires_at);
       return new Response(
         JSON.stringify({ error: 'Verification code has expired. Please request a new one.' }),
         { 
@@ -125,31 +155,11 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check if used
-    if (existingCode.used_at) {
-      console.log('Verification code already used');
-      return new Response(
-        JSON.stringify({ error: 'This verification code has already been used. Please request a new one.' }),
-        { 
-          status: 400, 
-          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
-        }
-      );
-    }
-
-    // Increment attempt count
-    await supabase
-      .from('email_verification_codes')
-      .update({ 
-        attempt_count: (existingCode.attempt_count || 0) + 1,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', existingCode.id);
-
-    const verificationCode = existingCode;
-
-    // Check attempt limit
-    if (verificationCode.attempt_count >= 5) {
+    // Check attempt limit (increment first to include current attempt)
+    const newAttemptCount = (existingCode.attempt_count || 0) + 1;
+    console.log('Attempt count:', newAttemptCount);
+    
+    if (newAttemptCount > 5) {
       console.log('Too many attempts for verification code');
       return new Response(
         JSON.stringify({ error: 'Too many attempts. Please request a new code.' }),
@@ -160,6 +170,19 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Update attempt count
+    const { error: updateAttemptError } = await supabase
+      .from('email_verification_codes')
+      .update({ 
+        attempt_count: newAttemptCount,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', existingCode.id);
+
+    if (updateAttemptError) {
+      console.error('Error updating attempt count:', updateAttemptError);
+    }
+
     // Mark the code as verified
     const { error: updateError } = await supabase
       .from('email_verification_codes')
@@ -167,7 +190,7 @@ const handler = async (req: Request): Promise<Response> => {
         verified_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
-      .eq('id', verificationCode.id);
+      .eq('id', existingCode.id);
 
     if (updateError) {
       console.error('Error updating verification code:', updateError);
@@ -180,44 +203,50 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    console.log('Verification code verified successfully');
+    console.log('Verification code marked as verified successfully');
 
     // For signin, create a magic link for auto sign-in
     if (type === 'signin') {
       try {
-        // Generate a magic link for auto sign-in
+        console.log('Generating magic link for signin');
         const { data: magicLink, error: linkError } = await supabase.auth.admin.generateLink({
           type: 'magiclink',
           email: email,
           options: {
-            redirectTo: `${Deno.env.get('SITE_URL') || 'http://localhost:5173'}/`
+            redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}/`
           }
         });
 
-        if (!linkError && magicLink) {
+        if (!linkError && magicLink?.properties?.action_link) {
+          console.log('Successfully generated magic link for signin');
           return new Response(
             JSON.stringify({ 
               success: true, 
-              token: verificationCode.token,
-              magicLink: magicLink.properties?.action_link,
-              message: 'Code verified successfully' 
+              token: existingCode.token,
+              magicLink: magicLink.properties.action_link,
+              message: 'Code verified successfully - redirecting...' 
             }),
             { 
               status: 200, 
               headers: { 'Content-Type': 'application/json', ...corsHeaders } 
             }
           );
+        } else {
+          console.error('Failed to generate magic link:', linkError);
+          // Continue without magic link for signin
         }
       } catch (linkError) {
         console.error('Error generating magic link:', linkError);
-        // Continue without magic link
+        // Continue without magic link for signin
       }
     }
 
+    // For signup or failed magic link, return success without magic link
+    console.log('Returning success response without magic link');
     return new Response(
       JSON.stringify({ 
         success: true, 
-        token: verificationCode.token,
+        token: existingCode.token,
         message: 'Code verified successfully' 
       }),
       { 
@@ -227,9 +256,14 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
   } catch (error: any) {
-    console.error('Error in verify-signup-code function:', error);
+    console.error('Unexpected error in verify-signup-code function:', error);
+    console.error('Error stack:', error.stack);
+    
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
+      JSON.stringify({ 
+        error: 'An unexpected error occurred during verification. Please try again.',
+        details: error.message 
+      }),
       { 
         status: 500, 
         headers: { 'Content-Type': 'application/json', ...corsHeaders } 
