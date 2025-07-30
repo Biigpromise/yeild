@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import phoenixImage from '@/assets/phoenix-bird.png';
 
 interface RealisticPhoenixBirdProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -14,13 +15,11 @@ export const RealisticPhoenixBird: React.FC<RealisticPhoenixBirdProps> = ({
   className = ''
 }) => {
   const sizeClasses = {
-    sm: 'w-8 h-8 text-2xl',
-    md: 'w-12 h-12 text-3xl',
-    lg: 'w-16 h-16 text-4xl',
-    xl: 'w-24 h-24 text-6xl'
+    sm: 'w-12 h-12',
+    md: 'w-16 h-16',
+    lg: 'w-20 h-20',
+    xl: 'w-24 h-24'
   };
-
-  const phoenixEmoji = '🐦‍🔥'; // Using real phoenix bird emoji
 
   return (
     <motion.div
@@ -92,22 +91,54 @@ export const RealisticPhoenixBird: React.FC<RealisticPhoenixBirdProps> = ({
         }}
       />
       
-      {/* Phoenix symbol with color transition */}
-      <motion.span 
-        className="relative z-10 filter drop-shadow-lg"
+      {/* Phoenix Image with Flapping Animation */}
+      <motion.img
+        src={phoenixImage}
+        alt="Phoenix Bird"
+        className="relative z-10 w-full h-full object-contain rounded-lg"
+        animate={{
+          scale: animate ? [1, 1.05, 1] : 1,
+          rotateY: animate ? [0, 5, -5, 0] : 0,
+          // Wing flapping effect
+          scaleX: animate ? [1, 1.02, 1, 0.98, 1] : 1,
+        }}
         whileHover={{
-          filter: "drop-shadow(0 0 8px rgba(255, 215, 0, 0.8))",
-          textShadow: "0 0 10px rgba(255, 165, 0, 0.8)"
+          scale: 1.1,
+          rotateY: [0, 10, -10, 0],
+          scaleX: [1, 1.05, 1, 0.95, 1],
+          filter: "drop-shadow(0 0 20px rgba(255, 100, 0, 0.8))",
+          transition: { duration: 0.6, repeat: 2 }
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: "easeInOut"
         }}
         style={{
-          background: "linear-gradient(45deg, #ff6b35, #f7931e, #ffd700)",
-          WebkitBackgroundClip: "text",
-          backgroundClip: "text",
-          WebkitTextFillColor: "transparent"
+          filter: "drop-shadow(0 0 10px rgba(255, 165, 0, 0.6))"
         }}
-      >
-        {phoenixEmoji}
-      </motion.span>
+      />
+      
+      {/* Flame Wing Effect */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-orange-500/30 via-red-500/20 to-yellow-500/30 rounded-lg"
+        animate={{
+          opacity: animate ? [0.2, 0.5, 0.2] : 0.2,
+          scaleX: animate ? [1, 1.1, 1, 0.9, 1] : 1,
+          scaleY: animate ? [1, 0.98, 1, 1.02, 1] : 1,
+        }}
+        whileHover={{
+          opacity: [0.3, 0.7, 0.3],
+          scaleX: [1, 1.15, 1, 0.85, 1],
+          scaleY: [1, 0.95, 1, 1.05, 1],
+          transition: { duration: 0.4, repeat: 4 }
+        }}
+        transition={{
+          duration: 1.2,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
       
       {/* Enhanced floating particles */}
       {animate && (
