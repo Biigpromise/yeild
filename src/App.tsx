@@ -108,16 +108,16 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
-          <OnboardingProvider>
-            <TooltipProvider>
-              <Toaster />
-              <BrowserRouter>
+        <BrowserRouter>
+          <AuthProvider>
+            <OnboardingProvider>
+              <TooltipProvider>
+                <Toaster />
                 <AppContent />
-              </BrowserRouter>
-            </TooltipProvider>
-          </OnboardingProvider>
-        </AuthProvider>
+              </TooltipProvider>
+            </OnboardingProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </ThemeProvider>
     </QueryClientProvider>
   );
