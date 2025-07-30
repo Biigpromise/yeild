@@ -37,11 +37,13 @@ const ProgressiveAuthFlow = () => {
     const typeParam = searchParams.get('type');
     const modeParam = searchParams.get('mode');
     
+    console.log('URL params:', { typeParam, modeParam });
+    
     if (typeParam && (typeParam === 'user' || typeParam === 'brand')) {
       setFormData(prev => ({ ...prev, userType: typeParam as 'user' | 'brand' }));
-      // Start from email step when userType is pre-selected
       setCurrentStep('email');
-      setIsLogin(true);
+      setIsLogin(false); // Default to signup for new users with pre-selected type
+      console.log('Set userType to:', typeParam, 'and switched to signup mode');
     } else if (modeParam === 'signup') {
       setIsLogin(false);
     }
@@ -60,6 +62,8 @@ const ProgressiveAuthFlow = () => {
   }, [user, loading, navigate]);
 
   const handleNext = async () => {
+    console.log('handleNext called, current step:', currentStep, 'formData:', formData);
+    
     if (!validateCurrentStep()) return;
 
     if (currentStep === 'email') {
@@ -73,6 +77,7 @@ const ProgressiveAuthFlow = () => {
     } else if (currentStep === 'name') {
       // If userType is already set (from URL params), skip to submission
       if (formData.userType) {
+        console.log('UserType already set, submitting:', formData.userType);
         await handleSubmit();
       } else {
         setCurrentStep('userType');
@@ -126,30 +131,41 @@ const ProgressiveAuthFlow = () => {
   };
 
   const handleSubmit = async () => {
+    console.log('handleSubmit called with:', { isLogin, formData });
     setIsLoading(true);
     
     try {
       if (isLogin) {
         const { error } = await signIn(formData.email, formData.password);
         if (error) {
+          console.error('Sign in error:', error);
           if (error.message.includes('Invalid login credentials')) {
             toast.error('Invalid email or password');
           } else {
-            toast.error('Sign in failed');
+            toast.error('Sign in failed: ' + error.message);
           }
         } else {
           toast.success('Welcome back!');
         }
       } else {
-        const { error } = await signUp(
+        console.log('Attempting signup with:', {
+          email: formData.email,
+          password: '***',
+          name: formData.name,
+          userType: formData.userType
+        });
+        
+        const { error, user: newUser } = await signUp(
           formData.email, 
           formData.password, 
           formData.name, 
           formData.userType,
-          { email_confirm: false }
+          undefined, // userData
+          `${window.location.origin}/auth/callback`
         );
         
         if (error) {
+          console.error('Sign up error:', error);
           if (error.message.includes('already registered')) {
             toast.error('Email already exists', {
               action: {
@@ -161,26 +177,26 @@ const ProgressiveAuthFlow = () => {
               }
             });
           } else {
-            toast.error('Sign up failed');
+            toast.error('Sign up failed: ' + error.message);
           }
         } else {
-          toast.success('Account created!');
-          setTimeout(() => {
-            navigate(formData.userType === 'brand' ? '/brand-onboarding' : '/onboarding');
-          }, 1000);
+          console.log('Signup successful:', newUser);
+          toast.success('Account created successfully!');
+          // Don't navigate immediately, let the auth state change handle it
         }
       }
     } catch (error: any) {
-      toast.error('Something went wrong');
+      console.error('Auth error:', error);
+      toast.error('Something went wrong: ' + error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleUserTypeSelect = (type: 'user' | 'brand') => {
+    console.log('User type selected:', type);
     setFormData(prev => ({ ...prev, userType: type }));
-    // Auto-submit after user type selection
-    setTimeout(() => handleSubmit(), 100);
+    // Don't auto-submit, show next button instead
   };
 
   const handleForgotPassword = async () => {
@@ -194,12 +210,14 @@ const ProgressiveAuthFlow = () => {
       const { error } = await resetPassword(formData.email);
       
       if (error) {
-        toast.error('Failed to send reset email');
+        console.error('Reset password error:', error);
+        toast.error('Failed to send reset email: ' + error.message);
       } else {
         toast.success('Password reset email sent!');
       }
-    } catch (error) {
-      toast.error('Something went wrong');
+    } catch (error: any) {
+      console.error('Reset password catch error:', error);
+      toast.error('Something went wrong: ' + error.message);
     }
   };
 
@@ -225,6 +243,13 @@ const ProgressiveAuthFlow = () => {
     if (currentStep === 'name') return 'Name';
     return '';
   };
+
+  const shouldShowNextButton = () => {
+    // Always show Next button except on userType step (where buttons are the actions)
+    return currentStep !== 'userType';
+  };
+
+  console.log('Rendering with:', { currentStep, isLogin, formData, shouldShowNextButton: shouldShowNextButton() });
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -295,7 +320,11 @@ const ProgressiveAuthFlow = () => {
                 <div className="space-y-3">
                   <button
                     onClick={() => handleUserTypeSelect('user')}
-                    className="w-full p-4 text-left border-2 border-border rounded-xl hover:border-primary transition-colors group"
+                    className={`w-full p-4 text-left border-2 rounded-xl transition-colors group ${
+                      formData.userType === 'user' 
+                        ? 'border-primary bg-primary/5' 
+                        : 'border-border hover:border-primary'
+                    }`}
                   >
                     <div className="font-medium text-foreground group-hover:text-primary">Complete tasks & earn</div>
                     <div className="text-sm text-muted-foreground">I'm a user</div>
@@ -303,7 +332,11 @@ const ProgressiveAuthFlow = () => {
                   
                   <button
                     onClick={() => handleUserTypeSelect('brand')}
-                    className="w-full p-4 text-left border-2 border-border rounded-xl hover:border-primary transition-colors group"
+                    className={`w-full p-4 text-left border-2 rounded-xl transition-colors group ${
+                      formData.userType === 'brand' 
+                        ? 'border-primary bg-primary/5' 
+                        : 'border-border hover:border-primary'
+                    }`}
                   >
                     <div className="font-medium text-foreground group-hover:text-primary">Create campaigns</div>
                     <div className="text-sm text-muted-foreground">I'm a brand</div>
@@ -311,8 +344,8 @@ const ProgressiveAuthFlow = () => {
                 </div>
               )}
 
-              {/* Next Button */}
-              {currentStep !== 'userType' && (
+              {/* Next Button - Always show except on userType step */}
+              {shouldShowNextButton() && (
                 <Button
                   onClick={handleNext}
                   disabled={isLoading}
@@ -324,6 +357,21 @@ const ProgressiveAuthFlow = () => {
                     currentStep === 'password' && isLogin ? 'Sign in' : 
                     currentStep === 'name' || (currentStep === 'password' && !isLogin) ? 'Continue' : 
                     'Next'
+                  )}
+                </Button>
+              )}
+
+              {/* Next Button for userType step - only show if type is selected */}
+              {currentStep === 'userType' && formData.userType && (
+                <Button
+                  onClick={handleNext}
+                  disabled={isLoading}
+                  className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl transition-colors"
+                >
+                  {isLoading ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground"></div>
+                  ) : (
+                    'Continue'
                   )}
                 </Button>
               )}
