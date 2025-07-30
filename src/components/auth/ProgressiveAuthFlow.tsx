@@ -214,6 +214,8 @@ const ProgressiveAuthFlow = () => {
         toast.error('Failed to send reset email: ' + error.message);
       } else {
         toast.success('Password reset email sent!');
+        // Navigate to verify reset code page with email
+        navigate(`/verify-reset-code?email=${encodeURIComponent(formData.email)}`);
       }
     } catch (error: any) {
       console.error('Reset password catch error:', error);
