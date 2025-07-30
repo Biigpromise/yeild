@@ -41,13 +41,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Sending verification code for email:', email, 'type:', type);
 
-    // Check if user exists for signin
+    // Check if user exists for signin - must exist in auth.users, not just profiles
     if (type === 'signin') {
-      const { data: existingUser, error: checkError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
+      const { data: existingUser, error: checkError } = await supabase.auth.admin.getUserByEmail(email);
         
       if (checkError) {
         console.error('Error checking existing user for signin:', checkError);
@@ -60,7 +56,7 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
         
-      if (!existingUser) {
+      if (!existingUser.user) {
         return new Response(
           JSON.stringify({ error: 'No account found with this email address' }),
           { 
@@ -71,15 +67,11 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Check if user already exists for signup
+    // Check if user already exists for signup - check auth.users, not profiles
     if (type === 'signup') {
-      const { data: existingUser, error: checkError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
+      const { data: existingUser, error: checkError } = await supabase.auth.admin.getUserByEmail(email);
         
-      if (checkError) {
+      if (checkError && !checkError.message.includes('User not found')) {
         console.error('Error checking existing user for signup:', checkError);
         return new Response(
           JSON.stringify({ error: 'Failed to verify email address' }),
@@ -90,7 +82,7 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
         
-      if (existingUser) {
+      if (existingUser.user) {
         return new Response(
           JSON.stringify({ error: 'An account with this email already exists' }),
           { 

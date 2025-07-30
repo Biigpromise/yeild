@@ -34,14 +34,19 @@ export const useAuthOperations = () => {
       ...userData
     };
 
+    const signUpOptions: any = {
+      data: metadata,
+    };
+
+    // Only set emailRedirectTo if email confirmation is needed
+    if (userData?.email_confirm !== false) {
+      signUpOptions.emailRedirectTo = redirectUrl || `${window.location.origin}/auth/callback`;
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: metadata,
-        emailRedirectTo: redirectUrl || `${window.location.origin}/auth/callback`,
-        ...(userData?.email_confirm === false && { emailRedirectTo: undefined }) // Skip email confirmation if specified
-      }
+      options: signUpOptions
     });
 
     if (error) {
