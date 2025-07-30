@@ -411,6 +411,60 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_task_announcements: {
+        Row: {
+          announcement_type: string | null
+          brand_id: string
+          created_at: string | null
+          description: string
+          estimated_budget: number | null
+          estimated_launch_date: string | null
+          id: string
+          interest_count: number | null
+          is_active: boolean | null
+          requirements: Json | null
+          status: string | null
+          target_audience: Json | null
+          task_category: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          announcement_type?: string | null
+          brand_id: string
+          created_at?: string | null
+          description: string
+          estimated_budget?: number | null
+          estimated_launch_date?: string | null
+          id?: string
+          interest_count?: number | null
+          is_active?: boolean | null
+          requirements?: Json | null
+          status?: string | null
+          target_audience?: Json | null
+          task_category?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          announcement_type?: string | null
+          brand_id?: string
+          created_at?: string | null
+          description?: string
+          estimated_budget?: number | null
+          estimated_launch_date?: string | null
+          id?: string
+          interest_count?: number | null
+          is_active?: boolean | null
+          requirements?: Json | null
+          status?: string | null
+          target_audience?: Json | null
+          task_category?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       brand_wallet_transactions: {
         Row: {
           amount: number
@@ -3068,6 +3122,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_task_interests: {
+        Row: {
+          announcement_id: string
+          created_at: string | null
+          id: string
+          interest_level: string | null
+          user_id: string
+        }
+        Insert: {
+          announcement_id: string
+          created_at?: string | null
+          id?: string
+          interest_level?: string | null
+          user_id: string
+        }
+        Update: {
+          announcement_id?: string
+          created_at?: string | null
+          id?: string
+          interest_level?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_task_interests_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "brand_task_announcements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_tasks: {
         Row: {
