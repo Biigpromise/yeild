@@ -27,6 +27,7 @@ import Social from "./pages/Social";
 import Wallet from "./pages/Wallet";
 import Referrals from "./pages/Referrals";
 import Birds from "./pages/Birds";
+import { AppLayout } from "./components/AppLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { RoleBasedRoute } from "@/components/RoleBasedRoute";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -116,38 +117,22 @@ const AppContent = () => {
             </RoleBasedRoute>
           }
         />
+        
+        {/* Protected App Routes with Sidebar */}
         <Route
-          path="/social"
+          path="/"
           element={
             <ProtectedRoute>
-              <Social />
+              <AppLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/wallet"
-          element={
-            <ProtectedRoute>
-              <Wallet />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/referrals"
-          element={
-            <ProtectedRoute>
-              <Referrals />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/birds"
-          element={
-            <ProtectedRoute>
-              <Birds />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="social" element={<Social />} />
+          <Route path="wallet" element={<Wallet />} />
+          <Route path="referrals" element={<Referrals />} />
+          <Route path="birds" element={<Birds />} />
+        </Route>
+        
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       
