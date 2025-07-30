@@ -1,5 +1,6 @@
 
 import { economicControlService, ECONOMIC_CONSTANTS } from "./economicControlService";
+import { referralCommissionService } from "./referralCommissionService";
 
 interface PointCalculationFactors {
   basePoints: number;

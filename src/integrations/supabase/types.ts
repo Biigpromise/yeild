@@ -3364,6 +3364,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_referral_commission: {
+        Args: { downline_user_id: string; points_earned: number }
+        Returns: undefined
+      }
       calculate_referral_points: {
         Args: { referrer_id: string }
         Returns: number

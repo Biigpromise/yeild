@@ -19,6 +19,7 @@ import { userService, UserReferral, ReferralStats } from "@/services/userService
 import { BirdProgression } from "./BirdProgression";
 import { BirdLevelNotification } from "./BirdLevelNotification";
 import { ProfileBirdBadge } from "./ProfileBirdBadge";
+import { CommissionDashboard } from "./CommissionDashboard";
 import { supabase } from "@/integrations/supabase/client";
 import { generateReferralLink, APP_CONFIG } from "@/config/app";
 
@@ -144,6 +145,9 @@ export const EnhancedReferralSystem = () => {
         currentBirdLevel={referralStats.bird_level}
         nextBirdLevel={referralStats.next_bird_level}
       />
+
+      {/* Commission Dashboard */}
+      <CommissionDashboard />
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
