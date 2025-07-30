@@ -39,7 +39,8 @@ export const useAuthOperations = () => {
       password,
       options: {
         data: metadata,
-        emailRedirectTo: redirectUrl || `${window.location.origin}/auth/callback`
+        emailRedirectTo: redirectUrl || `${window.location.origin}/auth/callback`,
+        ...(userData?.email_confirm === false && { emailRedirectTo: undefined }) // Skip email confirmation if specified
       }
     });
 

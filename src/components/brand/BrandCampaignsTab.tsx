@@ -230,23 +230,23 @@ export const BrandCampaignsTab: React.FC = () => {
                 {/* Campaign Actions Section */}
                 {campaign.status === 'draft' && (
                   <div className="mt-4 pt-4 border-t border-border">
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex flex-col sm:flex-row gap-3 w-full">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => navigate(`/campaigns/${campaign.id}/edit`)}
-                        className="border-border text-foreground hover:bg-muted flex-1 sm:flex-none"
+                        className="border-border text-foreground hover:bg-muted w-full sm:w-auto min-w-0"
                       >
-                        <Edit className="mr-2 h-4 w-4" />
+                        <Edit className="mr-2 h-4 w-4 shrink-0" />
                         Edit Campaign
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleDeleteCampaign(campaign.id)}
-                        className="border-destructive text-destructive hover:bg-destructive/10 flex-1 sm:flex-none"
+                        className="border-destructive text-destructive hover:bg-destructive/10 w-full sm:w-auto min-w-0"
                       >
-                        <Trash2 className="mr-2 h-4 w-4" />
+                        <Trash2 className="mr-2 h-4 w-4 shrink-0" />
                         Delete Campaign
                       </Button>
                     </div>

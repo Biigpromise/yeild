@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -276,13 +276,31 @@ export const ModernBrandDashboard: React.FC<ModernBrandDashboardProps> = ({
 
           <TabsContent value="settings" className="space-y-6">
             <Card>
-              <CardContent className="p-6">
-                <div className="text-center py-12">
-                  <Settings className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-2">Settings Coming Soon</h3>
-                  <p className="text-muted-foreground">
-                    Advanced campaign settings and preferences will be available here.
-                  </p>
+              <CardHeader>
+                <CardTitle>Brand Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-medium">Account Preferences</h3>
+                      <p className="text-sm text-muted-foreground">Manage your account settings and preferences</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Email Notifications</label>
+                      <div className="text-sm text-muted-foreground">Receive campaign updates and reports</div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-medium">Campaign Defaults</h3>
+                      <p className="text-sm text-muted-foreground">Set default values for new campaigns</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Default Budget</label>
+                      <div className="text-sm text-muted-foreground">₦50,000</div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

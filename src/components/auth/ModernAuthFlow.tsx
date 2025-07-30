@@ -149,7 +149,10 @@ const ModernAuthFlow = () => {
     setFormData(prev => ({ ...prev, verificationToken: token }));
     if (isLogin) {
       toast.success("Successfully signed in!");
-      navigate(formData.userType === 'brand' ? '/brand-dashboard' : '/dashboard');
+      // Ensure proper redirect for brands
+      setTimeout(() => {
+        navigate(formData.userType === 'brand' ? '/brand-dashboard' : '/dashboard');
+      }, 500);
     } else {
       setCurrentStep('password');
     }
@@ -183,8 +186,8 @@ const ModernAuthFlow = () => {
           formData.password, 
           formData.name, 
           formData.userType,
-          { email_confirm: false }, // Skip email confirmation since we already verified with code
-          undefined // No redirect URL needed since we're not using email confirmation
+          { email_confirm: false }, // Disable email confirmation for faster onboarding
+          undefined
         );
         
         if (error) {

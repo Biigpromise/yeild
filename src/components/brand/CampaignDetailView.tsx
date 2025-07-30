@@ -20,6 +20,7 @@ import {
   Delete
 } from 'lucide-react';
 import { BrandCampaignActions } from './BrandCampaignActions';
+import { CampaignSettings } from './CampaignSettings';
 
 interface CampaignDetailViewProps {
   campaignId: string;
@@ -349,16 +350,7 @@ export const CampaignDetailView: React.FC<CampaignDetailViewProps> = ({
         </TabsContent>
 
         <TabsContent value="settings">
-          <Card>
-            <CardHeader>
-              <CardTitle>Campaign Settings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground py-8">
-                Campaign settings panel coming soon...
-              </p>
-            </CardContent>
-          </Card>
+          <CampaignSettings campaign={campaign} onUpdate={refetch} />
         </TabsContent>
       </Tabs>
     </div>
