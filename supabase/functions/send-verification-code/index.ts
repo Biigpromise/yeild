@@ -4,7 +4,8 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, X-Client-Info',
 };
 
 interface SendCodeRequest {
@@ -15,7 +16,7 @@ interface SendCodeRequest {
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
@@ -27,7 +28,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error('Missing required environment variables');
       return new Response(
-        JSON.stringify({ error: 'Server configuration error' }),
+        JSON.stringify({ success: false, message: 'Server configuration error' }),
         { 
           status: 500, 
           headers: { 'Content-Type': 'application/json', ...corsHeaders } 
@@ -38,7 +39,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (!resendApiKey) {
       console.error('Missing RESEND_API_KEY environment variable');
       return new Response(
-        JSON.stringify({ error: 'Email service configuration error' }),
+        JSON.stringify({ success: false, message: 'Email service configuration error' }),
         { 
           status: 500, 
           headers: { 'Content-Type': 'application/json', ...corsHeaders } 
@@ -50,7 +51,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!email || !type) {
       return new Response(
-        JSON.stringify({ error: 'Email and type are required' }),
+        JSON.stringify({ success: false, message: 'Email and type are required' }),
         { 
           status: 400, 
           headers: { 'Content-Type': 'application/json', ...corsHeaders } 
@@ -62,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return new Response(
-        JSON.stringify({ error: 'Invalid email format' }),
+        JSON.stringify({ success: false, message: 'Invalid email format' }),
         { 
           status: 400, 
           headers: { 'Content-Type': 'application/json', ...corsHeaders } 
@@ -83,7 +84,7 @@ const handler = async (req: Request): Promise<Response> => {
       if (checkError) {
         console.error('Error checking existing user for signin:', checkError);
         return new Response(
-          JSON.stringify({ error: 'Failed to verify email address' }),
+          JSON.stringify({ success: false, message: 'Failed to verify email address' }),
           { 
             status: 500, 
             headers: { 'Content-Type': 'application/json', ...corsHeaders } 
@@ -96,7 +97,7 @@ const handler = async (req: Request): Promise<Response> => {
       if (!existingUser) {
         console.log('User not found for signin:', email);
         return new Response(
-          JSON.stringify({ error: 'No account found with this email address' }),
+          JSON.stringify({ success: false, message: 'No account found with this email address' }),
           { 
             status: 400, 
             headers: { 'Content-Type': 'application/json', ...corsHeaders } 
@@ -115,7 +116,7 @@ const handler = async (req: Request): Promise<Response> => {
       if (checkError) {
         console.error('Error checking existing user for signup:', checkError);
         return new Response(
-          JSON.stringify({ error: 'Failed to verify email address' }),
+          JSON.stringify({ success: false, message: 'Failed to verify email address' }),
           { 
             status: 500, 
             headers: { 'Content-Type': 'application/json', ...corsHeaders } 
@@ -128,7 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
       if (existingUser) {
         console.log('User already exists for signup:', email);
         return new Response(
-          JSON.stringify({ error: 'An account with this email already exists' }),
+          JSON.stringify({ success: false, message: 'An account with this email already exists' }),
           { 
             status: 400, 
             headers: { 'Content-Type': 'application/json', ...corsHeaders } 
@@ -162,7 +163,7 @@ const handler = async (req: Request): Promise<Response> => {
     } else if (recentCode) {
       console.log('Rate limit triggered for email:', email);
       return new Response(
-        JSON.stringify({ error: 'Please wait before requesting another code' }),
+        JSON.stringify({ success: false, message: 'Please wait before requesting another code' }),
         { 
           status: 429, 
           headers: { 'Content-Type': 'application/json', ...corsHeaders } 
@@ -201,7 +202,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (insertError) {
       console.error('Error storing verification code:', insertError);
       return new Response(
-        JSON.stringify({ error: 'Failed to send verification code' }),
+        JSON.stringify({ success: false, message: 'Failed to send verification code' }),
         { 
           status: 500, 
           headers: { 'Content-Type': 'application/json', ...corsHeaders } 
@@ -246,7 +247,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (emailError) {
       console.error('Error sending email:', emailError);
       return new Response(
-        JSON.stringify({ error: 'Failed to send verification email' }),
+        JSON.stringify({ success: false, message: 'Failed to send verification email' }),
         { 
           status: 500, 
           headers: { 'Content-Type': 'application/json', ...corsHeaders } 
@@ -271,7 +272,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error('Error in send-verification-code function:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
+      JSON.stringify({ success: false, message: 'Something went wrong' }),
       { 
         status: 500, 
         headers: { 'Content-Type': 'application/json', ...corsHeaders } 
