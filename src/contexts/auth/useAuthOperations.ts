@@ -11,28 +11,84 @@ export const useAuthOperations = () => {
 
     if (error) {
       console.error("Sign in error:", error);
-      throw error;
+      return { data, error };
     }
 
-    return { data, error };
+    // Check if email is confirmed
+    const needsEmailConfirmation = !data.user?.email_confirmed_at;
+    
+    return { data, error, needsEmailConfirmation };
   };
 
-  const signUp = async (email: string, password: string, userData?: any) => {
+  const signUp = async (
+    email: string, 
+    password: string, 
+    name?: string, 
+    userType: string = 'user', 
+    userData?: any, 
+    redirectUrl?: string
+  ) => {
+    const metadata: any = {
+      name: name || email.split('@')[0],
+      user_type: userType,
+      ...userData
+    };
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: userData,
-        emailRedirectTo: `${window.location.origin}/auth/callback`
+        data: metadata,
+        emailRedirectTo: redirectUrl || `${window.location.origin}/auth/callback`
       }
     });
 
     if (error) {
       console.error("Sign up error:", error);
-      throw error;
+      return { data, error };
+    }
+
+    return { data, error, user: data.user };
+  };
+
+  const signInWithProvider = async (provider: string, userType: string = 'user') => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: provider as any,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        data: {
+          user_type: userType
+        }
+      }
+    });
+
+    if (error) {
+      console.error("OAuth sign in error:", error);
     }
 
     return { data, error };
+  };
+
+  const resendConfirmation = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        console.error('Resend confirmation error:', error);
+        return { error };
+      }
+
+      return { error: null };
+    } catch (error: any) {
+      console.error('Resend confirmation error:', error);
+      return { error: { message: error.message || 'Failed to resend confirmation email' } };
+    }
   };
 
   const signOut = async () => {
@@ -92,5 +148,7 @@ export const useAuthOperations = () => {
     signOut,
     resetPassword,
     updateUserPassword,
+    signInWithProvider,
+    resendConfirmation,
   };
 };

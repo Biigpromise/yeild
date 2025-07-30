@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Session } from "@supabase/supabase-js";
@@ -153,7 +152,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         document.removeEventListener(event, updateActivity, true);
       });
     };
-  }, [setUser, setSession, setLoading]);
+  }, [setUser, setSession, setLoading, navigate]);
 
   const value = {
     user,
