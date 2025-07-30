@@ -85,43 +85,63 @@ export interface PostReply {
 export const BIRD_LEVELS: ReferralBirdLevel[] = [
   {
     id: 1,
-    name: 'Chick',
-    icon: '🐣',
-    color: '#fbbf24',
+    name: 'Dove',
+    icon: '🕊️',
+    color: '#64748b',
     min_referrals: 0,
     min_points: 0,
     description: 'Welcome to the nest! Start your journey.',
-    benefits: ['Access to basic features']
+    benefits: ['50 points per task completed']
   },
   {
     id: 2,
     name: 'Sparrow',
     icon: '🐦',
-    color: '#8b5cf6',
-    min_referrals: 1,
-    min_points: 50,
+    color: '#22c55e',
+    min_referrals: 5,
+    min_points: 0,
     description: 'Taking your first flights!',
-    benefits: ['Bonus points on tasks', 'Priority support']
+    benefits: ['75 points per task completed', 'Priority support']
   },
   {
     id: 3,
-    name: 'Eagle',
+    name: 'Hawk',
     icon: '🦅',
-    color: '#ef4444',
-    min_referrals: 5,
-    min_points: 500,
-    description: 'Soaring high with impressive referrals!',
-    benefits: ['Higher task rewards', 'Exclusive challenges', 'Priority review']
+    color: '#eab308',
+    min_referrals: 20,
+    min_points: 0,
+    description: 'Rising higher with growing influence!',
+    benefits: ['125 points per task completed', 'Enhanced rewards']
   },
   {
     id: 4,
+    name: 'Eagle',
+    icon: '🦅',
+    color: '#ef4444',
+    min_referrals: 50,
+    min_points: 0,
+    description: 'Soaring high with impressive referrals!',
+    benefits: ['175 points per task completed', 'Exclusive challenges', 'Priority review']
+  },
+  {
+    id: 5,
+    name: 'Falcon',
+    icon: '🐦‍🔥',
+    color: '#a855f7',
+    min_referrals: 100,
+    min_points: 0,
+    description: 'Elite referrer with exceptional reach!',
+    benefits: ['225 points per task completed', 'VIP support', 'Special recognition']
+  },
+  {
+    id: 6,
     name: 'Phoenix',
     icon: '🔥',
-    color: '#f97316',
-    min_referrals: 15,
-    min_points: 2000,
+    color: '#ec4899',
+    min_referrals: 500,
+    min_points: 0,
     description: 'Legendary status achieved!',
-    benefits: ['Maximum rewards', 'VIP status', 'Special recognition', 'Early access']
+    benefits: ['300 points per task completed', 'Maximum rewards', 'VIP status', 'Early access']
   }
 ];
 

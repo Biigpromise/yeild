@@ -15,7 +15,7 @@ export const ReferralRewardsTier: React.FC<ReferralRewardsTierProps> = ({
     if (count < 5) {
       return {
         tier: 'Dove',
-        pointsPerReferral: 10,
+        pointsPerTask: 50,
         icon: Star,
         color: 'bg-slate-100 text-slate-800 border-slate-300',
         nextTier: 'Sparrow',
@@ -25,7 +25,7 @@ export const ReferralRewardsTier: React.FC<ReferralRewardsTierProps> = ({
     } else if (count < 20) {
       return {
         tier: 'Sparrow',
-        pointsPerReferral: 15,
+        pointsPerTask: 75,
         icon: Award,
         color: 'bg-green-100 text-green-800 border-green-300',
         nextTier: 'Hawk',
@@ -35,7 +35,7 @@ export const ReferralRewardsTier: React.FC<ReferralRewardsTierProps> = ({
     } else if (count < 50) {
       return {
         tier: 'Hawk',
-        pointsPerReferral: 20,
+        pointsPerTask: 125,
         icon: Award,
         color: 'bg-yellow-100 text-yellow-800 border-yellow-300',
         nextTier: 'Eagle',
@@ -45,7 +45,7 @@ export const ReferralRewardsTier: React.FC<ReferralRewardsTierProps> = ({
     } else if (count < 100) {
       return {
         tier: 'Eagle',
-        pointsPerReferral: 25,
+        pointsPerTask: 175,
         icon: Crown,
         color: 'bg-red-100 text-red-800 border-red-300',
         nextTier: 'Falcon',
@@ -55,7 +55,7 @@ export const ReferralRewardsTier: React.FC<ReferralRewardsTierProps> = ({
     } else if (count < 500) {
       return {
         tier: 'Falcon',
-        pointsPerReferral: 30,
+        pointsPerTask: 225,
         icon: Crown,
         color: 'bg-purple-100 text-purple-800 border-purple-300',
         nextTier: 'Phoenix',
@@ -65,7 +65,7 @@ export const ReferralRewardsTier: React.FC<ReferralRewardsTierProps> = ({
     } else {
       return {
         tier: 'Phoenix',
-        pointsPerReferral: 35,
+        pointsPerTask: 300,
         icon: Crown,
         color: 'bg-pink-100 text-pink-800 border-pink-300',
         nextTier: null,
@@ -92,7 +92,7 @@ export const ReferralRewardsTier: React.FC<ReferralRewardsTierProps> = ({
             {tierInfo.tier} Tier
           </Badge>
           <span className="text-sm text-muted-foreground">
-            {tierInfo.pointsPerReferral} points per active referral
+            {tierInfo.pointsPerTask} points per task completed
           </span>
         </div>
 
@@ -118,32 +118,32 @@ export const ReferralRewardsTier: React.FC<ReferralRewardsTierProps> = ({
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 text-center">
           <div className="p-2 bg-slate-50 rounded-lg">
             <div className="text-xs font-medium text-slate-800">🕊️ Dove</div>
-            <div className="text-xs text-slate-600">10 pts/ref</div>
+            <div className="text-xs text-slate-600">50 pts/task</div>
             <div className="text-xs text-slate-600">0-4 refs</div>
           </div>
           <div className="p-2 bg-green-50 rounded-lg">
             <div className="text-xs font-medium text-green-800">🐦 Sparrow</div>
-            <div className="text-xs text-green-600">15 pts/ref</div>
+            <div className="text-xs text-green-600">75 pts/task</div>
             <div className="text-xs text-green-600">5-19 refs</div>
           </div>
           <div className="p-2 bg-yellow-50 rounded-lg">
             <div className="text-xs font-medium text-yellow-800">🦅 Hawk</div>
-            <div className="text-xs text-yellow-600">20 pts/ref</div>
+            <div className="text-xs text-yellow-600">125 pts/task</div>
             <div className="text-xs text-yellow-600">20-49 refs</div>
           </div>
           <div className="p-2 bg-red-50 rounded-lg">
             <div className="text-xs font-medium text-red-800">🦅🔥 Eagle</div>
-            <div className="text-xs text-red-600">25 pts/ref</div>
+            <div className="text-xs text-red-600">175 pts/task</div>
             <div className="text-xs text-red-600">50-99 refs</div>
           </div>
           <div className="p-2 bg-purple-50 rounded-lg">
             <div className="text-xs font-medium text-purple-800">🐦‍🔥 Falcon</div>
-            <div className="text-xs text-purple-600">30 pts/ref</div>
+            <div className="text-xs text-purple-600">225 pts/task</div>
             <div className="text-xs text-purple-600">100-499 refs</div>
           </div>
           <div className="p-2 bg-pink-50 rounded-lg">
             <div className="text-xs font-medium text-pink-800">🔥🕊️ Phoenix</div>
-            <div className="text-xs text-pink-600">35 pts/ref</div>
+            <div className="text-xs text-pink-600">300 pts/task</div>
             <div className="text-xs text-pink-600">500+ refs</div>
           </div>
         </div>
