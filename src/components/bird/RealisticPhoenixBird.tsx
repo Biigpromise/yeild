@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import phoenixImage from '@/assets/phoenix-bird.png';
 
 interface RealisticPhoenixBirdProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -93,7 +92,7 @@ export const RealisticPhoenixBird: React.FC<RealisticPhoenixBirdProps> = ({
       
       {/* Phoenix Image with Flapping Animation */}
       <motion.img
-        src={phoenixImage}
+        src="/phoenix-bird.png"
         alt="Phoenix Bird"
         className="relative z-10 w-full h-full object-contain rounded-lg"
         animate={{
@@ -116,6 +115,12 @@ export const RealisticPhoenixBird: React.FC<RealisticPhoenixBirdProps> = ({
         }}
         style={{
           filter: "drop-shadow(0 0 10px rgba(255, 165, 0, 0.6))"
+        }}
+        onError={(e) => {
+          // Fallback to emoji if image fails to load
+          const target = e.target as HTMLImageElement;
+          target.style.display = 'none';
+          target.parentElement!.innerHTML += '<span class="text-6xl">🐦‍🔥</span>';
         }}
       />
       
