@@ -1475,34 +1475,43 @@ export type Database = {
       }
       password_reset_tokens: {
         Row: {
+          attempt_count: number | null
           created_at: string | null
           email: string
           expires_at: string
           id: string
+          reset_code: string | null
           token: string
           updated_at: string | null
           used_at: string | null
           user_id: string
+          verified_at: string | null
         }
         Insert: {
+          attempt_count?: number | null
           created_at?: string | null
           email: string
-          expires_at: string
+          expires_at?: string
           id?: string
+          reset_code?: string | null
           token: string
           updated_at?: string | null
           used_at?: string | null
           user_id: string
+          verified_at?: string | null
         }
         Update: {
+          attempt_count?: number | null
           created_at?: string | null
           email?: string
           expires_at?: string
           id?: string
+          reset_code?: string | null
           token?: string
           updated_at?: string | null
           used_at?: string | null
           user_id?: string
+          verified_at?: string | null
         }
         Relationships: []
       }
@@ -3277,6 +3286,10 @@ export type Database = {
         Returns: undefined
       }
       generate_referral_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_reset_code: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
