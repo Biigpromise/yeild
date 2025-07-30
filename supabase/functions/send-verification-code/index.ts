@@ -75,24 +75,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Sending verification code for email:', email, 'type:', type);
 
-    // Check if user exists for signin - use efficient getUserByEmail
+    // Check if user exists for signin
     if (type === 'signin') {
       console.log('Checking if user exists for signin:', email);
-      const { data: existingUser, error: checkError } = await supabase.auth.admin.getUserByEmail(email);
+      const { data: existingUsers, error: checkError } = await supabase.auth.admin.listUsers();
       
       if (checkError) {
         console.error('Error checking existing user for signin:', checkError);
-        // If user not found, treat as user doesn't exist (not a server error)
-        if (checkError.message?.includes('User not found')) {
-          return new Response(
-            JSON.stringify({ error: 'No account found with this email address' }),
-            { 
-              status: 400, 
-              headers: { 'Content-Type': 'application/json', ...corsHeaders } 
-            }
-          );
-        }
-        // Other errors are server errors
         return new Response(
           JSON.stringify({ error: 'Failed to verify email address' }),
           { 
@@ -102,7 +91,9 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
       
-      if (!existingUser.user) {
+      const existingUser = existingUsers.users.find(user => user.email === email);
+      
+      if (!existingUser) {
         console.log('User not found for signin:', email);
         return new Response(
           JSON.stringify({ error: 'No account found with this email address' }),
@@ -113,32 +104,28 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
       
-      console.log('User found for signin:', existingUser.user.id);
+      console.log('User found for signin:', existingUser.id);
     }
 
-    // Check if user already exists for signup - use efficient getUserByEmail  
+    // Check if user already exists for signup
     if (type === 'signup') {
       console.log('Checking if user already exists for signup:', email);
-      const { data: existingUser, error: checkError } = await supabase.auth.admin.getUserByEmail(email);
+      const { data: existingUsers, error: checkError } = await supabase.auth.admin.listUsers();
       
-      // For signup, user NOT existing is the expected case
       if (checkError) {
-        if (checkError.message?.includes('User not found')) {
-          // This is expected for signup - user should not exist
-          console.log('User does not exist - good for signup:', email);
-        } else {
-          // Other errors are server errors
-          console.error('Error checking existing user for signup:', checkError);
-          return new Response(
-            JSON.stringify({ error: 'Failed to verify email address' }),
-            { 
-              status: 500, 
-              headers: { 'Content-Type': 'application/json', ...corsHeaders } 
-            }
-          );
-        }
-      } else if (existingUser.user) {
-        // User already exists
+        console.error('Error checking existing user for signup:', checkError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to verify email address' }),
+          { 
+            status: 500, 
+            headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+          }
+        );
+      }
+      
+      const existingUser = existingUsers.users.find(user => user.email === email);
+      
+      if (existingUser) {
         console.log('User already exists for signup:', email);
         return new Response(
           JSON.stringify({ error: 'An account with this email already exists' }),
@@ -148,6 +135,8 @@ const handler = async (req: Request): Promise<Response> => {
           }
         );
       }
+      
+      console.log('User does not exist - good for signup:', email);
     }
 
     // Clean up expired codes first (with error handling)
