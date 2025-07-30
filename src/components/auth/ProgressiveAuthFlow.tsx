@@ -161,7 +161,7 @@ const ProgressiveAuthFlow = () => {
           formData.name, 
           formData.userType,
           undefined, // userData
-          `${window.location.origin}/auth/callback`
+          undefined // Disable email confirmations completely
         );
         
         if (error) {
