@@ -3236,21 +3236,7 @@ export type Database = {
       }
     }
     Views: {
-      performance_monitor: {
-        Row: {
-          idx_scan: number | null
-          idx_tup_fetch: number | null
-          n_tup_del: number | null
-          n_tup_ins: number | null
-          n_tup_upd: number | null
-          schemaname: unknown | null
-          seq_scan: number | null
-          seq_scan_percentage: number | null
-          seq_tup_read: number | null
-          tablename: unknown | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       calculate_referral_points: {
@@ -3328,6 +3314,14 @@ export type Database = {
           color: string
           referrals_needed: number
           points_needed: number
+        }[]
+      }
+      get_performance_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          metric_name: string
+          metric_value: number
+          recorded_at: string
         }[]
       }
       get_user_bird_level: {
