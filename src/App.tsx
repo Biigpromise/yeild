@@ -46,6 +46,16 @@ const AppContent = () => {
   if (!maintenanceLoading && isMaintenanceMode && !isAdmin) {
     return <MaintenanceMode />;
   }
+
+  const handleOnboardingComplete = () => {
+    completeOnboarding();
+    // Navigate based on user type after completing onboarding
+    if (userType === 'brand') {
+      window.location.href = '/brand-dashboard';
+    } else {
+      window.location.href = '/dashboard';
+    }
+  };
   
   return (
     <>
@@ -105,7 +115,7 @@ const AppContent = () => {
       {/* Global Onboarding Flow */}
       {showOnboarding && (
         <div className="fixed inset-0 z-50 bg-background">
-          <OnboardingFlow userType={userType} onComplete={completeOnboarding} />
+          <OnboardingFlow userType={userType} onComplete={handleOnboardingComplete} />
         </div>
       )}
     </>
