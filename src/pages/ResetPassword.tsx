@@ -21,33 +21,54 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if we have the necessary parameters from the email link
+    // Check if we have the recovery token from the email link
+    const token = searchParams.get('token');
+    const type = searchParams.get('type');
+    
+    // Also check for legacy access_token/refresh_token format
     const accessToken = searchParams.get('access_token');
     const refreshToken = searchParams.get('refresh_token');
     
-    if (!accessToken || !refreshToken) {
-      console.error('Missing tokens for password reset');
+    if (token && type === 'recovery') {
+      // Handle Supabase recovery link format
+      const verifyRecoveryToken = async () => {
+        const { data, error } = await supabase.auth.verifyOtp({
+          token_hash: token,
+          type: 'recovery'
+        });
+
+        if (error) {
+          console.error('Error verifying recovery token:', error);
+          setValidLink(false);
+        } else {
+          console.log('Recovery token verified successfully');
+          setValidLink(true);
+        }
+      };
+
+      verifyRecoveryToken();
+    } else if (accessToken && refreshToken) {
+      // Handle legacy access_token/refresh_token format
+      const setSession = async () => {
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (error) {
+          console.error('Error setting session:', error);
+          setValidLink(false);
+        } else {
+          setValidLink(true);
+        }
+      };
+
+      setSession();
+    } else {
+      console.error('Missing recovery token or tokens for password reset');
       setValidLink(false);
-      return;
     }
-
-    // Set the session with the tokens from the URL
-    const setSession = async () => {
-      const { error } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
-
-      if (error) {
-        console.error('Error setting session:', error);
-        setValidLink(false);
-      } else {
-        setValidLink(true);
-      }
-    };
-
-    setSession();
-  }, [searchParams, navigate]);
+  }, [searchParams]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
