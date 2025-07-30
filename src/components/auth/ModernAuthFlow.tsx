@@ -200,26 +200,6 @@ const ModernAuthFlow = () => {
             setCurrentStep('complete');
             toast.success("Account created successfully! Please check your email to verify your account.");
             
-            // Try to send custom verification email, but don't block the flow if it fails
-            try {
-              const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
-                body: {
-                  email: formData.email,
-                  name: formData.name,
-                  confirmationUrl: `${window.location.origin}/auth/callback`
-                }
-              });
-              
-              if (emailError) {
-                console.warn('Custom verification email failed, using default:', emailError);
-              } else {
-                console.log('Custom verification email sent successfully');
-              }
-            } catch (emailError) {
-              console.warn('Failed to send custom verification email:', emailError);
-              // Don't show error to user, Supabase will send default email
-            }
-            
             setTimeout(() => {
               navigate('/onboarding');
             }, 2000);
