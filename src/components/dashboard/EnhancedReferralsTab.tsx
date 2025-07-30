@@ -10,6 +10,7 @@ import { useErrorRecovery } from '@/hooks/useErrorRecovery';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { LoadingFallback } from '@/components/ui/loading-fallback';
 import { referralService } from '@/services/referralService';
+import { referralCommissionService } from '@/services/referralCommissionService';
 import { toast } from 'sonner';
 import { generateReferralLink, APP_CONFIG } from "@/config/app";
 
@@ -20,6 +21,8 @@ export const EnhancedReferralsTab: React.FC = () => {
     totalReferrals: 0,
     activeReferrals: 0
   });
+  const [commissionEarnings, setCommissionEarnings] = useState([]);
+  const [totalCommission, setTotalCommission] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -31,10 +34,17 @@ export const EnhancedReferralsTab: React.FC = () => {
     
     try {
       setLoading(true);
-      const stats = await referralService.getReferralStats(user.id);
+      const [stats, earnings, total] = await Promise.all([
+        referralService.getReferralStats(user.id),
+        referralCommissionService.getCommissionEarnings(user.id),
+        referralCommissionService.getTotalCommissionEarnings(user.id)
+      ]);
+      
       if (stats) {
         setReferralStats(stats);
       }
+      setCommissionEarnings(earnings);
+      setTotalCommission(total);
       clearError();
       if (showToast) {
         toast.success('Referral data refreshed');
@@ -138,7 +148,7 @@ export const EnhancedReferralsTab: React.FC = () => {
         </Card>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
@@ -168,13 +178,57 @@ export const EnhancedReferralsTab: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Gift className="h-8 w-8 text-purple-500" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Estimated Earnings</p>
-                  <p className="text-2xl font-bold">{referralStats.activeReferrals * 10} pts</p>
+                  <p className="text-sm text-muted-foreground">Commission Earned</p>
+                  <p className="text-2xl font-bold">{totalCommission} pts</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="h-8 w-8 text-amber-500" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Downline Activity</p>
+                  <p className="text-2xl font-bold">{commissionEarnings.length}</p>
+                  <p className="text-xs text-muted-foreground">transactions</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Commission Earnings */}
+        {commissionEarnings.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Commission Earnings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {commissionEarnings.slice(0, 5).map((earning, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium">+{earning.points} points commission</p>
+                      <p className="text-xs text-muted-foreground">{earning.description}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(earning.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {commissionEarnings.length > 5 && (
+                  <p className="text-sm text-muted-foreground text-center">
+                    And {commissionEarnings.length - 5} more transactions...
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Referral Link Card */}
         <Card>
