@@ -43,11 +43,22 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Check if user exists for signin
     if (type === 'signin') {
-      const { data: existingUser } = await supabase
+      const { data: existingUser, error: checkError } = await supabase
         .from('profiles')
         .select('id')
         .eq('email', email)
-        .single();
+        .maybeSingle();
+        
+      if (checkError) {
+        console.error('Error checking existing user for signin:', checkError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to verify email address' }),
+          { 
+            status: 500, 
+            headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+          }
+        );
+      }
         
       if (!existingUser) {
         return new Response(
@@ -62,11 +73,22 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Check if user already exists for signup
     if (type === 'signup') {
-      const { data: existingUser } = await supabase
+      const { data: existingUser, error: checkError } = await supabase
         .from('profiles')
         .select('id')
         .eq('email', email)
-        .single();
+        .maybeSingle();
+        
+      if (checkError) {
+        console.error('Error checking existing user for signup:', checkError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to verify email address' }),
+          { 
+            status: 500, 
+            headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+          }
+        );
+      }
         
       if (existingUser) {
         return new Response(
@@ -88,7 +110,7 @@ const handler = async (req: Request): Promise<Response> => {
       .select('created_at')
       .eq('email', email)
       .gte('created_at', new Date(Date.now() - 60000).toISOString()) // 1 minute
-      .single();
+      .maybeSingle();
 
     if (recentCode) {
       return new Response(
@@ -131,7 +153,7 @@ const handler = async (req: Request): Promise<Response> => {
     const action = type === 'signup' ? 'complete your registration' : 'sign in to your account';
     
     const { data: emailResult, error: emailError } = await resend.emails.send({
-      from: "YieldApp <noreply@resend.dev>",
+      from: "YieldApp <yeildsocials@gmail.com>",
       to: [email],
       subject,
       html: `
