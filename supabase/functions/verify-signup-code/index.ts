@@ -115,10 +115,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Verification code verified successfully');
 
-    // For signin, create a temporary sign-in token
+    // For signin, create a magic link for auto sign-in
     if (type === 'signin') {
-      const { data: user } = await supabase.auth.admin.getUserByEmail(email);
-      if (user.user) {
+      try {
         // Generate a magic link for auto sign-in
         const { data: magicLink, error: linkError } = await supabase.auth.admin.generateLink({
           type: 'magiclink',
@@ -142,6 +141,9 @@ const handler = async (req: Request): Promise<Response> => {
             }
           );
         }
+      } catch (linkError) {
+        console.error('Error generating magic link:', linkError);
+        // Continue without magic link
       }
     }
 
