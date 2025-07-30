@@ -154,7 +154,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     // Send email with verification code
     const { data: emailResult, error: emailError } = await resend.emails.send({
-      from: "YieldApp <noreply@yeildsocials.com>",
+      from: "yeildsocials <noreply@yeildsocials.com>",
       to: [email],
       subject,
       html: `

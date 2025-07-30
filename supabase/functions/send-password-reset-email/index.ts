@@ -72,9 +72,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send the password reset email
     const emailResponse = await resend.emails.send({
-      from: "YEILD <noreply@yeildsocials.com>",
+      from: "yeildsocials <noreply@yeildsocials.com>",
       to: [email],
-      subject: "🔐 Your YEILD Password Reset Code",
+      subject: "🔐 Your yeildsocials Password Reset Code",
       html: `
         <!DOCTYPE html>
         <html>

@@ -54,26 +54,26 @@ serve(async (req) => {
 
     // Send the email using Resend with your verified domain
     const emailResponse = await resend.emails.send({
-      from: 'YEILD <noreply@yeildsocials.com>',
+      from: 'yeildsocials <noreply@yeildsocials.com>',
       to: [email],
-      subject: '✅ Confirm your YEILD brand account - Action Required',
+      subject: '✅ Confirm your yeildsocials brand account - Action Required',
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Confirm Your YEILD Brand Account</title>
+          <title>Confirm Your yeildsocials Brand Account</title>
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to YEILD!</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to yeildsocials!</h1>
             <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Hi ${companyName}, let's get you started</p>
           </div>
           
           <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
             <p style="font-size: 16px; margin-bottom: 20px;">
-              Thank you for signing up with YEILD as a brand partner! To complete your registration and access your brand dashboard, please confirm your email address by clicking the button below.
+              Thank you for signing up with yeildsocials as a brand partner! To complete your registration and access your brand dashboard, please confirm your email address by clicking the button below.
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
@@ -116,17 +116,17 @@ serve(async (req) => {
           <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
             <p style="margin: 0; font-size: 14px; color: #666;">
               Best regards,<br>
-              <strong>The YEILD Team</strong>
+              The yeildsocials Team
             </p>
             <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
-              © 2024 YEILD. All rights reserved.
+              © 2024 yeildsocials. All rights reserved.
             </p>
           </div>
         </body>
         </html>
       `,
       text: `
-Welcome to YEILD, ${companyName}!
+Welcome to yeildsocials, ${companyName}!
 
 Thank you for signing up as a brand partner! To complete your registration, please confirm your email address by visiting this link:
 
@@ -141,7 +141,7 @@ What's Next?
 If you didn't create this account, please ignore this email.
 
 Best regards,
-The YEILD Team
+The yeildsocials Team
       `.trim(),
     })
 

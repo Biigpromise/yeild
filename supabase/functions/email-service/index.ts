@@ -55,31 +55,31 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    let emailContent = { subject: '', html: '', from: 'YIELD <noreply@yeildsocials.com>' };
+    let emailContent = { subject: '', html: '', from: 'yeildsocials <noreply@yeildsocials.com>' };
 
     switch (type) {
       case 'password_reset':
         emailContent = {
           ...emailContent,
-          subject: 'Reset Your Password - YIELD',
+          subject: 'Reset Your Password - yeildsocials',
           html: `
             <!DOCTYPE html>
             <html>
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Password Reset - YIELD</title>
+              <title>Password Reset - yeildsocials</title>
             </head>
             <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
               <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
                 <h1 style="color: white; margin: 0; font-size: 28px;">Password Reset</h1>
-                <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Reset your YIELD account password</p>
+                <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Reset your yeildsocials account password</p>
               </div>
               
               <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
                 <h2 style="color: #333; margin-top: 0;">Reset Your Password</h2>
                 <p style="font-size: 16px; margin-bottom: 20px;">
-                  We received a request to reset your password for your YIELD account. Click the button below to create a new password.
+                  We received a request to reset your password for your yeildsocials account. Click the button below to create a new password.
                 </p>
                 
                 <div style="text-align: center; margin: 30px 0;">
@@ -113,10 +113,10 @@ const handler = async (req: Request): Promise<Response> => {
               <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
                 <p style="margin: 0; font-size: 14px; color: #666;">
                   Best regards,<br>
-                  <strong>The YIELD Team</strong>
+                  The yeildsocials Team
                 </p>
                 <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
-                  © 2024 YIELD. All rights reserved.
+                  © 2024 yeildsocials. All rights reserved.
                 </p>
               </div>
             </body>
@@ -128,25 +128,25 @@ const handler = async (req: Request): Promise<Response> => {
       case 'email_verification':
         emailContent = {
           ...emailContent,
-          subject: 'Verify Your Email - YIELD',
+          subject: 'Verify Your Email - yeildsocials',
           html: `
             <!DOCTYPE html>
             <html>
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Email Verification - YIELD</title>
+              <title>Email Verification - yeildsocials</title>
             </head>
             <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
               <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to YIELD!</h1>
+                <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to yeildsocials!</h1>
                 <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Verify your email to get started</p>
               </div>
               
               <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
                 <h2 style="color: #333; margin-top: 0;">Verify Your Email</h2>
                 <p style="font-size: 16px; margin-bottom: 20px;">
-                  Welcome ${data.name || 'to YIELD'}! Please verify your email address to complete your registration and start earning.
+                  Welcome ${data.name || 'to yeildsocials'}! Please verify your email address to complete your registration and start earning.
                 </p>
                 
                 <div style="text-align: center; margin: 30px 0;">
@@ -192,10 +192,10 @@ const handler = async (req: Request): Promise<Response> => {
               <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
                 <p style="margin: 0; font-size: 14px; color: #666;">
                   Best regards,<br>
-                  <strong>The YIELD Team</strong>
+                  The yeildsocials Team
                 </p>
                 <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
-                  © 2024 YIELD. All rights reserved.
+                  © 2024 yeildsocials. All rights reserved.
                 </p>
               </div>
             </body>
@@ -207,25 +207,25 @@ const handler = async (req: Request): Promise<Response> => {
       case 'welcome':
         emailContent = {
           ...emailContent,
-          subject: `Welcome to YIELD${data.company ? ` - ${data.company}` : ''}!`,
+          subject: `Welcome to yeildsocials${data.company ? ` - ${data.company}` : ''}!`,
           html: `
             <!DOCTYPE html>
             <html>
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Welcome - YIELD</title>
+              <title>Welcome - yeildsocials</title>
             </head>
             <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
               <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to YIELD!</h1>
+                <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to yeildsocials!</h1>
                 <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Your journey starts here</p>
               </div>
               
               <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
                 <h2 style="color: #333; margin-top: 0;">Hello ${data.name || 'there'}!</h2>
                 <p style="font-size: 16px; margin-bottom: 20px;">
-                  Your account has been successfully verified and you're now part of the YIELD community! 🎉
+                  Your account has been successfully verified and you're now part of the yeildsocials community! 🎉
                 </p>
                 
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
@@ -264,10 +264,10 @@ const handler = async (req: Request): Promise<Response> => {
               <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
                 <p style="margin: 0; font-size: 14px; color: #666;">
                   Best regards,<br>
-                  <strong>The YIELD Team</strong>
+                  The yeildsocials Team
                 </p>
                 <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">
-                  © 2024 YIELD. All rights reserved.
+                  © 2024 yeildsocials. All rights reserved.
                 </p>
               </div>
             </body>
