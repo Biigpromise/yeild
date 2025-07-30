@@ -132,9 +132,16 @@ const CustomResetPassword = () => {
     setIsLoading(true);
 
     try {
-      // Update user password using Supabase admin
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: password
+      console.log('Attempting to update password for user:', userId);
+
+      // First, we need to sign in the user temporarily to update their password
+      // Use the service role client to update the password directly
+      const { data, error: updateError } = await supabase.functions.invoke('update-user-password', {
+        body: { 
+          userId: userId,
+          password: password,
+          token: token
+        }
       });
 
       if (updateError) {
@@ -143,17 +150,14 @@ const CustomResetPassword = () => {
         return;
       }
 
-      // Mark token as used
-      const { error: tokenError } = await supabase
-        .from('password_reset_tokens')
-        .update({ used_at: new Date().toISOString() })
-        .eq('token', token);
-
-      if (tokenError) {
-        console.error('Token update error:', tokenError);
-        // Don't fail the process if token update fails
+      if (data?.error) {
+        console.error('Password update service error:', data.error);
+        toast.error(data.error || "Failed to update password. Please try again.");
+        return;
       }
 
+      console.log('Password updated successfully');
+      toast.success("Password updated successfully!");
       setPasswordChanged(true);
 
     } catch (error: any) {
@@ -172,7 +176,7 @@ const CustomResetPassword = () => {
 
     try {
       // Call our custom password reset function
-      const { error } = await supabase.functions.invoke('custom-password-reset', {
+      const { error } = await supabase.functions.invoke('send-password-reset-email', {
         body: { email }
       });
 
