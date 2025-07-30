@@ -41,10 +41,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Sending verification code for email:', email, 'type:', type);
 
-    // Check if user exists for signin - must exist in auth.users, not just profiles
+    // Check if user exists for signin - check in auth.users table
     if (type === 'signin') {
-      const { data: existingUser, error: checkError } = await supabase.auth.admin.getUserByEmail(email);
-        
+      const { data: existingUser, error: checkError } = await supabase.auth.admin.listUsers();
+      
       if (checkError) {
         console.error('Error checking existing user for signin:', checkError);
         return new Response(
@@ -55,8 +55,10 @@ const handler = async (req: Request): Promise<Response> => {
           }
         );
       }
+      
+      const userExists = existingUser.users.some(user => user.email === email);
         
-      if (!existingUser.user) {
+      if (!userExists) {
         return new Response(
           JSON.stringify({ error: 'No account found with this email address' }),
           { 
@@ -67,11 +69,11 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Check if user already exists for signup - check auth.users, not profiles
+    // Check if user already exists for signup - check in auth.users table  
     if (type === 'signup') {
-      const { data: existingUser, error: checkError } = await supabase.auth.admin.getUserByEmail(email);
-        
-      if (checkError && !checkError.message.includes('User not found')) {
+      const { data: existingUser, error: checkError } = await supabase.auth.admin.listUsers();
+      
+      if (checkError) {
         console.error('Error checking existing user for signup:', checkError);
         return new Response(
           JSON.stringify({ error: 'Failed to verify email address' }),
@@ -81,8 +83,10 @@ const handler = async (req: Request): Promise<Response> => {
           }
         );
       }
+      
+      const userExists = existingUser.users.some(user => user.email === email);
         
-      if (existingUser.user) {
+      if (userExists) {
         return new Response(
           JSON.stringify({ error: 'An account with this email already exists' }),
           { 
