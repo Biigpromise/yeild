@@ -420,29 +420,43 @@ const ProgressiveAuthFlow = () => {
                   )}
                 </div>
 
-                <div className="relative">
-                  <Mail className="absolute left-0 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                  <input
-                    type="email"
-                    placeholder="Enter your email address"
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full bg-transparent text-foreground text-lg pl-8 py-4 border-0 border-b-2 border-border focus:border-primary focus:outline-none placeholder-muted-foreground"
-                    autoFocus
-                  />
-                </div>
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  if (formData.email) {
+                    handleNext();
+                  }
+                }}>
+                  <div className="relative">
+                    <Mail className="absolute left-0 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                    <input
+                      type="email"
+                      placeholder="Enter your email address"
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && formData.email) {
+                          e.preventDefault();
+                          handleNext();
+                        }
+                      }}
+                      className="w-full bg-transparent text-foreground text-lg pl-8 py-4 border-0 border-b-2 border-border focus:border-primary focus:outline-none placeholder-muted-foreground"
+                      autoFocus
+                    />
+                  </div>
 
-                <Button
-                  onClick={handleNext}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-lg font-semibold shadow-yeild-button transition-all duration-300"
-                  disabled={!formData.email}
-                >
-                  Continue
-                </Button>
+                  <Button
+                    type="submit"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-lg font-semibold shadow-yeild-button transition-all duration-300 mt-6"
+                    disabled={!formData.email}
+                  >
+                    Continue
+                  </Button>
+                </form>
 
                 {/* Google Sign In Button for Email Step */}
                 <div className="pt-2">
                   <Button
+                    type="button"
                     onClick={handleGoogleAuth}
                     variant="outline"
                     className="w-full py-3 border-border text-foreground hover:bg-secondary flex items-center justify-center gap-3"
