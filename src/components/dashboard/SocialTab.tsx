@@ -42,11 +42,22 @@ export const SocialTab: React.FC = () => {
       </ErrorBoundary>
       
       <Tabs defaultValue="community" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="community">Community Chat</TabsTrigger>
-          <TabsTrigger value="upcoming">Upcoming Tasks</TabsTrigger>
-          <TabsTrigger value="stories">Stories</TabsTrigger>
-          <TabsTrigger value="feed">Social Feed</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 h-auto p-1">
+          <TabsTrigger value="community" className="text-xs sm:text-sm px-1 sm:px-3 py-2">
+            <span className="hidden sm:inline">Community Chat</span>
+            <span className="sm:hidden">Chat</span>
+          </TabsTrigger>
+          <TabsTrigger value="upcoming" className="text-xs sm:text-sm px-1 sm:px-3 py-2">
+            <span className="hidden sm:inline">Upcoming Tasks</span>
+            <span className="sm:hidden">Tasks</span>
+          </TabsTrigger>
+          <TabsTrigger value="stories" className="text-xs sm:text-sm px-1 sm:px-3 py-2">
+            Stories
+          </TabsTrigger>
+          <TabsTrigger value="feed" className="text-xs sm:text-sm px-1 sm:px-3 py-2">
+            <span className="hidden sm:inline">Social Feed</span>
+            <span className="sm:hidden">Feed</span>
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="community" className="mt-6">
