@@ -68,19 +68,24 @@ export default {
 					blue: 'hsl(var(--brand-blue))',
 					'blue-dark': 'hsl(var(--brand-blue-dark))',
 					success: 'hsl(var(--brand-success))',
-					warning: 'hsl(var(--brand-warning))',
-					danger: 'hsl(var(--brand-danger))',
-					info: 'hsl(var(--brand-info))',
+				warning: 'hsl(var(--brand-warning))',
+				danger: 'hsl(var(--brand-danger))',
+				info: 'hsl(var(--brand-info))',
+			},
+			// YEILD Brand Colors
+			yeild: {
+				yellow: {
+					DEFAULT: 'hsl(var(--yeild-yellow))',
+					dark: 'hsl(var(--yeild-yellow-dark))',
 				},
-				// YEILD Brand Colors
-				yeild: {
-					yellow: {
-						DEFAULT: 'hsl(var(--yeild-yellow))',
-						dark: 'hsl(var(--yeild-yellow-dark))',
-					},
-					black: 'hsl(var(--yeild-black))',
-					accent: 'hsl(var(--yeild-accent))',
-				},
+				black: 'hsl(var(--yeild-black))',
+				accent: 'hsl(var(--yeild-accent))',
+			},
+			// Status Colors
+			warning: {
+				DEFAULT: 'hsl(var(--warning))',
+				foreground: 'hsl(var(--warning-foreground))',
+			},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -124,7 +129,16 @@ export default {
 				'yeild-card': '0 10px 30px -15px rgba(0, 0, 0, 0.3)',
 				'yeild-button': '0 10px 20px -10px hsl(48 100% 67% / 0.5)',
 				'yeild-glow': '0 0 30px hsl(48 100% 67% / 0.4)',
-				'yeild-glow-lg': '0 0 50px hsl(48 100% 67% / 0.6)'
+				'yeild-glow-lg': '0 0 50px hsl(48 100% 67% / 0.6)',
+				'modern-sm': 'var(--shadow-sm)',
+				'modern-md': 'var(--shadow-md)',
+				'modern-lg': 'var(--shadow-lg)',
+				'modern-xl': 'var(--shadow-xl)',
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-card': 'var(--gradient-card)',
+				'gradient-bg': 'var(--gradient-bg)',
 			}
 		}
 	},

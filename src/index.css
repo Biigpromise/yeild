@@ -33,6 +33,9 @@
     --input: 48 100% 96%;
     --ring: 48 100% 67%;
 
+    --warning: 48 100% 67%;
+    --warning-foreground: 0 0% 9%;
+
     /* YEILD Brand Colors */
     --yeild-yellow: 48 100% 67%;
     --yeild-yellow-dark: 45 100% 50%;
@@ -55,6 +58,17 @@
     --sidebar-accent-foreground: 48 100% 97%;
     --sidebar-border: 48 20% 15%;
     --sidebar-ring: 48 100% 67%;
+
+    /* Modern gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
+    --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(var(--muted) / 0.5));
+    --gradient-bg: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted) / 0.2));
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(var(--foreground) / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(var(--foreground) / 0.1), 0 2px 4px -1px hsl(var(--foreground) / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(var(--foreground) / 0.1), 0 4px 6px -2px hsl(var(--foreground) / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(var(--foreground) / 0.1), 0 10px 10px -5px hsl(var(--foreground) / 0.04);
 
     --radius: 0.75rem;
   }
@@ -87,6 +101,20 @@
     --border: 48 20% 18%;
     --input: 48 20% 15%;
     --ring: 48 100% 67%;
+
+    --warning: 48 100% 67%;
+    --warning-foreground: 0 0% 9%;
+
+    /* Dark mode gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.6));
+    --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(var(--muted) / 0.3));
+    --gradient-bg: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted) / 0.1));
+    
+    /* Dark mode shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.2);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -1px hsl(0 0% 0% / 0.2);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -2px hsl(0 0% 0% / 0.2);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.4), 0 10px 10px -5px hsl(0 0% 0% / 0.2);
   }
 
   .light {
