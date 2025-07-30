@@ -22,7 +22,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, onTabCha
     <div className="bg-background border-b border-border p-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-yeild-yellow">YIELD</h1>
+          <h1 className="text-2xl font-bold text-yeild-yellow">YEILD</h1>
           <span className="text-muted-foreground">Dashboard</span>
         </div>
         

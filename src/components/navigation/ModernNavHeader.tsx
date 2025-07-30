@@ -22,7 +22,7 @@ export const ModernNavHeader: React.FC<ModernNavHeaderProps> = ({
   onUnreadCountChange,
   isSidebarCollapsed = false,
   showSearch = true,
-  title = "YIELD"
+  title = "YEILD"
 }) => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
