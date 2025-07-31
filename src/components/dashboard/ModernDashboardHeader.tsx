@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Bell, Search, Menu } from "lucide-react";
 import { NotificationCenter } from "@/components/dashboard/NotificationCenter";
+import { AdminUserToggle } from "@/components/admin/AdminUserToggle";
 import { cn } from "@/lib/utils";
 
 interface ModernDashboardHeaderProps {
@@ -45,6 +46,9 @@ export const ModernDashboardHeader: React.FC<ModernDashboardHeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Admin/User Toggle */}
+          <AdminUserToggle />
+
           {/* Quick Stats - Hidden on mobile */}
           <div className="hidden lg:flex items-center gap-6">
             <div className="text-center">

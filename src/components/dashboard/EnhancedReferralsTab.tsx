@@ -13,6 +13,7 @@ import { referralService } from '@/services/referralService';
 import { referralCommissionService } from '@/services/referralCommissionService';
 import { toast } from 'sonner';
 import { generateReferralLink, APP_CONFIG } from "@/config/app";
+import { BirdProgressTracker } from "@/components/referral/BirdProgressTracker";
 
 export const EnhancedReferralsTab: React.FC = () => {
   const { user } = useAuth();
@@ -198,6 +199,15 @@ export const EnhancedReferralsTab: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Bird Progress Tracker - Phoenix Display */}
+        {user && (
+          <BirdProgressTracker 
+            userId={user.id} 
+            showCompactView={false}
+            className="transition-all duration-300 hover:shadow-md" 
+          />
+        )}
 
         {/* Commission Earnings */}
         {commissionEarnings.length > 0 && (

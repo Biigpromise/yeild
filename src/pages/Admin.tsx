@@ -16,6 +16,7 @@ import { AdminSecurity } from "@/components/admin/AdminSecurity";
 import { AdminCommunication } from "@/components/admin/AdminCommunication";
 import { AdminContentManagement } from "@/components/admin/AdminContentManagement";
 import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell";
+import { AdminUserToggle } from "@/components/admin/AdminUserToggle";
 import { AntiFraudTracking } from "@/components/admin/AntiFraudTracking";
 import { BrandCampaigns } from "@/components/admin/BrandCampaigns";
 import { BrandAnalytics } from "@/components/admin/BrandAnalytics";
@@ -200,6 +201,7 @@ const Admin = () => {
               </p>
             </div>
             <div className="flex items-center gap-2 md:gap-4">
+              <AdminUserToggle />
               <AdminNotificationBell />
               <button className="px-3 py-1.5 md:px-4 md:py-2 rounded-md border border-border bg-card hover:bg-muted text-sm">
                 Broadcast
