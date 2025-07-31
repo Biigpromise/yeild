@@ -14,7 +14,7 @@ import { useAdminTaskManagement } from '../hooks/useAdminTaskManagement';
 import { enhancedTaskManagementService } from '@/services/admin/enhancedTaskManagementService';
 import { supabase } from '@/integrations/supabase/client';
 import { ImageModal } from '../ImageModal';
-import { Search, Plus, Edit, Trash2, Eye, CheckCircle, XCircle, Clock, Image as ImageIcon, ExternalLink, FileText, AlertCircle } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, CheckCircle, XCircle, Clock, Image as ImageIcon, ExternalLink, FileText, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Define the actual database structure for task submissions - matching the database exactly
@@ -225,13 +225,22 @@ export const EnhancedTaskManagement: React.FC = () => {
     setImageModalOpen(true);
   };
 
+  const [expandedText, setExpandedText] = useState<{ [key: string]: boolean }>({});
+
+  const toggleTextExpansion = (submissionId: string) => {
+    setExpandedText(prev => ({
+      ...prev,
+      [submissionId]: !prev[submissionId]
+    }));
+  };
+
   const renderSubmissionEvidence = (submission: DatabaseTaskSubmission) => {
     console.log('Rendering evidence for submission:', submission);
     
     if (!submission.evidence && !submission.evidence_files && !submission.evidence_file_url) {
       return (
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-2 text-gray-500">
+        <div className="p-4 bg-muted/30 rounded-lg border border-dashed border-border">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <AlertCircle className="h-4 w-4" />
             <span className="text-sm">No evidence provided</span>
           </div>
@@ -268,8 +277,8 @@ export const EnhancedTaskManagement: React.FC = () => {
     } catch (error) {
       console.error('Error parsing evidence:', error);
       return (
-        <div className="p-4 bg-red-50 rounded-lg">
-          <div className="flex items-center gap-2 text-red-600">
+        <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+          <div className="flex items-center gap-2 text-destructive">
             <AlertCircle className="h-4 w-4" />
             <span className="text-sm">Error loading evidence</span>
           </div>
@@ -279,26 +288,33 @@ export const EnhancedTaskManagement: React.FC = () => {
 
     console.log('Parsed evidence data:', evidenceData);
 
+    const isExpanded = expandedText[submission.id];
+    const truncateLength = 200;
+
     return (
-      <div className="space-y-4">
-        <Label className="text-sm font-medium">Submission Evidence:</Label>
+      <div className="space-y-6">
+        <Label className="text-base font-semibold text-foreground">Evidence Submitted:</Label>
         
         {/* Handle image evidence */}
         {evidenceData.images && evidenceData.images.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <ImageIcon className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium">Photo Evidence ({evidenceData.images.length})</span>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 pb-2 border-b border-border">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <ImageIcon className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <span className="text-sm font-semibold text-foreground">Photo Evidence</span>
+                <p className="text-xs text-muted-foreground">{evidenceData.images.length} image(s) uploaded</p>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {evidenceData.images.map((imageUrl: string, index: number) => (
-                <div key={index} className="relative group">
-                  <div className="relative overflow-hidden rounded-lg border border-gray-200">
+                <div key={index} className="group relative">
+                  <div className="relative overflow-hidden rounded-xl border-2 border-border hover:border-primary/50 transition-all duration-300 bg-background">
                     <img 
                       src={imageUrl} 
                       alt={`Evidence ${index + 1}`}
-                      className="w-full h-32 object-cover transition-transform group-hover:scale-105 cursor-pointer"
-                      onClick={() => openImageModal(imageUrl)}
+                      className="w-full h-48 object-cover transition-all duration-300 group-hover:scale-105"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIxIDlWN0E0IDQgMCAwIDAgMTcgM0g3QTQgNCAwIDAgMCAzIDdWMTdBNCA0IDAgMCAwIDcgMjFIOUwyMSA5WiIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0yMSA5TDkgMjEiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K';
@@ -306,20 +322,33 @@ export const EnhancedTaskManagement: React.FC = () => {
                         console.error('Failed to load image:', imageUrl);
                       }}
                     />
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openImageModal(imageUrl);
-                        }}
-                      >
-                        <Eye className="h-3 w-3 mr-1" />
-                        View
-                      </Button>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="shadow-lg"
+                          onClick={() => openImageModal(imageUrl)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Expand
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="shadow-lg bg-background/90"
+                          onClick={() => window.open(imageUrl, '_blank')}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Open
+                        </Button>
+                      </div>
                     </div>
+                  </div>
+                  <div className="mt-2 text-center">
+                    <span className="text-xs text-muted-foreground font-medium">
+                      Image {index + 1} of {evidenceData.images.length}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -329,27 +358,61 @@ export const EnhancedTaskManagement: React.FC = () => {
 
         {/* Handle text evidence */}
         {evidenceData.description && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium">Text Evidence</span>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 pb-2 border-b border-border">
+              <div className="p-2 bg-success/10 rounded-lg">
+                <FileText className="h-5 w-5 text-success" />
+              </div>
+              <div>
+                <span className="text-sm font-semibold text-foreground">Written Evidence</span>
+                <p className="text-xs text-muted-foreground">User submitted description</p>
+              </div>
             </div>
-            <div className="p-3 bg-gray-50 rounded-lg border">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{evidenceData.description}</p>
+            <div className="relative">
+              <div className="p-4 bg-muted/30 rounded-xl border border-border">
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                  {isExpanded || evidenceData.description.length <= truncateLength 
+                    ? evidenceData.description 
+                    : `${evidenceData.description.substring(0, truncateLength)}...`
+                  }
+                </p>
+                {evidenceData.description.length > truncateLength && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleTextExpansion(submission.id)}
+                    className="mt-3 p-0 h-auto text-primary hover:text-primary/80"
+                  >
+                    {isExpanded ? (
+                      <>
+                        <ChevronUp className="h-4 w-4 mr-1" />
+                        Show Less
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4 mr-1" />
+                        Show More ({evidenceData.description.length - truncateLength} more characters)
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         )}
 
         {/* Fallback for unknown format */}
         {!evidenceData.images && !evidenceData.description && (
-          <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-            <div className="flex items-center gap-2 text-yellow-700">
+          <div className="p-4 bg-warning/10 rounded-lg border border-warning/20">
+            <div className="flex items-center gap-2 text-warning-foreground mb-3">
               <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">Evidence format not recognized</span>
+              <span className="text-sm font-medium">Evidence format not recognized</span>
             </div>
-            <pre className="mt-2 text-xs text-gray-600 overflow-auto">
-              {JSON.stringify(evidenceData, null, 2)}
-            </pre>
+            <div className="bg-background/50 p-3 rounded-md border">
+              <pre className="text-xs text-muted-foreground overflow-auto max-h-32">
+                {JSON.stringify(evidenceData, null, 2)}
+              </pre>
+            </div>
           </div>
         )}
       </div>
