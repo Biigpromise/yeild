@@ -18,7 +18,8 @@ import { AdminContentManagement } from "@/components/admin/AdminContentManagemen
 import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell";
 import { AdminUserToggle } from "@/components/admin/AdminUserToggle";
 import { AntiFraudTracking } from "@/components/admin/AntiFraudTracking";
-import { BrandCampaigns } from "@/components/admin/BrandCampaigns";
+import { BrandCampaignsTab } from "@/components/admin/brands/BrandCampaignsTab";
+import { TaskSubmissionsTab } from "@/components/admin/TaskSubmissionsTab";
 import { BrandAnalytics } from "@/components/admin/BrandAnalytics";
 import {
   LayoutDashboard,
@@ -91,11 +92,12 @@ const Admin = () => {
     dashboard: <AdminOverview />,
     users: <EnhancedUserManagementSystem />,
     tasks: <EnhancedTaskManagement />,
+    submissions: <TaskSubmissionsTab />,
     wallet: <AdminWallet />,
     referrals: <AdminReferrals />,
     streaks: <AdminStreaks />,
     brands: <AdminBrands />,
-    campaigns: <BrandCampaigns />,
+    campaigns: <BrandCampaignsTab />,
     brandAnalytics: <BrandAnalytics />,
     fraud: <AntiFraudTracking />,
     notifications: <AdminNotifications />,
@@ -112,6 +114,7 @@ const Admin = () => {
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "users", label: "Users", icon: Users },
     { id: "tasks", label: "Tasks", icon: ClipboardList },
+    { id: "submissions", label: "Task Submissions", icon: ClipboardList },
     { id: "wallet", label: "Financial", icon: Wallet },
     { id: "referrals", label: "Referral Levels", icon: Award },
     { id: "streaks", label: "Streaks", icon: Medal },

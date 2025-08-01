@@ -211,13 +211,86 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
 
           {/* Phoenix Achievement */}
           {isPhoenix && (
-            <div className="text-center p-4 bg-gradient-to-r from-orange-100 to-red-100 rounded-lg border border-orange-200">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Trophy className="h-5 w-5 text-yellow-500" />
-                <Sparkles className="h-4 w-4 text-orange-500" />
+            <div className="relative text-center p-6 bg-gradient-to-br from-orange-100 via-red-100 to-yellow-100 rounded-lg border-2 border-orange-300 overflow-hidden">
+              {/* Animated background elements */}
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 to-red-400/10 animate-pulse"></div>
+              <div className="absolute top-2 left-2 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
+              <div className="absolute bottom-2 right-2 w-2 h-2 bg-orange-400 rounded-full animate-ping delay-300"></div>
+              <div className="absolute top-1/2 left-2 w-1 h-1 bg-red-400 rounded-full animate-ping delay-700"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center justify-center gap-3 mb-3">
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.2, 1],
+                      rotate: [0, 10, -10, 0]
+                    }}
+                    transition={{ 
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <Trophy className="h-8 w-8 text-yellow-500" />
+                  </motion.div>
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.3, 1],
+                      opacity: [0.7, 1, 0.7]
+                    }}
+                    transition={{ 
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <Sparkles className="h-6 w-6 text-orange-500" />
+                  </motion.div>
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.1, 1],
+                      rotate: [0, -10, 10, 0]
+                    }}
+                    transition={{ 
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 0.5
+                    }}
+                  >
+                    <Flame className="h-7 w-7 text-red-500" />
+                  </motion.div>
+                </div>
+                
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                >
+                  <p className="font-bold text-xl text-orange-800 mb-2">
+                    🔥 PHOENIX STATUS ACHIEVED! 🔥
+                  </p>
+                  <p className="text-base text-orange-700 font-medium mb-2">
+                    You've ascended to legendary status!
+                  </p>
+                  <p className="text-sm text-orange-600">
+                    Elite benefits, maximum rewards, and exclusive access unlocked
+                  </p>
+                </motion.div>
+                
+                {/* Achievement badges */}
+                <div className="flex justify-center gap-2 mt-4">
+                  <div className="px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-semibold">
+                    🏆 LEGENDARY
+                  </div>
+                  <div className="px-3 py-1 bg-orange-200 text-orange-800 rounded-full text-xs font-semibold">
+                    🔥 PHOENIX
+                  </div>
+                  <div className="px-3 py-1 bg-red-200 text-red-800 rounded-full text-xs font-semibold">
+                    👑 ELITE
+                  </div>
+                </div>
               </div>
-              <p className="font-bold text-orange-800">🎉 Phoenix Achieved! 🎉</p>
-              <p className="text-sm text-orange-600 mt-1">You've reached the highest level!</p>
             </div>
           )}
 
