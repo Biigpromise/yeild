@@ -58,10 +58,12 @@ export const useAuthOperations = () => {
   };
 
   const signInWithProvider = async (provider: string, userType: string = 'user') => {
+    const redirectUrl = `${window.location.origin}/auth/callback?user_type=${userType}`;
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: provider as any,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: redirectUrl,
         queryParams: {
           user_type: userType
         }

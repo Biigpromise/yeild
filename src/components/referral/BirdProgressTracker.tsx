@@ -1,23 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EnhancedBirdBadge } from './EnhancedBirdBadge';
-import { Trophy, Target, Zap } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { Sparkles, Trophy, Crown, Flame } from 'lucide-react';
 
 interface BirdLevel {
   id: number;
   name: string;
-  icon: string;
   emoji: string;
+  icon: string;
   min_referrals: number;
   min_points: number;
   description: string;
   color: string;
   benefits: string[];
+  animation_type: string;
+  glow_effect: boolean;
 }
 
-interface NextBirdLevel extends BirdLevel {
+interface NextBirdLevel {
+  id: number;
+  name: string;
+  emoji: string;
+  icon: string;
+  min_referrals: number;
+  min_points: number;
+  description: string;
+  color: string;
   referrals_needed: number;
   points_needed: number;
 }
@@ -43,13 +55,16 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [allLevels, setAllLevels] = useState<BirdLevel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAllLevels, setShowAllLevels] = useState(false);
 
   useEffect(() => {
-    loadProgressData();
+    loadBirdData();
   }, [userId]);
 
-  const loadProgressData = async () => {
+  const loadBirdData = async () => {
     try {
+      setLoading(true);
+      
       // Get user stats
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
@@ -61,39 +76,34 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
       setUserStats(profileData);
 
       // Get current bird level
-      const { data: currentLevelData, error: currentError } = await supabase
+      const { data: currentLevelData, error: currentLevelError } = await supabase
         .rpc('get_user_bird_level', { user_id_param: userId });
 
-      if (currentError) throw currentError;
+      if (currentLevelError) throw currentLevelError;
       if (currentLevelData && currentLevelData.length > 0) {
         setCurrentLevel(currentLevelData[0]);
       }
 
       // Get next bird level
-      const { data: nextLevelData, error: nextError } = await supabase
+      const { data: nextLevelData, error: nextLevelError } = await supabase
         .rpc('get_next_bird_level', { user_id_param: userId });
 
-      if (nextError) throw nextError;
+      if (nextLevelError) throw nextLevelError;
       if (nextLevelData && nextLevelData.length > 0) {
-        const nextData = nextLevelData[0] as any;
-        setNextLevel({
-          ...nextData,
-          benefits: nextData.benefits || [],
-          animation_type: nextData.animation_type || 'static',
-          glow_effect: nextData.glow_effect || false
-        });
+        setNextLevel(nextLevelData[0]);
       }
 
-      // Get all bird levels for milestone display
-      const { data: levelsData, error: levelsError } = await supabase
+      // Get all bird levels
+      const { data: allLevelsData, error: allLevelsError } = await supabase
         .from('bird_levels')
         .select('*')
         .order('min_referrals', { ascending: true });
 
-      if (levelsError) throw levelsError;
-      setAllLevels(levelsData || []);
+      if (allLevelsError) throw allLevelsError;
+      setAllLevels(allLevelsData || []);
+
     } catch (error) {
-      console.error('Error loading progress data:', error);
+      console.error('Error loading bird data:', error);
     } finally {
       setLoading(false);
     }
@@ -101,158 +111,212 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
 
   if (loading) {
     return (
-      <div className={`animate-pulse ${className}`}>
-        <div className="h-32 bg-muted rounded-lg" />
-      </div>
+      <Card className={className}>
+        <CardContent className="p-6">
+          <div className="animate-pulse">
+            <div className="h-4 bg-muted rounded w-1/3 mb-4"></div>
+            <div className="h-8 bg-muted rounded w-2/3 mb-2"></div>
+            <div className="h-2 bg-muted rounded w-full"></div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   if (!currentLevel || !userStats) {
-    return null;
-  }
-
-  const calculateProgress = () => {
-    if (!nextLevel) return 100; // Max level reached
-    
-    // Since we removed point requirements (min_points = 0), only calculate based on referrals
-    if (nextLevel.min_points === 0) {
-      return Math.min((userStats.active_referrals_count / nextLevel.min_referrals) * 100, 100);
-    }
-    
-    // Legacy calculation for levels that still require points
-    const referralProgress = userStats.active_referrals_count / nextLevel.min_referrals * 100;
-    const pointsProgress = userStats.points / nextLevel.min_points * 100;
-    
-    // Return the minimum progress (both requirements must be met)
-    return Math.min(Math.min(referralProgress, pointsProgress), 100);
-  };
-
-  const progress = calculateProgress();
-
-  if (showCompactView) {
     return (
-      <div className={`flex items-center gap-3 p-3 bg-muted/50 rounded-lg ${className}`}>
-        <EnhancedBirdBadge userId={userId} size="md" showTooltip={true} />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-medium">{currentLevel.name}</span>
-            {nextLevel && (
-              <span className="text-xs text-muted-foreground">
-                {Math.round(progress)}% to {nextLevel.name}
-              </span>
-            )}
+      <Card className={className}>
+        <CardContent className="p-6">
+          <div className="text-center">
+            <p className="text-muted-foreground">Unable to load bird progression data</p>
           </div>
-          {nextLevel && (
-            <Progress value={progress} className="h-2" />
-          )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
+  const progressToNext = nextLevel ? 
+    Math.min(100, 
+      Math.max(
+        (userStats.active_referrals_count / nextLevel.min_referrals) * 100,
+        (userStats.points / nextLevel.min_points) * 100
+      )
+    ) : 100;
+
+  const isPhoenix = currentLevel.name === 'Phoenix';
+
   return (
-    <Card className={className}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2">
-          <Trophy className="h-5 w-5" />
-          Bird Badge Progress
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Current Level */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <EnhancedBirdBadge userId={userId} size="lg" showTooltip={false} />
-            <div>
-              <h3 className="font-semibold">{currentLevel.name} YEILDER</h3>
-              <p className="text-sm text-muted-foreground">{currentLevel.description}</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-lg font-bold">{userStats.active_referrals_count}</div>
-            <div className="text-xs text-muted-foreground">Referrals</div>
-          </div>
-        </div>
-
-        {/* Progress to Next Level */}
-        {nextLevel && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium flex items-center gap-1">
-                <Target className="h-4 w-4" />
-                Next: {nextLevel.name}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                {Math.round(progress)}% Complete
-              </span>
-            </div>
-            
-            <Progress value={progress} className="h-3" />
-            
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-blue-500" />
-                <span>
-                  {userStats.active_referrals_count}/{nextLevel.min_referrals} referrals
-                </span>
-              </div>
-              {nextLevel.min_points > 0 && (
-                <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-yellow-500" />
-                  <span>
-                    {userStats.points}/{nextLevel.min_points} points
-                  </span>
-                </div>
-              )}
-            </div>
-            
-            {(nextLevel.referrals_needed > 0 || nextLevel.points_needed > 0) && (
-              <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                Still need: {nextLevel.referrals_needed > 0 && `${nextLevel.referrals_needed} more referrals`}
-                {nextLevel.referrals_needed > 0 && nextLevel.points_needed > 0 && ', '}
-                {nextLevel.points_needed > 0 && `${nextLevel.points_needed} more points`}
-              </div>
-            )}
-          </div>
+    <div className={`space-y-4 ${className}`}>
+      <Card className={`relative overflow-hidden ${isPhoenix ? 'bg-gradient-to-br from-orange-50 to-red-50 border-orange-200' : ''}`}>
+        {isPhoenix && (
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 to-red-400/10 animate-pulse"></div>
         )}
-
-        {/* All Levels Milestone */}
-        <div className="border-t pt-3">
-          <div className="text-sm font-medium mb-2">Bird Level Milestones</div>
-          <div className="flex justify-between">
-            {allLevels.slice(0, 6).map((level) => {
-              // Updated logic: only check referrals if min_points is 0
-              const isAchieved = level.min_points === 0 
-                ? userStats.active_referrals_count >= level.min_referrals
-                : userStats.active_referrals_count >= level.min_referrals && userStats.points >= level.min_points;
-              const isCurrent = currentLevel.id === level.id;
-              
-              return (
-                <div 
-                  key={level.id} 
-                  className={`text-center ${isCurrent ? 'scale-110' : ''} transition-transform`}
-                >
-                  <div 
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs mb-1 ${
-                      isAchieved 
-                        ? 'opacity-100' 
-                        : 'opacity-30'
-                    }`}
-                    style={{ 
-                      backgroundColor: isAchieved ? level.color + '20' : '#f3f4f6',
-                      border: `2px solid ${isAchieved ? level.color : '#d1d5db'}`,
-                      color: isAchieved ? level.color : '#6b7280'
-                    }}
-                  >
-                    {level.emoji}
+        <CardHeader className="relative">
+          <CardTitle className="flex items-center gap-3">
+            <motion.div 
+              className={`text-4xl ${isPhoenix ? 'animate-bounce' : ''}`}
+              animate={isPhoenix ? { scale: [1, 1.1, 1] } : {}}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              {currentLevel.emoji}
+            </motion.div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-bold">{currentLevel.name}</h3>
+                {isPhoenix && (
+                  <div className="flex items-center gap-1">
+                    <Crown className="h-5 w-5 text-yellow-500" />
+                    <Flame className="h-4 w-4 text-orange-500" />
                   </div>
-                  <div className="text-xs text-muted-foreground">{level.min_referrals}</div>
-                </div>
-              );
-            })}
+                )}
+                <Badge 
+                  variant="secondary" 
+                  className={isPhoenix ? 'bg-gradient-to-r from-orange-100 to-red-100 text-orange-800' : ''}
+                >
+                  Current Level
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">{currentLevel.description}</p>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        
+        <CardContent className="relative space-y-4">
+          {/* Current Stats */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center p-3 bg-background/50 rounded-lg">
+              <p className="text-2xl font-bold text-primary">{userStats.active_referrals_count}</p>
+              <p className="text-sm text-muted-foreground">Active Referrals</p>
+            </div>
+            <div className="text-center p-3 bg-background/50 rounded-lg">
+              <p className="text-2xl font-bold text-primary">{userStats.points}</p>
+              <p className="text-sm text-muted-foreground">Total Points</p>
+            </div>
           </div>
+
+          {/* Progress to Next Level */}
+          {nextLevel && !isPhoenix && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Progress to {nextLevel.name}</p>
+                <span className="text-sm text-muted-foreground">{Math.round(progressToNext)}%</span>
+              </div>
+              <Progress value={progressToNext} className="h-2" />
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span>Need {nextLevel.referrals_needed} more referrals</span>
+                <span>Need {nextLevel.points_needed} more points</span>
+              </div>
+            </div>
+          )}
+
+          {/* Phoenix Achievement */}
+          {isPhoenix && (
+            <div className="text-center p-4 bg-gradient-to-r from-orange-100 to-red-100 rounded-lg border border-orange-200">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Trophy className="h-5 w-5 text-yellow-500" />
+                <Sparkles className="h-4 w-4 text-orange-500" />
+              </div>
+              <p className="font-bold text-orange-800">🎉 Phoenix Achieved! 🎉</p>
+              <p className="text-sm text-orange-600 mt-1">You've reached the highest level!</p>
+            </div>
+          )}
+
+          {/* Benefits */}
+          {currentLevel.benefits && currentLevel.benefits.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Level Benefits:</p>
+              <div className="grid gap-1">
+                {currentLevel.benefits.slice(0, showCompactView ? 2 : undefined).map((benefit, index) => (
+                  <div key={index} className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                    <span>{benefit}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* View All Levels Button */}
+          <Button 
+            variant="outline" 
+            onClick={() => setShowAllLevels(true)} 
+            className="w-full"
+            size="sm"
+          >
+            View All Bird Levels
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* All Levels Modal */}
+      {showAllLevels && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>All Bird Levels</CardTitle>
+                <Button variant="ghost" onClick={() => setShowAllLevels(false)}>
+                  ✕
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="overflow-y-auto">
+              <div className="grid gap-4">
+                {allLevels.map((level) => {
+                  const isCurrentLevel = level.id === currentLevel.id;
+                  const isUnlocked = userStats.active_referrals_count >= level.min_referrals && 
+                                   userStats.points >= level.min_points;
+                  
+                  return (
+                    <div 
+                      key={level.id}
+                      className={`p-4 rounded-lg border transition-all ${
+                        isCurrentLevel 
+                          ? 'border-primary bg-primary/5' 
+                          : isUnlocked 
+                            ? 'border-green-200 bg-green-50' 
+                            : 'border-border bg-muted/20'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{level.emoji}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold">{level.name}</h4>
+                            {isCurrentLevel && <Badge>Current</Badge>}
+                            {isUnlocked && !isCurrentLevel && <Badge variant="secondary">Unlocked</Badge>}
+                            {level.name === 'Phoenix' && (
+                              <div className="flex items-center gap-1">
+                                <Crown className="h-4 w-4 text-yellow-500" />
+                                <Flame className="h-3 w-3 text-orange-500" />
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{level.description}</p>
+                          <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                            <span>{level.min_referrals} referrals</span>
+                            <span>{level.min_points} points</span>
+                          </div>
+                        </div>
+                      </div>
+                      {level.benefits && level.benefits.length > 0 && (
+                        <div className="mt-3 space-y-1">
+                          {level.benefits.map((benefit, index) => (
+                            <div key={index} className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <div className="w-1 h-1 rounded-full bg-primary"></div>
+                              <span>{benefit}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 };

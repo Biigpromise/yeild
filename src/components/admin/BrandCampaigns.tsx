@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,48 +21,49 @@ import {
 export const BrandCampaigns = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Mock data for campaigns
-  const campaigns = [
-    {
-      id: "1",
-      name: "Summer Product Launch",
-      brand: "TechCorp",
-      status: "active",
-      budget: 5000,
-      spent: 3200,
-      impressions: 45000,
-      clicks: 1200,
-      conversions: 48,
-      startDate: "2024-06-01",
-      endDate: "2024-07-31"
-    },
-    {
-      id: "2",
-      name: "Brand Awareness Drive",
-      brand: "FashionHub",
-      status: "paused",
-      budget: 3000,
-      spent: 1800,
-      impressions: 28000,
-      clicks: 850,
-      conversions: 32,
-      startDate: "2024-05-15",
-      endDate: "2024-06-30"
-    },
-    {
-      id: "3",
-      name: "Holiday Special Promo",
-      brand: "GadgetStore",
-      status: "completed",
-      budget: 8000,
-      spent: 7800,
-      impressions: 95000,
-      clicks: 2400,
-      conversions: 125,
-      startDate: "2024-04-01",
-      endDate: "2024-05-01"
+  const [campaigns, setCampaigns] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    loadCampaigns();
+  }, []);
+
+  const loadCampaigns = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('brand_campaigns')
+        .select(`
+          *,
+          brand_profiles!inner(company_name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedCampaigns = data?.map(campaign => ({
+        id: campaign.id,
+        name: campaign.title,
+        brand: campaign.brand_profiles?.company_name || 'Unknown Brand',
+        status: campaign.status || 'draft',
+        budget: campaign.budget || 0,
+        spent: campaign.funded_amount || 0,
+        impressions: Math.floor(Math.random() * 50000) + 10000, // Mock data
+        clicks: Math.floor(Math.random() * 2000) + 500, // Mock data
+        conversions: Math.floor(Math.random() * 100) + 20, // Mock data
+        startDate: campaign.start_date || campaign.created_at,
+        endDate: campaign.end_date || campaign.created_at,
+        description: campaign.description
+      })) || [];
+
+      setCampaigns(formattedCampaigns);
+    } catch (error) {
+      console.error('Error loading campaigns:', error);
+      setCampaigns([]);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -77,13 +79,32 @@ export const BrandCampaigns = () => {
     campaign.brand.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-24 bg-muted rounded"></div>
+            ))}
+          </div>
+          <div className="h-96 bg-muted rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Brand Campaigns</h2>
-          <p className="text-muted-foreground">Manage and monitor brand advertising campaigns</p>
+          <p className="text-muted-foreground">
+            Manage and monitor brand advertising campaigns 
+            {campaigns.length > 0 && ` (${campaigns.length} campaigns)`}
+          </p>
         </div>
         <Button>
           <Plus className="h-4 w-4 mr-2" />
@@ -189,34 +210,44 @@ export const BrandCampaigns = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredCampaigns.map((campaign) => (
-                      <TableRow key={campaign.id}>
-                        <TableCell className="font-medium">{campaign.name}</TableCell>
-                        <TableCell>{campaign.brand}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(campaign.status)}>
-                            {campaign.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>${campaign.budget.toLocaleString()}</TableCell>
-                        <TableCell>${campaign.spent.toLocaleString()}</TableCell>
-                        <TableCell>{campaign.impressions.toLocaleString()}</TableCell>
-                        <TableCell>{campaign.clicks.toLocaleString()}</TableCell>
-                        <TableCell>{campaign.conversions}</TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <div>{new Date(campaign.startDate).toLocaleDateString()}</div>
-                            <div className="text-muted-foreground">to {new Date(campaign.endDate).toLocaleDateString()}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline">View</Button>
-                            <Button size="sm" variant="outline">Edit</Button>
+                    {filteredCampaigns.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={10} className="text-center py-8">
+                          <div className="text-muted-foreground">
+                            {campaigns.length === 0 ? 'No campaigns found' : 'No campaigns match your search'}
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : (
+                      filteredCampaigns.map((campaign) => (
+                        <TableRow key={campaign.id}>
+                          <TableCell className="font-medium">{campaign.name}</TableCell>
+                          <TableCell>{campaign.brand}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(campaign.status)}>
+                              {campaign.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>₦{campaign.budget.toLocaleString()}</TableCell>
+                          <TableCell>₦{campaign.spent.toLocaleString()}</TableCell>
+                          <TableCell>{campaign.impressions.toLocaleString()}</TableCell>
+                          <TableCell>{campaign.clicks.toLocaleString()}</TableCell>
+                          <TableCell>{campaign.conversions}</TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              <div>{new Date(campaign.startDate).toLocaleDateString()}</div>
+                              <div className="text-muted-foreground">to {new Date(campaign.endDate).toLocaleDateString()}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline">View</Button>
+                              <Button size="sm" variant="outline">Edit</Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>
