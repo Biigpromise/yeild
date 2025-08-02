@@ -3467,11 +3467,14 @@ export type Database = {
           evidence: Json
           submitted_at: string
           reviewed_at: string
+          reviewer_id: string
           rejection_reason: string
-          task_title: string
-          task_points: number
+          social_media_handle: string
+          evidence_file_url: string
           user_name: string
           user_email: string
+          task_title: string
+          task_description: string
         }[]
       }
       get_current_user_profile: {

@@ -30,10 +30,13 @@ export const AdminTasksSimple = () => {
         submitted_at: submission.submitted_at,
         reviewed_at: submission.reviewed_at,
         rejection_reason: submission.rejection_reason,
+        social_media_handle: submission.social_media_handle,
+        evidence_file_url: submission.evidence_file_url,
+        reviewer_id: submission.reviewer_id,
         tasks: {
           id: submission.task_id,
           title: submission.task_title,
-          points: submission.task_points
+          points: 100 // Default points since not in function return
         },
         user_profile: {
           id: submission.user_id,
