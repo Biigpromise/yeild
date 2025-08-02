@@ -203,19 +203,48 @@ export const AdminTasksSimple = () => {
                     <p>
                       <strong>Submitted:</strong> {new Date(submission.submitted_at).toLocaleString()}
                     </p>
-                    {submission.evidence && (
-                      <div>
-                        <strong>Evidence:</strong>
-                        <div className="mt-1 p-2 bg-muted rounded text-xs max-h-20 overflow-y-auto">
-                          {typeof submission.evidence === 'string' 
-                            ? submission.evidence.length > 100 
-                              ? `${submission.evidence.substring(0, 100)}...`
-                              : submission.evidence
-                            : 'File/Data evidence attached'
-                          }
-                        </div>
-                      </div>
-                    )}
+                     {submission.evidence && (
+                       <div>
+                         <strong>Evidence Preview:</strong>
+                         <div className="mt-1 p-2 bg-muted rounded text-xs max-h-20 overflow-y-auto">
+                           {typeof submission.evidence === 'string' ? (
+                             submission.evidence.length > 100 
+                               ? `${submission.evidence.substring(0, 100)}...`
+                               : submission.evidence
+                            ) : submission.evidence && Array.isArray(submission.evidence) ? (
+                              <span className="text-primary">📎 {(submission.evidence as any[]).length} file(s) attached</span>
+                            ) : (
+                             <span className="text-primary">📄 Evidence data attached</span>
+                           )}
+                         </div>
+                         <div className="mt-1">
+                           <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             onClick={() => handleViewSubmission(submission)}
+                             className="h-6 px-2 text-xs text-primary hover:text-primary-foreground"
+                           >
+                             View Full Evidence
+                           </Button>
+                         </div>
+                       </div>
+                     )}
+                     {submission.evidence_file_url && (
+                       <div>
+                         <strong>Evidence File:</strong>
+                         <div className="mt-1">
+                           <a 
+                             href={submission.evidence_file_url} 
+                             target="_blank" 
+                             rel="noopener noreferrer"
+                             className="text-xs text-primary hover:underline flex items-center gap-1"
+                           >
+                             <Eye className="h-3 w-3" />
+                             View File
+                           </a>
+                         </div>
+                       </div>
+                     )}
                   </div>
                 </CardContent>
               </Card>
