@@ -454,6 +454,27 @@ const ProgressiveAuthFlow = () => {
                   </button>
                 </div>
               )}
+
+              {/* Privacy and Terms links */}
+              {currentStep === 'email' && (
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground space-x-4 mt-4">
+                    <button 
+                      onClick={() => navigate('/terms')}
+                      className="hover:text-primary transition-colors"
+                    >
+                      Terms of Service
+                    </button>
+                    <span>•</span>
+                    <button 
+                      onClick={() => navigate('/privacy')}
+                      className="hover:text-primary transition-colors"
+                    >
+                      Privacy Policy
+                    </button>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
