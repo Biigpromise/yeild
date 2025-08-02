@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { Sparkles, Trophy, Crown, Flame } from 'lucide-react';
+import { RealisticPhoenixBird } from '@/components/bird/RealisticPhoenixBird';
 
 interface BirdLevel {
   id: number;
@@ -166,146 +167,7 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
               }}
             >
               {isPhoenix ? (
-                <div className="relative w-16 h-16 flex items-center justify-center">
-                  {/* Phoenix SVG with wing flapping animation */}
-                  <motion.svg 
-                    width="64" 
-                    height="64" 
-                    viewBox="0 0 64 64" 
-                    className="relative z-10"
-                    animate={{
-                      y: [0, -4, 0],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    {/* Phoenix body */}
-                    <ellipse cx="32" cy="40" rx="4" ry="8" fill="#ff4500" />
-                    
-                    {/* Phoenix head */}
-                    <circle cx="32" cy="28" r="5" fill="#ff6b35" />
-                    
-                    {/* Phoenix beak */}
-                    <polygon points="32,23 30,26 34,26" fill="#ffa500" />
-                    
-                    {/* Phoenix eye */}
-                    <circle cx="30" cy="26" r="1" fill="#000" />
-                    
-                    {/* Left wing - animated */}
-                    <motion.path
-                      d="M 20 35 Q 15 25 12 30 Q 18 32 20 35"
-                      fill="#ff8c00"
-                      animate={{
-                        d: [
-                          "M 20 35 Q 15 25 12 30 Q 18 32 20 35",
-                          "M 20 35 Q 10 20 8 25 Q 15 28 20 35",
-                          "M 20 35 Q 15 25 12 30 Q 18 32 20 35"
-                        ]
-                      }}
-                      transition={{
-                        duration: 0.8,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    />
-                    
-                    {/* Right wing - animated */}
-                    <motion.path
-                      d="M 44 35 Q 49 25 52 30 Q 46 32 44 35"
-                      fill="#ff8c00"
-                      animate={{
-                        d: [
-                          "M 44 35 Q 49 25 52 30 Q 46 32 44 35",
-                          "M 44 35 Q 54 20 56 25 Q 49 28 44 35",
-                          "M 44 35 Q 49 25 52 30 Q 46 32 44 35"
-                        ]
-                      }}
-                      transition={{
-                        duration: 0.8,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    />
-                    
-                    {/* Phoenix tail feathers */}
-                    <motion.path
-                      d="M 32 48 Q 28 55 30 60 Q 32 58 32 48"
-                      fill="#ff4500"
-                      animate={{
-                        d: [
-                          "M 32 48 Q 28 55 30 60 Q 32 58 32 48",
-                          "M 32 48 Q 25 58 28 62 Q 32 60 32 48",
-                          "M 32 48 Q 28 55 30 60 Q 32 58 32 48"
-                        ]
-                      }}
-                      transition={{
-                        duration: 1.5,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    />
-                    <motion.path
-                      d="M 32 48 Q 36 55 34 60 Q 32 58 32 48"
-                      fill="#ffa500"
-                      animate={{
-                        d: [
-                          "M 32 48 Q 36 55 34 60 Q 32 58 32 48",
-                          "M 32 48 Q 39 58 36 62 Q 32 60 32 48",
-                          "M 32 48 Q 36 55 34 60 Q 32 58 32 48"
-                        ]
-                      }}
-                      transition={{
-                        duration: 1.5,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: 0.3
-                      }}
-                    />
-                  </motion.svg>
-                  
-                  {/* Flame effects around phoenix */}
-                  <motion.div
-                    className="absolute inset-0 pointer-events-none"
-                    animate={{
-                      scale: [1, 1.1, 1],
-                      opacity: [0.6, 0.9, 0.6]
-                    }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    {/* Flame particles */}
-                    {[...Array(8)].map((_, i) => (
-                      <motion.div
-                        key={i}
-                        className="absolute w-1 h-3 bg-gradient-to-t from-red-500 via-orange-400 to-yellow-300 rounded-full"
-                        style={{
-                          left: `${20 + Math.cos(i * Math.PI / 4) * 25}%`,
-                          top: `${40 + Math.sin(i * Math.PI / 4) * 25}%`,
-                        }}
-                        animate={{
-                          y: [0, -8, 0],
-                          opacity: [0.8, 0.3, 0.8],
-                          scale: [0.8, 1.2, 0.8]
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                          delay: i * 0.2
-                        }}
-                      />
-                    ))}
-                  </motion.div>
-                  
-                  {/* Glow effect */}
-                  <div className="absolute inset-0 bg-gradient-radial from-orange-400/30 via-red-400/20 to-transparent rounded-full animate-pulse"></div>
-                </div>
+                <RealisticPhoenixBird size="lg" animate={true} />
               ) : (
                 currentLevel.emoji
               )}
