@@ -3618,6 +3618,10 @@ export type Database = {
         Args: { p_user_id: string; p_reward_id: string }
         Returns: string
       }
+      refresh_referral_counts: {
+        Args: { target_user_id?: string }
+        Returns: undefined
+      }
       sanitize_input: {
         Args: { input_text: string }
         Returns: string

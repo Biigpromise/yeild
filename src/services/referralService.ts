@@ -172,5 +172,25 @@ export const referralService = {
       console.error('Error processing referral signup:', error);
       return { success: false, error: error.message };
     }
+  },
+
+  async refreshReferralCounts(userId: string) {
+    try {
+      return await withRetry(async () => {
+        const { error } = await supabase
+          .rpc('refresh_referral_counts', { target_user_id: userId });
+
+        if (error) {
+          throw new Error(`Failed to refresh referral counts: ${error.message}`);
+        }
+
+        // Return updated stats after refresh
+        return await this.getReferralStats(userId);
+      }, 'refreshReferralCounts');
+    } catch (error) {
+      console.error('Error refreshing referral counts:', error);
+      toast.error('Failed to refresh referral counts');
+      return null;
+    }
   }
 };

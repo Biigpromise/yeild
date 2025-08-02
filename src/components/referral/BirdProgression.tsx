@@ -58,7 +58,7 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
   const NextIcon = getBirdIcon(nextBirdLevel);
 
   return (
-    <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
+    <Card className="bg-gradient-to-br from-white via-gray-50 to-blue-50 border-blue-200 shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-purple-600" />
@@ -125,18 +125,18 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
             <Progress value={calculateProgress()} className="h-2" />
             
             <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="text-center p-2 bg-blue-100 rounded">
-                <div className="font-semibold text-blue-800">
+              <div className="text-center p-3 bg-white/80 backdrop-blur-sm rounded-lg border border-blue-200 shadow-sm">
+                <div className="font-bold text-blue-900 text-lg">
                   {activeReferrals} / {nextBirdLevel.min_referrals}
                 </div>
-                <div className="text-blue-600">Active Referrals</div>
+                <div className="text-blue-700 font-medium">Active Referrals</div>
               </div>
               {nextBirdLevel.min_points > 0 && (
-                <div className="text-center p-2 bg-green-100 rounded">
-                  <div className="font-semibold text-green-800">
+                <div className="text-center p-3 bg-white/80 backdrop-blur-sm rounded-lg border border-green-200 shadow-sm">
+                  <div className="font-bold text-green-900 text-lg">
                     {userPoints} / {nextBirdLevel.min_points}
                   </div>
-                  <div className="text-green-600">Points Earned</div>
+                  <div className="text-green-700 font-medium">Points Earned</div>
                 </div>
               )}
             </div>

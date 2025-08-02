@@ -148,7 +148,7 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <Card className={`relative overflow-hidden ${isPhoenix ? 'bg-gradient-to-br from-orange-50 to-red-50 border-orange-200' : ''}`}>
+      <Card className={`relative overflow-hidden bg-white/95 backdrop-blur-sm border shadow-lg ${isPhoenix ? 'border-orange-200' : 'border-gray-200'}`}>
         {isPhoenix && (
           <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 to-red-400/10 animate-pulse"></div>
         )}
@@ -196,13 +196,13 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
         <CardContent className="relative space-y-4">
           {/* Current Stats */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-3 bg-background/50 rounded-lg">
-              <p className="text-2xl font-bold text-primary">{userStats.active_referrals_count}</p>
-              <p className="text-sm text-muted-foreground">Active Referrals</p>
+            <div className="text-center p-4 bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200 shadow-sm">
+              <p className="text-3xl font-bold text-primary">{userStats.active_referrals_count}</p>
+              <p className="text-sm text-muted-foreground font-medium">Active Referrals</p>
             </div>
-            <div className="text-center p-3 bg-background/50 rounded-lg">
-              <p className="text-2xl font-bold text-primary">{userStats.points}</p>
-              <p className="text-sm text-muted-foreground">Total Points</p>
+            <div className="text-center p-4 bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200 shadow-sm">
+              <p className="text-3xl font-bold text-primary">{userStats.points}</p>
+              <p className="text-sm text-muted-foreground font-medium">Total Points</p>
             </div>
           </div>
 

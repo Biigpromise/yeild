@@ -67,6 +67,10 @@ export const EnhancedReferralsTab: React.FC = () => {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
+      // First refresh referral counts in database
+      if (user?.id) {
+        await referralService.refreshReferralCounts(user.id);
+      }
       await loadReferralStats(true);
     } finally {
       setRefreshing(false);
