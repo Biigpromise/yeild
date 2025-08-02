@@ -3464,7 +3464,7 @@ export type Database = {
           user_id: string
           task_id: string
           status: string
-          evidence: Json
+          evidence: string
           submitted_at: string
           reviewed_at: string
           reviewer_id: string
