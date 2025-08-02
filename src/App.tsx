@@ -21,6 +21,8 @@ import VerifyResetCode from "./pages/VerifyResetCode";
 import VerifySignupCode from "./pages/VerifySignupCode";
 import CreateNewPassword from "./pages/CreateNewPassword";
 import Tasks from "./pages/Tasks";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Onboarding from "./pages/Onboarding";
 import BrandOnboarding from "./pages/BrandOnboarding";
 import Social from "./pages/Social";
@@ -79,6 +81,8 @@ const AppContent = () => {
         <Route path="/create-new-password" element={<CreateNewPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/custom-reset-password" element={<CustomResetPassword />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/brand-onboarding" element={<BrandOnboarding />} />
         <Route
