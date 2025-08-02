@@ -1,15 +1,11 @@
 
 import React, { useState } from 'react';
 import { ModernAdminLayout } from './ModernAdminLayout';
-import { UserManagement } from './UserManagement';
-import { AdminBrands } from './AdminBrands';
-import { AdminAnalytics } from './analytics/AdminAnalytics';
-import { AdminFinancial } from './financial/AdminFinancial';
-import { AdminNotifications } from './notifications/AdminNotifications';
-import { AdminSettings } from './settings/AdminSettings';
-import { EnhancedTaskManagement } from './enhanced/EnhancedTaskManagement';
-import { AdminUserActions } from './AdminUserActions';
-import { AdminDebugPanel } from './AdminDebugPanel';
+import { AdminOverview } from './simple/AdminOverview';
+import { AdminTasksSimple } from './simple/AdminTasksSimple';
+import { AdminCampaignsSimple } from './simple/AdminCampaignsSimple';
+import { AdminUsersSimple } from './simple/AdminUsersSimple';
+import { AdminSystemHealth } from './simple/AdminSystemHealth';
 
 export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -27,40 +23,17 @@ export const AdminDashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
-        return (
-          <div className="space-y-6">
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-4">Quick Actions</h2>
-              <AdminUserActions />
-            </div>
-            
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-4">System Debug</h2>
-              <AdminDebugPanel />
-            </div>
-            
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">Platform Overview</h2>
-              <AdminAnalytics />
-            </div>
-          </div>
-        );
+        return <AdminOverview />;
       case 'users':
-        return <UserManagement />;
-      case 'brands':
-        return <AdminBrands />;
+        return <AdminUsersSimple />;
       case 'tasks':
-        return <EnhancedTaskManagement />;
-      case 'analytics':
-        return <AdminAnalytics />;
-      case 'financial':
-        return <AdminFinancial />;
-      case 'notifications':
-        return <AdminNotifications />;
-      case 'settings':
-        return <AdminSettings />;
+        return <AdminTasksSimple />;
+      case 'campaigns':
+        return <AdminCampaignsSimple />;
+      case 'system':
+        return <AdminSystemHealth />;
       default:
-        return null;
+        return <AdminOverview />;
     }
   };
 
