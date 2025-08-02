@@ -148,7 +148,7 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <Card className={`relative overflow-hidden bg-white/95 backdrop-blur-sm border shadow-lg ${isPhoenix ? 'border-orange-200' : 'border-gray-200'}`}>
+      <Card className={`relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-gray-700 shadow-2xl ${isPhoenix ? 'border-orange-400' : ''}`}>
         {isPhoenix && (
           <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 to-red-400/10 animate-pulse"></div>
         )}
@@ -174,7 +174,7 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
             </motion.div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="text-xl font-bold">{currentLevel.name}</h3>
+                <h3 className="text-xl font-bold text-white">{currentLevel.name}</h3>
                 {isPhoenix && (
                   <div className="flex items-center gap-1">
                     <Crown className="h-5 w-5 text-yellow-500" />
@@ -188,7 +188,7 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
                   Current Level
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">{currentLevel.description}</p>
+              <p className="text-sm text-gray-300 mt-1">{currentLevel.description}</p>
             </div>
           </CardTitle>
         </CardHeader>
@@ -196,13 +196,13 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
         <CardContent className="relative space-y-4">
           {/* Current Stats */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200 shadow-sm">
-              <p className="text-3xl font-bold text-primary">{userStats.active_referrals_count}</p>
-              <p className="text-sm text-muted-foreground font-medium">Active Referrals</p>
+            <div className="text-center p-4 bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-600 shadow-sm">
+              <p className="text-3xl font-bold text-white">{userStats.active_referrals_count}</p>
+              <p className="text-sm text-gray-300 font-medium">Active Referrals</p>
             </div>
-            <div className="text-center p-4 bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200 shadow-sm">
-              <p className="text-3xl font-bold text-primary">{userStats.points}</p>
-              <p className="text-sm text-muted-foreground font-medium">Total Points</p>
+            <div className="text-center p-4 bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-600 shadow-sm">
+              <p className="text-3xl font-bold text-white">{userStats.points}</p>
+              <p className="text-sm text-gray-300 font-medium">Total Points</p>
             </div>
           </div>
 
@@ -210,11 +210,11 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
           {nextLevel && !isPhoenix && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Progress to {nextLevel.name}</p>
-                <span className="text-sm text-muted-foreground">{Math.round(progressToNext)}%</span>
+                <p className="text-sm font-medium text-white">Progress to {nextLevel.name}</p>
+                <span className="text-sm text-gray-300">{Math.round(progressToNext)}%</span>
               </div>
               <Progress value={progressToNext} className="h-2" />
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-4 text-xs text-gray-300">
                 <span>Need {nextLevel.referrals_needed} more referrals</span>
                 <span>Need {nextLevel.points_needed} more points</span>
               </div>

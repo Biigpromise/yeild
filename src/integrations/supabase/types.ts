@@ -3602,6 +3602,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      process_referral_signup_complete: {
+        Args: { referral_code_param: string; new_user_id: string }
+        Returns: Json
+      }
       process_wallet_transaction: {
         Args: {
           p_brand_id: string

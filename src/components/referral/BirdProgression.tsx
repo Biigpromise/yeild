@@ -58,10 +58,10 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
   const NextIcon = getBirdIcon(nextBirdLevel);
 
   return (
-    <Card className="bg-gradient-to-br from-white via-gray-50 to-blue-50 border-blue-200 shadow-lg">
+    <Card className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-gray-700 shadow-2xl">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-purple-600" />
+        <CardTitle className="flex items-center gap-2 text-white">
+          <Sparkles className="h-5 w-5 text-yellow-400" />
           Bird Badge Progression
         </CardTitle>
       </CardHeader>
@@ -87,7 +87,7 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
               >
                 {currentBirdLevel?.name || 'Hatchling'}
               </Badge>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-gray-300">
                 Current Level
               </div>
             </div>
@@ -96,10 +96,10 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
           {nextBirdLevel && (
             <div className="flex items-center gap-3">
               <div>
-                <Badge variant="outline" className="mb-1">
+                <Badge variant="outline" className="mb-1 border-gray-500 text-gray-300">
                   {nextBirdLevel.name}
                 </Badge>
-                <div className="text-sm text-muted-foreground text-right">
+                <div className="text-sm text-gray-300 text-right">
                   Next Level
                 </div>
               </div>
@@ -117,26 +117,26 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
         </div>
 
         {nextBirdLevel && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progress to {nextBirdLevel.name}</span>
-              <span className="font-medium">{calculateProgress().toFixed(1)}%</span>
-            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-white">
+                <span>Progress to {nextBirdLevel.name}</span>
+                <span className="font-medium">{calculateProgress().toFixed(1)}%</span>
+              </div>
             <Progress value={calculateProgress()} className="h-2" />
             
             <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="text-center p-3 bg-white/80 backdrop-blur-sm rounded-lg border border-blue-200 shadow-sm">
-                <div className="font-bold text-blue-900 text-lg">
+              <div className="text-center p-3 bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-600 shadow-sm">
+                <div className="font-bold text-white text-lg">
                   {activeReferrals} / {nextBirdLevel.min_referrals}
                 </div>
-                <div className="text-blue-700 font-medium">Active Referrals</div>
+                <div className="text-gray-300 font-medium">Active Referrals</div>
               </div>
               {nextBirdLevel.min_points > 0 && (
-                <div className="text-center p-3 bg-white/80 backdrop-blur-sm rounded-lg border border-green-200 shadow-sm">
-                  <div className="font-bold text-green-900 text-lg">
+                <div className="text-center p-3 bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-600 shadow-sm">
+                  <div className="font-bold text-white text-lg">
                     {userPoints} / {nextBirdLevel.min_points}
                   </div>
-                  <div className="text-green-700 font-medium">Points Earned</div>
+                  <div className="text-gray-300 font-medium">Points Earned</div>
                 </div>
               )}
             </div>
@@ -145,9 +145,9 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
 
         {!nextBirdLevel && (
           <div className="text-center py-4">
-            <Crown className="h-8 w-8 mx-auto mb-2 text-yellow-600" />
-            <div className="font-semibold text-yellow-800">Maximum Level Reached!</div>
-            <div className="text-sm text-yellow-600">
+            <Crown className="h-8 w-8 mx-auto mb-2 text-yellow-400" />
+            <div className="font-semibold text-white">Maximum Level Reached!</div>
+            <div className="text-sm text-gray-300">
               You've achieved the highest bird badge level
             </div>
           </div>
