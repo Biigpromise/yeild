@@ -8,6 +8,9 @@ import { TaskSubmissionModal } from "./TaskSubmissionModal";
 import { TaskSocialMediaDisplay } from "./tasks/TaskSocialMediaDisplay";
 import { taskService, Task, TaskCategory } from "@/services/taskService";
 import { taskSubmissionService } from "@/services/tasks/taskSubmissionService";
+import { useAuth } from "@/contexts/AuthContext";
+import { CreateTaskForm } from "@/components/admin/CreateTaskForm";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Search, 
   Filter, 
@@ -23,13 +26,15 @@ import {
   Award,
   CheckCircle,
   Zap,
-  Gift
+  Gift,
+  Plus
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 const Tasks = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<TaskCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,12 +44,33 @@ const Tasks = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [userSubmissions, setUserSubmissions] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState("available");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showCreateTask, setShowCreateTask] = useState(false);
 
   useEffect(() => {
     loadTasks();
     loadCategories();
     checkUserSubmissions();
+    checkAdminStatus();
   }, []);
+
+  const checkAdminStatus = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .single();
+      
+      if (!error && data) {
+        setIsAdmin(true);
+      }
+    } catch (error) {
+      console.log('User is not admin');
+    }
+  };
 
   const loadTasks = async () => {
     try {
@@ -151,7 +177,7 @@ const Tasks = () => {
             <div className="flex items-center justify-center gap-2 mb-4">
               <Target className="h-8 w-8 text-primary" />
               <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
-                Available Tasks
+                Tasks
               </h1>
             </div>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -272,6 +298,35 @@ const Tasks = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Admin Create Task Section */}
+        {isAdmin && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Plus className="h-5 w-5" />
+                  Admin Task Management
+                </CardTitle>
+                <Button 
+                  onClick={() => setShowCreateTask(!showCreateTask)}
+                  variant={showCreateTask ? "secondary" : "default"}
+                >
+                  {showCreateTask ? "Hide Form" : "Create New Task"}
+                </Button>
+              </div>
+            </CardHeader>
+            {showCreateTask && (
+              <CardContent>
+                <CreateTaskForm onTaskCreated={() => {
+                  loadTasks();
+                  setShowCreateTask(false);
+                  toast.success("Task created successfully!");
+                }} />
+              </CardContent>
+            )}
+          </Card>
+        )}
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

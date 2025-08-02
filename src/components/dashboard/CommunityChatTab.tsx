@@ -183,19 +183,19 @@ export const CommunityChatTab = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="h-full flex flex-col">
       {/* Header */}
-      <div>
+      <div className="mb-4">
         <h2 className="text-2xl font-bold text-foreground mb-2">Community Chat</h2>
         <p className="text-muted-foreground">
           Connect with other members and share your journey.
         </p>
       </div>
 
-      <Card className="h-full max-h-[600px] flex flex-col bg-black border-gray-800">
+      <Card className="flex-1 flex flex-col bg-black border-gray-800 h-full min-h-0">
         {/* Messages Container */}
-        <CardContent className="flex-1 p-0 overflow-hidden">
-          <ScrollArea className="h-full p-4">
+        <CardContent className="flex-1 p-0 overflow-hidden min-h-0">
+          <ScrollArea className="h-full p-4 min-h-0">
             <div className="space-y-4">
               {messages.map((message) => (
                 <div

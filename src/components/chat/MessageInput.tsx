@@ -23,21 +23,23 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onMessageSent }) => 
 
     setSending(true);
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('messages')
         .insert({
           content: message.trim(),
           user_id: user.id
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error('Error sending message:', error);
-        // Don't show the specific eligibility error to avoid confusion
-        toast.error('Unable to send message. Please try again later.');
+        toast.error('Failed to send message. Please try again.');
         return;
       }
 
       setMessage('');
+      toast.success('Message sent successfully!');
       onMessageSent();
     } catch (error) {
       console.error('Unexpected error sending message:', error);

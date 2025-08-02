@@ -34,13 +34,13 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
   const calculateProgress = () => {
     if (!nextBirdLevel) return 100;
     
-    // Calculate progress based on what's needed for the next level
+    // Calculate actual progress toward next level requirements
     const referralProgress = nextBirdLevel.min_referrals > 0 
-      ? (activeReferrals / nextBirdLevel.min_referrals) * 100 
+      ? Math.min((activeReferrals / nextBirdLevel.min_referrals) * 100, 100)
       : 100;
     
     const pointsProgress = nextBirdLevel.min_points > 0 
-      ? (userPoints / nextBirdLevel.min_points) * 100 
+      ? Math.min((userPoints / nextBirdLevel.min_points) * 100, 100)
       : 100;
     
     // For levels with both requirements, take the minimum progress
@@ -48,9 +48,9 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
     if (nextBirdLevel.min_points > 0 && nextBirdLevel.min_referrals > 0) {
       return Math.min(referralProgress, pointsProgress);
     } else if (nextBirdLevel.min_referrals > 0) {
-      return referralProgress;
+      return Math.min(referralProgress, 100);
     } else if (nextBirdLevel.min_points > 0) {
-      return pointsProgress;
+      return Math.min(pointsProgress, 100);
     }
     
     return 0;

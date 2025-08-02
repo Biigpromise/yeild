@@ -79,10 +79,18 @@ export const EnhancedReferralSystem = () => {
 
       setReferralCode(codeData || "");
       setReferralStats(statsData);
-      setUserReferrals(referralsData);
+      setUserReferrals(referralsData || []);
     } catch (error) {
       console.error('Error loading referral data:', error);
-      toast.error('Failed to load referral data. Please try again.');
+      // Set fallback values to prevent showing error state
+      setReferralStats({
+        activeReferrals: 0,
+        totalReferrals: 0,
+        bird_level: null
+      });
+      setUserReferrals([]);
+      setUserPoints(0);
+      toast.error('Some referral data could not be loaded. Showing available data.');
     } finally {
       setLoading(false);
     }
