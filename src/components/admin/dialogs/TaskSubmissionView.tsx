@@ -138,32 +138,56 @@ export const TaskSubmissionView: React.FC<TaskSubmissionViewProps> = ({
                                     <img 
                                       src={item} 
                                       alt={`Evidence ${index + 1}`}
-                                      className="max-w-md max-h-64 object-contain rounded border"
+                                      className="max-w-full max-h-96 object-contain rounded border cursor-pointer hover:opacity-90 transition-opacity"
                                       onError={(e) => {
                                         const target = e.currentTarget as HTMLImageElement;
                                         const fallback = target.nextElementSibling as HTMLElement;
                                         target.style.display = 'none';
                                         if (fallback) fallback.style.display = 'block';
                                       }}
+                                      onClick={() => {
+                                        const modal = document.createElement('div');
+                                        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer';
+                                        const img = document.createElement('img');
+                                        img.src = item;
+                                        img.style.cssText = 'max-width:90%;max-height:90%;object-fit:contain';
+                                        modal.appendChild(img);
+                                        modal.onclick = () => document.body.removeChild(modal);
+                                        document.body.appendChild(modal);
+                                      }}
                                     />
                                     <div style={{ display: 'none' }} className="p-4 bg-muted rounded text-center">
                                       <p className="text-sm text-muted-foreground">Image failed to load</p>
-                                      <a href={item} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 justify-center">
-                                        <ExternalLink className="h-3 w-3" />
-                                        View Original
-                                      </a>
+                                      <p className="text-xs text-muted-foreground mt-2">URL: {item}</p>
                                     </div>
                                   </div>
+                                ) : item.match(/\.(pdf)$/i) ? (
+                                  <div className="border rounded p-4">
+                                    <p className="text-sm mb-2">PDF Document:</p>
+                                    <iframe
+                                      src={item}
+                                      className="w-full h-96 border rounded"
+                                      title={`PDF Evidence ${index + 1}`}
+                                    />
+                                  </div>
                                 ) : (
-                                  <a 
-                                    href={item} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="text-primary hover:underline flex items-center gap-1"
-                                  >
-                                    <ExternalLink className="h-3 w-3" />
-                                    View File
-                                  </a>
+                                  <div className="p-4 bg-muted rounded text-center">
+                                    <p className="text-sm text-muted-foreground">File: {item.split('/').pop()}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">Click below to download</p>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="mt-2"
+                                      onClick={() => {
+                                        const a = document.createElement('a');
+                                        a.href = item;
+                                        a.download = item.split('/').pop() || 'evidence-file';
+                                        a.click();
+                                      }}
+                                    >
+                                      Download File
+                                    </Button>
+                                  </div>
                                 )}
                               </div>
                             ) : (
@@ -184,6 +208,66 @@ export const TaskSubmissionView: React.FC<TaskSubmissionViewProps> = ({
                     </div>
                   )}
                 </>
+              ) : submission.evidence_file_url ? (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Evidence File:</p>
+                  {submission.evidence_file_url.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
+                    <div>
+                      <img 
+                        src={submission.evidence_file_url} 
+                        alt="Evidence file"
+                        className="max-w-full max-h-96 object-contain rounded border cursor-pointer hover:opacity-90 transition-opacity"
+                        onError={(e) => {
+                          const target = e.currentTarget as HTMLImageElement;
+                          const fallback = target.nextElementSibling as HTMLElement;
+                          target.style.display = 'none';
+                          if (fallback) fallback.style.display = 'block';
+                        }}
+                        onClick={() => {
+                          const modal = document.createElement('div');
+                          modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer';
+                          const img = document.createElement('img');
+                          img.src = submission.evidence_file_url;
+                          img.style.cssText = 'max-width:90%;max-height:90%;object-fit:contain';
+                          modal.appendChild(img);
+                          modal.onclick = () => document.body.removeChild(modal);
+                          document.body.appendChild(modal);
+                        }}
+                      />
+                      <div style={{ display: 'none' }} className="p-4 bg-muted rounded text-center">
+                        <p className="text-sm text-muted-foreground">Image failed to load</p>
+                        <p className="text-xs text-muted-foreground mt-2">URL: {submission.evidence_file_url}</p>
+                      </div>
+                    </div>
+                  ) : submission.evidence_file_url.match(/\.(pdf)$/i) ? (
+                    <div className="border rounded p-4">
+                      <p className="text-sm mb-2">PDF Document:</p>
+                      <iframe
+                        src={submission.evidence_file_url}
+                        className="w-full h-96 border rounded"
+                        title="PDF Evidence"
+                      />
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-muted rounded text-center">
+                      <p className="text-sm text-muted-foreground">File: {submission.evidence_file_url.split('/').pop()}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Click below to download</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => {
+                          const a = document.createElement('a');
+                          a.href = submission.evidence_file_url;
+                          a.download = submission.evidence_file_url.split('/').pop() || 'evidence-file';
+                          a.click();
+                        }}
+                      >
+                        Download File
+                      </Button>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="text-center py-4">
                   <p className="text-sm text-muted-foreground">No evidence submitted</p>

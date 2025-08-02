@@ -233,15 +233,15 @@ export const AdminTasksSimple = () => {
                        <div>
                          <strong>Evidence File:</strong>
                          <div className="mt-1">
-                           <a 
-                             href={submission.evidence_file_url} 
-                             target="_blank" 
-                             rel="noopener noreferrer"
-                             className="text-xs text-primary hover:underline flex items-center gap-1"
+                           <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             onClick={() => handleViewSubmission(submission)}
+                             className="h-6 px-2 text-xs text-primary hover:text-primary-foreground"
                            >
-                             <Eye className="h-3 w-3" />
-                             View File
-                           </a>
+                             <Eye className="h-3 w-3 mr-1" />
+                             View File in Dialog
+                           </Button>
                          </div>
                        </div>
                      )}
