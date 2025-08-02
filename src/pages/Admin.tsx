@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense } from "react";
 import { AdminOverview } from "@/components/admin/AdminOverview";
 import { EnhancedUserManagementSystem } from "@/components/admin/enhanced/EnhancedUserManagementSystem";
@@ -18,8 +17,6 @@ import { AdminContentManagement } from "@/components/admin/AdminContentManagemen
 import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell";
 import { AdminUserToggle } from "@/components/admin/AdminUserToggle";
 import { AntiFraudTracking } from "@/components/admin/AntiFraudTracking";
-import { BrandCampaignsTab } from "@/components/admin/brands/BrandCampaignsTab";
-import { TaskSubmissionsTab } from "@/components/admin/TaskSubmissionsTab";
 import { SimpleTaskSubmissionsTab } from "@/components/admin/simple/SimpleTaskSubmissionsTab";
 import { SimpleBrandCampaignsTab } from "@/components/admin/simple/SimpleBrandCampaignsTab";
 import { BrandAnalytics } from "@/components/admin/BrandAnalytics";
@@ -89,7 +86,7 @@ const Admin = () => {
     }
   }, [activeSection]);
 
-  // Map of sections to their component - Updated to include brand campaigns and analytics
+  // Map of sections to their component - Updated to use Simple components for submissions and campaigns
   const sectionComponents = {
     dashboard: <AdminOverview />,
     users: <EnhancedUserManagementSystem />,
@@ -219,7 +216,14 @@ const Admin = () => {
           
           {/* Dynamic Content */}
           <div className="bg-card rounded-lg shadow-sm p-4 md:p-6">
-            {sectionComponents[activeSection]}
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <span className="ml-3">Loading...</span>
+              </div>
+            }>
+              {sectionComponents[activeSection]}
+            </Suspense>
           </div>
         </div>
       </main>

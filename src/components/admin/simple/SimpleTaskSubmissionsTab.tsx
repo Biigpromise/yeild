@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -5,14 +6,27 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Clock, CheckCircle, XCircle, Eye, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const SimpleTaskSubmissionsTab = () => {
+  const { user } = useAuth();
+
   const { data: submissions, isLoading, error } = useQuery({
-    queryKey: ['simple-task-submissions'],
+    queryKey: ['admin-task-submissions-simple'],
     queryFn: async () => {
-      console.log('🔍 Fetching task submissions...');
+      console.log('🔍 Fetching task submissions as admin...');
+      console.log('🔐 Current user:', user?.id);
       
-      // First try to get submissions
+      // Check if user is admin
+      const { data: userRole } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .single();
+      
+      console.log('👤 User role:', userRole);
+      
+      // Fetch submissions with a simpler query structure
       const { data: submissionData, error: submissionError } = await supabase
         .from('task_submissions')
         .select('*')
@@ -23,50 +37,65 @@ export const SimpleTaskSubmissionsTab = () => {
         throw submissionError;
       }
 
-      console.log('✅ Raw submissions:', submissionData);
+      console.log('✅ Raw submissions data:', submissionData?.length || 0, 'records');
 
-      // Get related tasks
-      const taskIds = submissionData?.map(s => s.task_id).filter(Boolean) || [];
-      let tasks: any[] = [];
+      if (!submissionData || submissionData.length === 0) {
+        console.log('ℹ️ No submissions found');
+        return [];
+      }
+
+      // Get unique task and user IDs
+      const taskIds = [...new Set(submissionData.map(s => s.task_id).filter(Boolean))];
+      const userIds = [...new Set(submissionData.map(s => s.user_id).filter(Boolean))];
       
+      console.log('🎯 Task IDs to fetch:', taskIds.length);
+      console.log('👥 User IDs to fetch:', userIds.length);
+
+      // Fetch tasks
+      let tasks: any[] = [];
       if (taskIds.length > 0) {
         const { data: taskData, error: taskError } = await supabase
           .from('tasks')
           .select('id, title, points')
           .in('id', taskIds);
         
-        if (!taskError) {
+        if (taskError) {
+          console.warn('⚠️ Task fetch error:', taskError);
+        } else {
           tasks = taskData || [];
+          console.log('✅ Tasks fetched:', tasks.length);
         }
-        console.log('✅ Tasks data:', tasks);
       }
 
-      // Get related profiles
-      const userIds = submissionData?.map(s => s.user_id).filter(Boolean) || [];
+      // Fetch user profiles
       let profiles: any[] = [];
-      
       if (userIds.length > 0) {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('id, name, email')
           .in('id', userIds);
         
-        if (!profileError) {
+        if (profileError) {
+          console.warn('⚠️ Profiles fetch error:', profileError);
+        } else {
           profiles = profileData || [];
+          console.log('✅ Profiles fetched:', profiles.length);
         }
-        console.log('✅ Profiles data:', profiles);
       }
 
-      // Combine all data
-      const enrichedSubmissions = submissionData?.map(submission => ({
+      // Enrich submissions with related data
+      const enrichedSubmissions = submissionData.map(submission => ({
         ...submission,
         task: tasks.find(t => t.id === submission.task_id),
         user: profiles.find(p => p.id === submission.user_id)
       }));
 
-      console.log('✅ Final enriched submissions:', enrichedSubmissions);
-      return enrichedSubmissions || [];
-    }
+      console.log('✅ Final enriched submissions:', enrichedSubmissions.length);
+      return enrichedSubmissions;
+    },
+    enabled: !!user?.id,
+    retry: 1,
+    staleTime: 30000, // 30 seconds
   });
 
   const getStatusColor = (status: string) => {
@@ -105,6 +134,7 @@ export const SimpleTaskSubmissionsTab = () => {
   }
 
   if (error) {
+    console.error('❌ Query error details:', error);
     return (
       <Card>
         <CardHeader>
@@ -118,8 +148,17 @@ export const SimpleTaskSubmissionsTab = () => {
             <p className="text-red-800 font-medium">Failed to load task submissions</p>
             <p className="text-red-600 text-sm mt-1">Error: {error.message}</p>
             <p className="text-red-600 text-sm mt-2">
-              Please check your admin permissions and try refreshing the page.
+              Please check the console for detailed error logs and verify your admin permissions.
             </p>
+            <div className="mt-3">
+              <Button 
+                onClick={() => window.location.reload()} 
+                size="sm"
+                variant="outline"
+              >
+                Retry
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -188,6 +227,11 @@ export const SimpleTaskSubmissionsTab = () => {
               <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 text-lg font-medium">No task submissions found</p>
               <p className="text-gray-400 text-sm">Task submissions will appear here when users complete tasks</p>
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-600">
+                  Debug info: User ID: {user?.id}, Admin check performed
+                </p>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">

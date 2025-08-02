@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -5,14 +6,27 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Target, DollarSign, Calendar, AlertCircle, Eye, Play, Pause } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const SimpleBrandCampaignsTab = () => {
+  const { user } = useAuth();
+
   const { data: campaigns, isLoading, error } = useQuery({
-    queryKey: ['simple-brand-campaigns'],
+    queryKey: ['admin-brand-campaigns-simple'],
     queryFn: async () => {
-      console.log('🔍 Fetching brand campaigns...');
+      console.log('🔍 Fetching brand campaigns as admin...');
+      console.log('🔐 Current user:', user?.id);
       
-      // First try to get campaigns
+      // Check if user is admin
+      const { data: userRole } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .single();
+      
+      console.log('👤 User role:', userRole);
+      
+      // Fetch campaigns with a simpler query structure
       const { data: campaignData, error: campaignError } = await supabase
         .from('brand_campaigns')
         .select('*')
@@ -23,33 +37,46 @@ export const SimpleBrandCampaignsTab = () => {
         throw campaignError;
       }
 
-      console.log('✅ Raw campaigns:', campaignData);
+      console.log('✅ Raw campaigns data:', campaignData?.length || 0, 'records');
 
-      // Get related brand profiles
-      const brandIds = campaignData?.map(c => c.brand_id).filter(Boolean) || [];
-      let brandProfiles: any[] = [];
+      if (!campaignData || campaignData.length === 0) {
+        console.log('ℹ️ No campaigns found');
+        return [];
+      }
+
+      // Get unique brand IDs
+      const brandIds = [...new Set(campaignData.map(c => c.brand_id).filter(Boolean))];
       
+      console.log('🏢 Brand IDs to fetch:', brandIds.length);
+
+      // Fetch brand profiles
+      let brandProfiles: any[] = [];
       if (brandIds.length > 0) {
         const { data: profileData, error: profileError } = await supabase
           .from('brand_profiles')
           .select('user_id, company_name')
           .in('user_id', brandIds);
         
-        if (!profileError) {
+        if (profileError) {
+          console.warn('⚠️ Brand profiles fetch error:', profileError);
+        } else {
           brandProfiles = profileData || [];
+          console.log('✅ Brand profiles fetched:', brandProfiles.length);
         }
-        console.log('✅ Brand profiles data:', brandProfiles);
       }
 
-      // Combine all data
-      const enrichedCampaigns = campaignData?.map(campaign => ({
+      // Enrich campaigns with brand profile data
+      const enrichedCampaigns = campaignData.map(campaign => ({
         ...campaign,
         brand_profile: brandProfiles.find(bp => bp.user_id === campaign.brand_id)
       }));
 
-      console.log('✅ Final enriched campaigns:', enrichedCampaigns);
-      return enrichedCampaigns || [];
-    }
+      console.log('✅ Final enriched campaigns:', enrichedCampaigns.length);
+      return enrichedCampaigns;
+    },
+    enabled: !!user?.id,
+    retry: 1,
+    staleTime: 30000, // 30 seconds
   });
 
   const getStatusColor = (status: string) => {
@@ -81,6 +108,7 @@ export const SimpleBrandCampaignsTab = () => {
   }
 
   if (error) {
+    console.error('❌ Query error details:', error);
     return (
       <Card>
         <CardHeader>
@@ -94,8 +122,17 @@ export const SimpleBrandCampaignsTab = () => {
             <p className="text-red-800 font-medium">Failed to load brand campaigns</p>
             <p className="text-red-600 text-sm mt-1">Error: {error.message}</p>
             <p className="text-red-600 text-sm mt-2">
-              Please check your admin permissions and try refreshing the page.
+              Please check the console for detailed error logs and verify your admin permissions.
             </p>
+            <div className="mt-3">
+              <Button 
+                onClick={() => window.location.reload()} 
+                size="sm"
+                variant="outline"
+              >
+                Retry
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -165,6 +202,11 @@ export const SimpleBrandCampaignsTab = () => {
               <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 text-lg font-medium">No brand campaigns found</p>
               <p className="text-gray-400 text-sm">Brand campaigns will appear here when brands create them</p>
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-600">
+                  Debug info: User ID: {user?.id}, Admin check performed
+                </p>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
