@@ -92,9 +92,9 @@ export const RealisticPhoenixBird: React.FC<RealisticPhoenixBirdProps> = ({
       
       {/* Phoenix Image with Flapping Animation */}
       <motion.img
-        src="/phoenix-bird.png"
+        src="/phoenix-bird-realistic.png"
         alt="Phoenix Bird"
-        className="relative z-10 w-full h-full object-contain rounded-lg"
+        className="relative z-10 w-full h-full object-contain"
         animate={{
           scale: animate ? [1, 1.05, 1] : 1,
           rotateY: animate ? [0, 5, -5, 0] : 0,
