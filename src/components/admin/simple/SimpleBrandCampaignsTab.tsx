@@ -5,78 +5,55 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Target, DollarSign, Calendar, AlertCircle, Eye, Play, Pause } from 'lucide-react';
+import { Target, DollarSign, Calendar, AlertCircle, Eye, Play, Pause, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const SimpleBrandCampaignsTab = () => {
   const { user } = useAuth();
 
-  const { data: campaigns, isLoading, error } = useQuery({
+  const { data: campaigns, isLoading, error, refetch } = useQuery({
     queryKey: ['admin-brand-campaigns-simple'],
     queryFn: async () => {
       console.log('🔍 Fetching brand campaigns as admin...');
       console.log('🔐 Current user:', user?.id);
       
-      // Check if user is admin
-      const { data: userRole } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user?.id)
-        .single();
+      // Verify admin access first
+      const { data: isAdmin, error: adminError } = await supabase.rpc('is_current_user_admin_secure');
+      console.log('👤 Admin verification result:', isAdmin, adminError);
       
-      console.log('👤 User role:', userRole);
+      if (adminError) {
+        console.error('❌ Admin verification failed:', adminError);
+        throw new Error(`Admin verification failed: ${adminError.message}`);
+      }
       
-      // Fetch campaigns with a simpler query structure
+      if (!isAdmin) {
+        console.error('❌ User is not admin');
+        throw new Error('Admin access required');
+      }
+      
+      // Fetch campaigns using the updated RLS policy
       const { data: campaignData, error: campaignError } = await supabase
         .from('brand_campaigns')
-        .select('*')
+        .select(`
+          *,
+          brand_profiles (
+            user_id,
+            company_name
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (campaignError) {
-        console.error('❌ Brand campaigns error:', campaignError);
-        throw campaignError;
+        console.error('❌ Brand campaigns query error:', campaignError);
+        throw new Error(`Failed to fetch campaigns: ${campaignError.message}`);
       }
 
-      console.log('✅ Raw campaigns data:', campaignData?.length || 0, 'records');
-
-      if (!campaignData || campaignData.length === 0) {
-        console.log('ℹ️ No campaigns found');
-        return [];
-      }
-
-      // Get unique brand IDs
-      const brandIds = [...new Set(campaignData.map(c => c.brand_id).filter(Boolean))];
-      
-      console.log('🏢 Brand IDs to fetch:', brandIds.length);
-
-      // Fetch brand profiles
-      let brandProfiles: any[] = [];
-      if (brandIds.length > 0) {
-        const { data: profileData, error: profileError } = await supabase
-          .from('brand_profiles')
-          .select('user_id, company_name')
-          .in('user_id', brandIds);
-        
-        if (profileError) {
-          console.warn('⚠️ Brand profiles fetch error:', profileError);
-        } else {
-          brandProfiles = profileData || [];
-          console.log('✅ Brand profiles fetched:', brandProfiles.length);
-        }
-      }
-
-      // Enrich campaigns with brand profile data
-      const enrichedCampaigns = campaignData.map(campaign => ({
-        ...campaign,
-        brand_profile: brandProfiles.find(bp => bp.user_id === campaign.brand_id)
-      }));
-
-      console.log('✅ Final enriched campaigns:', enrichedCampaigns.length);
-      return enrichedCampaigns;
+      console.log('✅ Successfully fetched campaigns:', campaignData?.length || 0);
+      return campaignData || [];
     },
     enabled: !!user?.id,
-    retry: 1,
-    staleTime: 30000, // 30 seconds
+    retry: 2,
+    staleTime: 30000,
   });
 
   const getStatusColor = (status: string) => {
@@ -108,7 +85,7 @@ export const SimpleBrandCampaignsTab = () => {
   }
 
   if (error) {
-    console.error('❌ Query error details:', error);
+    console.error('❌ Brand campaigns error:', error);
     return (
       <Card>
         <CardHeader>
@@ -121,16 +98,22 @@ export const SimpleBrandCampaignsTab = () => {
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <p className="text-red-800 font-medium">Failed to load brand campaigns</p>
             <p className="text-red-600 text-sm mt-1">Error: {error.message}</p>
-            <p className="text-red-600 text-sm mt-2">
-              Please check the console for detailed error logs and verify your admin permissions.
-            </p>
-            <div className="mt-3">
+            <div className="mt-3 flex gap-2">
+              <Button 
+                onClick={() => refetch()} 
+                size="sm"
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Retry
+              </Button>
               <Button 
                 onClick={() => window.location.reload()} 
                 size="sm"
                 variant="outline"
               >
-                Retry
+                Refresh Page
               </Button>
             </div>
           </div>
@@ -148,7 +131,18 @@ export const SimpleBrandCampaignsTab = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Brand Campaigns Overview</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>Brand Campaigns Overview</span>
+            <Button
+              onClick={() => refetch()}
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -202,11 +196,6 @@ export const SimpleBrandCampaignsTab = () => {
               <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 text-lg font-medium">No brand campaigns found</p>
               <p className="text-gray-400 text-sm">Brand campaigns will appear here when brands create them</p>
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-600">
-                  Debug info: User ID: {user?.id}, Admin check performed
-                </p>
-              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -221,7 +210,7 @@ export const SimpleBrandCampaignsTab = () => {
                         </Badge>
                       </div>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p><strong>Brand:</strong> {campaign.brand_profile?.company_name || 'Unknown Brand'}</p>
+                        <p><strong>Brand:</strong> {campaign.brand_profiles?.company_name || 'Unknown Brand'}</p>
                         <p><strong>Budget:</strong> ₦{Number(campaign.budget || 0).toLocaleString()}</p>
                         <p><strong>Funded:</strong> ₦{Number(campaign.funded_amount || 0).toLocaleString()}</p>
                         <p><strong>Created:</strong> {new Date(campaign.created_at).toLocaleDateString()}</p>
@@ -234,15 +223,6 @@ export const SimpleBrandCampaignsTab = () => {
                       <Button size="sm" variant="outline">
                         <Eye className="h-4 w-4" />
                       </Button>
-                      {campaign.status === 'active' ? (
-                        <Button size="sm" variant="outline">
-                          <Pause className="h-4 w-4" />
-                        </Button>
-                      ) : (
-                        <Button size="sm" variant="outline">
-                          <Play className="h-4 w-4" />
-                        </Button>
-                      )}
                     </div>
                   </div>
                 </div>

@@ -3446,6 +3446,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_admin_dashboard_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_task_submissions: number
+          pending_submissions: number
+          total_campaigns: number
+          active_campaigns: number
+          total_applications: number
+          pending_applications: number
+        }[]
+      }
       get_current_user_profile: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -3546,6 +3557,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_current_user_admin_secure: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }

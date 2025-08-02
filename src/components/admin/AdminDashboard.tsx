@@ -9,6 +9,7 @@ import { AdminNotifications } from './notifications/AdminNotifications';
 import { AdminSettings } from './settings/AdminSettings';
 import { EnhancedTaskManagement } from './enhanced/EnhancedTaskManagement';
 import { AdminUserActions } from './AdminUserActions';
+import { AdminDebugPanel } from './AdminDebugPanel';
 
 export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -31,6 +32,11 @@ export const AdminDashboard = () => {
             <div className="mb-6">
               <h2 className="text-2xl font-semibold mb-4">Quick Actions</h2>
               <AdminUserActions />
+            </div>
+            
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold mb-4">System Debug</h2>
+              <AdminDebugPanel />
             </div>
             
             <div>

@@ -5,97 +5,61 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Clock, CheckCircle, XCircle, Eye, AlertCircle } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Eye, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const SimpleTaskSubmissionsTab = () => {
   const { user } = useAuth();
 
-  const { data: submissions, isLoading, error } = useQuery({
+  const { data: submissions, isLoading, error, refetch } = useQuery({
     queryKey: ['admin-task-submissions-simple'],
     queryFn: async () => {
       console.log('🔍 Fetching task submissions as admin...');
       console.log('🔐 Current user:', user?.id);
       
-      // Check if user is admin
-      const { data: userRole } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user?.id)
-        .single();
+      // Verify admin access first
+      const { data: isAdmin, error: adminError } = await supabase.rpc('is_current_user_admin_secure');
+      console.log('👤 Admin verification result:', isAdmin, adminError);
       
-      console.log('👤 User role:', userRole);
+      if (adminError) {
+        console.error('❌ Admin verification failed:', adminError);
+        throw new Error(`Admin verification failed: ${adminError.message}`);
+      }
       
-      // Fetch submissions with a simpler query structure
+      if (!isAdmin) {
+        console.error('❌ User is not admin');
+        throw new Error('Admin access required');
+      }
+      
+      // Fetch submissions using the updated RLS policy
       const { data: submissionData, error: submissionError } = await supabase
         .from('task_submissions')
-        .select('*')
+        .select(`
+          *,
+          tasks (
+            id,
+            title,
+            points
+          ),
+          profiles (
+            id,
+            name,
+            email
+          )
+        `)
         .order('submitted_at', { ascending: false });
 
       if (submissionError) {
-        console.error('❌ Task submissions error:', submissionError);
-        throw submissionError;
+        console.error('❌ Task submissions query error:', submissionError);
+        throw new Error(`Failed to fetch submissions: ${submissionError.message}`);
       }
 
-      console.log('✅ Raw submissions data:', submissionData?.length || 0, 'records');
-
-      if (!submissionData || submissionData.length === 0) {
-        console.log('ℹ️ No submissions found');
-        return [];
-      }
-
-      // Get unique task and user IDs
-      const taskIds = [...new Set(submissionData.map(s => s.task_id).filter(Boolean))];
-      const userIds = [...new Set(submissionData.map(s => s.user_id).filter(Boolean))];
-      
-      console.log('🎯 Task IDs to fetch:', taskIds.length);
-      console.log('👥 User IDs to fetch:', userIds.length);
-
-      // Fetch tasks
-      let tasks: any[] = [];
-      if (taskIds.length > 0) {
-        const { data: taskData, error: taskError } = await supabase
-          .from('tasks')
-          .select('id, title, points')
-          .in('id', taskIds);
-        
-        if (taskError) {
-          console.warn('⚠️ Task fetch error:', taskError);
-        } else {
-          tasks = taskData || [];
-          console.log('✅ Tasks fetched:', tasks.length);
-        }
-      }
-
-      // Fetch user profiles
-      let profiles: any[] = [];
-      if (userIds.length > 0) {
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, name, email')
-          .in('id', userIds);
-        
-        if (profileError) {
-          console.warn('⚠️ Profiles fetch error:', profileError);
-        } else {
-          profiles = profileData || [];
-          console.log('✅ Profiles fetched:', profiles.length);
-        }
-      }
-
-      // Enrich submissions with related data
-      const enrichedSubmissions = submissionData.map(submission => ({
-        ...submission,
-        task: tasks.find(t => t.id === submission.task_id),
-        user: profiles.find(p => p.id === submission.user_id)
-      }));
-
-      console.log('✅ Final enriched submissions:', enrichedSubmissions.length);
-      return enrichedSubmissions;
+      console.log('✅ Successfully fetched submissions:', submissionData?.length || 0);
+      return submissionData || [];
     },
     enabled: !!user?.id,
-    retry: 1,
-    staleTime: 30000, // 30 seconds
+    retry: 2,
+    staleTime: 30000,
   });
 
   const getStatusColor = (status: string) => {
@@ -134,7 +98,7 @@ export const SimpleTaskSubmissionsTab = () => {
   }
 
   if (error) {
-    console.error('❌ Query error details:', error);
+    console.error('❌ Task submissions error:', error);
     return (
       <Card>
         <CardHeader>
@@ -147,16 +111,22 @@ export const SimpleTaskSubmissionsTab = () => {
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <p className="text-red-800 font-medium">Failed to load task submissions</p>
             <p className="text-red-600 text-sm mt-1">Error: {error.message}</p>
-            <p className="text-red-600 text-sm mt-2">
-              Please check the console for detailed error logs and verify your admin permissions.
-            </p>
-            <div className="mt-3">
+            <div className="mt-3 flex gap-2">
+              <Button 
+                onClick={() => refetch()} 
+                size="sm"
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Retry
+              </Button>
               <Button 
                 onClick={() => window.location.reload()} 
                 size="sm"
                 variant="outline"
               >
-                Retry
+                Refresh Page
               </Button>
             </div>
           </div>
@@ -173,7 +143,18 @@ export const SimpleTaskSubmissionsTab = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Task Submissions Overview</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>Task Submissions Overview</span>
+            <Button
+              onClick={() => refetch()}
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -227,11 +208,6 @@ export const SimpleTaskSubmissionsTab = () => {
               <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 text-lg font-medium">No task submissions found</p>
               <p className="text-gray-400 text-sm">Task submissions will appear here when users complete tasks</p>
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-600">
-                  Debug info: User ID: {user?.id}, Admin check performed
-                </p>
-              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -240,7 +216,7 @@ export const SimpleTaskSubmissionsTab = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h4 className="font-semibold">{submission.task?.title || 'Unknown Task'}</h4>
+                        <h4 className="font-semibold">{submission.tasks?.title || 'Unknown Task'}</h4>
                         <Badge className={getStatusColor(submission.status)}>
                           <div className="flex items-center gap-1">
                             {getStatusIcon(submission.status)}
@@ -249,9 +225,12 @@ export const SimpleTaskSubmissionsTab = () => {
                         </Badge>
                       </div>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p><strong>User:</strong> {submission.user?.name || 'Unknown User'} ({submission.user?.email || 'No email'})</p>
-                        <p><strong>Points:</strong> {submission.task?.points || 0} pts</p>
+                        <p><strong>User:</strong> {submission.profiles?.name || 'Unknown User'} ({submission.profiles?.email || 'No email'})</p>
+                        <p><strong>Points:</strong> {submission.tasks?.points || 0} pts</p>
                         <p><strong>Submitted:</strong> {new Date(submission.submitted_at).toLocaleString()}</p>
+                        {submission.evidence && (
+                          <p><strong>Evidence:</strong> {submission.evidence.substring(0, 100)}...</p>
+                        )}
                       </div>
                     </div>
                     <div className="flex gap-2">
