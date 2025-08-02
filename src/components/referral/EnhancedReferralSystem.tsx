@@ -45,40 +45,44 @@ export const EnhancedReferralSystem = () => {
   const loadReferralData = async () => {
     setLoading(true);
     try {
-      // Get user points
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('points')
-          .eq('id', user.id)
-          .single();
-        
-        setUserPoints(profile?.points || 0);
+      if (!user) {
+        throw new Error('User not authenticated');
       }
 
-      const [code, stats, referrals] = await Promise.all([
+      // Load all data in parallel for better performance
+      const [profileData, codeData, statsData, referralsData] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('points, active_referrals_count, total_referrals_count')
+          .eq('id', user.id)
+          .maybeSingle(),
         userService.getUserReferralCode(),
         userService.getReferralStats(),
         userService.getUserReferrals()
       ]);
 
+      // Handle profile data with fallbacks
+      const profile = profileData.data;
+      setUserPoints(profile?.points || 0);
+
       // Store previous stats for comparison and check for level up
-      if (referralStats && stats) {
+      if (referralStats && statsData) {
         setPreviousStats(referralStats);
         
         // Check if user leveled up
-        if (referralStats.bird_level.name !== stats.bird_level.name) {
-          setNewLevelAchieved(stats.bird_level);
+        if (referralStats.bird_level?.name !== statsData.bird_level?.name) {
+          setNewLevelAchieved(statsData.bird_level);
           setShowCelebration(true);
         }
       }
 
-      setReferralCode(code || "");
-      setReferralStats(stats);
-      setUserReferrals(referrals);
+      setReferralCode(codeData || "");
+      setReferralStats(statsData);
+      setUserReferrals(referralsData);
     } catch (error) {
       console.error('Error loading referral data:', error);
+      toast.error('Failed to load referral data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -133,8 +137,13 @@ export const EnhancedReferralSystem = () => {
           <CardContent className="space-y-4">
             <div className="text-center py-8">
               <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground mb-4">Get started with referrals!</p>
-              <Button onClick={loadReferralData}>Try Again</Button>
+              <p className="text-muted-foreground mb-4">Failed to load referrals. Please check your connection and try again.</p>
+              <Button onClick={loadReferralData} className="mr-2">
+                Try Again
+              </Button>
+              <Button variant="outline" onClick={() => window.location.reload()}>
+                Refresh Page
+              </Button>
             </div>
           </CardContent>
         </Card>

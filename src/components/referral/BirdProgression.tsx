@@ -34,15 +34,7 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
   const calculateProgress = () => {
     if (!nextBirdLevel) return 100;
     
-    // If points requirement is 0 or undefined, only calculate based on referrals
-    if (!nextBirdLevel.min_points || nextBirdLevel.min_points === 0) {
-      const referralProgress = nextBirdLevel.min_referrals > 0 
-        ? (activeReferrals / nextBirdLevel.min_referrals) * 100 
-        : 100;
-      return Math.min(referralProgress, 100);
-    }
-    
-    // For levels that require both points and referrals, calculate based on both
+    // Calculate progress based on what's needed for the next level
     const referralProgress = nextBirdLevel.min_referrals > 0 
       ? (activeReferrals / nextBirdLevel.min_referrals) * 100 
       : 100;
@@ -51,8 +43,17 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
       ? (userPoints / nextBirdLevel.min_points) * 100 
       : 100;
     
-    // Return the minimum progress (both requirements must be met)
-    return Math.min(Math.min(referralProgress, pointsProgress), 100);
+    // For levels with both requirements, take the minimum progress
+    // For levels with only one requirement, return that requirement's progress
+    if (nextBirdLevel.min_points > 0 && nextBirdLevel.min_referrals > 0) {
+      return Math.min(referralProgress, pointsProgress);
+    } else if (nextBirdLevel.min_referrals > 0) {
+      return referralProgress;
+    } else if (nextBirdLevel.min_points > 0) {
+      return pointsProgress;
+    }
+    
+    return 0;
   };
 
   const CurrentIcon = getBirdIcon(currentBirdLevel);
@@ -107,11 +108,11 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
               <div 
                 className="w-12 h-12 rounded-full flex items-center justify-center border-2 opacity-50"
                 style={{ 
-                  backgroundColor: nextBirdLevel.color + '20',
-                  borderColor: nextBirdLevel.color
+                  backgroundColor: nextBirdLevel.color + '20' || '#3B82F620',
+                  borderColor: nextBirdLevel.color || '#3B82F6'
                 }}
               >
-                <span className="text-2xl">{nextBirdLevel.emoji}</span>
+                <span className="text-2xl">{nextBirdLevel.emoji || '🐦'}</span>
               </div>
             </div>
           )}
