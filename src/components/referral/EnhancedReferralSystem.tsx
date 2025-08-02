@@ -21,7 +21,7 @@ import { BirdLevelNotification } from "./BirdLevelNotification";
 import { ProfileBirdBadge } from "./ProfileBirdBadge";
 import { CommissionDashboard } from "./CommissionDashboard";
 import { ReferralTroubleshooter } from "./ReferralTroubleshooter";
-import { ManualReferralCreator } from "./ManualReferralCreator";
+
 import { supabase } from "@/integrations/supabase/client";
 import { generateReferralLink, APP_CONFIG } from "@/config/app";
 
@@ -154,8 +154,6 @@ export const EnhancedReferralSystem = () => {
       {/* Troubleshooter for referral issues */}
       <ReferralTroubleshooter />
 
-      {/* Manual referral creator for testing */}
-      <ManualReferralCreator />
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

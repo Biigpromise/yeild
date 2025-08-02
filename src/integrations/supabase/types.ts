@@ -2974,7 +2974,22 @@ export type Database = {
           referred_id?: string
           referrer_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

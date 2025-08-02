@@ -82,7 +82,7 @@ export const referralService = {
           .from('user_referrals')
           .select(`
             *,
-            referred_profile:profiles!user_referrals_referred_id_fkey(name, email)
+            referred_profile:profiles(name, email)
           `)
           .eq('referrer_id', userId)
           .order('created_at', { ascending: false });
