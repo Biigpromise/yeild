@@ -49,8 +49,9 @@ export const AdminDebugPanel = () => {
         .limit(1);
       console.log('📄 Brand applications test:', applications?.length || 0, applicationsError);
       
-      // Get dashboard stats
-      const { data: stats, error: statsError } = await supabase.rpc('get_admin_dashboard_stats');
+      // Get dashboard stats - this returns an array, so take first element
+      const { data: statsArray, error: statsError } = await supabase.rpc('get_admin_dashboard_stats');
+      const stats = statsArray?.[0] || null;
       console.log('📊 Dashboard stats:', stats, statsError);
       
       return {

@@ -31,7 +31,7 @@ export const SimpleTaskSubmissionsTab = () => {
         throw new Error('Admin access required');
       }
       
-      // Fetch submissions using the updated RLS policy
+      // Fetch submissions without profiles join to avoid relation issues
       const { data: submissionData, error: submissionError } = await supabase
         .from('task_submissions')
         .select(`
@@ -40,11 +40,6 @@ export const SimpleTaskSubmissionsTab = () => {
             id,
             title,
             points
-          ),
-          profiles (
-            id,
-            name,
-            email
           )
         `)
         .order('submitted_at', { ascending: false });
@@ -54,8 +49,21 @@ export const SimpleTaskSubmissionsTab = () => {
         throw new Error(`Failed to fetch submissions: ${submissionError.message}`);
       }
 
-      console.log('✅ Successfully fetched submissions:', submissionData?.length || 0);
-      return submissionData || [];
+      // Fetch user profiles separately to avoid relation issues
+      const userIds = [...new Set(submissionData?.map(s => s.user_id).filter(Boolean))];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .in('id', userIds);
+
+      // Combine the data
+      const submissionsWithProfiles = submissionData?.map(submission => ({
+        ...submission,
+        user_profile: profilesData?.find(p => p.id === submission.user_id) || null
+      })) || [];
+
+      console.log('✅ Successfully fetched submissions:', submissionsWithProfiles.length);
+      return submissionsWithProfiles;
     },
     enabled: !!user?.id,
     retry: 2,
@@ -225,7 +233,7 @@ export const SimpleTaskSubmissionsTab = () => {
                         </Badge>
                       </div>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p><strong>User:</strong> {submission.profiles?.name || 'Unknown User'} ({submission.profiles?.email || 'No email'})</p>
+                        <p><strong>User:</strong> {submission.user_profile?.name || 'Unknown User'} ({submission.user_profile?.email || 'No email'})</p>
                         <p><strong>Points:</strong> {submission.tasks?.points || 0} pts</p>
                         <p><strong>Submitted:</strong> {new Date(submission.submitted_at).toLocaleString()}</p>
                         {submission.evidence && (
