@@ -6,7 +6,39 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { NotificationCenter } from '@/components/dashboard/NotificationCenter';
 import { AdminUserToggle } from '@/components/admin/AdminUserToggle';
 import { Input } from '@/components/ui/input';
+import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
+
+const ProfileMenu = () => {
+  const { userRole } = useUserRole();
+  
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="sm">
+          <User className="h-4 w-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="end">
+        <div className="p-4">
+          {userRole === 'admin' && (
+            <div className="mb-4">
+              <AdminUserToggle />
+            </div>
+          )}
+          <div className="flex flex-col gap-2">
+            <Button variant="ghost" size="sm" className="justify-start">
+              Profile Settings
+            </Button>
+            <Button variant="ghost" size="sm" className="justify-start">
+              Sign Out
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 interface ModernNavHeaderProps {
   onToggleSidebar?: () => void;
@@ -82,12 +114,8 @@ export const ModernNavHeader: React.FC<ModernNavHeaderProps> = ({
             </PopoverContent>
           </Popover>
 
-          {/* Admin User Toggle - only show on admin routes */}
-          <AdminUserToggle />
-
-          <Button variant="ghost" size="sm">
-            <User className="h-4 w-4" />
-          </Button>
+          {/* Profile Menu with Admin Toggle */}
+          <ProfileMenu />
         </div>
       </div>
     </header>
