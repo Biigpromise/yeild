@@ -209,21 +209,47 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
             </div>
           )}
 
-          {/* Phoenix Achievement */}
+          {/* Phoenix Achievement - Enhanced */}
           {isPhoenix && (
-            <div className="relative text-center p-6 bg-gradient-to-br from-orange-100 via-red-100 to-yellow-100 rounded-lg border-2 border-orange-300 overflow-hidden">
-              {/* Animated background elements */}
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 to-red-400/10 animate-pulse"></div>
-              <div className="absolute top-2 left-2 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
-              <div className="absolute bottom-2 right-2 w-2 h-2 bg-orange-400 rounded-full animate-ping delay-300"></div>
-              <div className="absolute top-1/2 left-2 w-1 h-1 bg-red-400 rounded-full animate-ping delay-700"></div>
+            <div className="relative text-center p-8 bg-gradient-to-br from-orange-50 via-amber-50 to-red-50 rounded-2xl border-4 border-gradient-to-r from-orange-300 via-yellow-300 to-red-300 overflow-hidden shadow-2xl">
+              {/* Multi-layered animated background */}
+              <div className="absolute inset-0">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-400/15 via-yellow-400/15 to-red-400/15 animate-pulse"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-yellow-200/20 to-transparent animate-ping duration-3000"></div>
+                <div className="absolute inset-0 bg-gradient-to-tl from-transparent via-orange-200/20 to-transparent animate-ping delay-1000 duration-4000"></div>
+              </div>
+              
+              {/* Floating animated elements */}
+              <div className="absolute top-3 left-3 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-bounce duration-2000"></div>
+              <div className="absolute top-6 right-4 w-3 h-3 bg-gradient-to-r from-red-400 to-pink-500 rounded-full animate-bounce delay-500 duration-2500"></div>
+              <div className="absolute bottom-4 left-6 w-2 h-2 bg-gradient-to-r from-orange-500 to-yellow-400 rounded-full animate-bounce delay-1000 duration-3000"></div>
+              <div className="absolute bottom-6 right-3 w-2 h-2 bg-gradient-to-r from-yellow-400 to-red-400 rounded-full animate-bounce delay-1500 duration-2000"></div>
+              <div className="absolute top-1/2 left-3 w-1.5 h-1.5 bg-gradient-to-r from-amber-400 to-orange-600 rounded-full animate-ping delay-700 duration-4000"></div>
+              <div className="absolute top-1/3 right-5 w-1 h-1 bg-gradient-to-r from-red-500 to-pink-400 rounded-full animate-ping delay-2000 duration-3000"></div>
               
               <div className="relative z-10">
-                <div className="flex items-center justify-center gap-3 mb-3">
+                {/* Icon animation cluster */}
+                <div className="flex items-center justify-center gap-4 mb-6">
                   <motion.div
                     animate={{ 
-                      scale: [1, 1.2, 1],
-                      rotate: [0, 10, -10, 0]
+                      scale: [1, 1.3, 1],
+                      rotate: [0, 15, -15, 0],
+                      y: [0, -10, 0]
+                    }}
+                    transition={{ 
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <Trophy className="h-10 w-10 text-yellow-600 drop-shadow-lg" />
+                  </motion.div>
+                  
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.4, 1],
+                      opacity: [0.8, 1, 0.8],
+                      rotate: [0, 180, 360]
                     }}
                     transition={{ 
                       duration: 2,
@@ -231,25 +257,14 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
                       ease: "easeInOut"
                     }}
                   >
-                    <Trophy className="h-8 w-8 text-yellow-500" />
+                    <Sparkles className="h-8 w-8 text-orange-600 drop-shadow-lg" />
                   </motion.div>
+                  
                   <motion.div
                     animate={{ 
-                      scale: [1, 1.3, 1],
-                      opacity: [0.7, 1, 0.7]
-                    }}
-                    transition={{ 
-                      duration: 1.5,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    <Sparkles className="h-6 w-6 text-orange-500" />
-                  </motion.div>
-                  <motion.div
-                    animate={{ 
-                      scale: [1, 1.1, 1],
-                      rotate: [0, -10, 10, 0]
+                      scale: [1, 1.2, 1],
+                      rotate: [0, -20, 20, 0],
+                      y: [0, -8, 0]
                     }}
                     transition={{ 
                       duration: 2.5,
@@ -258,38 +273,110 @@ export const BirdProgressTracker: React.FC<BirdProgressTrackerProps> = ({
                       delay: 0.5
                     }}
                   >
-                    <Flame className="h-7 w-7 text-red-500" />
+                    <Flame className="h-9 w-9 text-red-600 drop-shadow-lg" />
+                  </motion.div>
+                  
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.25, 1],
+                      rotate: [0, 10, -10, 0],
+                      opacity: [0.9, 1, 0.9]
+                    }}
+                    transition={{ 
+                      duration: 3.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 1
+                    }}
+                  >
+                    <Crown className="h-9 w-9 text-yellow-700 drop-shadow-lg" />
                   </motion.div>
                 </div>
                 
+                {/* Main content with enhanced animations */}
                 <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  initial={{ scale: 0.5, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
                 >
-                  <p className="font-bold text-xl text-orange-800 mb-2">
+                  <motion.p 
+                    className="font-black text-3xl bg-gradient-to-r from-orange-700 via-red-600 to-yellow-700 bg-clip-text text-transparent mb-3 drop-shadow-sm"
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
                     🔥 PHOENIX STATUS ACHIEVED! 🔥
-                  </p>
-                  <p className="text-base text-orange-700 font-medium mb-2">
-                    You've ascended to legendary status!
-                  </p>
-                  <p className="text-sm text-orange-600">
-                    Elite benefits, maximum rewards, and exclusive access unlocked
-                  </p>
+                  </motion.p>
+                  
+                  <motion.p 
+                    className="text-xl text-orange-800 font-bold mb-3 drop-shadow-sm"
+                    animate={{ opacity: [0.8, 1, 0.8] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    ✨ LEGENDARY TIER UNLOCKED ✨
+                  </motion.p>
+                  
+                  <motion.p 
+                    className="text-lg text-orange-700 font-semibold mb-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.8 }}
+                  >
+                    You've transcended to the highest level of mastery!
+                  </motion.p>
+                  
+                  <motion.p 
+                    className="text-base text-orange-600 font-medium"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8, duration: 0.8 }}
+                  >
+                    Ultimate rewards, exclusive privileges, and maximum earning potential activated
+                  </motion.p>
                 </motion.div>
                 
-                {/* Achievement badges */}
-                <div className="flex justify-center gap-2 mt-4">
-                  <div className="px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-semibold">
-                    🏆 LEGENDARY
-                  </div>
-                  <div className="px-3 py-1 bg-orange-200 text-orange-800 rounded-full text-xs font-semibold">
-                    🔥 PHOENIX
-                  </div>
-                  <div className="px-3 py-1 bg-red-200 text-red-800 rounded-full text-xs font-semibold">
-                    👑 ELITE
-                  </div>
-                </div>
+                {/* Enhanced achievement badges with animations */}
+                <motion.div 
+                  className="flex justify-center gap-3 mt-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.2, duration: 0.6 }}
+                >
+                  <motion.div 
+                    className="px-4 py-2 bg-gradient-to-r from-yellow-200 to-yellow-300 text-yellow-900 rounded-full text-sm font-bold shadow-lg border-2 border-yellow-400"
+                    whileHover={{ scale: 1.1 }}
+                    animate={{ y: [0, -2, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    🏆 LEGENDARY MASTER
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="px-4 py-2 bg-gradient-to-r from-orange-200 to-orange-300 text-orange-900 rounded-full text-sm font-bold shadow-lg border-2 border-orange-400"
+                    whileHover={{ scale: 1.1 }}
+                    animate={{ y: [0, -2, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+                  >
+                    🔥 PHOENIX ELITE
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="px-4 py-2 bg-gradient-to-r from-red-200 to-red-300 text-red-900 rounded-full text-sm font-bold shadow-lg border-2 border-red-400"
+                    whileHover={{ scale: 1.1 }}
+                    animate={{ y: [0, -2, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+                  >
+                    👑 APEX TIER
+                  </motion.div>
+                </motion.div>
+                
+                {/* Special effects text */}
+                <motion.div
+                  className="mt-4 text-xs text-orange-500 font-medium"
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  • Maximum commission rates • Priority support • Exclusive events •
+                </motion.div>
               </div>
             </div>
           )}

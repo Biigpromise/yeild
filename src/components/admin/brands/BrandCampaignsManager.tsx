@@ -22,21 +22,31 @@ export const BrandCampaignsManager = () => {
   const queryClient = useQueryClient();
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
 
-  const { data: campaigns, isLoading } = useQuery({
+  const { data: campaigns, isLoading, error: queryError } = useQuery({
     queryKey: ['admin-brand-campaigns'],
     queryFn: async () => {
+      console.log('Fetching brand campaigns...');
       const { data, error } = await supabase
         .from('brand_campaigns')
         .select(`
           *,
-          brand_profiles!inner(company_name)
+          brand_profiles(company_name)
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Brand campaigns query error:', error);
+        throw error;
+      }
+      console.log('Brand campaigns data:', data);
       return data;
     },
   });
+
+  // Show query error if exists
+  if (queryError) {
+    console.error('Brand campaigns query error:', queryError);
+  }
 
   const updateCampaignStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -87,7 +97,31 @@ export const BrandCampaignsManager = () => {
   };
 
   if (isLoading) {
-    return <div className="text-center py-8">Loading campaigns...</div>;
+    return (
+      <div className="text-center py-8">
+        <p>Loading brand campaigns...</p>
+      </div>
+    );
+  }
+
+  if (queryError) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-destructive">Error loading campaigns: {queryError.message}</p>
+        <p className="text-sm text-muted-foreground mt-2">Please check console for details</p>
+      </div>
+    );
+  }
+
+  if (!campaigns || campaigns.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No brand campaigns found</p>
+        <p className="text-sm text-muted-foreground mt-2">
+          Brand campaigns will appear here when brands create them
+        </p>
+      </div>
+    );
   }
 
   return (

@@ -16,9 +16,10 @@ export const TaskSubmissionsTab = () => {
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
   const queryClient = useQueryClient();
 
-  const { data: submissions, isLoading } = useQuery({
+  const { data: submissions, isLoading, error: queryError } = useQuery({
     queryKey: ['admin-task-submissions'],
     queryFn: async () => {
+      console.log('Fetching task submissions...');
       const { data, error } = await supabase
         .from('task_submissions')
         .select(`
@@ -27,9 +28,12 @@ export const TaskSubmissionsTab = () => {
         `)
         .order('submitted_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Task submissions query error:', error);
+        throw error;
+      }
 
-      // Get user profiles separately
+      // Get user profiles separately since there's no direct FK relationship
       const userIds = data?.map(submission => submission.user_id).filter(Boolean) || [];
       let profiles: any[] = [];
       
@@ -47,9 +51,15 @@ export const TaskSubmissionsTab = () => {
         user_profile: profiles.find(profile => profile.id === submission.user_id)
       }));
 
+      console.log('Task submissions data:', enrichedData);
       return enrichedData;
     },
   });
+
+  // Show query error if exists
+  if (queryError) {
+    console.error('Query error:', queryError);
+  }
 
   const updateSubmissionStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -101,6 +111,9 @@ export const TaskSubmissionsTab = () => {
   if (isLoading) {
     return (
       <div className="space-y-6">
+        <div className="text-center py-4">
+          <p>Loading task submissions...</p>
+        </div>
         <div className="animate-pulse">
           <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -110,6 +123,26 @@ export const TaskSubmissionsTab = () => {
           </div>
           <div className="h-96 bg-muted rounded"></div>
         </div>
+      </div>
+    );
+  }
+
+  if (queryError) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-destructive">Error loading submissions: {queryError.message}</p>
+        <p className="text-sm text-muted-foreground mt-2">Please check console for details</p>
+      </div>
+    );
+  }
+
+  if (!submissions || submissions.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No task submissions found</p>
+        <p className="text-sm text-muted-foreground mt-2">
+          Task submissions will appear here when users complete tasks
+        </p>
       </div>
     );
   }

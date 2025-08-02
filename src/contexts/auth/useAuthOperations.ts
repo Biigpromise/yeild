@@ -58,23 +58,28 @@ export const useAuthOperations = () => {
   };
 
   const signInWithProvider = async (provider: string, userType: string = 'user') => {
-    const redirectUrl = `${window.location.origin}/auth/callback?user_type=${userType}`;
-    
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: provider as any,
-      options: {
-        redirectTo: redirectUrl,
-        queryParams: {
-          user_type: userType
+    try {
+      const redirectUrl = `https://stehjqdbncykevpokcvj.supabase.co/auth/v1/callback`;
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: provider as any,
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            user_type: userType
+          }
         }
+      });
+
+      if (error) {
+        console.error("OAuth sign in error:", error);
       }
-    });
 
-    if (error) {
-      console.error("OAuth sign in error:", error);
+      return { data, error };
+    } catch (error: any) {
+      console.error('OAuth sign in error:', error);
+      return { data: null, error };
     }
-
-    return { data, error };
   };
 
   const resendConfirmation = async (email: string) => {
