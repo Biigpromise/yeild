@@ -20,6 +20,8 @@ import { AdminUserToggle } from "@/components/admin/AdminUserToggle";
 import { AntiFraudTracking } from "@/components/admin/AntiFraudTracking";
 import { BrandCampaignsTab } from "@/components/admin/brands/BrandCampaignsTab";
 import { TaskSubmissionsTab } from "@/components/admin/TaskSubmissionsTab";
+import { SimpleTaskSubmissionsTab } from "@/components/admin/simple/SimpleTaskSubmissionsTab";
+import { SimpleBrandCampaignsTab } from "@/components/admin/simple/SimpleBrandCampaignsTab";
 import { BrandAnalytics } from "@/components/admin/BrandAnalytics";
 import {
   LayoutDashboard,
@@ -92,12 +94,12 @@ const Admin = () => {
     dashboard: <AdminOverview />,
     users: <EnhancedUserManagementSystem />,
     tasks: <EnhancedTaskManagement />,
-    submissions: <TaskSubmissionsTab />,
+    submissions: <SimpleTaskSubmissionsTab />,
     wallet: <AdminWallet />,
     referrals: <AdminReferrals />,
     streaks: <AdminStreaks />,
     brands: <AdminBrands />,
-    campaigns: <BrandCampaignsTab />,
+    campaigns: <SimpleBrandCampaignsTab />,
     brandAnalytics: <BrandAnalytics />,
     fraud: <AntiFraudTracking />,
     notifications: <AdminNotifications />,
