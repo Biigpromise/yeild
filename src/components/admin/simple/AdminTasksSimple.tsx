@@ -17,39 +17,29 @@ export const AdminTasksSimple = () => {
   const { data: submissions, isLoading, error, refetch } = useQuery({
     queryKey: ['admin-tasks-simple'],
     queryFn: async () => {
-      const { data: isAdmin } = await supabase.rpc('is_current_user_admin_secure');
-      if (!isAdmin) throw new Error('Admin access required');
-
-      const { data: submissionData, error: submissionError } = await supabase
-        .from('task_submissions')
-        .select(`
-          id,
-          user_id,
-          task_id,
-          status,
-          submitted_at,
-          evidence,
-          tasks (
-            id,
-            title,
-            points
-          )
-        `)
-        .order('submitted_at', { ascending: false })
-        .limit(20);
-
-      if (submissionError) throw submissionError;
-
-      // Fetch user profiles separately
-      const userIds = [...new Set(submissionData?.map(s => s.user_id).filter(Boolean))];
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, name, email')
-        .in('id', userIds);
-
-      return submissionData?.map(submission => ({
-        ...submission,
-        user_profile: profilesData?.find(p => p.id === submission.user_id) || null
+      const { data, error } = await supabase.rpc('get_admin_task_submissions', { limit_count: 20 });
+      
+      if (error) throw error;
+      
+      return data?.map(submission => ({
+        id: submission.id,
+        user_id: submission.user_id,
+        task_id: submission.task_id,
+        status: submission.status,
+        evidence: submission.evidence,
+        submitted_at: submission.submitted_at,
+        reviewed_at: submission.reviewed_at,
+        rejection_reason: submission.rejection_reason,
+        tasks: {
+          id: submission.task_id,
+          title: submission.task_title,
+          points: submission.task_points
+        },
+        user_profile: {
+          id: submission.user_id,
+          name: submission.user_name,
+          email: submission.user_email
+        }
       })) || [];
     },
     refetchInterval: 30000
