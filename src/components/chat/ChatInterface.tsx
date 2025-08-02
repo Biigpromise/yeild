@@ -65,21 +65,14 @@ export const ChatInterface: React.FC = () => {
     if (!user) return;
 
     try {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('tasks_completed, active_referrals_count, can_post_in_chat')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (profileData) {
-        setEligibility({
-          canPost: profileData.can_post_in_chat || false,
-          tasksCompleted: profileData.tasks_completed || 0,
-          activeReferrals: profileData.active_referrals_count || 0,
-          requiredTasks: 1,
-          requiredReferrals: 3,
-        });
-      }
+      // Set everyone as eligible to post
+      setEligibility({
+        canPost: true,
+        tasksCompleted: 0,
+        activeReferrals: 0,
+        requiredTasks: 0,
+        requiredReferrals: 0,
+      });
     } catch (error) {
       console.error('Error checking eligibility:', error);
     }
@@ -204,15 +197,6 @@ export const ChatInterface: React.FC = () => {
           <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
           Community Chat
         </h2>
-        {eligibility && !eligibility.canPost && (
-          <Alert className="mt-2">
-            <AlertDescription className="text-xs md:text-sm">
-              To post in chat, you need {eligibility.requiredTasks} completed task(s) 
-              and {eligibility.requiredReferrals} active referrals. 
-              You have {eligibility.tasksCompleted} task(s) and {eligibility.activeReferrals} referrals.
-            </AlertDescription>
-          </Alert>
-        )}
       </div>
 
       {/* Messages Area */}
@@ -235,15 +219,7 @@ export const ChatInterface: React.FC = () => {
 
       {/* Message Input */}
       <div className="border-t bg-card">
-        {eligibility?.canPost ? (
-          <MessageInput onMessageSent={fetchMessages} />
-        ) : (
-          <div className="p-3 md:p-4 bg-muted/50">
-            <div className="text-center text-xs md:text-sm text-muted-foreground">
-              Complete tasks and get referrals to unlock chat posting
-            </div>
-          </div>
-        )}
+        <MessageInput onMessageSent={fetchMessages} />
       </div>
 
       {/* Profile Modal */}

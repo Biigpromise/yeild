@@ -68,24 +68,11 @@ export const CommunityChatTab = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('can_post_in_chat, tasks_completed, active_referrals_count')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) return;
-
-      const eligible = (data.tasks_completed >= 1 && data.active_referrals_count >= 3) || data.can_post_in_chat;
-      setCanPost(eligible);
-
-      if (!eligible) {
-        console.log(`User eligibility: ${data.tasks_completed} tasks completed, ${data.active_referrals_count} active referrals`);
-      }
+      // Allow everyone to post in chat
+      setCanPost(true);
     } catch (error) {
       console.error('Error checking posting eligibility:', error);
-      setCanPost(false);
+      setCanPost(true); // Still allow posting even if there's an error
     }
   };
 
@@ -128,11 +115,7 @@ export const CommunityChatTab = () => {
       toast.success('Message sent!');
     } catch (error: any) {
       console.error('Error sending message:', error);
-      if (error.message?.includes('check_chat_posting_eligibility')) {
-        toast.error('You need to complete at least 1 task and have 3+ active referrals to post in chat');
-      } else {
-        toast.error('Failed to send message. Please try again.');
-      }
+      toast.error('Failed to send message. Please try again.');
     }
   };
 
@@ -145,7 +128,7 @@ export const CommunityChatTab = () => {
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !user || !canPost) return;
+    if (!file || !user) return;
 
     try {
       const fileExt = file.name.split('.').pop();
@@ -279,50 +262,42 @@ export const CommunityChatTab = () => {
 
         {/* Message Input */}
         <div className="bg-gray-900 border-t border-gray-800 p-4 flex-shrink-0">
-          {canPost ? (
-            <div className="flex items-center gap-2">
-              <div className="flex-1 relative">
-                <Input
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Type your message..."
-                  className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:bg-gray-700"
-                />
-              </div>
-              
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImageUpload}
-                accept="image/*"
-                className="hidden"
+          <div className="flex items-center gap-2">
+            <div className="flex-1 relative">
+              <Input
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Type your message..."
+                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:bg-gray-700"
               />
-              
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-gray-800 border border-gray-700"
-              >
-                <Image className="w-4 h-4" />
-              </Button>
-              
-              <Button
-                onClick={sendMessage}
-                disabled={!newMessage.trim()}
-                className="bg-blue-600 hover:bg-blue-700 text-white border border-blue-600"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
             </div>
-          ) : (
-            <div className="bg-gray-900 rounded-lg p-4 border border-gray-800">
-              <p className="text-gray-300 text-center font-medium">
-                🔒 Complete at least 1 task and get 3+ active referrals to participate in chat
-              </p>
-            </div>
-          )}
+            
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+              accept="image/*"
+              className="hidden"
+            />
+            
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-gray-800 border border-gray-700"
+            >
+              <Image className="w-4 h-4" />
+            </Button>
+            
+            <Button
+              onClick={sendMessage}
+              disabled={!newMessage.trim()}
+              className="bg-blue-600 hover:bg-blue-700 text-white border border-blue-600"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </Card>
     </div>
