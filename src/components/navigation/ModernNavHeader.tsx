@@ -19,21 +19,19 @@ const ProfileMenu = () => {
           <User className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="end">
-        <div className="p-4">
-          {userRole === 'admin' && (
-            <div className="mb-4">
-              <AdminUserToggle />
-            </div>
-          )}
-          <div className="flex flex-col gap-2">
-            <Button variant="ghost" size="sm" className="justify-start">
-              Profile Settings
-            </Button>
-            <Button variant="ghost" size="sm" className="justify-start">
-              Sign Out
-            </Button>
+      <PopoverContent className="w-auto p-2" align="end">
+        {userRole === 'admin' && (
+          <div className="mb-2">
+            <AdminUserToggle />
           </div>
+        )}
+        <div className="flex flex-col gap-1">
+          <Button variant="ghost" size="sm" className="justify-start h-8 px-2">
+            Profile Settings
+          </Button>
+          <Button variant="ghost" size="sm" className="justify-start h-8 px-2">
+            Sign Out
+          </Button>
         </div>
       </PopoverContent>
     </Popover>
