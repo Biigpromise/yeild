@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import { BirdAvatar } from "@/components/bird/BirdAvatar";
 import { userService } from "@/services/userService";
 
 interface UserProfileBirdsProps {
@@ -77,7 +78,7 @@ export const UserProfileBirds: React.FC<UserProfileBirdsProps> = ({
   return (
     <div className="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border">
       <div className="flex items-center gap-2">
-        <div className="text-2xl">{birdEmoji}</div>
+        <BirdAvatar name={birdLevel.name} size="md" animated={true} />
         <div className="text-center">
           <Badge 
             className="text-white mb-1"
@@ -91,9 +92,12 @@ export const UserProfileBirds: React.FC<UserProfileBirdsProps> = ({
       
       <div className="flex items-center gap-1 flex-wrap justify-center">
         {Array.from({ length: Math.min(birdCount, 10) }, (_, index) => (
-          <span key={index} className="text-xs opacity-75">
-            {birdEmoji}
-          </span>
+          <BirdAvatar 
+            key={index} 
+            name={birdLevel.name} 
+            size="sm" 
+            animated={birdLevel.name.toLowerCase() === 'phoenix'} 
+          />
         ))}
         {birdCount > 10 && (
           <span className="text-xs text-gray-500">+{birdCount - 10}</span>

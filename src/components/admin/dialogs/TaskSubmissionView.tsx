@@ -109,26 +109,88 @@ export const TaskSubmissionView: React.FC<TaskSubmissionViewProps> = ({
           </div>
 
           {/* Evidence */}
-          {submission.evidence && (
-            <div className="space-y-3">
-              <h3 className="font-semibold">Evidence/Proof</h3>
-              <div className="bg-muted p-4 rounded-lg">
-                {typeof submission.evidence === 'string' ? (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">Text Evidence:</p>
-                    <p className="whitespace-pre-wrap">{submission.evidence}</p>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">Evidence Data:</p>
-                    <pre className="text-xs bg-background p-2 rounded overflow-x-auto">
-                      {JSON.stringify(submission.evidence, null, 2)}
-                    </pre>
-                  </div>
-                )}
-              </div>
+          <div className="space-y-3">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              Evidence/Proof Submitted
+            </h3>
+            <div className="bg-muted p-4 rounded-lg space-y-4">
+              {submission.evidence ? (
+                <>
+                  {typeof submission.evidence === 'string' ? (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">Text Evidence:</p>
+                      <div className="bg-background p-3 rounded border">
+                        <p className="whitespace-pre-wrap text-sm">{submission.evidence}</p>
+                      </div>
+                    </div>
+                  ) : Array.isArray(submission.evidence) ? (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">Evidence Files:</p>
+                      <div className="space-y-2">
+                        {submission.evidence.map((item, index) => (
+                          <div key={index} className="bg-background p-3 rounded border">
+                            {typeof item === 'string' && (item.startsWith('http') || item.includes('supabase')) ? (
+                              <div className="space-y-2">
+                                <p className="text-sm font-medium">File {index + 1}:</p>
+                                {item.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
+                                  <div>
+                                    <img 
+                                      src={item} 
+                                      alt={`Evidence ${index + 1}`}
+                                      className="max-w-md max-h-64 object-contain rounded border"
+                                      onError={(e) => {
+                                        const target = e.currentTarget as HTMLImageElement;
+                                        const fallback = target.nextElementSibling as HTMLElement;
+                                        target.style.display = 'none';
+                                        if (fallback) fallback.style.display = 'block';
+                                      }}
+                                    />
+                                    <div style={{ display: 'none' }} className="p-4 bg-muted rounded text-center">
+                                      <p className="text-sm text-muted-foreground">Image failed to load</p>
+                                      <a href={item} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 justify-center">
+                                        <ExternalLink className="h-3 w-3" />
+                                        View Original
+                                      </a>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <a 
+                                    href={item} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline flex items-center gap-1"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                    View File
+                                  </a>
+                                )}
+                              </div>
+                            ) : (
+                              <pre className="text-xs overflow-x-auto">{JSON.stringify(item, null, 2)}</pre>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">Evidence Data:</p>
+                      <div className="bg-background p-3 rounded border">
+                        <pre className="text-xs overflow-x-auto whitespace-pre-wrap">
+                          {JSON.stringify(submission.evidence, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-sm text-muted-foreground">No evidence submitted</p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           <Separator />
 

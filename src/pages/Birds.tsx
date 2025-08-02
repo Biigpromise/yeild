@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { UserProfileBirds } from '@/components/community/UserProfileBirds';
+import { BirdAvatar } from '@/components/bird/BirdAvatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { userService } from '@/services/userService';
 import { supabase } from '@/integrations/supabase/client';
@@ -117,8 +118,8 @@ const Birds: React.FC = () => {
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
         <div className="relative max-w-7xl mx-auto px-4 py-12">
           <div className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <span className="text-4xl">{currentBirdLevel.emoji}</span>
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <BirdAvatar name={currentBirdLevel.name} size="xl" animated={true} />
               <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent">
                 Bird Status System
               </h1>
@@ -258,7 +259,13 @@ const Birds: React.FC = () => {
                   )}
                   
                   <CardContent className="p-4 text-center">
-                    <div className="text-4xl mb-2">{level.emoji}</div>
+                    <div className="mb-3 flex justify-center">
+                      <BirdAvatar 
+                        name={level.name} 
+                        size="lg" 
+                        animated={isCurrent || level.name.toLowerCase() === 'phoenix'} 
+                      />
+                    </div>
                     <h3 
                       className="font-bold text-lg mb-1"
                       style={{ color: isUnlocked ? level.color : undefined }}
