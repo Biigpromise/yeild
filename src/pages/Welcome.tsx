@@ -3,12 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { YieldLogo } from '@/components/ui/YieldLogo';
+import { UserTypeInfoModal } from '@/components/ui/UserTypeInfoModal';
 import { extractReferralCode } from '@/config/app';
 
 const Welcome: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [logoAnimated, setLogoAnimated] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedUserType, setSelectedUserType] = useState<'user' | 'brand' | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -26,12 +29,15 @@ const Welcome: React.FC = () => {
     }
   }, [searchParams, navigate]);
 
-  const handleUserSignup = () => {
-    navigate('/auth?type=user');
+  const handleUserTypeSelect = (type: 'user' | 'brand') => {
+    setSelectedUserType(type);
+    setShowModal(true);
   };
 
-  const handleBrandSignup = () => {
-    navigate('/auth?type=brand');
+  const handleContinue = () => {
+    if (selectedUserType) {
+      navigate(`/auth?type=${selectedUserType}`);
+    }
   };
 
   return (
@@ -60,14 +66,14 @@ const Welcome: React.FC = () => {
         }`}>
           <div className="space-y-4">
             <Button 
-              onClick={handleUserSignup}
+              onClick={() => handleUserTypeSelect('user')}
               className="w-full h-16 text-lg font-semibold bg-yeild-yellow text-yeild-black hover:bg-yeild-yellow/90 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-yeild-glow"
             >
               I'm a User
             </Button>
             
             <Button 
-              onClick={handleBrandSignup}
+              onClick={() => handleUserTypeSelect('brand')}
               className="w-full h-16 text-lg font-semibold bg-transparent text-white border-2 border-yeild-yellow/30 hover:border-yeild-yellow hover:bg-yeild-yellow/10 rounded-2xl transition-all duration-300 hover:scale-105"
             >
               I'm a Brand
@@ -87,6 +93,14 @@ const Welcome: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* User Type Info Modal */}
+      <UserTypeInfoModal
+        open={showModal}
+        onOpenChange={setShowModal}
+        userType={selectedUserType}
+        onContinue={handleContinue}
+      />
     </div>
   );
 };
