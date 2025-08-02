@@ -1,13 +1,19 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { LoadingState } from '@/components/ui/loading-state';
 import { User, Crown, Building, Eye } from 'lucide-react';
+import { UserView } from '../dialogs/UserView';
+import { toast } from 'sonner';
 
 export const AdminUsersSimple = () => {
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+
   const { data: users, isLoading, error, refetch } = useQuery({
     queryKey: ['admin-users-simple'],
     queryFn: async () => {
@@ -47,6 +53,30 @@ export const AdminUsersSimple = () => {
     refetchInterval: 30000
   });
 
+  const updateUserRoleMutation = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string, role: string }) => {
+      // Remove existing roles for this user
+      await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+      
+      // Add new role
+      const { error } = await supabase
+        .from('user_roles')
+        .insert({ user_id: userId, role });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('User role updated successfully');
+      queryClient.invalidateQueries({ queryKey: ['admin-users-simple'] });
+    },
+    onError: (error: any) => {
+      toast.error('Failed to update user role: ' + error.message);
+    }
+  });
+
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'admin': return 'bg-red-100 text-red-800';
@@ -64,90 +94,115 @@ export const AdminUsersSimple = () => {
     }
   };
 
+  const handleViewUser = (user: any) => {
+    setSelectedUser(user);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleUpdateRole = (userId: string, role: string) => {
+    updateUserRoleMutation.mutate({ userId, role });
+  };
+
   if (isLoading) return <LoadingState text="Loading users..." />;
   if (error) return <div className="text-destructive">Error: {error.message}</div>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">User Management</h2>
-          <p className="text-muted-foreground">Manage platform users and their roles</p>
+    <>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">User Management</h2>
+            <p className="text-muted-foreground">Manage platform users and their roles</p>
+          </div>
+          <Button onClick={() => refetch()} variant="outline">
+            Refresh
+          </Button>
         </div>
-        <Button onClick={() => refetch()} variant="outline">
-          Refresh
-        </Button>
+
+        {!users || users.length === 0 ? (
+          <Card>
+            <CardContent className="flex items-center justify-center h-32">
+              <p className="text-muted-foreground">No users found</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {users.map((user) => (
+              <Card key={user.id}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2">
+                      <CardTitle className="text-lg">
+                        {user.name || 'Unnamed User'}
+                      </CardTitle>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {user.roles.map((role) => (
+                          <Badge key={role} className={getRoleColor(role)}>
+                            {getRoleIcon(role)}
+                            <span className="ml-1 capitalize">{role}</span>
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewUser(user)}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      View
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="font-medium">Contact</p>
+                        <p className="text-muted-foreground">{user.email}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium">Level</p>
+                        <p className="text-muted-foreground">Level {user.level || 1}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="font-medium">Points</p>
+                        <p className="text-muted-foreground">{user.points?.toLocaleString() || 0}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium">Tasks Completed</p>
+                        <p className="text-muted-foreground">{user.tasks_completed || 0}</p>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t">
+                      <p className="text-xs text-muted-foreground">
+                        Joined: {new Date(user.created_at).toLocaleDateString()}
+                        {user.updated_at && user.updated_at !== user.created_at && (
+                          <span> • Last updated: {new Date(user.updated_at).toLocaleDateString()}</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
-      {!users || users.length === 0 ? (
-        <Card>
-          <CardContent className="flex items-center justify-center h-32">
-            <p className="text-muted-foreground">No users found</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {users.map((user) => (
-            <Card key={user.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <CardTitle className="text-lg">
-                      {user.name || 'Unnamed User'}
-                    </CardTitle>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {user.roles.map((role) => (
-                        <Badge key={role} className={getRoleColor(role)}>
-                          {getRoleIcon(role)}
-                          <span className="ml-1 capitalize">{role}</span>
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4 mr-2" />
-                    View
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="font-medium">Contact</p>
-                      <p className="text-muted-foreground">{user.email}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Level</p>
-                      <p className="text-muted-foreground">Level {user.level || 1}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="font-medium">Points</p>
-                      <p className="text-muted-foreground">{user.points?.toLocaleString() || 0}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Tasks Completed</p>
-                      <p className="text-muted-foreground">{user.tasks_completed || 0}</p>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t">
-                    <p className="text-xs text-muted-foreground">
-                      Joined: {new Date(user.created_at).toLocaleDateString()}
-                      {user.updated_at && user.updated_at !== user.created_at && (
-                        <span> • Last updated: {new Date(user.updated_at).toLocaleDateString()}</span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
+      <UserView
+        user={selectedUser}
+        isOpen={isViewDialogOpen}
+        onClose={() => {
+          setIsViewDialogOpen(false);
+          setSelectedUser(null);
+        }}
+        onUpdateRole={handleUpdateRole}
+      />
+    </>
   );
 };
