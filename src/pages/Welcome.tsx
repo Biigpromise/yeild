@@ -86,27 +86,6 @@ const Welcome: React.FC = () => {
             Already have an account? Sign in
           </button>
         </div>
-
-        {/* Privacy and Terms links */}
-        <div className={`transition-all duration-1000 delay-700 ease-out ${
-          logoAnimated ? 'transform translate-y-0 opacity-100' : 'transform translate-y-10 opacity-0'
-        }`}>
-          <div className="flex justify-center space-x-4 text-xs">
-            <button 
-              onClick={() => navigate('/privacy')}
-              className="text-gray-500 hover:text-gray-400 transition-colors duration-300"
-            >
-              Privacy Policy
-            </button>
-            <span className="text-gray-600">•</span>
-            <button 
-              onClick={() => navigate('/terms')}
-              className="text-gray-500 hover:text-gray-400 transition-colors duration-300"
-            >
-              Terms & Conditions
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
