@@ -3457,6 +3457,23 @@ export type Database = {
           pending_applications: number
         }[]
       }
+      get_admin_task_submissions: {
+        Args: { limit_count?: number }
+        Returns: {
+          id: string
+          user_id: string
+          task_id: string
+          status: string
+          evidence: Json
+          submitted_at: string
+          reviewed_at: string
+          rejection_reason: string
+          task_title: string
+          task_points: number
+          user_name: string
+          user_email: string
+        }[]
+      }
       get_current_user_profile: {
         Args: Record<PropertyKey, never>
         Returns: {
