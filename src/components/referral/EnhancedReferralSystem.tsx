@@ -21,7 +21,8 @@ import { BirdLevelNotification } from "./BirdLevelNotification";
 import { ProfileBirdBadge } from "./ProfileBirdBadge";
 import { CommissionDashboard } from "./CommissionDashboard";
 import { ReferralTroubleshooter } from "./ReferralTroubleshooter";
-
+import { UserProfileModal } from "@/components/user/UserProfileModal";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { generateReferralLink, APP_CONFIG } from "@/config/app";
 
@@ -32,6 +33,7 @@ export const EnhancedReferralSystem = () => {
   const [userReferrals, setUserReferrals] = useState<UserReferral[]>([]);
   const [userPoints, setUserPoints] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const { selectedUserId, isModalOpen, openUserProfile, closeUserProfile } = useUserProfile();
 
   useEffect(() => {
     loadReferralData();
@@ -251,7 +253,10 @@ export const EnhancedReferralSystem = () => {
               <div key={referral.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <Avatar className="h-10 w-10">
+                    <Avatar 
+                      className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all" 
+                      onClick={() => referral.referred_user?.id && openUserProfile(referral.referred_user.id)}
+                    >
                       <AvatarImage src={referral.referred_user?.profile_picture_url} />
                       <AvatarFallback>
                         {referral.referred_user?.name?.charAt(0) || 'U'}
@@ -265,7 +270,12 @@ export const EnhancedReferralSystem = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-medium">{referral.referred_user?.name || 'Anonymous User'}</p>
+                      <p 
+                        className="font-medium cursor-pointer hover:text-primary transition-colors"
+                        onClick={() => referral.referred_user?.id && openUserProfile(referral.referred_user.id)}
+                      >
+                        {referral.referred_user?.name || 'Anonymous User'}
+                      </p>
                       {referral.referred_user?.id && (
                         <ProfileBirdBadge userId={referral.referred_user.id} size="sm" />
                       )}
@@ -304,6 +314,12 @@ export const EnhancedReferralSystem = () => {
           </div>
         </CardContent>
       </Card>
+
+      <UserProfileModal 
+        userId={selectedUserId}
+        isOpen={isModalOpen}
+        onClose={closeUserProfile}
+      />
     </div>
   );
 };

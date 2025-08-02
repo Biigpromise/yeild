@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserProfileModal } from '@/components/user/UserProfileModal';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { Crown, Trophy } from 'lucide-react';
 
@@ -15,6 +17,7 @@ interface WeeklyChampion {
 export const WeeklyChampions = () => {
   const [champions, setChampions] = useState<WeeklyChampion[]>([]);
   const [loading, setLoading] = useState(true);
+  const { selectedUserId, isModalOpen, openUserProfile, closeUserProfile } = useUserProfile();
 
   useEffect(() => {
     loadWeeklyChampions();
@@ -84,13 +87,21 @@ export const WeeklyChampions = () => {
           <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full text-white font-bold text-sm">
             {index + 1}
           </div>
-          <Avatar className="h-8 w-8">
+          <Avatar 
+            className="h-8 w-8 cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+            onClick={() => openUserProfile(champion.id)}
+          >
             <AvatarImage src={champion.profile_picture_url} />
             <AvatarFallback>{champion.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <p className="font-medium">{champion.name}</p>
+              <p 
+                className="font-medium cursor-pointer hover:text-primary transition-colors"
+                onClick={() => openUserProfile(champion.id)}
+              >
+                {champion.name}
+              </p>
               {index === 0 && <Crown className="h-3 w-3 text-yellow-500" />}
             </div>
             <p className="text-sm text-muted-foreground">
@@ -102,6 +113,12 @@ export const WeeklyChampions = () => {
           </Badge>
         </div>
       ))}
+
+      <UserProfileModal 
+        userId={selectedUserId}
+        isOpen={isModalOpen}
+        onClose={closeUserProfile}
+      />
     </div>
   );
 };
