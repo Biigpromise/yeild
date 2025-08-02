@@ -90,21 +90,16 @@ export const RealisticPhoenixBird: React.FC<RealisticPhoenixBirdProps> = ({
         }}
       />
       
-      {/* Phoenix Image with Flapping Animation */}
-      <motion.img
-        src="/phoenix-bird-realistic.png"
-        alt="Phoenix Bird"
-        className="relative z-10 w-full h-full object-contain"
+      {/* Phoenix Emoji */}
+      <motion.span
+        className="relative z-10 text-6xl"
         animate={{
           scale: animate ? [1, 1.05, 1] : 1,
           rotateY: animate ? [0, 5, -5, 0] : 0,
-          // Wing flapping effect
-          scaleX: animate ? [1, 1.02, 1, 0.98, 1] : 1,
         }}
         whileHover={{
           scale: 1.1,
           rotateY: [0, 10, -10, 0],
-          scaleX: [1, 1.05, 1, 0.95, 1],
           filter: "drop-shadow(0 0 20px rgba(255, 100, 0, 0.8))",
           transition: { duration: 0.6, repeat: 2 }
         }}
@@ -116,13 +111,9 @@ export const RealisticPhoenixBird: React.FC<RealisticPhoenixBirdProps> = ({
         style={{
           filter: "drop-shadow(0 0 10px rgba(255, 165, 0, 0.6))"
         }}
-        onError={(e) => {
-          // Fallback to emoji if image fails to load
-          const target = e.target as HTMLImageElement;
-          target.style.display = 'none';
-          target.parentElement!.innerHTML += '<span class="text-6xl">🐦‍🔥</span>';
-        }}
-      />
+      >
+        🐦‍🔥
+      </motion.span>
       
       {/* Flame Wing Effect */}
       <motion.div
