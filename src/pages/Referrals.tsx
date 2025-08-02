@@ -38,7 +38,7 @@ const Referrals: React.FC = () => {
               </h1>
             </div>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Invite friends, grow your network, and earn rewards together. The more you share, the more you earn!
+              Connect brands with talented users through YIELD. Earn points and unlock exclusive opportunities by growing our community!
             </p>
             <div className="flex items-center justify-center gap-4 pt-4">
               <Badge variant="secondary" className="flex items-center gap-1">
@@ -59,64 +59,7 @@ const Referrals: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/10 rounded-lg">
-                  <Users className="h-6 w-6 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Referrals</p>
-                  <p className="text-2xl font-bold">24</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-green-500/10 to-green-500/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500/10 rounded-lg">
-                  <Trophy className="h-6 w-6 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Active Referrals</p>
-                  <p className="text-2xl font-bold">18</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-purple-500/10 to-purple-500/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-500/10 rounded-lg">
-                  <Gift className="h-6 w-6 text-purple-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Rewards Earned</p>
-                  <p className="text-2xl font-bold">2,450</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-orange-500/10 to-orange-500/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-500/10 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-orange-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">This Month</p>
-                  <p className="text-2xl font-bold">+8</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Note: Stats are now real data from the EnhancedReferralSystem component */}
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -157,25 +100,25 @@ const Referrals: React.FC = () => {
                         </div>
                         <h3 className="font-semibold mb-2">1. Share Your Link</h3>
                         <p className="text-sm text-muted-foreground">
-                          Copy your unique referral link and share it with friends
+                          Share YIELD with your network and help connect brands with talented users
                         </p>
                       </div>
                       <div className="text-center p-4 bg-muted/50 rounded-lg">
                         <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
                           <Users className="h-6 w-6 text-green-500" />
                         </div>
-                        <h3 className="font-semibold mb-2">2. Friends Join</h3>
+                        <h3 className="font-semibold mb-2">2. Users Join YIELD</h3>
                         <p className="text-sm text-muted-foreground">
-                          When they sign up using your link, you both get rewards
+                          New users complete tasks and connect with brands through your referral
                         </p>
                       </div>
                       <div className="text-center p-4 bg-muted/50 rounded-lg">
                         <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
                           <Trophy className="h-6 w-6 text-purple-500" />
                         </div>
-                        <h3 className="font-semibold mb-2">3. Earn Together</h3>
+                        <h3 className="font-semibold mb-2">3. Unlock Bird Levels</h3>
                         <p className="text-sm text-muted-foreground">
-                          Get bonus points and unlock higher bird levels
+                          Progress through bird levels and earn commission from your referrals' YIELD earnings
                         </p>
                       </div>
                     </div>
@@ -279,19 +222,19 @@ const Referrals: React.FC = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 border rounded-lg">
-                      <h3 className="font-semibold mb-2">Immediate Rewards</h3>
+                      <h3 className="font-semibold mb-2">YIELD Referral Benefits</h3>
                       <ul className="space-y-1 text-sm text-muted-foreground">
-                        <li>• 100 points per successful referral</li>
-                        <li>• Your friend gets 50 welcome points</li>
-                        <li>• Instant bird level progression</li>
+                        <li>• Commission from referral task completions</li>
+                        <li>• Progress toward higher bird levels</li>
+                        <li>• Access to exclusive brand campaigns</li>
                       </ul>
                     </div>
                     <div className="p-4 border rounded-lg">
-                      <h3 className="font-semibold mb-2">Long-term Benefits</h3>
+                      <h3 className="font-semibold mb-2">Advanced YIELD Perks</h3>
                       <ul className="space-y-1 text-sm text-muted-foreground">
-                        <li>• Higher earning multipliers</li>
-                        <li>• Exclusive task access</li>
-                        <li>• VIP community status</li>
+                        <li>• Priority access to high-paying campaigns</li>
+                        <li>• Direct brand partnership opportunities</li>
+                        <li>• Enhanced earning rates per task</li>
                       </ul>
                     </div>
                   </div>

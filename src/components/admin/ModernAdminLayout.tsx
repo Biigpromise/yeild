@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ModernNavHeader } from '@/components/navigation/ModernNavHeader';
+import { AdminUserToggle } from '@/components/admin/AdminUserToggle';
 import { cn } from '@/lib/utils';
 import { Home, Users, FileText, Building, Activity, BarChart3, DollarSign, Bell, Settings, Zap } from 'lucide-react';
 
@@ -45,6 +46,11 @@ export const ModernAdminLayout: React.FC<ModernAdminLayoutProps> = ({
         title="YIELD Admin"
         showSearch={false}
       />
+      
+      {/* Admin User Toggle */}
+      <div className="px-4 py-2 border-b border-border bg-card/50">
+        <AdminUserToggle />
+      </div>
 
       <div className="flex flex-1">
         {/* Sidebar */}

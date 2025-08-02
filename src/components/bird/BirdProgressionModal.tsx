@@ -34,12 +34,12 @@ interface BirdProgressionModalProps {
 }
 
 const allBirdLevels: BirdLevel[] = [
-  { id: 1, name: 'Dove', emoji: '🕊️', min_referrals: 0, min_points: 0, description: 'New to the YIELD community', color: '#94A3B8', pointsPerTask: 50 },
-  { id: 2, name: 'Sparrow', emoji: '🐦', min_referrals: 5, min_points: 0, description: 'Getting started with referrals', color: '#A78BFA', pointsPerTask: 75 },
-  { id: 3, name: 'Hawk', emoji: 'hawk', min_referrals: 20, min_points: 0, description: 'Sharp focus and strategic growth', color: '#8B4513', pointsPerTask: 125 },
-  { id: 4, name: 'Eagle', emoji: 'eagle', min_referrals: 50, min_points: 0, description: 'Soaring high with impressive achievements', color: '#DAA520', pointsPerTask: 175 },
-  { id: 5, name: 'Falcon', emoji: 'falcon', min_referrals: 100, min_points: 0, description: 'Lightning-fast growth and precision', color: '#4682B4', pointsPerTask: 225 },
-  { id: 6, name: 'Phoenix', emoji: 'phoenix', min_referrals: 500, min_points: 0, description: 'Legendary status - risen from the ashes', color: '#FF4500', pointsPerTask: 300 },
+  { id: 1, name: 'Dove', emoji: '🕊️', min_referrals: 0, min_points: 0, description: 'Starting your YIELD journey - complete tasks and build connections', color: '#94A3B8', pointsPerTask: 50 },
+  { id: 2, name: 'Sparrow', emoji: '🐦', min_referrals: 5, min_points: 0, description: 'Growing your network - connecting brands with quality users', color: '#A78BFA', pointsPerTask: 75 },
+  { id: 3, name: 'Hawk', emoji: 'hawk', min_referrals: 20, min_points: 0, description: 'Focused growth - mastering task completion and referral strategy', color: '#8B4513', pointsPerTask: 125 },
+  { id: 4, name: 'Eagle', emoji: 'eagle', min_referrals: 50, min_points: 0, description: 'High-performing leader - exclusive access to premium brand campaigns', color: '#DAA520', pointsPerTask: 175 },
+  { id: 5, name: 'Falcon', emoji: 'falcon', min_referrals: 100, min_points: 0, description: 'Elite performer - direct brand partnerships and maximum earning potential', color: '#4682B4', pointsPerTask: 225 },
+  { id: 6, name: 'Phoenix', emoji: 'phoenix', min_referrals: 500, min_points: 0, description: 'YIELD legend - highest tier with unmatched brand collaboration opportunities', color: '#FF4500', pointsPerTask: 300 },
 ];
 
 export const BirdProgressionModal: React.FC<BirdProgressionModalProps> = ({

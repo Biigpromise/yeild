@@ -222,7 +222,7 @@ export const EnhancedReferralSystem = () => {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                Share this professional link and build your way to the <strong>Phoenix badge</strong> with points and referrals!
+                Help expand the YIELD community and earn commission from your referrals' task earnings. Progress to <strong>Phoenix level</strong> for maximum rewards!
               </p>
             </>
           ) : (
@@ -292,7 +292,7 @@ export const EnhancedReferralSystem = () => {
             {userReferrals.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No referrals yet. Start sharing your link to earn bird badges!</p>
+                <p>No referrals yet. Share your YIELD link to start earning commission and unlock bird levels!</p>
               </div>
             )}
           </div>
