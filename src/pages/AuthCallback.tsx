@@ -73,7 +73,7 @@ const AuthCallback = () => {
             } else if (data.session.user.email === 'yeildsocials@gmail.com') {
               navigate('/admin');
             } else {
-              navigate('/onboarding');
+              navigate('/dashboard');
             }
           }, 1000);
         } else {
