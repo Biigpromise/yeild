@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,8 +35,8 @@ export const AdminUserToggle = () => {
 
   return (
     <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl border border-border backdrop-blur-sm">
-      {/* Role Indicator */}
-      <div className="flex items-center gap-2">
+      {/* Role Indicator - Clickable */}
+      <div className="flex items-center gap-2 cursor-pointer" onClick={handleToggle}>
         <div className="p-2 bg-primary/10 rounded-lg">
           <Crown className="h-4 w-4 text-primary" />
         </div>
@@ -45,7 +46,7 @@ export const AdminUserToggle = () => {
             <Badge 
               variant={isAdminView ? "default" : "secondary"}
               className={cn(
-                "text-xs",
+                "text-xs cursor-pointer hover:opacity-80 transition-opacity",
                 isAdminView && "bg-primary text-primary-foreground"
               )}
             >
