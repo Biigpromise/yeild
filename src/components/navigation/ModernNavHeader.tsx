@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Bell, Menu, Search, User } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { NotificationCenter } from '@/components/dashboard/NotificationCenter';
+import { AdminUserToggle } from '@/components/admin/AdminUserToggle';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
@@ -80,6 +81,9 @@ export const ModernNavHeader: React.FC<ModernNavHeaderProps> = ({
               <NotificationCenter onUnreadCountChange={onUnreadCountChange} />
             </PopoverContent>
           </Popover>
+
+          {/* Admin User Toggle - only show on admin routes */}
+          <AdminUserToggle />
 
           <Button variant="ghost" size="sm">
             <User className="h-4 w-4" />
