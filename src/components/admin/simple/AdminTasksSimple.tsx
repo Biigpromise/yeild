@@ -27,6 +27,7 @@ export const AdminTasksSimple = () => {
         task_id: submission.task_id,
         status: submission.status,
         evidence: submission.evidence,
+        evidence_files: submission.evidence_files, // Add evidence_files
         submitted_at: submission.submitted_at,
         reviewed_at: submission.reviewed_at,
         rejection_reason: submission.rejection_reason,
