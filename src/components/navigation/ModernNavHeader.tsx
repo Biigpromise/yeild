@@ -1,16 +1,33 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Menu, Search, User } from 'lucide-react';
+import { Bell, Menu, Search, User, LogOut, Settings } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { NotificationCenter } from '@/components/dashboard/NotificationCenter';
 import { AdminUserToggle } from '@/components/admin/AdminUserToggle';
 import { Input } from '@/components/ui/input';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 const ProfileMenu = () => {
   const { userRole } = useUserRole();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  const handleProfileSettings = () => {
+    navigate('/profile-settings');
+  };
   
   return (
     <Popover>
@@ -26,10 +43,22 @@ const ProfileMenu = () => {
           </div>
         )}
         <div className="flex flex-col gap-1">
-          <Button variant="ghost" size="sm" className="justify-start h-8 px-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="justify-start h-8 px-2 gap-2" 
+            onClick={handleProfileSettings}
+          >
+            <Settings className="h-4 w-4" />
             Profile Settings
           </Button>
-          <Button variant="ghost" size="sm" className="justify-start h-8 px-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="justify-start h-8 px-2 gap-2 text-destructive hover:text-destructive" 
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-4 w-4" />
             Sign Out
           </Button>
         </div>
