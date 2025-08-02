@@ -42,7 +42,7 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
       return Math.min(referralProgress, 100);
     }
     
-    // Legacy calculation for levels that still require points
+    // For levels that require both points and referrals, calculate based on both
     const referralProgress = nextBirdLevel.min_referrals > 0 
       ? (activeReferrals / nextBirdLevel.min_referrals) * 100 
       : 100;
@@ -51,6 +51,7 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
       ? (userPoints / nextBirdLevel.min_points) * 100 
       : 100;
     
+    // Return the minimum progress (both requirements must be met)
     return Math.min(Math.min(referralProgress, pointsProgress), 100);
   };
 
@@ -117,12 +118,22 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
         </div>
 
         {nextBirdLevel && (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex justify-between text-sm text-white">
                 <span>Progress to {nextBirdLevel.name}</span>
                 <span className="font-medium">{calculateProgress().toFixed(1)}%</span>
               </div>
             <Progress value={calculateProgress()} className="h-2" />
+            
+            {/* Encouragement Message */}
+            <div className="text-center p-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg border border-blue-500/30">
+              <p className="text-sm text-blue-300 font-medium">
+                {calculateProgress() < 100 
+                  ? `You're ${(100 - calculateProgress()).toFixed(1)}% away from ${nextBirdLevel.name}! Keep going! 🚀`
+                  : `Congratulations! You've reached ${nextBirdLevel.name} level! 🎉`
+                }
+              </p>
+            </div>
             
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="text-center p-3 bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-600 shadow-sm">

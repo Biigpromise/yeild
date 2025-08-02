@@ -171,43 +171,7 @@ const Referrals: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="share">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Share2 className="h-5 w-5" />
-                  Share Your Referral Link
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-2">Your Referral Link:</p>
-                    <div className="flex gap-2">
-                      <input 
-                        type="text" 
-                        value="https://app.example.com/ref/abc123"
-                        className="flex-1 p-2 border rounded text-sm"
-                        readOnly
-                      />
-                      <Button size="sm">
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Button className="p-6 h-auto flex flex-col items-center gap-2">
-                      <MessageSquare className="h-6 w-6" />
-                      Share via Messages
-                    </Button>
-                    <Button variant="outline" className="p-6 h-auto flex flex-col items-center gap-2">
-                      <Share2 className="h-6 w-6" />
-                      Social Media
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <EnhancedReferralSystem />
           </TabsContent>
 
           <TabsContent value="rewards">

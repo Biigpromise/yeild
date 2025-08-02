@@ -18,6 +18,7 @@ import {
 import { userService, UserReferral, ReferralStats } from "@/services/userService";
 import { BirdProgression } from "./BirdProgression";
 import { BirdLevelNotification } from "./BirdLevelNotification";
+import { BirdLevelCelebration } from "./BirdLevelCelebration";
 import { ProfileBirdBadge } from "./ProfileBirdBadge";
 import { CommissionDashboard } from "./CommissionDashboard";
 import { ReferralTroubleshooter } from "./ReferralTroubleshooter";
@@ -33,6 +34,8 @@ export const EnhancedReferralSystem = () => {
   const [userReferrals, setUserReferrals] = useState<UserReferral[]>([]);
   const [userPoints, setUserPoints] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [newLevelAchieved, setNewLevelAchieved] = useState<any>(null);
   const { selectedUserId, isModalOpen, openUserProfile, closeUserProfile } = useUserProfile();
 
   useEffect(() => {
@@ -60,9 +63,15 @@ export const EnhancedReferralSystem = () => {
         userService.getUserReferrals()
       ]);
 
-      // Store previous stats for comparison
-      if (referralStats) {
+      // Store previous stats for comparison and check for level up
+      if (referralStats && stats) {
         setPreviousStats(referralStats);
+        
+        // Check if user leveled up
+        if (referralStats.bird_level.name !== stats.bird_level.name) {
+          setNewLevelAchieved(stats.bird_level);
+          setShowCelebration(true);
+        }
       }
 
       setReferralCode(code || "");
@@ -319,6 +328,12 @@ export const EnhancedReferralSystem = () => {
         userId={selectedUserId}
         isOpen={isModalOpen}
         onClose={closeUserProfile}
+      />
+
+      <BirdLevelCelebration
+        newLevel={newLevelAchieved}
+        isOpen={showCelebration}
+        onClose={() => setShowCelebration(false)}
       />
     </div>
   );
