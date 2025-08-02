@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { AdminOverview } from "@/components/admin/AdminOverview";
 import { EnhancedUserManagementSystem } from "@/components/admin/enhanced/EnhancedUserManagementSystem";
 import { EnhancedTaskManagement } from "@/components/admin/enhanced/EnhancedTaskManagement";
