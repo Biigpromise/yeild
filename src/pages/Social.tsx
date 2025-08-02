@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { CommunityChatTab } from '@/components/dashboard/CommunityChatTab';
 import { SocialHub } from '@/components/social/SocialHub';
 import { StoriesBar } from '@/components/social/StoriesBar';
-// import { LeaderboardCard } from '@/components/community/LeaderboardCard';
+import { Leaderboard } from '@/components/Leaderboard';
+import { WeeklyChampions } from '@/components/social/WeeklyChampions';
 import { UserProfileBirds } from '@/components/community/UserProfileBirds';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -194,7 +195,7 @@ const Social: React.FC = () => {
                   <CardTitle>Top Performers</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">Leaderboard data loading...</p>
+                  <Leaderboard />
                 </CardContent>
               </Card>
               <Card>
@@ -205,24 +206,7 @@ const Social: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((rank) => (
-                      <div key={rank} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                        <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full text-white font-bold text-sm">
-                          {rank}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium">Champion {rank}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {rank === 1 ? '12,543' : rank === 2 ? '11,892' : '11,234'} points
-                          </p>
-                        </div>
-                        <Badge variant={rank === 1 ? 'default' : 'secondary'}>
-                          Week {rank}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
+                  <WeeklyChampions />
                 </CardContent>
               </Card>
             </div>
