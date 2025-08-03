@@ -121,7 +121,7 @@ const Social: React.FC = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className={`grid w-full grid-cols-4 ${
             activeTab === 'chat' 
-              ? 'fixed top-16 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b shadow-lg' 
+              ? 'sticky top-16 z-50 bg-background/95 backdrop-blur-sm border-b shadow-sm' 
               : ''
           }`}>
             <TabsTrigger value="community" className="flex items-center gap-2">
