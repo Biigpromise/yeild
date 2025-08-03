@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { Send, ImageIcon, Users, Search, Filter, X } from 'lucide-react';
+import { Send, ImageIcon, Users, Search, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -42,7 +41,6 @@ export const CommunityChatTab = () => {
   const [loading, setLoading] = useState(true);
   const [onlineCount, setOnlineCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isNavOpen, setIsNavOpen] = useState(false);
   const { user } = useAuth();
   const { selectedUserId, isModalOpen, openUserProfile, closeUserProfile } = useUserProfile();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -326,65 +324,8 @@ export const CommunityChatTab = () => {
 
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Navigation Sheet */}
-      <Sheet open={isNavOpen} onOpenChange={setIsNavOpen}>
-        <SheetContent side="left" className="w-80 p-0">
-          <div className="flex flex-col h-full">
-            <div className="p-6 border-b">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Navigation</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsNavOpen(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="flex-1 p-4">
-              <nav className="space-y-2">
-                <button
-                  onClick={() => {
-                    const communityTab = document.querySelector('[data-value="community"]') as HTMLElement;
-                    communityTab?.click();
-                    setIsNavOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-3 rounded-lg hover:bg-accent transition-colors"
-                >
-                  Community
-                </button>
-                <div className="w-full text-left px-4 py-3 rounded-lg bg-accent font-medium">
-                  Chat
-                </div>
-                <button
-                  onClick={() => {
-                    const leaderboardTab = document.querySelector('[data-value="leaderboard"]') as HTMLElement;
-                    leaderboardTab?.click();
-                    setIsNavOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-3 rounded-lg hover:bg-accent transition-colors"
-                >
-                  Leaderboard
-                </button>
-                <button
-                  onClick={() => {
-                    const storiesTab = document.querySelector('[data-value="stories"]') as HTMLElement;
-                    storiesTab?.click();
-                    setIsNavOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-3 rounded-lg hover:bg-accent transition-colors"
-                >
-                  Stories
-                </button>
-              </nav>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-      
       {/* Chat Header with Navigation */}
-      <ChatHeader activeUsers={onlineCount} onMenuClick={() => setIsNavOpen(true)} />
+      <ChatHeader activeUsers={onlineCount} />
       
       {/* Search Bar */}
       <div className="border-b bg-card/95 backdrop-blur-sm px-3 py-2 md:px-4 md:py-3 flex-shrink-0">
