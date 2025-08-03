@@ -20,12 +20,14 @@ import {
   Activity,
   Crown,
   Heart,
-  Share2
+  Share2,
+  BookOpen
 } from 'lucide-react';
 
 const Social: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('community');
+  const [isNavigationOpen, setIsNavigationOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
@@ -119,28 +121,78 @@ const Social: React.FC = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className={`grid w-full grid-cols-4 ${
-            activeTab === 'chat' 
-              ? 'sticky top-16 z-50 bg-background/95 backdrop-blur-sm border-b shadow-sm' 
-              : ''
-          }`}>
-            <TabsTrigger value="community" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Community
-            </TabsTrigger>
-            <TabsTrigger value="chat" className="flex items-center gap-2">
-              <MessageCircle className="h-4 w-4" />
-              Chat
-            </TabsTrigger>
-            <TabsTrigger value="leaderboard" className="flex items-center gap-2">
-              <Trophy className="h-4 w-4" />
-              Leaderboard
-            </TabsTrigger>
-            <TabsTrigger value="stories" className="flex items-center gap-2">
-              <Star className="h-4 w-4" />
-              Stories
-            </TabsTrigger>
-          </TabsList>
+          {/* Hide tabs when in chat mode */}
+          {activeTab !== 'chat' && (
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="community" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Community
+              </TabsTrigger>
+              <TabsTrigger value="chat" className="flex items-center gap-2">
+                <MessageCircle className="h-4 w-4" />
+                Chat
+              </TabsTrigger>
+              <TabsTrigger value="leaderboard" className="flex items-center gap-2">
+                <Trophy className="h-4 w-4" />
+                Leaderboard
+              </TabsTrigger>
+              <TabsTrigger value="stories" className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                Stories
+              </TabsTrigger>
+            </TabsList>
+          )}
+
+          {/* Navigation Panel for Chat Mode */}
+          {activeTab === 'chat' && isNavigationOpen && (
+            <>
+              <div 
+                className="fixed inset-0 bg-black/50 z-40"
+                onClick={() => setIsNavigationOpen(false)}
+              />
+              <div className="fixed top-16 left-0 right-0 bg-background border-b shadow-lg z-50 animate-fade-in">
+                <div className="grid grid-cols-4 p-2">
+                  <button
+                    onClick={() => {
+                      setActiveTab("community");
+                      setIsNavigationOpen(false);
+                    }}
+                    className="flex items-center justify-center gap-2 p-3 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <Users className="h-4 w-4" />
+                    Community
+                  </button>
+                  <button
+                    onClick={() => setIsNavigationOpen(false)}
+                    className="flex items-center justify-center gap-2 p-3 rounded-lg bg-muted"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Chat
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveTab("leaderboard");
+                      setIsNavigationOpen(false);
+                    }}
+                    className="flex items-center justify-center gap-2 p-3 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <Trophy className="h-4 w-4" />
+                    Leaderboard
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveTab("stories");
+                      setIsNavigationOpen(false);
+                    }}
+                    className="flex items-center justify-center gap-2 p-3 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    Stories
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
           <TabsContent value="community" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -179,8 +231,8 @@ const Social: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="chat" className="mt-0">
-            <div className="fixed inset-0 top-[4.5rem] z-40 bg-background">
-              <CommunityChatTab />
+            <div className="fixed inset-0 top-16 z-40 bg-background">
+              <CommunityChatTab onToggleNavigation={() => setIsNavigationOpen(!isNavigationOpen)} />
             </div>
           </TabsContent>
 

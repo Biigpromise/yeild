@@ -34,7 +34,11 @@ interface MessageLike {
   user_id: string;
 }
 
-export const CommunityChatTab = () => {
+interface CommunityChatTabProps {
+  onToggleNavigation?: () => void;
+}
+
+export const CommunityChatTab: React.FC<CommunityChatTabProps> = ({ onToggleNavigation }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageLikes, setMessageLikes] = useState<Record<string, MessageLike[]>>({});
   const [newMessage, setNewMessage] = useState('');
@@ -325,7 +329,7 @@ export const CommunityChatTab = () => {
   return (
     <div className="h-full flex flex-col bg-background">
       {/* Chat Header with Navigation */}
-      <ChatHeader activeUsers={onlineCount} />
+      <ChatHeader activeUsers={onlineCount} onToggleNavigation={onToggleNavigation} />
       
       {/* Search Bar */}
       <div className="border-b bg-card/95 backdrop-blur-sm px-3 py-2 md:px-4 md:py-3 flex-shrink-0">
