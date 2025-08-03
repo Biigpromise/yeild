@@ -32,8 +32,8 @@ export const BulkOperationsPanel = () => {
         .from('task_submissions')
         .select(`
           *,
-          tasks!inner(title, points, task_type, category),
-          profiles!inner(name, email)
+          tasks!task_submissions_task_id_fkey(title, points, task_type, category),
+          profiles!task_submissions_user_id_fkey(name, email)
         `)
         .eq('status', filterStatus)
         .order('submitted_at', { ascending: false })
