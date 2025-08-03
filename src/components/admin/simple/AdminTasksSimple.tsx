@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { LoadingState } from '@/components/ui/loading-state';
-import { CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Eye, Plus } from 'lucide-react';
 import { TaskSubmissionView } from '../dialogs/TaskSubmissionView';
 import { toast } from 'sonner';
 
 export const AdminTasksSimple = () => {
+  const navigate = useNavigate();
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -126,12 +128,21 @@ export const AdminTasksSimple = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Task Submissions</h2>
-            <p className="text-muted-foreground">Recent task submissions for review</p>
+            <h2 className="text-2xl font-bold">Task Management</h2>
+            <p className="text-muted-foreground">Manage tasks and review submissions</p>
           </div>
-          <Button onClick={() => refetch()} variant="outline">
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => navigate('/admin/tasks/create')}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Task
+            </Button>
+            <Button onClick={() => refetch()} variant="outline">
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {!submissions || submissions.length === 0 ? (

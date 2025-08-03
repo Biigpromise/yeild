@@ -14,6 +14,7 @@ import EmailConfirmation from "./pages/EmailConfirmation";
 import BrandAuth from "./pages/BrandAuth";
 import BrandDashboard from "./pages/BrandDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminTaskCreate from "./pages/AdminTaskCreate";
 import ResetPassword from "./pages/ResetPassword";
 import CustomResetPassword from "./pages/CustomResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -118,6 +119,14 @@ const AppContent = () => {
           element={
             <RoleBasedRoute requiredRole="admin">
               <AdminDashboard />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/admin/tasks/create"
+          element={
+            <RoleBasedRoute requiredRole="admin">
+              <AdminTaskCreate />
             </RoleBasedRoute>
           }
         />
