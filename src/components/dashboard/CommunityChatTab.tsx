@@ -322,7 +322,7 @@ export const CommunityChatTab = () => {
   }
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background border rounded-lg overflow-hidden">
       {/* Streamlined Header */}
       <div className="border-b bg-card/95 backdrop-blur-sm px-3 py-2 md:px-4 md:py-3 flex-shrink-0">
         <div className="max-w-4xl mx-auto">
