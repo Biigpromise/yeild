@@ -118,8 +118,7 @@ const Social: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" 
-              style={{ width: activeTab === 'chat' ? '100vw' : 'auto', marginLeft: activeTab === 'chat' ? 'calc(-50vw + 50%)' : '0' }}>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6">
             <TabsTrigger value="community" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -175,8 +174,8 @@ const Social: React.FC = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="chat" className="w-full h-full -mx-6 -mb-6">
-            <div className="w-full h-full min-h-screen">
+          <TabsContent value="chat" className="mt-0">
+            <div className="fixed inset-0 top-16 z-40 bg-background">
               <CommunityChatTab />
             </div>
           </TabsContent>
