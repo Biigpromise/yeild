@@ -1,59 +1,54 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Send, Image, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/AuthContext';
-import { format } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Send, ImageIcon, Users, Search, Filter } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+import { PostItem } from './chat/PostItem';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { PublicProfileModal } from '@/components/PublicProfileModal';
+import { Badge } from '@/components/ui/badge';
 
 interface Message {
   id: string;
   content: string;
-  created_at: string;
   user_id: string;
+  created_at: string;
   media_url?: string;
-  views_count: number;
-  profiles?: {
+  likes_count?: number;
+  views_count?: number;
+  profiles: {
     name: string;
     profile_picture_url?: string;
-  };
+    is_anonymous?: boolean;
+  } | null;
+}
+
+interface MessageLike {
+  id: string;
+  message_id: string;
+  user_id: string;
 }
 
 export const CommunityChatTab = () => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [messageLikes, setMessageLikes] = useState<Record<string, MessageLike[]>>({});
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
-  const [canPost, setCanPost] = useState(false);
+  const [onlineCount, setOnlineCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
+  const { selectedUserId, isModalOpen, openUserProfile, closeUserProfile } = useUserProfile();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    checkPostingEligibility();
     fetchMessages();
-    
-    // Set up real-time subscription
-    const channel = supabase
-      .channel('messages')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'messages' },
-        (payload) => {
-          console.log('Real-time message update:', payload);
-          if (payload.eventType === 'INSERT') {
-            fetchMessages(); // Refetch to get profile data
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    fetchLikes();
+    setupRealtimeSubscription();
+    setupPresenceTracking();
   }, []);
 
   useEffect(() => {
@@ -64,18 +59,6 @@ export const CommunityChatTab = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const checkPostingEligibility = async () => {
-    if (!user) return;
-
-    try {
-      // Allow everyone to post in chat
-      setCanPost(true);
-    } catch (error) {
-      console.error('Error checking posting eligibility:', error);
-      setCanPost(true); // Still allow posting even if there's an error
-    }
-  };
-
   const fetchMessages = async () => {
     try {
       setLoading(true);
@@ -83,19 +66,94 @@ export const CommunityChatTab = () => {
         .from('messages')
         .select(`
           *,
-          profiles (name, profile_picture_url)
+          profiles (name, profile_picture_url, is_anonymous)
         `)
-        .order('created_at', { ascending: true })
-        .limit(100);
+        .order('created_at', { ascending: false })
+        .limit(50);
 
       if (error) throw error;
-      setMessages(data || []);
+      setMessages((data || []).reverse());
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast.error('Failed to load messages');
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchLikes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('message_likes')
+        .select('*');
+
+      if (error) throw error;
+
+      const likesMap = (data || []).reduce((acc: Record<string, MessageLike[]>, like: MessageLike) => {
+        if (!acc[like.message_id]) {
+          acc[like.message_id] = [];
+        }
+        acc[like.message_id].push(like);
+        return acc;
+      }, {});
+
+      setMessageLikes(likesMap);
+    } catch (error) {
+      console.error('Error fetching likes:', error);
+    }
+  };
+
+  const setupRealtimeSubscription = () => {
+    const messagesChannel = supabase
+      .channel('messages_realtime')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'messages' },
+        () => fetchMessages()
+      )
+      .subscribe();
+
+    const likesChannel = supabase
+      .channel('likes_realtime')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'message_likes' },
+        () => fetchLikes()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(likesChannel);
+    };
+  };
+
+  const setupPresenceTracking = () => {
+    const channel = supabase.channel('community_chat_presence');
+    
+    if (user) {
+      channel
+        .on('presence', { event: 'sync' }, () => {
+          const state = channel.presenceState();
+          setOnlineCount(Object.keys(state).length);
+        })
+        .on('presence', { event: 'join' }, ({ newPresences }) => {
+          console.log('User joined:', newPresences);
+        })
+        .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+          console.log('User left:', leftPresences);
+        })
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED' && user) {
+            await channel.track({
+              user_id: user.id,
+              online_at: new Date().toISOString(),
+            });
+          }
+        });
+    }
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   };
 
   const sendMessage = async () => {
@@ -110,19 +168,10 @@ export const CommunityChatTab = () => {
         });
 
       if (error) throw error;
-
       setNewMessage('');
-      toast.success('Message sent!');
     } catch (error: any) {
       console.error('Error sending message:', error);
-      toast.error('Failed to send message. Please try again.');
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+      toast.error('Failed to send message');
     }
   };
 
@@ -147,13 +196,12 @@ export const CommunityChatTab = () => {
       const { error: messageError } = await supabase
         .from('messages')
         .insert({
-          content: '📷 Image',
+          content: '📷 Shared an image',
           media_url: publicUrl,
           user_id: user.id
         });
 
       if (messageError) throw messageError;
-
       toast.success('Image shared!');
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -161,107 +209,169 @@ export const CommunityChatTab = () => {
     }
   };
 
-  const incrementMessageView = async (messageId: string) => {
+  const handleLike = async (messageId: string) => {
     if (!user) return;
 
     try {
-      await supabase.rpc('increment_message_view', {
-        message_id_param: messageId,
-        user_id_param: user.id
-      });
+      const existingLike = messageLikes[messageId]?.find(like => like.user_id === user.id);
+      
+      if (existingLike) {
+        await supabase
+          .from('message_likes')
+          .delete()
+          .eq('id', existingLike.id);
+      } else {
+        await supabase
+          .from('message_likes')
+          .insert({
+            message_id: messageId,
+            user_id: user.id
+          });
+      }
     } catch (error) {
-      console.error('Error incrementing view:', error);
+      console.error('Error handling like:', error);
+      toast.error('Failed to update like');
     }
   };
 
+  const handleShare = async (messageId: string) => {
+    const message = messages.find(m => m.id === messageId);
+    if (!message) return;
+
+    try {
+      const shareText = `Check out this message from ${message.profiles?.name || 'Community Chat'}: "${message.content}"`;
+      
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Community Message',
+          text: shareText,
+          url: window.location.href
+        });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        toast.success('Message copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      toast.error('Failed to share message');
+    }
+  };
+
+  const handleMediaClick = (mediaUrl: string) => {
+    window.open(mediaUrl, '_blank');
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  const filteredMessages = messages.filter(message =>
+    !searchQuery || 
+    message.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    message.profiles?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading community chat...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col min-h-screen bg-background">
-      <div className="flex-1 flex flex-col min-h-0 bg-background">
-        {/* Messages Container */}
-        <CardContent className="flex-1 p-0 overflow-hidden min-h-0">
-          <ScrollArea className="h-full p-4 min-h-0">
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className="bg-gray-900 rounded-lg p-4 border border-gray-800 hover:bg-gray-800 transition-colors"
-                  onClick={() => incrementMessageView(message.id)}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
-                      {message.profiles?.profile_picture_url ? (
-                        <img
-                          src={message.profiles.profile_picture_url}
-                          alt="Profile"
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-white font-medium text-sm">
-                          {message.profiles?.name?.charAt(0)?.toUpperCase() || '?'}
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-medium text-white">
-                          {message.profiles?.name || 'Anonymous'}
-                        </span>
-                        <span className="text-gray-500 text-xs">
-                          {format(new Date(message.created_at), 'HH:mm')}
-                        </span>
-                        {message.views_count > 0 && (
-                          <Badge variant="outline" className="text-xs bg-gray-800 text-gray-300 border-gray-700">
-                            {message.views_count} views
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      <div className="text-gray-200">
-                        {message.content}
-                        {message.media_url && (
-                          <img
-                            src={message.media_url}
-                            alt="Shared media"
-                            className="mt-2 max-w-sm rounded-lg border border-gray-700"
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+    <div className="h-screen flex flex-col bg-background">
+      {/* Enhanced Header */}
+      <div className="border-b bg-card p-4 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              <h1 className="text-xl font-bold">Community Chat</h1>
+              <Badge variant="secondary" className="animate-pulse">Live</Badge>
+            </div>
+            <Badge variant="outline" className="text-xs">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
+              {onlineCount} online
+            </Badge>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search messages..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 w-64"
+              />
+            </div>
+            <Button variant="outline" size="sm">
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
 
-              {messages.length === 0 && (
-                <div className="text-center py-12">
-                  <h3 className="text-xl font-semibold text-white mb-2">Welcome to Community Chat!</h3>
-                  <p className="text-gray-400">Be the first to start a conversation.</p>
-                </div>
+      {/* Messages Area */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          {filteredMessages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center p-8">
+              <div className="text-6xl mb-4">💬</div>
+              <h2 className="text-2xl font-semibold mb-2">Welcome to Community Chat!</h2>
+              <p className="text-muted-foreground mb-6 max-w-md">
+                Connect with other members, share your journey, and engage in meaningful conversations.
+              </p>
+              {!user && (
+                <p className="text-sm text-muted-foreground">
+                  Sign in to start chatting with the community
+                </p>
               )}
-              
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {filteredMessages.map((message) => {
+                const likes = messageLikes[message.id] || [];
+                const userHasLiked = likes.some(like => like.user_id === user?.id);
+                
+                return (
+                  <PostItem
+                    key={message.id}
+                    message={message}
+                    likes={likes}
+                    userHasLiked={userHasLiked}
+                    currentUserId={user?.id}
+                    onLike={handleLike}
+                    onShare={handleShare}
+                    onUserClick={openUserProfile}
+                    onMediaClick={handleMediaClick}
+                  />
+                );
+              })}
               <div ref={messagesEndRef} />
             </div>
-          </ScrollArea>
-        </CardContent>
+          )}
+        </ScrollArea>
+      </div>
 
-        {/* Message Input */}
-        <div className="bg-gray-900 border-t border-gray-800 p-4 flex-shrink-0">
-          <div className="flex items-center gap-2">
+      {/* Enhanced Message Input */}
+      {user && (
+        <div className="border-t bg-card p-4 flex-shrink-0">
+          <div className="flex items-center gap-3">
             <div className="flex-1 relative">
               <Input
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Type your message..."
-                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:bg-gray-700"
+                placeholder="Share your thoughts with the community..."
+                className="pr-12"
               />
             </div>
             
@@ -269,29 +379,44 @@ export const CommunityChatTab = () => {
               type="file"
               ref={fileInputRef}
               onChange={handleImageUpload}
-              accept="image/*"
+              accept="image/*,video/*"
               className="hidden"
             />
             
             <Button
               onClick={() => fileInputRef.current?.click()}
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-gray-800 border border-gray-700"
+              variant="outline"
+              size="icon"
+              className="hover:bg-primary/10"
             >
-              <Image className="w-4 h-4" />
+              <ImageIcon className="h-4 w-4" />
             </Button>
             
             <Button
               onClick={sendMessage}
               disabled={!newMessage.trim()}
-              className="bg-blue-600 hover:bg-blue-700 text-white border border-blue-600"
+              className="px-6"
             >
-              <Send className="w-4 h-4" />
+              <Send className="h-4 w-4 mr-2" />
+              Send
             </Button>
           </div>
+          
+          <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+            <span>Press Enter to send, Shift+Enter for new line</span>
+            <span>{newMessage.length}/1000</span>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Profile Modal */}
+      <PublicProfileModal
+        userId={selectedUserId}
+        isOpen={isModalOpen}
+        onOpenChange={(open) => {
+          if (!open) closeUserProfile();
+        }}
+      />
     </div>
   );
 };
