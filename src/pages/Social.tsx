@@ -57,7 +57,7 @@ const Social: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="max-w-7xl mx-auto p-6 space-y-6" id="social-content">
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105">
@@ -118,7 +118,8 @@ const Social: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" 
+              style={{ width: activeTab === 'chat' ? '100vw' : 'auto', marginLeft: activeTab === 'chat' ? 'calc(-50vw + 50%)' : '0' }}>
           <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6">
             <TabsTrigger value="community" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -174,19 +175,9 @@ const Social: React.FC = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="chat" className="space-y-6">
-            <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 rounded-2xl p-6 shadow-xl border-0">
-              <div className="flex items-center gap-2 mb-4">
-                <MessageCircle className="h-5 w-5 text-primary" />
-                <h2 className="text-xl font-semibold">Community Chat</h2>
-                <Badge variant="secondary" className="text-xs">Live</Badge>
-              </div>
-              <p className="text-sm text-muted-foreground mb-6">
-                Connect with other members and share your journey.
-              </p>
-              <div className="rounded-xl overflow-hidden bg-card border-0 shadow-lg">
-                <CommunityChatTab />
-              </div>
+          <TabsContent value="chat" className="w-full h-full -mx-6 -mb-6">
+            <div className="w-full h-full min-h-screen">
+              <CommunityChatTab />
             </div>
           </TabsContent>
 

@@ -183,16 +183,8 @@ export const CommunityChatTab = () => {
   }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="mb-4">
-        <h2 className="text-2xl font-bold text-foreground mb-2">Community Chat</h2>
-        <p className="text-muted-foreground">
-          Connect with other members and share your journey.
-        </p>
-      </div>
-
-      <Card className="flex-1 flex flex-col bg-black border-gray-800 h-full min-h-0">
+    <div className="h-full flex flex-col min-h-screen bg-background">
+      <div className="flex-1 flex flex-col min-h-0 bg-background">
         {/* Messages Container */}
         <CardContent className="flex-1 p-0 overflow-hidden min-h-0">
           <ScrollArea className="h-full p-4 min-h-0">
@@ -299,7 +291,7 @@ export const CommunityChatTab = () => {
             </Button>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };
