@@ -1430,6 +1430,8 @@ export type Database = {
           created_at: string
           id: string
           message_id: string
+          parent_comment_id: string | null
+          reply_count: number | null
           updated_at: string
           user_id: string
         }
@@ -1438,6 +1440,8 @@ export type Database = {
           created_at?: string
           id?: string
           message_id: string
+          parent_comment_id?: string | null
+          reply_count?: number | null
           updated_at?: string
           user_id: string
         }
@@ -1446,6 +1450,8 @@ export type Database = {
           created_at?: string
           id?: string
           message_id?: string
+          parent_comment_id?: string | null
+          reply_count?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -1455,6 +1461,13 @@ export type Database = {
             columns: ["message_id"]
             isOneToOne: false
             referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "message_comments"
             referencedColumns: ["id"]
           },
           {
