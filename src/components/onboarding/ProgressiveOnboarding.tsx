@@ -297,8 +297,8 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
         </div>
       </div>
 
-      {/* Content - Fixed height to prevent scrolling */}
-      <div className="flex-1 px-6 flex flex-col">
+      {/* Content - Scrollable area to handle overflow */}
+      <div className="flex-1 px-6 flex flex-col min-h-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
@@ -306,9 +306,9 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
-            className="flex-1 flex flex-col"
+            className="flex-1 flex flex-col min-h-0"
           >
-            <div className="text-center mb-6">
+            <div className="text-center mb-4 flex-shrink-0">
               <h1 className="text-2xl md:text-3xl font-bold mb-2 text-white">
                 {slides[currentSlide].title}
               </h1>
@@ -317,7 +317,7 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
               </p>
             </div>
 
-            <div className="flex-1 max-w-2xl mx-auto w-full">
+            <div className="flex-1 max-w-2xl mx-auto w-full overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
               {slides[currentSlide].content}
             </div>
           </motion.div>
