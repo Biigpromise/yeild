@@ -39,6 +39,7 @@ interface PostItemProps {
   onShare: (messageId: string) => void;
   onUserClick: (userId: string) => void;
   onMediaClick: (mediaUrl: string) => void;
+  onOpenCommentsModal?: (message: Message) => void;
 }
 
 export const PostItem: React.FC<PostItemProps> = ({
@@ -49,7 +50,8 @@ export const PostItem: React.FC<PostItemProps> = ({
   onLike,
   onShare,
   onUserClick,
-  onMediaClick
+  onMediaClick,
+  onOpenCommentsModal
 }) => {
   const getDisplayName = (profiles: any) => {
     if (!profiles) return 'Anonymous User';
@@ -191,6 +193,7 @@ export const PostItem: React.FC<PostItemProps> = ({
                 messageId={message.id}
                 userId={currentUserId || null}
                 onUserClick={onUserClick}
+                onOpenCommentsModal={() => onOpenCommentsModal?.(message)}
               />
               
               <Button 

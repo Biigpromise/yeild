@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { PostItem } from './chat/PostItem';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { PublicProfileModal } from '@/components/PublicProfileModal';
+import { MessageCommentsModal } from './chat/MessageCommentsModal';
 import { Badge } from '@/components/ui/badge';
 
 interface Message {
@@ -43,6 +44,8 @@ export const CommunityChatTab = () => {
   const { selectedUserId, isModalOpen, openUserProfile, closeUserProfile } = useUserProfile();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchMessages();
@@ -210,23 +213,48 @@ export const CommunityChatTab = () => {
   };
 
   const handleLike = async (messageId: string) => {
-    if (!user) return;
+    if (!user) {
+      toast.error('Please log in to like messages');
+      return;
+    }
 
     try {
       const existingLike = messageLikes[messageId]?.find(like => like.user_id === user.id);
       
       if (existingLike) {
-        await supabase
+        // Unlike
+        const { error } = await supabase
           .from('message_likes')
           .delete()
           .eq('id', existingLike.id);
+        
+        if (error) throw error;
+        
+        // Update local state optimistically
+        setMessageLikes(prev => ({
+          ...prev,
+          [messageId]: prev[messageId]?.filter(like => like.id !== existingLike.id) || []
+        }));
+        toast.success('Like removed');
       } else {
-        await supabase
+        // Like
+        const { data, error } = await supabase
           .from('message_likes')
           .insert({
             message_id: messageId,
             user_id: user.id
-          });
+          })
+          .select()
+          .single();
+        
+        if (error) throw error;
+        
+        // Update local state optimistically
+        setMessageLikes(prev => ({
+          ...prev,
+          [messageId]: [...(prev[messageId] || []), data]
+        }));
+        toast.success('Message liked!');
       }
     } catch (error) {
       console.error('Error handling like:', error);
@@ -352,6 +380,10 @@ export const CommunityChatTab = () => {
                     onShare={handleShare}
                     onUserClick={openUserProfile}
                     onMediaClick={handleMediaClick}
+                    onOpenCommentsModal={(message) => {
+                      setSelectedMessage(message);
+                      setIsCommentsModalOpen(true);
+                    }}
                   />
                 );
               })}
@@ -417,6 +449,20 @@ export const CommunityChatTab = () => {
           if (!open) closeUserProfile();
         }}
       />
+
+      {/* Comments Modal */}
+      {selectedMessage && (
+        <MessageCommentsModal
+          isOpen={isCommentsModalOpen}
+          onClose={() => {
+            setIsCommentsModalOpen(false);
+            setSelectedMessage(null);
+          }}
+          message={selectedMessage}
+          userId={user?.id || null}
+          onUserClick={openUserProfile}
+        />
+      )}
     </div>
   );
 };

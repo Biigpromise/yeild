@@ -23,12 +23,14 @@ interface MessageCommentsProps {
   messageId: string;
   userId: string | null;
   onUserClick: (userId: string) => void;
+  onOpenCommentsModal: () => void;
 }
 
 export const MessageComments: React.FC<MessageCommentsProps> = ({ 
   messageId, 
   userId, 
-  onUserClick 
+  onUserClick,
+  onOpenCommentsModal 
 }) => {
   const [comments, setComments] = useState<MessageComment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -106,22 +108,17 @@ export const MessageComments: React.FC<MessageCommentsProps> = ({
 
   return (
     <div className="space-y-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setShowComments(!showComments)}
-        className="text-gray-400 hover:text-blue-500 hover:bg-blue-500/10 p-0 h-auto"
-      >
-        <MessageCircle className="h-4 w-4 mr-1" />
-        <span className="text-sm">
-          {comments.length > 0 ? `${comments.length} ${comments.length === 1 ? 'Comment' : 'Comments'}` : 'Comment'}
-        </span>
-        {showComments ? (
-          <ChevronUp className="h-3 w-3 ml-1" />
-        ) : (
-          <ChevronDown className="h-3 w-3 ml-1" />
-        )}
-      </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onOpenCommentsModal()}
+          className="text-gray-400 hover:text-blue-500 hover:bg-blue-500/10 p-0 h-auto"
+        >
+          <MessageCircle className="h-4 w-4 mr-1" />
+          <span className="text-sm">
+            {comments.length > 0 ? `${comments.length} ${comments.length === 1 ? 'Comment' : 'Comments'}` : 'Comment'}
+          </span>
+        </Button>
 
       {showComments && (
         <div className="mt-2 pl-4 border-l-2 border-gray-700">
