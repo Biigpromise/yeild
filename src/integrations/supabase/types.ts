@@ -1479,6 +1479,38 @@ export type Database = {
           },
         ]
       }
+      message_edit_history: {
+        Row: {
+          edited_at: string
+          edited_by: string
+          id: string
+          message_id: string
+          previous_content: string
+        }
+        Insert: {
+          edited_at?: string
+          edited_by: string
+          id?: string
+          message_id: string
+          previous_content: string
+        }
+        Update: {
+          edited_at?: string
+          edited_by?: string
+          id?: string
+          message_id?: string
+          previous_content?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_edit_history_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_likes: {
         Row: {
           created_at: string
@@ -1501,6 +1533,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "message_likes_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_mentions: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          mentioned_by_user_id: string
+          mentioned_user_id: string
+          message_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          mentioned_by_user_id: string
+          mentioned_user_id: string
+          message_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          mentioned_by_user_id?: string
+          mentioned_user_id?: string
+          message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_mentions_message_id_fkey"
             columns: ["message_id"]
             isOneToOne: false
             referencedRelation: "messages"
@@ -1540,6 +1607,71 @@ export type Database = {
           },
         ]
       }
+      message_read_receipts: {
+        Row: {
+          id: string
+          message_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_read_receipts_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_threads: {
+        Row: {
+          created_at: string
+          id: string
+          parent_message_id: string
+          reply_message_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          parent_message_id: string
+          reply_message_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          parent_message_id?: string
+          reply_message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_threads_parent_message_id_fkey"
+            columns: ["parent_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_threads_reply_message_id_fkey"
+            columns: ["reply_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_views: {
         Row: {
           id: string
@@ -1573,28 +1705,65 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          deleted_at: string | null
+          edit_count: number | null
           id: string
+          is_deleted: boolean | null
+          is_edited: boolean | null
+          last_edited_at: string | null
           media_url: string | null
+          message_type: string | null
+          parent_message_id: string | null
+          reply_count: number | null
           user_id: string
           views_count: number | null
+          voice_duration: number | null
+          voice_transcript: string | null
         }
         Insert: {
           content: string
           created_at?: string
+          deleted_at?: string | null
+          edit_count?: number | null
           id?: string
+          is_deleted?: boolean | null
+          is_edited?: boolean | null
+          last_edited_at?: string | null
           media_url?: string | null
+          message_type?: string | null
+          parent_message_id?: string | null
+          reply_count?: number | null
           user_id: string
           views_count?: number | null
+          voice_duration?: number | null
+          voice_transcript?: string | null
         }
         Update: {
           content?: string
           created_at?: string
+          deleted_at?: string | null
+          edit_count?: number | null
           id?: string
+          is_deleted?: boolean | null
+          is_edited?: boolean | null
+          last_edited_at?: string | null
           media_url?: string | null
+          message_type?: string | null
+          parent_message_id?: string | null
+          reply_count?: number | null
           user_id?: string
           views_count?: number | null
+          voice_duration?: number | null
+          voice_transcript?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "messages_parent_message_id_fkey"
+            columns: ["parent_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_user_id_fkey"
             columns: ["user_id"]
@@ -2897,6 +3066,33 @@ export type Database = {
           },
         ]
       }
+      typing_indicators: {
+        Row: {
+          chat_id: string
+          expires_at: string
+          id: string
+          is_typing: boolean
+          last_typed_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_id?: string
+          expires_at?: string
+          id?: string
+          is_typing?: boolean
+          last_typed_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          expires_at?: string
+          id?: string
+          is_typing?: boolean
+          last_typed_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_id: string
@@ -3102,6 +3298,36 @@ export type Database = {
           is_verified?: boolean | null
           method_type?: string
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_presence: {
+        Row: {
+          custom_status: string | null
+          id: string
+          is_online: boolean
+          last_seen_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          custom_status?: string | null
+          id?: string
+          is_online?: boolean
+          last_seen_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          custom_status?: string | null
+          id?: string
+          is_online?: boolean
+          last_seen_at?: string
+          status?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
