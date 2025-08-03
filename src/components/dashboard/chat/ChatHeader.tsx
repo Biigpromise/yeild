@@ -9,7 +9,7 @@ interface ChatHeaderProps {
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({ activeUsers, onToggleNavigation }) => {
   return (
-    <div className="flex-shrink-0 bg-gray-800 border-b border-gray-700 p-3">
+    <div className="flex-shrink-0 bg-black border-b border-gray-700 p-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {onToggleNavigation && (
