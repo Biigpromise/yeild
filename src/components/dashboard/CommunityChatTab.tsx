@@ -50,8 +50,16 @@ export const CommunityChatTab = () => {
   useEffect(() => {
     fetchMessages();
     fetchLikes();
-    setupRealtimeSubscription();
-    setupPresenceTracking();
+    
+    // Set up realtime subscriptions and capture cleanup functions
+    const cleanupSubscriptions = setupRealtimeSubscription();
+    const cleanupPresence = setupPresenceTracking();
+    
+    // Return cleanup function to properly remove subscriptions
+    return () => {
+      if (cleanupSubscriptions) cleanupSubscriptions();
+      if (cleanupPresence) cleanupPresence();
+    };
   }, []);
 
   useEffect(() => {
