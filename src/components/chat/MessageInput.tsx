@@ -34,7 +34,15 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onMessageSent }) => 
 
       if (error) {
         console.error('Error sending message:', error);
-        toast.error('Failed to send message. Please try again.');
+        
+        // Provide more specific error messages
+        if (error.code === '42501') {
+          toast.error('You need to complete at least 1 task and have 3 active referrals to post in chat.');
+        } else if (error.code === 'PGRST116') {
+          toast.error('Authentication required. Please refresh and try again.');
+        } else {
+          toast.error('Failed to send message. Please try again.');
+        }
         return;
       }
 
