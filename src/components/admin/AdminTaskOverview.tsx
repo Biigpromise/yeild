@@ -50,6 +50,7 @@ export const AdminTaskOverview = () => {
 
   const loadTaskStats = async () => {
     try {
+      console.log('📈 Loading task stats...');
       setLoading(true);
       
       // Get pending approvals count
@@ -103,6 +104,14 @@ export const AdminTaskOverview = () => {
         console.error('Error loading total submissions:', totalError);
       }
 
+      console.log('📊 Stats calculated:', {
+        pendingApproval: pendingCount || 0,
+        activeTasks: activeCount || 0,
+        approved: approvedCount || 0,
+        rejected: rejectedCount || 0,
+        total: totalCount || 0
+      });
+
       setStats({
         pendingApproval: pendingCount || 0,
         activeTasks: activeCount || 0,
@@ -120,6 +129,8 @@ export const AdminTaskOverview = () => {
 
   const loadSubmissions = async () => {
     try {
+      console.log('🔄 Starting to load submissions...');
+      
       // First get submissions with tasks
       const { data: submissionsData, error: submissionsError } = await supabase
         .from('task_submissions')
@@ -128,6 +139,9 @@ export const AdminTaskOverview = () => {
           tasks!task_submissions_task_id_fkey(title, points, category, difficulty)
         `)
         .order('submitted_at', { ascending: false });
+
+      console.log('📊 Raw submissions data:', submissionsData);
+      console.log('❌ Submissions error:', submissionsError);
 
       if (submissionsError) {
         console.error('Error loading submissions:', submissionsError);
@@ -158,6 +172,9 @@ export const AdminTaskOverview = () => {
         };
       });
 
+      console.log('✅ Transformed submissions:', transformedSubmissions);
+      console.log('🔢 Number of submissions:', transformedSubmissions.length);
+      
       setSubmissions(transformedSubmissions);
     } catch (error) {
       console.error('Error loading submissions:', error);
