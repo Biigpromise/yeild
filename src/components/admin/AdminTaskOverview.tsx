@@ -125,7 +125,7 @@ export const AdminTaskOverview = () => {
         .from('task_submissions')
         .select(`
           *,
-          tasks(title, points, category, difficulty)
+          tasks!task_submissions_task_id_fkey(title, points, category, difficulty)
         `)
         .order('submitted_at', { ascending: false });
 

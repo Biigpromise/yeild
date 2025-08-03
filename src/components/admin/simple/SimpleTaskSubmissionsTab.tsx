@@ -36,7 +36,7 @@ export const SimpleTaskSubmissionsTab = () => {
         .from('task_submissions')
         .select(`
           *,
-          tasks (
+          tasks!task_submissions_task_id_fkey (
             id,
             title,
             points

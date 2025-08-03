@@ -24,7 +24,7 @@ export const TaskSubmissionsTab = () => {
         .from('task_submissions')
         .select(`
           *,
-          tasks!inner(title, description, points)
+          tasks!task_submissions_task_id_fkey!inner(title, description, points)
         `)
         .order('submitted_at', { ascending: false });
 
