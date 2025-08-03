@@ -38,7 +38,7 @@ export const SocialFeed: React.FC = () => {
           user_id,
           status,
           submitted_at,
-          tasks!task_submissions_task_id_fkey (title, points)
+          tasks (title, points)
         `)
         .eq('status', 'approved')
         .order('submitted_at', { ascending: false })

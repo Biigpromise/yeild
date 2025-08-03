@@ -2628,20 +2628,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_task_submissions_task_id"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_task_submissions_user_id"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "task_submissions_task_id_fkey"
             columns: ["task_id"]
             isOneToOne: false

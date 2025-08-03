@@ -94,7 +94,7 @@ export const taskQueries = {
         .from('task_submissions')
         .select(`
           *,
-          tasks!task_submissions_task_id_fkey(title, points, category)
+          tasks(title, points, category)
         `)
         .eq('user_id', user.id)
         .order('submitted_at', { ascending: false });
@@ -123,7 +123,7 @@ export const taskQueries = {
         .from('user_tasks')
         .select(`
           *,
-          tasks!user_tasks_task_id_fkey(title, points, category, brand_name)
+          tasks(title, points, category, brand_name)
         `)
         .eq('user_id', user.id)
         .eq('status', 'completed')

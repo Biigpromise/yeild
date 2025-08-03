@@ -130,7 +130,7 @@ export const automatedTaskProcessingService = {
         .from('task_submissions')
         .select(`
           *,
-          tasks!task_submissions_task_id_fkey!inner(*)
+          tasks!inner(*)
         `)
         .eq('status', 'pending')
         .order('submitted_at', { ascending: true })
@@ -262,8 +262,8 @@ export const automatedTaskProcessingService = {
       .from('task_submissions')
       .select(`
         *,
-        tasks!task_submissions_task_id_fkey!inner(*),
-        profiles!task_submissions_user_id_fkey!inner(name, email)
+        tasks!inner(*),
+        profiles!inner(name, email)
       `)
       .eq('status', 'flagged')
       .order('submitted_at', { ascending: true });
@@ -284,7 +284,7 @@ export const automatedTaskProcessingService = {
           .from('task_submissions')
           .select(`
             *,
-            tasks!task_submissions_task_id_fkey!inner(*)
+            tasks!inner(*)
           `)
           .eq('id', submissionId)
           .single();

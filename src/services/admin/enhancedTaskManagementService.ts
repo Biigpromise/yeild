@@ -170,8 +170,8 @@ export const enhancedTaskManagementService = {
         .from('task_submissions')
         .select(`
           *,
-          tasks!task_submissions_task_id_fkey(title, points),
-          profiles!task_submissions_user_id_fkey(name, email)
+          tasks(title, points),
+          profiles(name, email)
         `)
         .order('submitted_at', { ascending: false });
 
@@ -345,7 +345,7 @@ export const enhancedTaskManagementService = {
         .from('scheduled_tasks')
         .select(`
           *,
-          tasks!scheduled_tasks_task_id_fkey(id, title, points, status)
+          tasks(id, title, points, status)
         `)
         .order('scheduled_for', { ascending: true });
 

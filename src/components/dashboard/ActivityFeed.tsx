@@ -53,7 +53,7 @@ export const ActivityFeed: React.FC = () => {
           status,
           task_id,
           user_id,
-          tasks!task_submissions_task_id_fkey(title)
+          tasks(title)
         `)
         .eq('status', 'approved')
         .order('created_at', { ascending: false })

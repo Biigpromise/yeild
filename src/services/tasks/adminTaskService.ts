@@ -30,52 +30,35 @@ export const adminTaskService = {
 
   async getAllSubmissions(): Promise<any[]> {
     try {
-      // Get submissions first
-      const { data: submissions, error: submissionError } = await supabase
+      const { data, error } = await supabase
         .from('task_submissions')
-        .select('*')
+        .select(`
+          *,
+          tasks(title, points, category, difficulty)
+        `)
         .order('submitted_at', { ascending: false });
 
-      if (submissionError) throw submissionError;
+      if (error) throw error;
 
-      if (!submissions || submissions.length === 0) {
-        return [];
-      }
-
-      // Get unique task and user IDs
-      const taskIds = [...new Set(submissions.map(sub => sub.task_id))];
-      const userIds = [...new Set(submissions.map(sub => sub.user_id))];
-
-      // Get tasks separately
-      const { data: tasks, error: taskError } = await supabase
-        .from('tasks')
-        .select('id, title, points, category, difficulty')
-        .in('id', taskIds);
-
-      if (taskError) {
-        console.warn('Error fetching tasks:', taskError);
-      }
-
-      // Get user profiles separately
+      // Get user profiles separately to avoid relation issues
+      const userIds = [...new Set(data?.map(sub => sub.user_id) || [])];
       const { data: profiles, error: profileError } = await supabase
         .from('profiles')
         .select('id, name, email')
         .in('id', userIds);
 
       if (profileError) {
-        console.warn('Error fetching profiles:', profileError);
+        console.error('Error fetching profiles:', profileError);
+        return data || [];
       }
 
-      // Create maps for quick lookup
-      const taskMap = new Map(tasks?.map(task => [task.id, task]) || []);
-      const profileMap = new Map(profiles?.map(profile => [profile.id, profile]) || []);
-
-      // Combine all data
-      return submissions.map(submission => ({
+      // Combine submissions with profile data
+      const submissionsWithProfiles = data?.map(submission => ({
         ...submission,
-        tasks: taskMap.get(submission.task_id) || { title: 'Unknown Task', points: 0, category: 'Unknown', difficulty: 'medium' },
-        profiles: profileMap.get(submission.user_id) || { name: 'Unknown User', email: 'unknown@email.com' }
-      }));
+        profiles: profiles?.find(profile => profile.id === submission.user_id) || null
+      })) || [];
+
+      return submissionsWithProfiles;
     } catch (error) {
       console.error('Error fetching all submissions:', error);
       return [];
@@ -133,24 +116,15 @@ export const adminTaskService = {
       // Get submission details first
       const { data: submission, error: fetchError } = await supabase
         .from('task_submissions')
-        .select('*')
+        .select(`
+          *,
+          tasks(*)
+        `)
         .eq('id', submissionId)
         .single();
 
       if (fetchError || !submission) {
         console.error('Error fetching submission:', fetchError);
-        return false;
-      }
-
-      // Get task details separately
-      const { data: task, error: taskError } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('id', submission.task_id)
-        .single();
-
-      if (taskError || !task) {
-        console.error('Error fetching task:', taskError);
         return false;
       }
 
@@ -174,17 +148,17 @@ export const adminTaskService = {
 
       // If approving, handle point awarding
       if (status === 'approved') {
-        let finalPoints = submission.calculated_points || task.points;
+        let finalPoints = submission.calculated_points || submission.tasks.points;
 
         // If quality score provided, recalculate points
         if (qualityScore) {
           const pointFactors: PointCalculationFactors = {
-            basePoints: task.points,
-            difficulty: task.difficulty || 'medium',
+            basePoints: submission.tasks.points,
+            difficulty: submission.tasks.difficulty || 'medium',
             userLevel: profile.level || 1,
             tasksCompletedToday: 0,
             totalTasksCompleted: profile.tasks_completed || 0,
-            taskCategory: task.category || 'general',
+            taskCategory: submission.tasks.category || 'general',
             qualityScore
           };
 
@@ -218,7 +192,7 @@ export const adminTaskService = {
             points: finalPoints,
             transaction_type: 'task_completion',
             reference_id: submission.task_id,
-            description: `Task completed: ${task.title}`
+            description: `Task completed: ${submission.tasks.title}`
           });
       }
 

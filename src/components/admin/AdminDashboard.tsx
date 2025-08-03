@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ModernAdminLayout } from './ModernAdminLayout';
 import { AdminOverview } from './simple/AdminOverview';
-import { TaskManagement } from './TaskManagement';
+import { AdminTasksSimple } from './simple/AdminTasksSimple';
 import { AdminCampaignsSimple } from './simple/AdminCampaignsSimple';
 import { AdminUsersSimple } from './simple/AdminUsersSimple';
 import { AdminSystemHealth } from './simple/AdminSystemHealth';
@@ -32,7 +32,7 @@ export const AdminDashboard = () => {
       case 'users':
         return <AdminUsersSimple />;
       case 'tasks':
-        return <TaskManagement />;
+        return <AdminTasksSimple />;
       case 'campaigns':
         return <AdminCampaignsSimple />;
       case 'analytics':
