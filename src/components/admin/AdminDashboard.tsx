@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { ModernAdminLayout } from './ModernAdminLayout';
 import { AdminOverview } from './simple/AdminOverview';
 import { AdminTasksSimple } from './simple/AdminTasksSimple';
+import { AdminCreateTaskTab } from './tabs/AdminCreateTaskTab';
 import { AdminCampaignsSimple } from './simple/AdminCampaignsSimple';
 import { AdminUsersSimple } from './simple/AdminUsersSimple';
 import { AdminSystemHealth } from './simple/AdminSystemHealth';
@@ -33,6 +34,8 @@ export const AdminDashboard = () => {
         return <AdminUsersSimple />;
       case 'tasks':
         return <AdminTasksSimple />;
+      case 'create-task':
+        return <AdminCreateTaskTab />;
       case 'campaigns':
         return <AdminCampaignsSimple />;
       case 'analytics':

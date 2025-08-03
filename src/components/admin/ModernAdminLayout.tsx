@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ModernNavHeader } from '@/components/navigation/ModernNavHeader';
 import { cn } from '@/lib/utils';
-import { Home, Users, FileText, Building, Activity, BarChart3, DollarSign, Bell, Settings, Zap } from 'lucide-react';
+import { Home, Users, FileText, Building, Activity, BarChart3, DollarSign, Bell, Settings, Zap, Plus } from 'lucide-react';
 
 interface ModernAdminLayoutProps {
   children: React.ReactNode;
@@ -25,6 +25,7 @@ export const ModernAdminLayout: React.FC<ModernAdminLayoutProps> = ({
     { id: 'overview', label: 'Overview', icon: Home },
     { id: 'users', label: 'Users', icon: Users },
     { id: 'tasks', label: 'Tasks', icon: FileText },
+    { id: 'create-task', label: 'Create Task', icon: Plus },
     { id: 'campaigns', label: 'Campaigns', icon: Building },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'financial', label: 'Financial', icon: DollarSign },
