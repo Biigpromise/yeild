@@ -69,32 +69,33 @@ export const PostItem: React.FC<PostItemProps> = ({
   };
 
   return (
-    <div className="border-b border-gray-800 bg-black" data-message-id={message.id}>
-      <div className="p-4">
-        {/* Post Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => onUserClick(message.user_id)}
-              className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full"
-            >
-              <Avatar className="h-10 w-10 hover:scale-105 transition-transform cursor-pointer">
-                <AvatarImage 
-                  src={message.profiles?.profile_picture_url || undefined} 
-                  alt={getDisplayName(message.profiles)}
-                />
-                <AvatarFallback className="bg-gray-700 text-white">
-                  {getAvatarFallback(message.profiles)}
-                </AvatarFallback>
-              </Avatar>
-            </button>
-            
-            <div className="flex items-center gap-2">
-              <div>
-                <div className="flex items-center gap-2">
+    <div className="group hover:bg-muted/30 transition-colors duration-200" data-message-id={message.id}>
+      <div className="p-4 max-w-4xl mx-auto">
+        {/* Modern Message Card */}
+        <div className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+          {/* Post Header */}
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start gap-3 flex-1">
+              <button
+                onClick={() => onUserClick(message.user_id)}
+                className="focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full"
+              >
+                <Avatar className="h-11 w-11 hover:scale-105 transition-transform cursor-pointer ring-2 ring-border hover:ring-primary/30">
+                  <AvatarImage 
+                    src={message.profiles?.profile_picture_url || undefined} 
+                    alt={getDisplayName(message.profiles)}
+                  />
+                  <AvatarFallback className="bg-secondary text-secondary-foreground font-semibold">
+                    {getAvatarFallback(message.profiles)}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
                   <button
                     onClick={() => onUserClick(message.user_id)}
-                    className="font-semibold text-white hover:underline focus:outline-none focus:underline"
+                    className="font-semibold text-foreground hover:text-primary transition-colors focus:outline-none focus:text-primary truncate"
                   >
                     {getDisplayName(message.profiles)}
                   </button>
@@ -102,113 +103,115 @@ export const PostItem: React.FC<PostItemProps> = ({
                     userId={message.user_id} 
                     size="sm" 
                     showTooltip={true}
-                    className="hover:scale-110 transition-transform" 
+                    className="hover:scale-110 transition-transform flex-shrink-0" 
                   />
                 </div>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
                 </p>
               </div>
             </div>
-          </div>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
-              <DropdownMenuItem 
-                onClick={() => onShare(message.id)}
-                className="text-gray-300 hover:text-white hover:bg-gray-700"
-              >
-                Share message
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => navigator.clipboard.writeText(message.content)}
-                className="text-gray-300 hover:text-white hover:bg-gray-700"
-              >
-                Copy text
-              </DropdownMenuItem>
-              {message.user_id === currentUserId && (
-                <DropdownMenuItem 
-                  onClick={handleDeleteMessage}
-                  className="text-red-400 hover:text-red-300 hover:bg-gray-700"
-                >
-                  Delete message
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* Post Content */}
-        <div className="mb-4">
-          {message.content && (
-            <p className="text-white text-sm leading-relaxed mb-3 whitespace-pre-wrap">
-              {message.content}
-            </p>
-          )}
-          
-          {message.media_url && (
-            <div className="rounded-lg overflow-hidden cursor-pointer" onClick={() => onMediaClick(message.media_url!)}>
-              {message.media_url.includes('.mp4') || message.media_url.includes('.webm') ? (
-                <video
-                  src={message.media_url}
-                  className="w-full max-h-96 object-cover"
-                  preload="metadata"
-                />
-              ) : (
-                <img
-                  src={message.media_url}
-                  alt="Post media"
-                  className="w-full max-h-96 object-cover hover:opacity-90 transition-opacity"
-                  loading="lazy"
-                />
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Post Actions */}
-        <div className="pt-3 border-t border-gray-800 space-y-3">
-          {/* Emoji Reactions */}
-          <EmojiReactions messageId={message.id} className="px-1" />
-          
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onLike(message.id)}
-                className={`${userHasLiked ? 'text-red-500' : 'text-gray-400'} hover:text-red-500 hover:bg-red-500/10`}
-              >
-                <Heart className={`h-5 w-5 mr-2 ${userHasLiked ? 'fill-current' : ''}`} />
-                <span className="text-sm">{likes.length > 0 ? likes.length : 'Like'}</span>
-              </Button>
-              
-              <MessageComments 
-                messageId={message.id}
-                userId={currentUserId || null}
-                onUserClick={onUserClick}
-                onOpenCommentsModal={() => onOpenCommentsModal?.(message)}
-              />
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onShare(message.id)}
-                className="text-gray-400 hover:text-green-500 hover:bg-green-500/10"
-              >
-                <Share className="h-5 w-5 mr-2" />
-                <span className="text-sm">Share</span>
-              </Button>
-            </div>
             
-            <div className="flex items-center text-gray-400 text-sm">
-              <span>{message.views_count || 0} views</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => onShare(message.id)}>
+                  <Share className="h-4 w-4 mr-2" />
+                  Share message
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigator.clipboard.writeText(message.content)}>
+                  Copy text
+                </DropdownMenuItem>
+                {message.user_id === currentUserId && (
+                  <DropdownMenuItem 
+                    onClick={handleDeleteMessage}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    Delete message
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Post Content */}
+          <div className="mb-4">
+            {message.content && (
+              <div className="prose prose-sm max-w-none dark:prose-invert mb-3">
+                <p className="text-foreground leading-relaxed whitespace-pre-wrap break-words">
+                  {message.content}
+                </p>
+              </div>
+            )}
+            
+            {message.media_url && (
+              <div className="rounded-lg overflow-hidden cursor-pointer border border-border hover:border-primary/50 transition-colors" onClick={() => onMediaClick(message.media_url!)}>
+                {message.media_url.includes('.mp4') || message.media_url.includes('.webm') ? (
+                  <video
+                    src={message.media_url}
+                    className="w-full max-h-96 object-cover"
+                    preload="metadata"
+                  />
+                ) : (
+                  <img
+                    src={message.media_url}
+                    alt="Post media"
+                    className="w-full max-h-96 object-cover hover:opacity-95 transition-opacity"
+                    loading="lazy"
+                  />
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Emoji Reactions */}
+          <div className="mb-3">
+            <EmojiReactions messageId={message.id} className="px-1" />
+          </div>
+
+          {/* Post Actions */}
+          <div className="pt-3 border-t border-border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onLike(message.id)}
+                  className={`${
+                    userHasLiked 
+                      ? 'text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-950/30' 
+                      : 'text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30'
+                  } transition-all duration-200`}
+                >
+                  <Heart className={`h-4 w-4 mr-1.5 ${userHasLiked ? 'fill-current' : ''}`} />
+                  <span className="text-sm font-medium">{likes.length > 0 ? likes.length : 'Like'}</span>
+                </Button>
+                
+                <MessageComments 
+                  messageId={message.id}
+                  userId={currentUserId || null}
+                  onUserClick={onUserClick}
+                  onOpenCommentsModal={() => onOpenCommentsModal?.(message)}
+                />
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onShare(message.id)}
+                  className="text-muted-foreground hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-950/30 transition-all duration-200"
+                >
+                  <Share className="h-4 w-4 mr-1.5" />
+                  <span className="text-sm font-medium">Share</span>
+                </Button>
+              </div>
+              
+              <div className="flex items-center text-muted-foreground text-sm">
+                <span>{message.views_count || 0} views</span>
+              </div>
             </div>
           </div>
         </div>

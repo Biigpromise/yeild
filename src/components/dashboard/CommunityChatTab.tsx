@@ -315,56 +315,78 @@ export const CommunityChatTab = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      {/* Enhanced Header */}
-      <div className="border-b bg-card p-4 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
-              <h1 className="text-xl font-bold">Community Chat</h1>
-              <Badge variant="secondary" className="animate-pulse">Live</Badge>
+      {/* Streamlined Header */}
+      <div className="border-b bg-card/50 backdrop-blur-sm p-3 md:p-4 flex-shrink-0 sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Users className="h-5 w-5 text-primary" />
+                </div>
+                <div className="hidden sm:block">
+                  <h1 className="text-lg font-bold text-foreground">Community Chat</h1>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                    <span>{onlineCount} members online</span>
+                    <Badge variant="secondary" className="text-xs animate-pulse">Live</Badge>
+                  </div>
+                </div>
+              </div>
             </div>
-            <Badge variant="outline" className="text-xs">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
-              {onlineCount} online
-            </Badge>
+            
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="relative hidden md:block">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search messages..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 w-48 lg:w-64 h-9"
+                />
+              </div>
+              <Button variant="outline" size="sm" className="h-9 px-3">
+                <Filter className="h-4 w-4" />
+                <span className="sr-only">Filter messages</span>
+              </Button>
+            </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          {/* Mobile Search */}
+          <div className="md:hidden mt-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search messages..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 w-64"
+                className="pl-9 h-9"
               />
             </div>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden bg-muted/20">
         <ScrollArea className="h-full">
           {filteredMessages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-8">
-              <div className="text-6xl mb-4">💬</div>
-              <h2 className="text-2xl font-semibold mb-2">Welcome to Community Chat!</h2>
-              <p className="text-muted-foreground mb-6 max-w-md">
+              <div className="text-6xl mb-4 animate-bounce">💬</div>
+              <h2 className="text-2xl font-semibold mb-2 text-foreground">Welcome to Community Chat!</h2>
+              <p className="text-muted-foreground mb-6 max-w-md leading-relaxed">
                 Connect with other members, share your journey, and engage in meaningful conversations.
               </p>
               {!user && (
-                <p className="text-sm text-muted-foreground">
-                  Sign in to start chatting with the community
-                </p>
+                <div className="p-4 bg-card rounded-lg border border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Sign in to start chatting with the community
+                  </p>
+                </div>
               )}
             </div>
           ) : (
-            <div className="divide-y divide-border">
+            <div className="py-2">
               {filteredMessages.map((message) => {
                 const likes = messageLikes[message.id] || [];
                 const userHasLiked = likes.some(like => like.user_id === user?.id);
@@ -387,7 +409,7 @@ export const CommunityChatTab = () => {
                   />
                 );
               })}
-              <div ref={messagesEndRef} />
+              <div ref={messagesEndRef} className="h-4" />
             </div>
           )}
         </ScrollArea>
@@ -395,48 +417,54 @@ export const CommunityChatTab = () => {
 
       {/* Enhanced Message Input */}
       {user && (
-        <div className="border-t bg-card p-4 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 relative">
-              <Input
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Share your thoughts with the community..."
-                className="pr-12"
+        <div className="border-t bg-card/80 backdrop-blur-sm p-3 md:p-4 flex-shrink-0">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-end gap-3">
+              <div className="flex-1 relative">
+                <Input
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Share your thoughts with the community..."
+                  className="pr-12 min-h-[44px] resize-none"
+                  maxLength={1000}
+                />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">
+                  {newMessage.length}/1000
+                </div>
+              </div>
+              
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+                accept="image/*,video/*"
+                className="hidden"
               />
+              
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                variant="outline"
+                size="icon"
+                className="h-11 w-11 hover:bg-primary/10 flex-shrink-0"
+              >
+                <ImageIcon className="h-4 w-4" />
+                <span className="sr-only">Upload media</span>
+              </Button>
+              
+              <Button
+                onClick={sendMessage}
+                disabled={!newMessage.trim()}
+                className="h-11 px-6 font-medium flex-shrink-0"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Send
+              </Button>
             </div>
             
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleImageUpload}
-              accept="image/*,video/*"
-              className="hidden"
-            />
-            
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              variant="outline"
-              size="icon"
-              className="hover:bg-primary/10"
-            >
-              <ImageIcon className="h-4 w-4" />
-            </Button>
-            
-            <Button
-              onClick={sendMessage}
-              disabled={!newMessage.trim()}
-              className="px-6"
-            >
-              <Send className="h-4 w-4 mr-2" />
-              Send
-            </Button>
-          </div>
-          
-          <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-            <span>Press Enter to send, Shift+Enter for new line</span>
-            <span>{newMessage.length}/1000</span>
+            <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+              <span>Press Enter to send, Shift+Enter for new line</span>
+            </div>
           </div>
         </div>
       )}
