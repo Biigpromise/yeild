@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, ImageIcon, Users, Search, Filter } from 'lucide-react';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Send, ImageIcon, Users, Search, Filter, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -11,6 +12,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { PublicProfileModal } from '@/components/PublicProfileModal';
 import { MessageCommentsModal } from './chat/MessageCommentsModal';
 import { Badge } from '@/components/ui/badge';
+import { ChatHeader } from './chat/ChatHeader';
 
 interface Message {
   id: string;
@@ -40,6 +42,7 @@ export const CommunityChatTab = () => {
   const [loading, setLoading] = useState(true);
   const [onlineCount, setOnlineCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isNavOpen, setIsNavOpen] = useState(false);
   const { user } = useAuth();
   const { selectedUserId, isModalOpen, openUserProfile, closeUserProfile } = useUserProfile();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -323,80 +326,77 @@ export const CommunityChatTab = () => {
 
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Tab Navigation */}
-      <div className="sticky top-0 z-50 bg-background border-b">
-        <div className="flex items-center justify-center p-2">
-          <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
-            <button 
-              onClick={() => window.history.back()}
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-background hover:text-foreground"
-            >
-              Community
-            </button>
-            <div className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all bg-background text-foreground shadow-sm">
-              Chat
-            </div>
-            <button 
-              onClick={() => {
-                const leaderboardTab = document.querySelector('[data-value="leaderboard"]') as HTMLElement;
-                leaderboardTab?.click();
-              }}
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-background hover:text-foreground"
-            >
-              Leaderboard
-            </button>
-            <button 
-              onClick={() => {
-                const storiesTab = document.querySelector('[data-value="stories"]') as HTMLElement;
-                storiesTab?.click();
-              }}
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-background hover:text-foreground"
-            >
-              Stories
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      {/* Streamlined Header */}
-      <div className="border-b bg-card/95 backdrop-blur-sm px-3 py-2 md:px-4 md:py-3 flex-shrink-0">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between gap-3 md:gap-4">
-            <div className="flex items-center gap-2 md:gap-3 min-w-0">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 md:p-2 bg-primary/10 rounded-lg">
-                  <Users className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-                </div>
-                <div>
-                  <h1 className="text-base md:text-lg font-bold text-foreground">Community Chat</h1>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                    <span>{onlineCount} online</span>
-                    <Badge variant="secondary" className="text-xs px-1.5 py-0.5 animate-pulse">Live</Badge>
-                  </div>
-                </div>
+      {/* Navigation Sheet */}
+      <Sheet open={isNavOpen} onOpenChange={setIsNavOpen}>
+        <SheetContent side="left" className="w-80 p-0">
+          <div className="flex flex-col h-full">
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Navigation</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsNavOpen(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
             </div>
-            
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Button variant="outline" size="sm" className="h-8 w-8 md:h-9 md:w-9 p-0">
-                <Filter className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                <span className="sr-only">Filter messages</span>
-              </Button>
+            <div className="flex-1 p-4">
+              <nav className="space-y-2">
+                <button
+                  onClick={() => {
+                    const communityTab = document.querySelector('[data-value="community"]') as HTMLElement;
+                    communityTab?.click();
+                    setIsNavOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-3 rounded-lg hover:bg-accent transition-colors"
+                >
+                  Community
+                </button>
+                <div className="w-full text-left px-4 py-3 rounded-lg bg-accent font-medium">
+                  Chat
+                </div>
+                <button
+                  onClick={() => {
+                    const leaderboardTab = document.querySelector('[data-value="leaderboard"]') as HTMLElement;
+                    leaderboardTab?.click();
+                    setIsNavOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-3 rounded-lg hover:bg-accent transition-colors"
+                >
+                  Leaderboard
+                </button>
+                <button
+                  onClick={() => {
+                    const storiesTab = document.querySelector('[data-value="stories"]') as HTMLElement;
+                    storiesTab?.click();
+                    setIsNavOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-3 rounded-lg hover:bg-accent transition-colors"
+                >
+                  Stories
+                </button>
+              </nav>
             </div>
           </div>
-          
-          {/* Search Bar */}
-          <div className="mt-2 md:mt-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search messages..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-8 md:h-9 text-sm"
-              />
-            </div>
+        </SheetContent>
+      </Sheet>
+      
+      {/* Chat Header with Navigation */}
+      <ChatHeader activeUsers={onlineCount} onMenuClick={() => setIsNavOpen(true)} />
+      
+      {/* Search Bar */}
+      <div className="border-b bg-card/95 backdrop-blur-sm px-3 py-2 md:px-4 md:py-3 flex-shrink-0">
+        <div className="max-w-4xl mx-auto">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search messages..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-8 md:h-9 text-sm"
+            />
           </div>
         </div>
       </div>
