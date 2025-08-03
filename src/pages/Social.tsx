@@ -174,18 +174,20 @@ const Social: React.FC = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="chat">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageCircle className="h-5 w-5" />
-                  Community Chat
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+          <TabsContent value="chat" className="space-y-6">
+            <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 rounded-2xl p-6 shadow-xl border-0">
+              <div className="flex items-center gap-2 mb-4">
+                <MessageCircle className="h-5 w-5 text-primary" />
+                <h2 className="text-xl font-semibold">Community Chat</h2>
+                <Badge variant="secondary" className="text-xs">Live</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground mb-6">
+                Connect with other members and share your journey.
+              </p>
+              <div className="rounded-xl overflow-hidden bg-card border-0 shadow-lg">
                 <CommunityChatTab />
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="leaderboard">

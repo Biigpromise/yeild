@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { UserProfileModal } from '../community/UserProfileModal';
 
 export interface Reaction {
   emoji: string;
@@ -60,10 +61,10 @@ export interface Message {
 
 interface MessageBubbleProps {
   message: Message;
-  isCurrentUser: boolean;
+  isOwn: boolean;
   onReaction?: (messageId: string, emoji: string) => void;
   onReply?: (message: Message) => void;
-  showAvatar?: boolean;
+  onProfileClick?: (userId: string) => void;
   className?: string;
 }
 
@@ -71,12 +72,13 @@ const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🔥'];
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
   message,
-  isCurrentUser,
+  isOwn,
   onReaction,
   onReply,
-  showAvatar = true,
+  onProfileClick,
   className
 }) => {
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
 
   const handleReaction = (emoji: string) => {
@@ -87,6 +89,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const handleCopyMessage = () => {
     navigator.clipboard.writeText(message.content);
     toast.success('Message copied to clipboard');
+  };
+
+  const handleProfileClick = () => {
+    if (onProfileClick && message.sender_id) {
+      onProfileClick(message.sender_id);
+    } else {
+      setShowProfileModal(true);
+    }
   };
 
   const handleReply = () => {
@@ -110,60 +120,54 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   };
 
   return (
-    <div className={cn(
-      "flex gap-3 group hover:bg-muted/30 p-2 rounded-lg transition-colors",
-      isCurrentUser && "flex-row-reverse",
-      className
-    )}>
-      {/* Avatar */}
-      {showAvatar && (
-        <Avatar className="h-8 w-8 flex-shrink-0">
+    <>
+      <div className={cn(
+        "group flex gap-3 px-4 py-3 hover:bg-muted/30 transition-colors rounded-lg",
+        isOwn && "flex-row-reverse",
+        className
+      )}>
+        {/* Avatar */}
+        <Avatar 
+          className="h-8 w-8 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all" 
+          onClick={handleProfileClick}
+        >
           <AvatarImage src={message.sender?.avatar_url} />
-          <AvatarFallback className="text-xs">
-            {message.sender?.name?.charAt(0)?.toUpperCase() || 'U'}
+          <AvatarFallback className="text-xs bg-primary/10 text-primary">
+            {message.sender?.name?.charAt(0).toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
-      )}
 
-      {/* Message Content */}
-      <div className={cn(
-        "flex-1 max-w-[70%] space-y-1",
-        isCurrentUser && "flex flex-col items-end"
-      )}>
-        {/* Header */}
-        {showAvatar && (
-          <div className={cn(
-            "flex items-center gap-2 text-xs text-muted-foreground",
-            isCurrentUser && "flex-row-reverse"
-          )}>
-            <span className="font-medium">{message.sender?.name}</span>
-            <span>{formatTime(message.created_at)}</span>
+        <div className={cn("flex-1 min-w-0", isOwn && "flex flex-col items-end")}>
+          {/* Sender Name */}
+          <div 
+            className="text-xs font-medium text-muted-foreground mb-1 cursor-pointer hover:text-primary transition-colors" 
+            onClick={handleProfileClick}
+          >
+            {message.sender?.name || 'Unknown User'}
           </div>
-        )}
 
-        {/* Reply Preview */}
-        {message.reply_to_message && (
+          {/* Reply Preview */}
+          {message.reply_to_message && (
+            <div className={cn(
+              "border-l-2 border-primary/50 pl-3 py-1 bg-muted/50 rounded text-xs mb-2",
+              isOwn && "border-r-2 border-l-0 pr-3 pl-0"
+            )}>
+              <div className="font-medium text-muted-foreground">
+                {message.reply_to_message.sender?.name}
+              </div>
+              <div className="text-muted-foreground truncate">
+                {message.reply_to_message.content}
+              </div>
+            </div>
+          )}
+
+          {/* Message Content */}
           <div className={cn(
-            "border-l-2 border-primary/50 pl-3 py-1 bg-muted/50 rounded text-xs",
-            isCurrentUser && "border-r-2 border-l-0 pr-3 pl-0"
+            "relative group/message bg-background/80 backdrop-blur border-0 rounded-2xl px-4 py-3 shadow-lg",
+            isOwn 
+              ? "bg-primary/10 text-foreground" 
+              : "bg-card/50"
           )}>
-            <div className="font-medium text-muted-foreground">
-              {message.reply_to_message.sender?.name}
-            </div>
-            <div className="text-muted-foreground truncate">
-              {message.reply_to_message.content}
-            </div>
-          </div>
-        )}
-
-        {/* Message Card */}
-        <Card className={cn(
-          "relative",
-          isCurrentUser 
-            ? "bg-primary text-primary-foreground border-primary/20" 
-            : "bg-card border-border/50"
-        )}>
-          <div className="p-3">
             {/* Media Content */}
             {message.message_type === 'image' && message.media_url && (
               <div className="mb-2">
@@ -199,72 +203,87 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 ))}
               </div>
             )}
+
+            {/* Action Buttons */}
+            <div className={cn(
+              "absolute top-2 opacity-0 group-hover/message:opacity-100 transition-opacity flex items-center gap-1",
+              isOwn ? "left-2" : "right-2"
+            )}>
+              {/* Quick Reaction */}
+              <Popover open={showReactions} onOpenChange={setShowReactions}>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                    <Smile className="h-3 w-3" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-2" side="top">
+                  <div className="flex gap-1">
+                    {QUICK_REACTIONS.map((emoji) => (
+                      <Button
+                        key={emoji}
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 hover:scale-110 transition-transform"
+                        onClick={() => handleReaction(emoji)}
+                      >
+                        <span className="text-sm">{emoji}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Reply Button */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 w-6 p-0"
+                onClick={handleReply}
+              >
+                <Reply className="h-3 w-3" />
+              </Button>
+
+              {/* More Actions */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                    <MoreVertical className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleCopyMessage}>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy Message
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleReply}>
+                    <Reply className="h-4 w-4 mr-2" />
+                    Reply
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-destructive">
+                    <Flag className="h-4 w-4 mr-2" />
+                    Report
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Timestamp */}
+            <div className="text-xs text-muted-foreground mt-1">
+              {formatTime(message.created_at)}
+            </div>
           </div>
-
-          {/* Action Buttons */}
-          <div className={cn(
-            "absolute top-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1",
-            isCurrentUser ? "left-2" : "right-2"
-          )}>
-            {/* Quick Reaction */}
-            <Popover open={showReactions} onOpenChange={setShowReactions}>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                  <Smile className="h-3 w-3" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-2" side="top">
-                <div className="flex gap-1">
-                  {QUICK_REACTIONS.map((emoji) => (
-                    <Button
-                      key={emoji}
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 hover:scale-110 transition-transform"
-                      onClick={() => handleReaction(emoji)}
-                    >
-                      <span className="text-sm">{emoji}</span>
-                    </Button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            {/* Reply Button */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-6 w-6 p-0"
-              onClick={handleReply}
-            >
-              <Reply className="h-3 w-3" />
-            </Button>
-
-            {/* More Actions */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                  <MoreVertical className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleCopyMessage}>
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy Message
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleReply}>
-                  <Reply className="h-4 w-4 mr-2" />
-                  Reply
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive">
-                  <Flag className="h-4 w-4 mr-2" />
-                  Report
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </Card>
+        </div>
       </div>
-    </div>
+      
+      <UserProfileModal
+        userId={message.sender_id}
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        onMessage={(userId) => {
+          setShowProfileModal(false);
+          onProfileClick?.(userId);
+        }}
+      />
+    </>
   );
 };

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -201,18 +200,18 @@ export const EnhancedChatWindow: React.FC<EnhancedChatWindowProps> = ({
 
   if (loading) {
     return (
-      <Card className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center bg-background/50 backdrop-blur rounded-2xl border-0 shadow-xl">
         <div className="text-center">
           <div className="animate-pulse text-muted-foreground">Loading messages...</div>
         </div>
-      </Card>
+      </div>
     );
   }
 
   return (
-    <Card className={`flex-1 flex flex-col h-full ${className}`}>
+    <div className={`flex-1 flex flex-col h-full bg-background/50 backdrop-blur rounded-2xl border-0 shadow-xl ${className}`}>
       {/* Header */}
-      <CardHeader className="border-b">
+      <div className="p-4 border-b border-border/30 bg-card/50 backdrop-blur rounded-t-2xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div>
@@ -268,11 +267,11 @@ export const EnhancedChatWindow: React.FC<EnhancedChatWindowProps> = ({
             />
           </div>
         )}
-      </CardHeader>
+      </div>
 
       {/* Online Users */}
       {onlineUsers.length > 0 && (
-        <div className="border-b p-3">
+        <div className="border-b border-border/30 p-3 bg-muted/10">
           <div className="flex items-center gap-2 overflow-x-auto">
             <span className="text-xs text-muted-foreground whitespace-nowrap">Online:</span>
             {onlineUsers.slice(0, 10).map((user) => (
@@ -296,41 +295,38 @@ export const EnhancedChatWindow: React.FC<EnhancedChatWindowProps> = ({
       )}
 
       {/* Messages */}
-      <CardContent className="flex-1 p-0">
-        <ScrollArea className="h-full p-4">
-          <div className="space-y-4">
-            {filteredMessages.map((message, index) => {
-              const isCurrentUser = message.sender_id === user?.id;
-              const showAvatar = index === 0 || 
-                filteredMessages[index - 1]?.sender_id !== message.sender_id;
-
-              return (
-                <MessageBubble
-                  key={message.id}
-                  message={message}
-                  isCurrentUser={isCurrentUser}
-                  showAvatar={showAvatar}
-                  onReaction={handleReaction}
-                  onReply={handleReply}
-                />
-              );
-            })}
+      <div className="flex-1 overflow-y-auto bg-background/30 backdrop-blur">
+        <ScrollArea className="h-full">
+          <div className="space-y-1 p-2">
+            {filteredMessages.map((message) => (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                isOwn={message.sender_id === user?.id}
+                onReaction={handleReaction}
+                onReply={setReplyToMessage}
+                onProfileClick={(userId) => {
+                  // Handle profile click - could open modal or navigate
+                  console.log('Profile clicked:', userId);
+                }}
+              />
+            ))}
             
             {/* Typing Indicator */}
             {typingUsers.length > 0 && (
-              <TypingIndicator 
-                users={typingUsers.map(u => u.username)} 
-              />
+              <div className="px-4 py-2">
+                <TypingIndicator users={typingUsers.map(u => u.username)} />
+              </div>
             )}
             
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
-      </CardContent>
+      </div>
 
       {/* Reply Preview */}
       {replyToMessage && (
-        <div className="border-t p-3 bg-muted/30">
+        <div className="border-t border-border/30 p-3 bg-muted/20 backdrop-blur">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <div className="text-xs text-muted-foreground">Replying to</div>
@@ -351,7 +347,7 @@ export const EnhancedChatWindow: React.FC<EnhancedChatWindowProps> = ({
       )}
 
       {/* Input Area */}
-      <div className="border-t p-4">
+      <div className="p-4 border-t border-border/30 bg-card/50 backdrop-blur rounded-b-2xl">
         <div className="flex items-end gap-2">
           <Button variant="ghost" size="sm">
             <Paperclip className="h-4 w-4" />
@@ -362,18 +358,22 @@ export const EnhancedChatWindow: React.FC<EnhancedChatWindowProps> = ({
           <div className="flex-1">
             <Input
               ref={inputRef}
-              placeholder="Type a message..."
+              placeholder="Type your message..."
               value={inputValue}
               onChange={(e) => handleInputChange(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="resize-none"
+              className="resize-none border-0 bg-background/80 backdrop-blur"
             />
           </div>
-          <Button onClick={handleSendMessage} disabled={!inputValue.trim()}>
+          <Button 
+            onClick={handleSendMessage} 
+            disabled={!inputValue.trim()}
+            className="bg-primary/80 backdrop-blur hover:bg-primary"
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
