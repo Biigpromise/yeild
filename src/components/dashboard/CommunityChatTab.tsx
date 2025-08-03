@@ -324,51 +324,42 @@ export const CommunityChatTab = () => {
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Streamlined Header */}
-      <div className="border-b bg-card/50 backdrop-blur-sm p-3 md:p-4 flex-shrink-0 sticky top-0 z-10">
+      <div className="border-b bg-card/95 backdrop-blur-sm px-3 py-2 md:px-4 md:py-3 flex-shrink-0 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center justify-between gap-3 md:gap-4">
+            <div className="flex items-center gap-2 md:gap-3 min-w-0">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Users className="h-5 w-5 text-primary" />
+                <div className="p-1.5 md:p-2 bg-primary/10 rounded-lg">
+                  <Users className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                 </div>
-                <div className="hidden sm:block">
-                  <h1 className="text-lg font-bold text-foreground">Community Chat</h1>
+                <div>
+                  <h1 className="text-base md:text-lg font-bold text-foreground">Community Chat</h1>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                    <span>{onlineCount} members online</span>
-                    <Badge variant="secondary" className="text-xs animate-pulse">Live</Badge>
+                    <span>{onlineCount} online</span>
+                    <Badge variant="secondary" className="text-xs px-1.5 py-0.5 animate-pulse">Live</Badge>
                   </div>
                 </div>
               </div>
             </div>
             
             <div className="flex items-center gap-2 flex-shrink-0">
-              <div className="relative hidden md:block">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search messages..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 w-48 lg:w-64 h-9"
-                />
-              </div>
-              <Button variant="outline" size="sm" className="h-9 px-3">
-                <Filter className="h-4 w-4" />
+              <Button variant="outline" size="sm" className="h-8 w-8 md:h-9 md:w-9 p-0">
+                <Filter className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 <span className="sr-only">Filter messages</span>
               </Button>
             </div>
           </div>
           
-          {/* Mobile Search */}
-          <div className="md:hidden mt-3">
+          {/* Search Bar */}
+          <div className="mt-2 md:mt-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search messages..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9"
+                className="pl-9 h-8 md:h-9 text-sm"
               />
             </div>
           </div>
@@ -376,17 +367,17 @@ export const CommunityChatTab = () => {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-hidden bg-muted/20">
+      <div className="flex-1 overflow-hidden bg-muted/10">
         <ScrollArea className="h-full">
           {filteredMessages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center p-8">
-              <div className="text-6xl mb-4 animate-bounce">💬</div>
-              <h2 className="text-2xl font-semibold mb-2 text-foreground">Welcome to Community Chat!</h2>
-              <p className="text-muted-foreground mb-6 max-w-md leading-relaxed">
+            <div className="flex flex-col items-center justify-center h-full text-center p-6 md:p-8">
+              <div className="text-5xl md:text-6xl mb-4 animate-bounce">💬</div>
+              <h2 className="text-xl md:text-2xl font-semibold mb-2 text-foreground">Welcome to Community Chat!</h2>
+              <p className="text-muted-foreground mb-6 max-w-md leading-relaxed text-sm md:text-base">
                 Connect with other members, share your journey, and engage in meaningful conversations.
               </p>
               {!user && (
-                <div className="p-4 bg-card rounded-lg border border-border">
+                <div className="p-3 md:p-4 bg-card rounded-lg border border-border">
                   <p className="text-sm text-muted-foreground">
                     Sign in to start chatting with the community
                   </p>
@@ -394,7 +385,7 @@ export const CommunityChatTab = () => {
               )}
             </div>
           ) : (
-            <div className="py-2">
+            <div className="py-1 md:py-2 space-y-1 md:space-y-2">
               {filteredMessages.map((message) => {
                 const likes = messageLikes[message.id] || [];
                 const userHasLiked = likes.some(like => like.user_id === user?.id);
@@ -417,7 +408,7 @@ export const CommunityChatTab = () => {
                   />
                 );
               })}
-              <div ref={messagesEndRef} className="h-4" />
+              <div ref={messagesEndRef} className="h-2 md:h-4" />
             </div>
           )}
         </ScrollArea>
