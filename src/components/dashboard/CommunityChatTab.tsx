@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, ImageIcon, Search, Mic } from 'lucide-react';
+import { Send, ImageIcon, Search, Mic, Sparkles, Bookmark, Filter } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -17,6 +17,9 @@ import { EnhancedMessageItem } from '@/components/messaging/enhanced/EnhancedMes
 import { MentionInput } from '@/components/messaging/enhanced/MentionInput';
 import { VoiceRecorder } from '@/components/messaging/enhanced/VoiceMessage';
 import { TypingIndicator } from '@/components/messaging/TypingIndicator';
+import { SmartReplyPanel } from '@/components/messaging/enhanced/SmartReplyPanel';
+import { AdvancedSearchPanel } from '@/components/messaging/enhanced/AdvancedSearchPanel';
+import { MessageTemplates } from '@/components/messaging/enhanced/MessageTemplates';
 
 interface CommunityChatTabProps {
   onToggleNavigation?: () => void;
@@ -25,6 +28,9 @@ interface CommunityChatTabProps {
 export const CommunityChatTab: React.FC<CommunityChatTabProps> = ({ onToggleNavigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [showSmartReplies, setShowSmartReplies] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const { user } = useAuth();
   const { selectedUserId, isModalOpen, openUserProfile, closeUserProfile } = useUserProfile();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -196,20 +202,94 @@ export const CommunityChatTab: React.FC<CommunityChatTabProps> = ({ onToggleNavi
         onToggleNavigation={onToggleNavigation}
       />
 
-      {/* Search Bar */}
+      {/* Enhanced Search Bar */}
       <div className="border-b bg-card/95 backdrop-blur-sm px-3 py-2 md:px-4 md:py-3 flex-shrink-0">
         <div className="max-w-4xl mx-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search messages..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-8 md:h-9 text-sm"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search messages..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-8 md:h-9 text-sm"
+              />
+            </div>
+            <div className="flex gap-1">
+              <Button
+                variant={showAdvancedSearch ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                className="h-8 px-2"
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={showSmartReplies ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowSmartReplies(!showSmartReplies)}
+                className="h-8 px-2"
+                title="Smart Replies"
+              >
+                <Sparkles className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={showTemplates ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowTemplates(!showTemplates)}
+                className="h-8 px-2"
+                title="Templates"
+              >
+                <Bookmark className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Phase 2 Enhancement Panels */}
+      {showAdvancedSearch && (
+        <div className="border-b border-border px-3 py-2 md:px-4">
+          <div className="max-w-4xl mx-auto">
+            <AdvancedSearchPanel
+              onSearch={(filters) => {
+                console.log('Advanced search:', filters);
+                setShowAdvancedSearch(false);
+              }}
+              onClose={() => setShowAdvancedSearch(false)}
+              isOpen={showAdvancedSearch}
+            />
+          </div>
+        </div>
+      )}
+
+      {showSmartReplies && messages.length > 0 && (
+        <div className="border-b border-border px-3 py-2 md:px-4">
+          <div className="max-w-4xl mx-auto">
+            <SmartReplyPanel
+              recentMessages={messages.slice(-5)}
+              onSelectReply={(reply) => {
+                setDraftMessage(reply);
+                setShowSmartReplies(false);
+              }}
+              currentUserId={user?.id}
+            />
+          </div>
+        </div>
+      )}
+
+      {showTemplates && (
+        <div className="border-b border-border px-3 py-2 md:px-4">
+          <div className="max-w-4xl mx-auto">
+            <MessageTemplates
+              onSelectTemplate={(content) => {
+                setDraftMessage(content);
+                setShowTemplates(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Messages Area */}
       <div className="flex-1 overflow-hidden">
