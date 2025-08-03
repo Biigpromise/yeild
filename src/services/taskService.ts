@@ -72,7 +72,7 @@ export const taskService = {
         .from('task_submissions')
         .select(`
           *,
-          tasks (
+          tasks!fk_task_submissions_task_id (
             id,
             title,
             description,

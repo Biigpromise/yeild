@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Crown,
-  Menu
+  Menu,
+  MessageCircle
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -64,6 +65,14 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
       icon: Heart,
       description: 'Community & Feed',
       route: '/social'
+    },
+    {
+      id: 'chat',
+      label: 'Messages',
+      icon: MessageCircle,
+      description: 'Chat & Messages',
+      route: '/chat',
+      unreadCount: unreadCount
     },
     {
       id: 'wallet',
@@ -200,9 +209,21 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                 <Icon className={cn("h-5 w-5", isActive && "text-primary-foreground")} />
                 {!isCollapsed && (
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm">{item.label}</div>
+                    <div className="font-medium text-sm flex items-center justify-between">
+                      <span>{item.label}</span>
+                      {item.unreadCount && item.unreadCount > 0 && (
+                        <Badge variant="destructive" className="h-5 px-2 text-xs">
+                          {item.unreadCount > 99 ? '99+' : item.unreadCount}
+                        </Badge>
+                      )}
+                    </div>
                     <div className="text-xs opacity-70">{item.description}</div>
                   </div>
+                )}
+                {isCollapsed && item.unreadCount && item.unreadCount > 0 && (
+                  <Badge variant="destructive" className="h-4 w-4 p-0 text-xs flex items-center justify-center">
+                    {item.unreadCount > 9 ? '9+' : item.unreadCount}
+                  </Badge>
                 )}
               </NavLink>
             );

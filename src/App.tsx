@@ -22,6 +22,7 @@ import VerifyResetCode from "./pages/VerifyResetCode";
 import VerifySignupCode from "./pages/VerifySignupCode";
 import CreateNewPassword from "./pages/CreateNewPassword";
 import Tasks from "./pages/Tasks";
+import Chat from "./pages/Chat";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Onboarding from "./pages/Onboarding";
@@ -141,6 +142,7 @@ const AppContent = () => {
           }
         >
           <Route path="social" element={<Social />} />
+          <Route path="chat" element={<Chat />} />
           <Route path="wallet" element={<Wallet />} />
           <Route path="referrals" element={<Referrals />} />
           <Route path="birds" element={<Birds />} />

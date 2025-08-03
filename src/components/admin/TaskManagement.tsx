@@ -21,6 +21,7 @@ import { TaskCategoryManager } from "./enhanced/TaskCategoryManager";
 import { AutomatedProcessingPanel } from "./AutomatedProcessingPanel";
 import { BulkOperationsPanel } from "./BulkOperationsPanel";
 import { RealTimePointsPanel } from "./RealTimePointsPanel";
+import { TaskSourceAnalyticsDashboard } from './TaskSourceAnalyticsDashboard';
 
 export const TaskManagement = () => {
   const {
@@ -102,6 +103,7 @@ export const TaskManagement = () => {
           </TabsTrigger>
           <TabsTrigger value="automation">Auto Processing</TabsTrigger>
           <TabsTrigger value="bulk">Bulk Operations</TabsTrigger>
+          <TabsTrigger value="analytics">Task Analytics</TabsTrigger>
           <TabsTrigger value="realtime">Real-time Points</TabsTrigger>
           <TabsTrigger value="create">Create Task</TabsTrigger>
           <TabsTrigger value="categories">Manage Categories</TabsTrigger>
@@ -155,6 +157,10 @@ export const TaskManagement = () => {
 
         <TabsContent value="bulk" className="flex-1 overflow-y-auto">
           <BulkOperationsPanel />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="flex-1 overflow-y-auto">
+          <TaskSourceAnalyticsDashboard />
         </TabsContent>
 
         <TabsContent value="realtime" className="flex-1 overflow-y-auto">
