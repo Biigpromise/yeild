@@ -16,6 +16,8 @@ export interface Task {
   social_media_links?: Record<string, string> | null;
   brand_user_id?: string;
   category_id?: string;
+  task_source?: string;
+  original_budget?: number;
 }
 
 export interface TaskCategory {

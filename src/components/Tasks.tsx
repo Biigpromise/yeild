@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskSubmissionModal } from "./TaskSubmissionModal";
 import { TaskSocialMediaDisplay } from "./tasks/TaskSocialMediaDisplay";
+import { TaskSourceBadgeEnhanced } from "./tasks/TaskSourceBadgeEnhanced";
 import { taskService, Task, TaskCategory } from "@/services/taskService";
 import { taskSubmissionService } from "@/services/tasks/taskSubmissionService";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,7 +28,9 @@ import {
   CheckCircle,
   Zap,
   Gift,
-  Plus
+  Plus,
+  Shield,
+  Building2
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -42,6 +45,7 @@ const Tasks = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedTaskSource, setSelectedTaskSource] = useState<string>("all");
   const [userSubmissions, setUserSubmissions] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState("available");
   const [isAdmin, setIsAdmin] = useState(false);
@@ -124,8 +128,9 @@ const Tasks = () => {
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          task.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || task.category === selectedCategory;
+    const matchesTaskSource = selectedTaskSource === "all" || task.task_source === selectedTaskSource;
     const matchesTab = activeTab === "available" ? !userSubmissions.has(task.id) : userSubmissions.has(task.id);
-    return matchesSearch && matchesCategory && matchesTab;
+    return matchesSearch && matchesCategory && matchesTaskSource && matchesTab;
   });
 
   const getDifficultyColor = (difficulty: string) => {
@@ -274,6 +279,38 @@ const Tasks = () => {
                   className="pl-10"
                 />
               </div>
+              
+              {/* Task Source Filter */}
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                <Button
+                  variant={selectedTaskSource === "all" ? "default" : "outline"}
+                  onClick={() => setSelectedTaskSource("all")}
+                  size="sm"
+                  className="whitespace-nowrap"
+                >
+                  All Tasks
+                </Button>
+                <Button
+                  variant={selectedTaskSource === "platform" ? "default" : "outline"}
+                  onClick={() => setSelectedTaskSource("platform")}
+                  size="sm"
+                  className="whitespace-nowrap flex items-center gap-1"
+                >
+                  <Shield className="h-3 w-3" />
+                  Platform Tasks
+                </Button>
+                <Button
+                  variant={selectedTaskSource === "brand_campaign" ? "default" : "outline"}
+                  onClick={() => setSelectedTaskSource("brand_campaign")}
+                  size="sm"
+                  className="whitespace-nowrap flex items-center gap-1"
+                >
+                  <Building2 className="h-3 w-3" />
+                  Brand Sponsored
+                </Button>
+              </div>
+
+              {/* Category Filter */}
               <div className="flex gap-2 overflow-x-auto pb-2">
                 <Button
                   variant={selectedCategory === "all" ? "default" : "outline"}
@@ -364,6 +401,20 @@ const Tasks = () => {
                           <span className="font-bold text-sm">{task.points}</span>
                         </div>
                       </div>
+                      
+                      {/* Task Source Badge */}
+                      <div className="mb-2">
+                        <TaskSourceBadgeEnhanced
+                          taskSource={task.task_source || 'platform'}
+                          brandName={task.brand_name}
+                          brandLogo={task.brand_logo_url}
+                          originalBudget={task.original_budget}
+                          points={task.points}
+                          size="sm"
+                          showBudget={task.task_source === 'brand_campaign'}
+                        />
+                      </div>
+                      
                       <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors">
                         {task.title}
                       </CardTitle>

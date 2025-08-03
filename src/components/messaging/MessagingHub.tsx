@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ChatList } from "./ChatList";
-import { ChatWindow } from "./ChatWindow";
+import { EnhancedChatWindow } from "../chat/EnhancedChatWindow";
 
 interface Chat {
   id: string;
@@ -37,11 +37,9 @@ export const MessagingHub = () => {
       />
       
       {selectedChat ? (
-        <ChatWindow
+        <EnhancedChatWindow
           chatId={selectedChat.id}
           chatName={selectedChat.name}
-          isGroupChat={selectedChat.isGroupChat}
-          participants={selectedChat.participants}
           onClose={handleCloseChat}
         />
       ) : (
