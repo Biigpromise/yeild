@@ -24,6 +24,11 @@ export type BrandCampaign = {
   target_audience?: any;
   updated_at?: string;
   wallet_transaction_id?: string;
+  logo_url?: string;
+  converted_to_tasks?: boolean;
+  tasks_generated_at?: string;
+  tasks_generated_by?: string;
+  auto_convert_enabled?: boolean;
   brand_profiles?: {
     company_name: string;
   } | null;

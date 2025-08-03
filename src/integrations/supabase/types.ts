@@ -220,8 +220,10 @@ export type Database = {
           admin_approval_status: string | null
           approved_at: string | null
           approved_by: string | null
+          auto_convert_enabled: boolean | null
           brand_id: string | null
           budget: number
+          converted_to_tasks: boolean | null
           created_at: string | null
           description: string | null
           end_date: string | null
@@ -235,6 +237,8 @@ export type Database = {
           start_date: string | null
           status: string | null
           target_audience: Json | null
+          tasks_generated_at: string | null
+          tasks_generated_by: string | null
           title: string
           updated_at: string | null
           wallet_transaction_id: string | null
@@ -243,8 +247,10 @@ export type Database = {
           admin_approval_status?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          auto_convert_enabled?: boolean | null
           brand_id?: string | null
           budget: number
+          converted_to_tasks?: boolean | null
           created_at?: string | null
           description?: string | null
           end_date?: string | null
@@ -258,6 +264,8 @@ export type Database = {
           start_date?: string | null
           status?: string | null
           target_audience?: Json | null
+          tasks_generated_at?: string | null
+          tasks_generated_by?: string | null
           title: string
           updated_at?: string | null
           wallet_transaction_id?: string | null
@@ -266,8 +274,10 @@ export type Database = {
           admin_approval_status?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          auto_convert_enabled?: boolean | null
           brand_id?: string | null
           budget?: number
+          converted_to_tasks?: boolean | null
           created_at?: string | null
           description?: string | null
           end_date?: string | null
@@ -281,6 +291,8 @@ export type Database = {
           start_date?: string | null
           status?: string | null
           target_audience?: Json | null
+          tasks_generated_at?: string | null
+          tasks_generated_by?: string | null
           title?: string
           updated_at?: string | null
           wallet_transaction_id?: string | null
@@ -638,6 +650,60 @@ export type Database = {
             columns: ["payment_transaction_id"]
             isOneToOne: false
             referencedRelation: "payment_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_task_conversions: {
+        Row: {
+          adjustment_reason: string | null
+          allocated_points: number
+          campaign_id: string
+          converted_by: string | null
+          created_at: string
+          id: string
+          original_budget: number
+          point_adjustment: number | null
+          task_id: string
+          updated_at: string
+        }
+        Insert: {
+          adjustment_reason?: string | null
+          allocated_points: number
+          campaign_id: string
+          converted_by?: string | null
+          created_at?: string
+          id?: string
+          original_budget: number
+          point_adjustment?: number | null
+          task_id: string
+          updated_at?: string
+        }
+        Update: {
+          adjustment_reason?: string | null
+          allocated_points?: number
+          campaign_id?: string
+          converted_by?: string | null
+          created_at?: string
+          id?: string
+          original_budget?: number
+          point_adjustment?: number | null
+          task_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_task_conversions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "brand_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_task_conversions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]
@@ -2568,6 +2634,48 @@ export type Database = {
         }
         Relationships: []
       }
+      task_source_analytics: {
+        Row: {
+          active_tasks: number | null
+          avg_completion_rate: number | null
+          completed_tasks: number | null
+          created_at: string
+          date: string
+          id: string
+          task_source: string
+          total_budget: number | null
+          total_points_awarded: number | null
+          total_tasks: number | null
+          updated_at: string
+        }
+        Insert: {
+          active_tasks?: number | null
+          avg_completion_rate?: number | null
+          completed_tasks?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          task_source: string
+          total_budget?: number | null
+          total_points_awarded?: number | null
+          total_tasks?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active_tasks?: number | null
+          avg_completion_rate?: number | null
+          completed_tasks?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          task_source?: string
+          total_budget?: number | null
+          total_points_awarded?: number | null
+          total_tasks?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       task_submissions: {
         Row: {
           admin_notes: string | null
@@ -2685,6 +2793,7 @@ export type Database = {
       }
       tasks: {
         Row: {
+          approved_by_admin: string | null
           brand_logo_url: string | null
           brand_name: string | null
           brand_user_id: string | null
@@ -2698,13 +2807,18 @@ export type Database = {
           expires_at: string | null
           funded_by: string | null
           id: string
+          original_budget: number | null
+          point_adjustment_reason: string | null
           points: number
           social_media_links: Json | null
+          source_campaign_id: string | null
           status: string | null
+          task_source: string | null
           task_type: string | null
           title: string
         }
         Insert: {
+          approved_by_admin?: string | null
           brand_logo_url?: string | null
           brand_name?: string | null
           brand_user_id?: string | null
@@ -2718,13 +2832,18 @@ export type Database = {
           expires_at?: string | null
           funded_by?: string | null
           id?: string
+          original_budget?: number | null
+          point_adjustment_reason?: string | null
           points?: number
           social_media_links?: Json | null
+          source_campaign_id?: string | null
           status?: string | null
+          task_source?: string | null
           task_type?: string | null
           title: string
         }
         Update: {
+          approved_by_admin?: string | null
           brand_logo_url?: string | null
           brand_name?: string | null
           brand_user_id?: string | null
@@ -2738,9 +2857,13 @@ export type Database = {
           expires_at?: string | null
           funded_by?: string | null
           id?: string
+          original_budget?: number | null
+          point_adjustment_reason?: string | null
           points?: number
           social_media_links?: Json | null
+          source_campaign_id?: string | null
           status?: string | null
+          task_source?: string | null
           task_type?: string | null
           title?: string
         }
@@ -2750,6 +2873,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "task_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_source_campaign_id_fkey"
+            columns: ["source_campaign_id"]
+            isOneToOne: false
+            referencedRelation: "brand_campaigns"
             referencedColumns: ["id"]
           },
         ]
@@ -3429,6 +3559,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_convert_campaign_to_tasks: {
+        Args: { p_campaign_id: string; p_admin_id: string; p_task_data?: Json }
+        Returns: {
+          task_id: string
+          success: boolean
+          message: string
+        }[]
+      }
       award_referral_commission: {
         Args: { downline_user_id: string; points_earned: number }
         Returns: undefined
@@ -3666,6 +3804,10 @@ export type Database = {
         Returns: string
       }
       update_daily_task_analytics: {
+        Args: { target_date?: string }
+        Returns: undefined
+      }
+      update_task_source_analytics: {
         Args: { target_date?: string }
         Returns: undefined
       }

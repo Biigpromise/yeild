@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskSubmissionReview } from "./TaskSubmissionReview";
 import { CreateTaskForm } from "./CreateTaskForm";
 import { CampaignApprovalTab } from "./CampaignApprovalTab";
+import { EnhancedCampaignApprovalTab } from "./campaigns/EnhancedCampaignApprovalTab";
+import { EnhancedTaskTable } from "./tasks/EnhancedTaskTable";
 import { toast } from "sonner";
 import { Plus, CheckCircle } from "lucide-react";
 import { TaskOverviewStats } from "./TaskOverviewStats";
@@ -124,13 +126,12 @@ export const TaskManagement = () => {
                 onStatusFilterChange={setStatusFilter}
               />
               <div className="flex-1 overflow-auto">
-                <TaskTable 
+                <EnhancedTaskTable 
                   tasks={filteredTasks}
-                  getDifficultyColor={getDifficultyColor}
-                  getStatusColor={getStatusColor}
-                  onDeleteTask={handleDeleteTask}
-                  onEditTask={handleEditTask}
-                  deleteLoading={deleteLoading}
+                  loading={loading}
+                  onEdit={handleEditTask}
+                  onDelete={handleDeleteTask}
+                  onView={handleEditTask}
                 />
               </div>
             </CardContent>
@@ -145,7 +146,7 @@ export const TaskManagement = () => {
         </TabsContent>
 
         <TabsContent value="campaigns" className="flex-1 overflow-y-auto">
-          <CampaignApprovalTab />
+          <EnhancedCampaignApprovalTab />
         </TabsContent>
 
         <TabsContent value="automation" className="flex-1 overflow-y-auto">

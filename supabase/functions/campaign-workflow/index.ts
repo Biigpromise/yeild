@@ -126,6 +126,26 @@ serve(async (req) => {
           .select()
           .single();
 
+        // Auto-convert to task if enabled
+        if (campaign.auto_convert_enabled !== false) {
+          try {
+            const { data: taskResult, error: taskError } = await supabaseClient
+              .rpc('auto_convert_campaign_to_tasks', {
+                p_campaign_id: campaign_id,
+                p_admin_id: admin_id
+              });
+
+            if (taskError) {
+              console.error('Auto-conversion error:', taskError);
+            } else if (taskResult && taskResult.length > 0 && taskResult[0].success) {
+              console.log('Campaign auto-converted to task:', taskResult[0].task_id);
+            }
+          } catch (error) {
+            console.error('Auto-conversion failed:', error);
+            // Don't fail the approval if auto-conversion fails
+          }
+        }
+
         // Create notification for brand
         await supabaseClient
           .from('notifications')
@@ -133,7 +153,7 @@ serve(async (req) => {
             user_id: campaign.brand_id,
             type: 'success',
             title: 'Campaign Approved',
-            content: `Your campaign "${campaign.title}" has been approved and is now live!`
+            content: `Your campaign "${campaign.title}" has been approved and is now live!${campaign.auto_convert_enabled !== false ? ' It has been automatically converted to an active task.' : ''}`
           });
 
         break;
