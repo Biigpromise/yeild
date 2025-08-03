@@ -175,7 +175,7 @@ const Social: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="chat" className="mt-0">
-            <div className="h-[calc(100vh-200px)] min-h-[600px]">
+            <div className="fixed inset-0 top-16 z-40 bg-background">
               <CommunityChatTab />
             </div>
           </TabsContent>
