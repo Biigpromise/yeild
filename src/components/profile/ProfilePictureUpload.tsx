@@ -120,8 +120,9 @@ export const ProfilePictureUpload: React.FC<ProfilePictureUploadProps> = ({
           <div className="relative">
             <Avatar className="h-32 w-32 border-4 border-gray-600">
               <AvatarImage 
-                src={userProfile?.profile_picture_url} 
+                src={userProfile?.profile_picture_url ? `${userProfile.profile_picture_url}?t=${Date.now()}` : undefined} 
                 alt={userProfile?.name || 'Profile'} 
+                key={userProfile?.profile_picture_url}
               />
               <AvatarFallback className="text-3xl bg-gray-700 text-white">
                 {userProfile?.name?.charAt(0)?.toUpperCase() || 'U'}

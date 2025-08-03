@@ -30,7 +30,7 @@ export const MessagingHub = () => {
   };
 
   return (
-    <div className="flex gap-4 p-4">
+    <div className="flex h-full">
       <ChatList 
         onChatSelect={handleChatSelect} 
         selectedChatId={selectedChat?.id}
@@ -45,7 +45,7 @@ export const MessagingHub = () => {
           onClose={handleCloseChat}
         />
       ) : (
-        <div className="flex-1 flex items-center justify-center bg-muted/20 rounded-lg">
+        <div className="flex-1 flex items-center justify-center bg-muted/10">
           <div className="text-center text-muted-foreground">
             <div className="text-4xl mb-4">💬</div>
             <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
