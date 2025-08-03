@@ -23,6 +23,8 @@ import { MessageTemplates } from '@/components/messaging/enhanced/MessageTemplat
 import { VoiceInterface } from '@/components/voice/VoiceInterface';
 import { FileShare } from '@/components/collaboration/FileShare';
 import { CollaborativeWhiteboard } from '@/components/collaboration/CollaborativeWhiteboard';
+import { ChatAnalytics } from '@/components/analytics/ChatAnalytics';
+import { PerformanceMonitor } from '@/components/monitoring/PerformanceMonitor';
 
 interface CommunityChatTabProps {
   onToggleNavigation?: () => void;
