@@ -130,7 +130,7 @@ export const automatedTaskProcessingService = {
         .from('task_submissions')
         .select(`
           *,
-          tasks!inner(*)
+          tasks!task_id!inner(*)
         `)
         .eq('status', 'pending')
         .order('submitted_at', { ascending: true })
@@ -284,7 +284,7 @@ export const automatedTaskProcessingService = {
           .from('task_submissions')
           .select(`
             *,
-            tasks!inner(*)
+            tasks!task_id!inner(*)
           `)
           .eq('id', submissionId)
           .single();

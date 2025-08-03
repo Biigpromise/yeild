@@ -42,12 +42,12 @@ export const useBrandSubmissions = () => {
         .from('task_submissions')
         .select(`
           *,
-          tasks!inner(
+          tasks!task_id!inner(
             title,
             points,
             brand_user_id
           ),
-          profiles(
+          profiles!user_id(
             name,
             profile_picture_url
           )
@@ -73,7 +73,7 @@ export const useBrandSubmissions = () => {
         .from('task_submissions')
         .select(`
           *,
-          tasks(
+          tasks!task_id(
             points,
             brand_user_id
           )

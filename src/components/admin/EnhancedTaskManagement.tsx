@@ -57,8 +57,8 @@ export const EnhancedTaskManagement = () => {
         .from('task_submissions')
         .select(`
           *,
-          profiles (name, email),
-          tasks (title, points)
+          profiles!user_id (name, email),
+          tasks!task_id (title, points)
         `)
         .order('submitted_at', { ascending: false });
 
