@@ -2628,6 +2628,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_task_submissions_task_id"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_task_submissions_user_id"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "task_submissions_task_id_fkey"
             columns: ["task_id"]
             isOneToOne: false
@@ -2674,6 +2688,7 @@ export type Database = {
           brand_logo_url: string | null
           brand_name: string | null
           brand_user_id: string | null
+          budget_allocated: number | null
           category: string | null
           category_id: string | null
           created_at: string | null
@@ -2681,6 +2696,7 @@ export type Database = {
           difficulty: string | null
           estimated_time: string | null
           expires_at: string | null
+          funded_by: string | null
           id: string
           points: number
           social_media_links: Json | null
@@ -2692,6 +2708,7 @@ export type Database = {
           brand_logo_url?: string | null
           brand_name?: string | null
           brand_user_id?: string | null
+          budget_allocated?: number | null
           category?: string | null
           category_id?: string | null
           created_at?: string | null
@@ -2699,6 +2716,7 @@ export type Database = {
           difficulty?: string | null
           estimated_time?: string | null
           expires_at?: string | null
+          funded_by?: string | null
           id?: string
           points?: number
           social_media_links?: Json | null
@@ -2710,6 +2728,7 @@ export type Database = {
           brand_logo_url?: string | null
           brand_name?: string | null
           brand_user_id?: string | null
+          budget_allocated?: number | null
           category?: string | null
           category_id?: string | null
           created_at?: string | null
@@ -2717,6 +2736,7 @@ export type Database = {
           difficulty?: string | null
           estimated_time?: string | null
           expires_at?: string | null
+          funded_by?: string | null
           id?: string
           points?: number
           social_media_links?: Json | null

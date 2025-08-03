@@ -75,6 +75,8 @@ export const adminTaskService = {
         description: taskData.description,
         points: taskData.points,
         status: taskData.status || 'active',
+        funded_by: taskData.funded_by || 'admin',
+        budget_allocated: taskData.budget_allocated || 0,
         // Only include optional fields if they have values
         ...(taskData.difficulty && { difficulty: taskData.difficulty }),
         ...(taskData.category && { category: taskData.category }),

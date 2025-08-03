@@ -31,6 +31,8 @@ interface TaskFormData {
   brandLogoUrl: string;
   expiresAt: string;
   socialMediaLinks: Record<string, string>;
+  fundedBy: 'admin' | 'brand';
+  budgetAllocated: string;
 }
 
 const FORM_DRAFT_KEY = "adminTaskCreateDraft";
@@ -52,6 +54,8 @@ const AdminTaskCreate = () => {
     brandName: '',
     brandLogoUrl: '',
     expiresAt: '',
+    fundedBy: 'admin',
+    budgetAllocated: '',
     socialMediaLinks: {
       twitter: '',
       instagram: '',
@@ -135,6 +139,8 @@ const AdminTaskCreate = () => {
         brand_logo_url: formData.brandLogoUrl,
         expires_at: formData.expiresAt,
         social_media_links: formData.socialMediaLinks,
+        funded_by: formData.fundedBy,
+        budget_allocated: parseFloat(formData.budgetAllocated) || 0,
         status: 'active'
       };
 
@@ -318,6 +324,64 @@ const AdminTaskCreate = () => {
                     />
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Funding Source */}
+            <Card className="border-border">
+              <CardHeader>
+                <CardTitle className="text-foreground flex items-center gap-2">
+                  <Star className="w-5 h-5" />
+                  Task Funding
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="fundedBy" className="text-foreground">Funded By *</Label>
+                    <Select value={formData.fundedBy} onValueChange={(value: 'admin' | 'brand') => handleInputChange('fundedBy', value)}>
+                      <SelectTrigger className="border-border bg-background">
+                        <SelectValue placeholder="Select funding source" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Platform/Admin Funded</SelectItem>
+                        <SelectItem value="brand">Brand Funded</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {formData.fundedBy === 'admin' && (
+                    <div>
+                      <Label htmlFor="budgetAllocated" className="text-foreground">Budget Allocated</Label>
+                      <Input
+                        id="budgetAllocated"
+                        type="number"
+                        value={formData.budgetAllocated}
+                        onChange={(e) => handleInputChange('budgetAllocated', e.target.value)}
+                        placeholder="e.g., 5000"
+                        min="0"
+                        step="0.01"
+                        className="border-border bg-background text-foreground"
+                      />
+                    </div>
+                  )}
+                </div>
+                
+                {formData.fundedBy === 'admin' && (
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      This task will be funded by the platform. Budget tracking helps monitor spending on admin-created tasks.
+                    </p>
+                  </div>
+                )}
+                
+                {formData.fundedBy === 'brand' && (
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      This task will be funded by a brand campaign. The task will be linked to an approved and funded brand campaign.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
