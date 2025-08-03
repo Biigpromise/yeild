@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, ImageIcon, Search, Mic, Sparkles, Bookmark, Filter } from 'lucide-react';
+import { Send, ImageIcon, Search, Mic, Sparkles, Bookmark, Filter, Phone, FileText, Palette } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -20,6 +20,9 @@ import { TypingIndicator } from '@/components/messaging/TypingIndicator';
 import { SmartReplyPanel } from '@/components/messaging/enhanced/SmartReplyPanel';
 import { AdvancedSearchPanel } from '@/components/messaging/enhanced/AdvancedSearchPanel';
 import { MessageTemplates } from '@/components/messaging/enhanced/MessageTemplates';
+import { VoiceInterface } from '@/components/voice/VoiceInterface';
+import { FileShare } from '@/components/collaboration/FileShare';
+import { CollaborativeWhiteboard } from '@/components/collaboration/CollaborativeWhiteboard';
 
 interface CommunityChatTabProps {
   onToggleNavigation?: () => void;
@@ -31,6 +34,10 @@ export const CommunityChatTab: React.FC<CommunityChatTabProps> = ({ onToggleNavi
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [showSmartReplies, setShowSmartReplies] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showVoiceInterface, setShowVoiceInterface] = useState(false);
+  const [showFileShare, setShowFileShare] = useState(false);
+  const [showWhiteboard, setShowWhiteboard] = useState(false);
+  const [aiSpeaking, setAiSpeaking] = useState(false);
   const { user } = useAuth();
   const { selectedUserId, isModalOpen, openUserProfile, closeUserProfile } = useUserProfile();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -242,6 +249,33 @@ export const CommunityChatTab: React.FC<CommunityChatTabProps> = ({ onToggleNavi
               >
                 <Bookmark className="h-4 w-4" />
               </Button>
+              <Button
+                variant={showVoiceInterface ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowVoiceInterface(!showVoiceInterface)}
+                className="h-8 px-2"
+                title="Voice Assistant"
+              >
+                <Phone className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={showFileShare ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowFileShare(!showFileShare)}
+                className="h-8 px-2"
+                title="File Sharing"
+              >
+                <FileText className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={showWhiteboard ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowWhiteboard(!showWhiteboard)}
+                className="h-8 px-2"
+                title="Whiteboard"
+              >
+                <Palette className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
@@ -289,7 +323,53 @@ export const CommunityChatTab: React.FC<CommunityChatTabProps> = ({ onToggleNavi
             />
           </div>
         </div>
-      )}
+        )}
+
+        {/* Voice Interface Panel */}
+        {showVoiceInterface && (
+          <div className="border-b border-border px-3 py-2 md:px-4">
+            <div className="max-w-4xl mx-auto">
+              <VoiceInterface
+                onSpeakingChange={setAiSpeaking}
+                onTranscriptUpdate={(transcript) => {
+                  // Optionally handle voice transcripts
+                  console.log('Voice transcript:', transcript);
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* File Share Panel */}
+        {showFileShare && (
+          <div className="border-b border-border px-3 py-2 md:px-4">
+            <div className="max-w-4xl mx-auto">
+              <FileShare
+                chatId="community"
+                onFileShared={(file) => {
+                  // Handle file shared
+                  console.log('File shared:', file);
+                  toast.success(`File "${file.name}" shared successfully!`);
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Whiteboard Panel */}
+        {showWhiteboard && (
+          <div className="border-b border-border px-3 py-2 md:px-4">
+            <div className="max-w-4xl mx-auto">
+              <CollaborativeWhiteboard
+                chatId="community"
+                onSave={(imageData) => {
+                  // Handle whiteboard save
+                  console.log('Whiteboard saved');
+                }}
+              />
+            </div>
+          </div>
+        )}
 
       {/* Messages Area */}
       <div className="flex-1 overflow-hidden">
