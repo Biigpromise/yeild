@@ -219,9 +219,10 @@ export const useEnhancedChat = (chatId: string = 'community') => {
           updated_at: new Date().toISOString()
         });
 
-      // Subscribe to presence changes
+      // Subscribe to presence changes with unique channel name
+      const presenceChannelName = `presence_${chatId}_${user.id}_${Date.now()}`;
       presenceChannelRef.current = supabase
-        .channel(`presence:${chatId}`)
+        .channel(presenceChannelName)
         .on('presence', { event: 'sync' }, () => {
           fetchOnlineUsers();
         })

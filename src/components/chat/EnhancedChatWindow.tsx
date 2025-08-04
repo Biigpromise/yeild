@@ -91,8 +91,9 @@ export const EnhancedChatWindow: React.FC<EnhancedChatWindowProps> = ({
   };
 
   const setupRealtimeSubscription = () => {
+    // Create unique channel name to avoid conflicts
     const channel = supabase
-      .channel('messages_changes')
+      .channel(`enhanced_messages_changes_${chatId}_${Date.now()}`)
       .on(
         'postgres_changes',
         {
