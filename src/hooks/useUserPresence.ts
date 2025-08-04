@@ -22,10 +22,11 @@ export const useUserPresence = (channelName: string = 'general') => {
   const [typingUsers, setTypingUsers] = useState<TypingStatus[]>([]);
   const [isTyping, setIsTyping] = useState(false);
 
-  const channel = supabase.channel(`presence_${channelName}`);
-
   useEffect(() => {
     if (!user) return;
+
+    // Create channel inside useEffect to prevent recreation on every render
+    const channel = supabase.channel(`presence_${channelName}_${user.id}`);
 
     // Subscribe to presence changes
     channel
@@ -120,6 +121,7 @@ export const useUserPresence = (channelName: string = 'general') => {
     if (!user) return;
 
     setIsTyping(typing);
+    const channel = supabase.channel(`presence_${channelName}_${user.id}`);
     channel.send({
       type: 'broadcast',
       event: 'typing',
@@ -129,11 +131,12 @@ export const useUserPresence = (channelName: string = 'general') => {
         isTyping: typing
       }
     });
-  }, [user, channel]);
+  }, [user, channelName]);
 
   const updateStatus = useCallback((status: 'online' | 'away' | 'offline') => {
     if (!user) return;
 
+    const channel = supabase.channel(`presence_${channelName}_${user.id}`);
     channel.track({
       user_id: user.id,
       username: user.email?.split('@')[0] || 'Anonymous',
@@ -141,7 +144,7 @@ export const useUserPresence = (channelName: string = 'general') => {
       online_at: new Date().toISOString(),
       status
     });
-  }, [user, channel]);
+  }, [user, channelName]);
 
   const getTypingUsersExcludingSelf = () => {
     return typingUsers.filter(t => t.userId !== user?.id);

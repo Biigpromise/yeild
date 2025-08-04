@@ -133,9 +133,9 @@ export const useEnhancedChat = (chatId: string = 'community') => {
   useEffect(() => {
     fetchMessages();
 
-    // Message subscriptions
+    // Message subscriptions with unique channel names
     const messageChannel = supabase
-      .channel('messages')
+      .channel(`messages_${chatId}_${Date.now()}`)
       .on('postgres_changes', 
         { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
@@ -156,7 +156,7 @@ export const useEnhancedChat = (chatId: string = 'community') => {
 
     // Reaction subscriptions
     const reactionChannel = supabase
-      .channel('reactions')
+      .channel(`reactions_${chatId}_${Date.now()}`)
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'message_reactions' },
         () => {
@@ -167,7 +167,7 @@ export const useEnhancedChat = (chatId: string = 'community') => {
 
     // Typing indicators
     const typingChannel = supabase
-      .channel('typing_indicators')
+      .channel(`typing_indicators_${chatId}_${Date.now()}`)
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'typing_indicators' },
         async () => {
