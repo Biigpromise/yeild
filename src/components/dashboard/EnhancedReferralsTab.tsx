@@ -31,26 +31,49 @@ export const EnhancedReferralsTab: React.FC = () => {
   const { isConnected, connectionError } = useReferralMonitoring();
 
   const loadReferralStats = async (showToast = false) => {
-    if (!user) return;
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
-      const [stats, earnings, total] = await Promise.all([
+      clearError();
+      
+      const [stats, earnings, total] = await Promise.allSettled([
         referralService.getReferralStats(user.id),
         referralCommissionService.getCommissionEarnings(user.id),
         referralCommissionService.getTotalCommissionEarnings(user.id)
       ]);
       
-      if (stats) {
-        setReferralStats(stats);
+      // Handle stats result
+      if (stats.status === 'fulfilled' && stats.value) {
+        setReferralStats(stats.value);
+      } else {
+        console.warn('Failed to load referral stats:', stats.status === 'rejected' ? stats.reason : 'No data');
       }
-      setCommissionEarnings(earnings);
-      setTotalCommission(total);
-      clearError();
+      
+      // Handle earnings result
+      if (earnings.status === 'fulfilled') {
+        setCommissionEarnings(earnings.value || []);
+      } else {
+        console.warn('Failed to load commission earnings:', earnings.reason);
+        setCommissionEarnings([]);
+      }
+      
+      // Handle total result
+      if (total.status === 'fulfilled') {
+        setTotalCommission(total.value || 0);
+      } else {
+        console.warn('Failed to load total commission:', total.reason);
+        setTotalCommission(0);
+      }
+      
       if (showToast) {
         toast.success('Referral data refreshed');
       }
     } catch (error) {
+      console.error('Error in loadReferralStats:', error);
       handleError(error as Error, 'loading referral stats');
       if (showToast) {
         toast.error('Failed to refresh referral data');

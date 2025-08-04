@@ -36,10 +36,16 @@ export const referralService = {
           .from('profiles')
           .select('active_referrals_count, total_referrals_count')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
         if (error) {
+          console.error('Database error:', error);
           throw new Error(`Failed to fetch referral stats: ${error.message}`);
+        }
+
+        if (!data) {
+          console.warn('No profile found for user:', userId);
+          return { activeReferrals: 0, totalReferrals: 0 };
         }
 
         return {
@@ -49,7 +55,7 @@ export const referralService = {
       }, 'getReferralStats');
     } catch (error) {
       console.error('Error fetching referral stats:', error);
-      toast.error('Failed to load referral statistics');
+      // Don't show toast error for stats loading - handle in UI
       return { activeReferrals: 0, totalReferrals: 0 };
     }
   },

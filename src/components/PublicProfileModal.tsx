@@ -137,26 +137,37 @@ export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({
           <DialogTitle className="flex items-center justify-between">
             <span>User Profile</span>
             {!isOwnProfile && (
-              <Button
-                variant={isFollowing ? "outline" : "default"}
-                size="sm"
-                onClick={handleFollowToggle}
-                disabled={followLoading}
-              >
-                {followLoading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
-                ) : isFollowing ? (
-                  <>
-                    <UserMinus className="h-4 w-4 mr-2" />
-                    Unfollow
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Follow
-                  </>
-                )}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    toast.info('Private chat feature coming soon!');
+                  }}
+                >
+                  Message
+                </Button>
+                <Button
+                  variant={isFollowing ? "outline" : "default"}
+                  size="sm"
+                  onClick={handleFollowToggle}
+                  disabled={followLoading}
+                >
+                  {followLoading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                  ) : isFollowing ? (
+                    <>
+                      <UserMinus className="h-4 w-4 mr-2" />
+                      Unfollow
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Follow
+                    </>
+                  )}
+                </Button>
+              </div>
             )}
           </DialogTitle>
         </DialogHeader>
