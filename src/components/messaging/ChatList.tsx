@@ -47,7 +47,8 @@ export const ChatList = ({ onChatSelect, selectedChatId }: ChatListProps) => {
   useEffect(() => {
     if (user) {
       loadChats();
-      setupRealtimeSubscription();
+      const cleanup = setupRealtimeSubscription();
+      return cleanup;
     }
   }, [user]);
 
@@ -107,8 +108,9 @@ export const ChatList = ({ onChatSelect, selectedChatId }: ChatListProps) => {
   };
 
   const setupRealtimeSubscription = () => {
+    // Create unique channel name to avoid conflicts
     const channel = supabase
-      .channel('chat-list')
+      .channel(`chat_list_${user?.id}_${Date.now()}`)
       .on(
         'postgres_changes',
         {
