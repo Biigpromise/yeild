@@ -142,7 +142,9 @@ export const PublicProfileModal: React.FC<PublicProfileModalProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    toast.info('Private chat feature coming soon!');
+                    // Create a private chat - navigate to messaging with user
+                    window.location.href = `/messaging?user=${userId}`;
+                    onOpenChange(false);
                   }}
                 >
                   Message

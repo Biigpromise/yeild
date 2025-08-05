@@ -70,8 +70,6 @@ const AuthCallback = () => {
           setTimeout(() => {
             if (userType === 'brand') {
               navigate('/brand-dashboard');
-            } else if (data.session.user.email === 'yeildsocials@gmail.com') {
-              navigate('/admin');
             } else {
               navigate('/dashboard');
             }

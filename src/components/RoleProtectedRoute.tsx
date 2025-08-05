@@ -22,13 +22,7 @@ export const RoleProtectedRoute = ({ children, requiredRole }: RoleProtectedRout
       }
 
       try {
-        // Check if user is admin first (hardcoded check)
-        if (user.email === 'yeildsocials@gmail.com') {
-          if (requiredRole === 'admin') {
-            setHasRole(true);
-            return;
-          }
-        }
+        // Use role-based check instead of hardcoded email
 
         // Check user roles in database
         const { data: userRoles, error } = await supabase
@@ -57,7 +51,7 @@ export const RoleProtectedRoute = ({ children, requiredRole }: RoleProtectedRout
         } else {
           // Redirect based on user's actual roles
           const isBrand = roleNames.includes('brand');
-          const isAdmin = roleNames.includes('admin') || user.email === 'yeildsocials@gmail.com';
+          const isAdmin = roleNames.includes('admin');
           
           if (isAdmin) {
             navigate("/admin");

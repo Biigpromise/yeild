@@ -28,9 +28,7 @@ const Login = () => {
   useEffect(() => {
     // Redirect if already authenticated and email is confirmed
     if (user && user.email_confirmed_at) {
-      if (user.email === 'yeildsocials@gmail.com') {
-        navigate('/admin');
-      } else if (user.user_metadata?.user_type === 'brand' || user.user_metadata?.company_name) {
+      if (user.user_metadata?.user_type === 'brand' || user.user_metadata?.company_name) {
         navigate('/brand-dashboard');
       } else {
         navigate('/dashboard');

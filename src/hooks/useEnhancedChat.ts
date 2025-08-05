@@ -140,7 +140,10 @@ export const useEnhancedChat = (chatId: string = 'community') => {
         { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
           const newMessage = payload.new as EnhancedMessage;
-          setMessages(prev => [...prev, newMessage]);
+          // Only add community messages to community chat
+          if (chatId === 'community' || newMessage.parent_message_id || chatId === `chat_${newMessage.user_id}`) {
+            setMessages(prev => [...prev, newMessage]);
+          }
         }
       )
       .on('postgres_changes',
@@ -477,6 +480,9 @@ export const useEnhancedChat = (chatId: string = 'community') => {
         .eq('user_id', user.id);
 
       if (error) throw error;
+      
+      // Remove message from local state immediately
+      setMessages(prev => prev.filter(msg => msg.id !== messageId));
       
       toast.success('Message deleted');
     } catch (error) {

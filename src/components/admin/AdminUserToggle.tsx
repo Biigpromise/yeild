@@ -14,8 +14,8 @@ export const AdminUserToggle = () => {
   const location = useLocation();
   const [isToggling, setIsToggling] = useState(false);
   
-  // Only show for admin users
-  if (userRole !== 'admin') return null;
+  // Only show for admin users and only on admin routes
+  if (userRole !== 'admin' || !location.pathname.includes('/admin')) return null;
   
   const isAdminView = location.pathname.includes('/admin');
   

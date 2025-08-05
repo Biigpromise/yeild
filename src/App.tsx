@@ -50,8 +50,8 @@ const AppContent = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  // Check if user is admin to bypass maintenance mode
-  const isAdmin = user?.email === 'yeildsocials@gmail.com';
+  // Check if user is admin to bypass maintenance mode (use role-based check)
+  const isAdmin = false; // Remove hardcoded email check for maintenance bypass
   
   // Show maintenance mode for non-admin users when enabled
   if (!maintenanceLoading && isMaintenanceMode && !isAdmin) {

@@ -113,10 +113,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log("User signed in:", session?.user?.email);
           localStorage.setItem('last_activity', Date.now().toString());
           
-          // Auto-redirect admin email to admin dashboard
-          if (session?.user?.email === 'yeildsocials@gmail.com') {
-            navigate('/admin');
-          }
+          // Auto-redirect based on user role, not hardcoded email
         } else if (event === 'TOKEN_REFRESHED') {
           console.log("Token refreshed");
           localStorage.setItem('last_activity', Date.now().toString());

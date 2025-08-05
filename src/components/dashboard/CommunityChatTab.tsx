@@ -436,20 +436,53 @@ export const CommunityChatTab: React.FC<CommunityChatTabProps> = ({ onToggleNavi
               /* Normal Message Mode */
               <div className="flex items-end gap-2">
                 <div className="flex-1">
-                  <MentionInput
-                    value={draftMessage}
-                    onChange={(value) => {
-                      setDraftMessage(value);
-                      handleTyping(true);
-                    }}
-                    onSend={handleSendMessage}
-                    placeholder="Type your message... Use @ to mention someone"
-                    disabled={!user}
-                    onTyping={handleTyping}
-                  />
+                  <div className="relative">
+                    <textarea
+                      value={draftMessage}
+                      onChange={(e) => {
+                        setDraftMessage(e.target.value);
+                        handleTyping(true);
+                        // Auto-resize textarea
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = 'auto';
+                        target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          if (draftMessage.trim()) {
+                            handleSendMessage(draftMessage);
+                            setDraftMessage('');
+                            const target = e.target as HTMLTextAreaElement;
+                            target.style.height = 'auto';
+                          }
+                        }
+                      }}
+                      placeholder="Type a message..."
+                      disabled={!user}
+                      className="w-full min-h-[40px] max-h-[120px] p-3 pr-10 border border-input bg-background rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      rows={1}
+                    />
+                    <Button
+                      onClick={() => {
+                        if (draftMessage.trim()) {
+                          handleSendMessage(draftMessage);
+                          setDraftMessage('');
+                          // Reset textarea height
+                          const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
+                          if (textarea) textarea.style.height = 'auto';
+                        }
+                      }}
+                      disabled={!user || !draftMessage.trim()}
+                      size="sm"
+                      className="absolute right-2 bottom-2 h-8 w-8 p-0"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
 
-                {/* Action buttons */}
+                {/* Image upload button */}
                 <div className="flex gap-1">
                   <input
                     ref={fileInputRef}
@@ -468,31 +501,9 @@ export const CommunityChatTab: React.FC<CommunityChatTabProps> = ({ onToggleNavi
                   >
                     <ImageIcon className="h-4 w-4" />
                   </Button>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowVoiceRecorder(true)}
-                    className="h-10 px-3"
-                    disabled={!user}
-                  >
-                    <Mic className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
             )}
-
-            {/* Message input tips */}
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <div className="flex items-center gap-4">
-                <span>@ to mention • Voice messages available</span>
-                {onlineUsers.length > 0 && (
-                  <span>{onlineUsers.length} online</span>
-                )}
-              </div>
-              <span>{user.email}</span>
-            </div>
           </div>
         </div>
       ) : (
