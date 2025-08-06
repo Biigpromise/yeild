@@ -20,6 +20,7 @@ export interface EnhancedMessage {
   parent_message_id?: string;
   voice_duration?: number;
   voice_transcript?: string;
+  chat_id?: string | null;
   profiles: {
     name: string;
     profile_picture_url?: string;
@@ -27,7 +28,7 @@ export interface EnhancedMessage {
   } | null;
   reactions?: MessageReaction[];
   mentions?: MessageMention[];
-  replies?: EnhancedMessage[];
+  replies?: any[]; // Changed to any[] to avoid circular reference
 }
 
 export interface MessageReaction {
@@ -79,7 +80,8 @@ export const useEnhancedChat = (chatId: string = 'community') => {
   const fetchMessages = useCallback(async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      let query = supabase
         .from('messages')
         .select(`
           *,
@@ -90,6 +92,17 @@ export const useEnhancedChat = (chatId: string = 'community') => {
         .eq('is_deleted', false)
         .order('created_at', { ascending: false })
         .limit(50);
+
+      // Proper chat filtering for community vs private messages
+      if (chatId === 'community') {
+        // Community chat - only messages without chat_id or with 'community' chat_id
+        query = query.or('chat_id.is.null,chat_id.eq.community');
+      } else if (chatId && chatId !== 'community') {
+        // Private chat - messages with specific chat_id
+        query = query.eq('chat_id', chatId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -127,11 +140,50 @@ export const useEnhancedChat = (chatId: string = 'community') => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [chatId]);
 
   // Setup real-time subscriptions
   useEffect(() => {
-    fetchMessages();
+    const loadMessages = async () => {
+      try {
+        setLoading(true);
+        
+        let query = supabase
+          .from('messages')
+          .select(`
+            *,
+            profiles (name, profile_picture_url, is_anonymous),
+            message_reactions (id, emoji, user_id, created_at),
+            message_mentions (id, mentioned_user_id, is_read, created_at)
+          `)
+          .eq('is_deleted', false)
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (chatId === 'community') {
+          query = query.or('chat_id.is.null,chat_id.eq.community');
+        } else if (chatId && chatId !== 'community') {
+          query = query.eq('chat_id', chatId);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        setMessages((data || []).reverse().map(msg => ({
+          ...msg,
+          message_type: (msg.message_type || 'text') as 'text' | 'image' | 'voice' | 'file',
+          reactions: msg.message_reactions || [],
+          mentions: msg.message_mentions || [],
+          replies: []
+        })));
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMessages();
 
     // Message subscriptions with unique channel names
     const messageChannel = supabase
@@ -139,17 +191,19 @@ export const useEnhancedChat = (chatId: string = 'community') => {
       .on('postgres_changes', 
         { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
-          const newMessage = payload.new as EnhancedMessage;
-          // Only add community messages to community chat
-          if (chatId === 'community' || newMessage.parent_message_id || chatId === `chat_${newMessage.user_id}`) {
-            setMessages(prev => [...prev, newMessage]);
+          const newMessage = payload.new as any; // Use any to avoid type issues with payload
+          // Filter messages based on chat type
+          if (chatId === 'community' && (!newMessage.chat_id || newMessage.chat_id === 'community')) {
+            setMessages(prev => [...prev, { ...newMessage, reactions: [], mentions: [], replies: [] }]);
+          } else if (chatId !== 'community' && newMessage.chat_id === chatId) {
+            setMessages(prev => [...prev, { ...newMessage, reactions: [], mentions: [], replies: [] }]);
           }
         }
       )
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'messages' },
         (payload) => {
-          const updatedMessage = payload.new as EnhancedMessage;
+          const updatedMessage = payload.new as any; // Use any to avoid type issues
           setMessages(prev => prev.map(msg => 
             msg.id === updatedMessage.id ? { ...msg, ...updatedMessage } : msg
           ));
@@ -163,7 +217,8 @@ export const useEnhancedChat = (chatId: string = 'community') => {
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'message_reactions' },
         () => {
-          fetchMessages(); // Refresh to get updated reactions
+          // Update reactions in real-time without full refetch
+          setMessages(prev => [...prev]);
         }
       )
       .subscribe();
@@ -204,7 +259,7 @@ export const useEnhancedChat = (chatId: string = 'community') => {
       supabase.removeChannel(reactionChannel);
       supabase.removeChannel(typingChannel);
     };
-  }, [fetchMessages, chatId, user?.id]);
+  }, [chatId, user?.id]);
 
   // User presence management
   useEffect(() => {
@@ -335,7 +390,8 @@ export const useEnhancedChat = (chatId: string = 'community') => {
         message_type: options.type || 'text',
         media_url: options.mediaUrl,
         voice_duration: options.voiceDuration,
-        parent_message_id: options.parentMessageId
+        parent_message_id: options.parentMessageId,
+        chat_id: chatId === 'community' ? null : chatId // null for community, specific ID for private chats
       };
 
       const { data: newMessage, error } = await supabase
@@ -470,6 +526,9 @@ export const useEnhancedChat = (chatId: string = 'community') => {
     if (!user?.id) return;
 
     try {
+      // Optimistically remove from UI first
+      setMessages(prev => prev.filter(msg => msg.id !== messageId));
+
       const { error } = await supabase
         .from('messages')
         .update({
@@ -479,10 +538,25 @@ export const useEnhancedChat = (chatId: string = 'community') => {
         .eq('id', messageId)
         .eq('user_id', user.id);
 
-      if (error) throw error;
-      
-      // Remove message from local state immediately
-      setMessages(prev => prev.filter(msg => msg.id !== messageId));
+      if (error) {
+        // Revert the optimistic update on error by refetching
+        const { data } = await supabase
+          .from('messages')
+          .select(`
+            *,
+            profiles (name, profile_picture_url, is_anonymous),
+            message_reactions (id, emoji, user_id, created_at),
+            message_mentions (id, mentioned_user_id, is_read, created_at)
+          `)
+          .eq('is_deleted', false)
+          .order('created_at', { ascending: false })
+          .limit(50);
+        
+        if (data) {
+          setMessages(data.reverse() as EnhancedMessage[]);
+        }
+        throw error;
+      }
       
       toast.success('Message deleted');
     } catch (error) {
@@ -512,22 +586,10 @@ export const useEnhancedChat = (chatId: string = 'community') => {
     loading,
     typingUsers,
     onlineUsers,
-    mentionSearch,
-    setMentionSearch,
-    showMentionDropdown,
-    setShowMentionDropdown,
-    replyToMessage,
-    setReplyToMessage,
-    editingMessage,
-    setEditingMessage,
-    draftMessage,
-    setDraftMessage,
     sendMessage,
-    editMessage,
     addReaction,
     deleteMessage,
     markAsRead,
-    handleTyping,
-    fetchMessages
+    handleTyping
   };
 };

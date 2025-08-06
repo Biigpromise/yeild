@@ -4,13 +4,14 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
-import { Send, ImageIcon, Search, Heart, MessageCircle, Share, Eye, Camera } from 'lucide-react';
+import { Send, ImageIcon, Search, Heart, MessageCircle, Share, Eye, Camera, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { PublicProfileModal } from '@/components/PublicProfileModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useEnhancedChat } from '@/hooks/useEnhancedChat';
+import { CommunityChatMessageComments } from './CommunityChatMessageComments';
 
 interface CommunityChatTabProps {
   onToggleNavigation?: () => void;
@@ -19,6 +20,7 @@ interface CommunityChatTabProps {
 export const CommunityChatTab: React.FC<CommunityChatTabProps> = ({ onToggleNavigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [newMessage, setNewMessage] = useState('');
+  const [showComments, setShowComments] = useState<string | null>(null);
   const { user } = useAuth();
   const { selectedUserId, isModalOpen, openUserProfile, closeUserProfile } = useUserProfile();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -30,7 +32,8 @@ export const CommunityChatTab: React.FC<CommunityChatTabProps> = ({ onToggleNavi
     loading,
     onlineUsers,
     sendMessage,
-    addReaction
+    addReaction,
+    deleteMessage
   } = useEnhancedChat('community');
 
   // Auto-scroll to bottom when new messages arrive
@@ -99,6 +102,20 @@ export const CommunityChatTab: React.FC<CommunityChatTabProps> = ({ onToggleNavi
       await addReaction(messageId, '❤️');
     } catch (error) {
       console.error('Error liking message:', error);
+    }
+  };
+
+  const handleComment = (messageId: string) => {
+    setShowComments(showComments === messageId ? null : messageId);
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    if (window.confirm('Are you sure you want to delete this message?')) {
+      try {
+        await deleteMessage(messageId);
+      } catch (error) {
+        console.error('Error deleting message:', error);
+      }
     }
   };
 
@@ -255,7 +272,10 @@ export const CommunityChatTab: React.FC<CommunityChatTabProps> = ({ onToggleNavi
                             <Heart className="h-4 w-4" />
                             <span>{message.reactions?.filter(r => r.emoji === '❤️').length || 0}</span>
                           </button>
-                          <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-blue-500 transition-colors">
+                          <button 
+                            onClick={() => handleComment(message.id)}
+                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-blue-500 transition-colors"
+                          >
                             <MessageCircle className="h-4 w-4" />
                             <span>Comment</span>
                           </button>
@@ -266,12 +286,27 @@ export const CommunityChatTab: React.FC<CommunityChatTabProps> = ({ onToggleNavi
                             <Share className="h-4 w-4" />
                             <span>Share</span>
                           </button>
+                          {message.user_id === user?.id && (
+                            <button 
+                              onClick={() => handleDeleteMessage(message.id)}
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span>Delete</span>
+                            </button>
+                          )}
                         </div>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Eye className="h-3 w-3" />
                           <span>0 views</span>
                         </div>
                       </div>
+
+                      {/* Comments Section */}
+                      <CommunityChatMessageComments
+                        messageId={message.id}
+                        isVisible={showComments === message.id}
+                      />
                     </div>
                   </div>
                 </Card>
