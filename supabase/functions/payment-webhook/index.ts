@@ -50,14 +50,14 @@ serve(async (req) => {
   }
 
   try {
-    // Verify webhook signature (recommended for production)
-    const webhookSecret = Deno.env.get("FLUTTERWAVE_WEBHOOK_SECRET");
-    if (webhookSecret) {
-      const signature = req.headers.get("verif-hash");
-      if (signature !== webhookSecret) {
-        console.error("Invalid webhook signature");
-        return new Response("Unauthorized", { status: 401 });
-      }
+    // Get the Flutterwave secret key from environment variables
+    const flutterwaveSecretKey = Deno.env.get("FLUTTERWAVE_SECRET_KEY") || "FLWSECK-1d369aa883be0c12c994a2023c5fbc4b-198833e8625vt-X";
+    
+    // Verify webhook signature using the secret key
+    const signature = req.headers.get("verif-hash");
+    if (signature && signature !== flutterwaveSecretKey) {
+      console.error("Invalid webhook signature");
+      return new Response("Unauthorized", { status: 401, headers: corsHeaders });
     }
 
     const payload: FlutterwaveWebhookPayload = await req.json();
@@ -195,18 +195,44 @@ async function processCampaignFunding(supabase: any, transaction: any, meta: any
 
 async function processWalletFunding(supabase: any, transaction: any, meta: any) {
   try {
-    // Process wallet deposit using the stored procedure
-    const { data: transactionId, error: walletError } = await supabase
-      .rpc('process_wallet_transaction', {
-        p_brand_id: transaction.user_id,
-        p_transaction_type: 'deposit',
-        p_amount: transaction.amount_settled || transaction.amount,
-        p_description: `Wallet funding via Flutterwave - ${transaction.transaction_ref}`,
-        p_payment_transaction_id: transaction.id
-      });
+    console.log("Processing wallet funding for user:", transaction.user_id, "Amount:", transaction.amount);
+    
+    // First ensure the brand wallet exists
+    const { data: existingWallet } = await supabase
+      .from("brand_wallets")
+      .select("*")
+      .eq("brand_id", transaction.user_id)
+      .single();
+
+    if (!existingWallet) {
+      // Create wallet if it doesn't exist
+      const { error: createWalletError } = await supabase
+        .from("brand_wallets")
+        .insert({
+          brand_id: transaction.user_id,
+          balance: 0,
+          total_deposited: 0,
+          total_spent: 0
+        });
+
+      if (createWalletError) {
+        console.error("Error creating brand wallet:", createWalletError);
+        return;
+      }
+    }
+
+    // Update wallet balance and total deposited
+    const { error: walletError } = await supabase
+      .from("brand_wallets")
+      .update({
+        balance: supabase.sql`balance + ${transaction.amount_settled || transaction.amount}`,
+        total_deposited: supabase.sql`total_deposited + ${transaction.amount_settled || transaction.amount}`,
+        updated_at: new Date().toISOString()
+      })
+      .eq("brand_id", transaction.user_id);
 
     if (walletError) {
-      console.error("Error processing wallet funding:", walletError);
+      console.error("Error updating wallet balance:", walletError);
       return;
     }
 
@@ -226,7 +252,7 @@ async function processWalletFunding(supabase: any, transaction: any, meta: any) 
       details: {
         amount: transaction.amount,
         transaction_id: transaction.id,
-        wallet_transaction_id: transactionId
+        reference: transaction.transaction_ref
       }
     });
 
