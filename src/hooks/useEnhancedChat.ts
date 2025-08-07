@@ -103,15 +103,27 @@ export const useEnhancedChat = (chatId: string = 'community') => {
 
         let data, error;
         
-        if (chatId === 'community') {
-          const result = await (supabase as any).from('messages').select(selectQuery).eq('is_deleted', false).or('chat_id.is.null,chat_id.eq.community').order('created_at', { ascending: false }).limit(50);
-          data = result.data;
-          error = result.error;
-        } else {
-          const result = await (supabase as any).from('messages').select(selectQuery).eq('is_deleted', false).eq('chat_id', chatId).order('created_at', { ascending: false }).limit(50);
-          data = result.data;
-          error = result.error;
-        }
+      if (chatId === 'community') {
+        const result = await (supabase as any)
+          .from('messages')
+          .select(selectQuery)
+          .eq('is_deleted', false)
+          .is('chat_id', null)
+          .order('created_at', { ascending: false })
+          .limit(50);
+        data = result.data;
+        error = result.error;
+      } else {
+        const result = await (supabase as any)
+          .from('messages')
+          .select(selectQuery)
+          .eq('is_deleted', false)
+          .eq('chat_id', chatId)
+          .order('created_at', { ascending: false })
+          .limit(50);
+        data = result.data;
+        error = result.error;
+      }
         if (error) throw error;
 
         setMessages((data || []).reverse().map(msg => ({
@@ -138,7 +150,7 @@ export const useEnhancedChat = (chatId: string = 'community') => {
         (payload) => {
           const newMessage = payload.new as any; // Use any to avoid type issues with payload
           // Filter messages based on chat type
-          if (chatId === 'community' && (!newMessage.chat_id || newMessage.chat_id === 'community')) {
+          if (chatId === 'community' && newMessage.chat_id === null) {
             setMessages(prev => [...prev, { ...newMessage, reactions: [], mentions: [], replies: [] }]);
           } else if (chatId !== 'community' && newMessage.chat_id === chatId) {
             setMessages(prev => [...prev, { ...newMessage, reactions: [], mentions: [], replies: [] }]);

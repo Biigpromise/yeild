@@ -11,7 +11,8 @@ serve(async (req) => {
   }
 
   try {
-    const flutterwaveSecretKey = Deno.env.get("FLUTTERWAVE_SECRET_KEY");
+    // Update to use the live Flutterwave secret key
+    const flutterwaveSecretKey = "FLWSECK-1d369aa883be0c12c994a2023c5fbc4b-198833e8625vt-X";
     
     if (!flutterwaveSecretKey) {
       return new Response(
@@ -26,7 +27,8 @@ serve(async (req) => {
       JSON.stringify({
         mode: isLiveMode ? "LIVE" : "TEST",
         configured: true,
-        message: isLiveMode ? "Live keys are active" : "Test keys are active"
+        message: isLiveMode ? "Live keys are active" : "Test keys are active",
+        keyPrefix: flutterwaveSecretKey.substring(0, 10) + "..."
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
