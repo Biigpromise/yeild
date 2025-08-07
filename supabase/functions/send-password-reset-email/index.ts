@@ -196,6 +196,25 @@ const handler = async (req: Request): Promise<Response> => {
 
   } catch (error: any) {
     console.error("Error in send-password-reset-email function:", error);
+    
+    // Check if it's a RESEND_API_KEY issue
+    if (error.message?.includes('RESEND_API_KEY') || error.name === 'ResendError') {
+      return new Response(
+        JSON.stringify({ 
+          error: "Email service is currently unavailable. Please try again later or contact support.",
+          success: false,
+          code: 'EMAIL_SERVICE_ERROR'
+        }),
+        {
+          status: 503,
+          headers: { 
+            "Content-Type": "application/json", 
+            ...corsHeaders 
+          },
+        }
+      );
+    }
+    
     return new Response(
       JSON.stringify({ 
         error: error.message || "Failed to send password reset email",

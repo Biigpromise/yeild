@@ -46,6 +46,10 @@ export const handleAuthError = (error: any, operation: string): string => {
     'For security purposes, you can only request this once every 60 seconds': 'Please wait 60 seconds before requesting another password reset.',
     'Unable to validate email address: invalid format': 'Please enter a valid email address.',
     'Password reset requested': 'Password reset email sent successfully. Please check your inbox.',
+    'Edge Function returned a non-2xx status code': 'There was an issue with our email service. Please try again in a few moments.',
+    'FunctionsHttpError': 'Service temporarily unavailable. Please try again in a few moments.',
+    'FunctionsRelayError': 'Service temporarily unavailable. Please try again in a few moments.',
+    'Failed to send password reset email': 'There was an issue sending the password reset email. Please try again.',
   };
 
   // Check for specific error patterns
