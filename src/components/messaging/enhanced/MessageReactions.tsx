@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Smile, Plus } from 'lucide-react';
-import { MessageReaction } from '@/hooks/useEnhancedChat';
+import { MessageReaction } from '@/types/chat';
 
 interface MessageReactionsProps {
   messageId: string;

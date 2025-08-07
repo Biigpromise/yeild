@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MessageSquare, ChevronDown, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { EnhancedMessage } from '@/hooks/useEnhancedChat';
+import { EnhancedMessage } from '@/types/chat';
 import { MessageReactions } from './MessageReactions';
 
 interface MessageThreadsProps {

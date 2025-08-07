@@ -6,7 +6,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { MessageSquare, Edit, Trash2, MoreHorizontal } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-import { EnhancedMessage } from '@/hooks/useEnhancedChat';
+import { EnhancedMessage } from '@/types/chat';
 import { MessageReactions } from './MessageReactions';
 import { MessageThreads } from './MessageThreads';
 import { VoicePlayer } from './VoiceMessage';

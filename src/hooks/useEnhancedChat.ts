@@ -2,64 +2,13 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-
-export interface EnhancedMessage {
-  id: string;
-  content: string;
-  user_id: string;
-  created_at: string;
-  updated_at?: string;
-  media_url?: string;
-  likes_count?: number;
-  views_count?: number;
-  reply_count?: number;
-  message_type: 'text' | 'image' | 'voice' | 'file';
-  is_edited?: boolean;
-  edit_count?: number;
-  last_edited_at?: string;
-  parent_message_id?: string;
-  voice_duration?: number;
-  voice_transcript?: string;
-  chat_id?: string | null;
-  profiles: {
-    name: string;
-    profile_picture_url?: string;
-    is_anonymous?: boolean;
-  } | null;
-  reactions?: MessageReaction[];
-  mentions?: MessageMention[];
-  replies?: any[]; // Changed to any[] to avoid circular reference
-}
-
-export interface MessageReaction {
-  id: string;
-  emoji: string;
-  user_id: string;
-  created_at: string;
-}
-
-export interface MessageMention {
-  id: string;
-  mentioned_user_id: string;
-  is_read: boolean;
-  created_at: string;
-}
-
-export interface TypingUser {
-  user_id: string;
-  name: string;
-  avatar?: string;
-}
-
-export interface UserPresence {
-  id: string;
-  user_id: string;
-  status: string;
-  custom_status?: string;
-  is_online: boolean;
-  last_seen_at: string;
-  updated_at: string;
-}
+import { 
+  EnhancedMessage, 
+  MessageReaction, 
+  MessageMention, 
+  TypingUser, 
+  UserPresence 
+} from '@/types/chat';
 
 export const useEnhancedChat = (chatId: string = 'community') => {
   const [messages, setMessages] = useState<EnhancedMessage[]>([]);
@@ -81,28 +30,24 @@ export const useEnhancedChat = (chatId: string = 'community') => {
     try {
       setLoading(true);
       
-      let query = supabase
-        .from('messages')
-        .select(`
-          *,
-          profiles (name, profile_picture_url, is_anonymous),
-          message_reactions (id, emoji, user_id, created_at),
-          message_mentions (id, mentioned_user_id, is_read, created_at)
-        `)
-        .eq('is_deleted', false)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      const selectQuery = `
+        *,
+        profiles (name, profile_picture_url, is_anonymous),
+        message_reactions (id, emoji, user_id, created_at),
+        message_mentions (id, mentioned_user_id, is_read, created_at)
+      `;
 
-      // Proper chat filtering for community vs private messages
+      let data: any, error: any;
+      
       if (chatId === 'community') {
-        // Community chat - only messages without chat_id or with 'community' chat_id
-        query = query.or('chat_id.is.null,chat_id.eq.community');
-      } else if (chatId && chatId !== 'community') {
-        // Private chat - messages with specific chat_id
-        query = query.eq('chat_id', chatId);
+        const result = await (supabase as any).from('messages').select(selectQuery).eq('is_deleted', false).or('chat_id.is.null,chat_id.eq.community').order('created_at', { ascending: false }).limit(50);
+        data = result.data;
+        error = result.error;
+      } else {
+        const result = await (supabase as any).from('messages').select(selectQuery).eq('is_deleted', false).eq('chat_id', chatId).order('created_at', { ascending: false }).limit(50);
+        data = result.data;
+        error = result.error;
       }
-
-      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -148,25 +93,25 @@ export const useEnhancedChat = (chatId: string = 'community') => {
       try {
         setLoading(true);
         
-        let query = supabase
-          .from('messages')
-          .select(`
-            *,
-            profiles (name, profile_picture_url, is_anonymous),
-            message_reactions (id, emoji, user_id, created_at),
-            message_mentions (id, mentioned_user_id, is_read, created_at)
-          `)
-          .eq('is_deleted', false)
-          .order('created_at', { ascending: false })
-          .limit(50);
+        // Build query based on chat type to avoid TypeScript infinite type issue
+        const selectQuery = `
+          *,
+          profiles (name, profile_picture_url, is_anonymous),
+          message_reactions (id, emoji, user_id, created_at),
+          message_mentions (id, mentioned_user_id, is_read, created_at)
+        `;
 
+        let data, error;
+        
         if (chatId === 'community') {
-          query = query.or('chat_id.is.null,chat_id.eq.community');
-        } else if (chatId && chatId !== 'community') {
-          query = query.eq('chat_id', chatId);
+          const result = await (supabase as any).from('messages').select(selectQuery).eq('is_deleted', false).or('chat_id.is.null,chat_id.eq.community').order('created_at', { ascending: false }).limit(50);
+          data = result.data;
+          error = result.error;
+        } else {
+          const result = await (supabase as any).from('messages').select(selectQuery).eq('is_deleted', false).eq('chat_id', chatId).order('created_at', { ascending: false }).limit(50);
+          data = result.data;
+          error = result.error;
         }
-
-        const { data, error } = await query;
         if (error) throw error;
 
         setMessages((data || []).reverse().map(msg => ({
