@@ -85,6 +85,7 @@ serve(async (req) => {
           flw_ref: payload.data.flw_ref
         },
         payment_method: payload.data.payment_type,
+        payment_type: payload.data.meta?.payment_type,
         verified_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -125,8 +126,8 @@ serve(async (req) => {
 });
 
 async function processPaymentByType(supabase: any, transaction: any, paymentData: any) {
-  const paymentType = transaction.payment_type;
   const meta = paymentData.meta || {};
+  const paymentType = transaction.payment_type || meta.payment_type;
 
   switch (paymentType) {
     case "campaign_funding":
