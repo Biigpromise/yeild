@@ -50,13 +50,11 @@ serve(async (req) => {
   }
 
   try {
-    // Get the Flutterwave secret key from environment variables
-    const flutterwaveSecretKey = Deno.env.get("FLUTTERWAVE_SECRET_KEY") || "FLWSECK-1d369aa883be0c12c994a2023c5fbc4b-198833e8625vt-X";
-    
-    // Verify webhook signature using the secret key
+    // Verify webhook signature using webhook secret or secret key
     const signature = req.headers.get("verif-hash");
-    if (signature && signature !== flutterwaveSecretKey) {
-      console.error("Invalid webhook signature");
+    const webhookSecret = Deno.env.get("FLUTTERWAVE_WEBHOOK_SECRET") || Deno.env.get("FLUTTERWAVE_SECRET_KEY");
+    if (!signature || !webhookSecret || signature !== webhookSecret) {
+      console.error("Invalid or missing webhook signature");
       return new Response("Unauthorized", { status: 401, headers: corsHeaders });
     }
 
@@ -196,13 +194,17 @@ async function processCampaignFunding(supabase: any, transaction: any, meta: any
 async function processWalletFunding(supabase: any, transaction: any, meta: any) {
   try {
     console.log("Processing wallet funding for user:", transaction.user_id, "Amount:", transaction.amount);
-    
-    // First ensure the brand wallet exists
-    const { data: existingWallet } = await supabase
+
+    // Ensure the brand wallet exists
+    const { data: existingWallet, error: walletFetchError } = await supabase
       .from("brand_wallets")
-      .select("*")
+      .select("id")
       .eq("brand_id", transaction.user_id)
-      .single();
+      .maybeSingle();
+
+    if (walletFetchError) {
+      console.error("Error fetching brand wallet:", walletFetchError);
+    }
 
     if (!existingWallet) {
       // Create wallet if it doesn't exist
@@ -221,27 +223,28 @@ async function processWalletFunding(supabase: any, transaction: any, meta: any) 
       }
     }
 
-    // Update wallet balance and total deposited
-    const { error: walletError } = await supabase
-      .from("brand_wallets")
-      .update({
-        balance: supabase.sql`balance + ${transaction.amount_settled || transaction.amount}`,
-        total_deposited: supabase.sql`total_deposited + ${transaction.amount_settled || transaction.amount}`,
-        updated_at: new Date().toISOString()
-      })
-      .eq("brand_id", transaction.user_id);
+    // Process deposit via RPC for atomicity and proper transaction logging
+    const depositAmount = transaction.amount_settled || transaction.amount;
+    const { data: walletTxnId, error: rpcError } = await supabase
+      .rpc("process_wallet_transaction", {
+        p_brand_id: transaction.user_id,
+        p_transaction_type: "deposit",
+        p_amount: depositAmount,
+        p_description: `Wallet funding via Flutterwave - ${transaction.transaction_ref}`,
+        p_payment_transaction_id: transaction.id
+      });
 
-    if (walletError) {
-      console.error("Error updating wallet balance:", walletError);
+    if (rpcError) {
+      console.error("Error processing wallet funding via RPC:", rpcError);
       return;
     }
 
-    console.log("Wallet funded successfully:", transaction.user_id, "Amount:", transaction.amount);
+    console.log("Wallet funded successfully:", transaction.user_id, "Amount:", depositAmount);
 
     // Create admin notification for wallet funding
     await supabase.from("admin_notifications").insert({
       type: "wallet_funding",
-      message: `Brand wallet funded: ₦${transaction.amount.toLocaleString()} by user ${transaction.customer_email}`,
+      message: `Brand wallet funded: ₦${(depositAmount || 0).toLocaleString()} by user ${transaction.user_id}`,
       link_to: `/admin?section=brands&user=${transaction.user_id}`
     });
 
@@ -250,8 +253,9 @@ async function processWalletFunding(supabase: any, transaction: any, meta: any) 
       user_id: transaction.user_id,
       action: "wallet_funded",
       details: {
-        amount: transaction.amount,
+        amount: depositAmount,
         transaction_id: transaction.id,
+        wallet_transaction_id: walletTxnId,
         reference: transaction.transaction_ref
       }
     });
