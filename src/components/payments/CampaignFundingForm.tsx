@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { CreditCard, Target, Users, Calendar, DollarSign } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { pricingService, ExpectedResultRange } from '@/services/pricingService';
 
 interface Campaign {
   id: string;
@@ -36,6 +37,29 @@ export const CampaignFundingForm: React.FC<CampaignFundingFormProps> = ({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const [expected, setExpected] = useState<ExpectedResultRange | null>(null);
+  const [estimating, setEstimating] = useState(false);
+
+  useEffect(() => {
+    const val = parseFloat(amount);
+    if (!val || val <= 0) {
+      setExpected(null);
+      return;
+    }
+    let active = true;
+    setEstimating(true);
+    pricingService
+      .estimateExpectedActions(val, 'NGN')
+      .then((range) => {
+        if (active) setExpected(range);
+      })
+      .finally(() => {
+        if (active) setEstimating(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [amount]);
 
   const fundingProgress = (campaign.funded_amount / campaign.budget) * 100;
   const remainingAmount = campaign.budget - campaign.funded_amount;
@@ -171,6 +195,22 @@ export const CampaignFundingForm: React.FC<CampaignFundingFormProps> = ({
             <p className="text-sm text-muted-foreground mt-1">
               Minimum: ₦100 • Maximum: ₦{remainingAmount.toLocaleString()}
             </p>
+            {estimating && (
+              <p className="text-xs text-muted-foreground mt-1">Estimating expected results…</p>
+            )}
+            {expected && (
+              <div className="mt-3 rounded-lg border p-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Expected results</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  For ₦{parseFloat(amount || '0').toLocaleString()} you can expect approximately
+                  <span className="font-medium"> {expected.min}-{expected.max} </span>
+                  task completions. Actual results may vary.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Quick Amount Buttons */}

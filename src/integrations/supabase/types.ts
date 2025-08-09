@@ -2378,6 +2378,42 @@ export type Database = {
           },
         ]
       }
+      pricing_models: {
+        Row: {
+          action_type: string
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          max_cpa: number
+          min_cpa: number
+          region: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_type?: string
+          created_at?: string
+          currency: string
+          id?: string
+          is_active?: boolean
+          max_cpa: number
+          min_cpa: number
+          region?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          max_cpa?: number
+          min_cpa?: number
+          region?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           active_referrals_count: number | null
