@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,29 +6,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EnhancedReferralSystem } from '@/components/referral/EnhancedReferralSystem';
 import { UserProfileBirds } from '@/components/community/UserProfileBirds';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  Users, 
-  Share2, 
-  Trophy, 
-  TrendingUp,
-  Gift,
-  Crown,
-  Target,
-  Sparkles,
-  Copy,
-  MessageSquare
-} from 'lucide-react';
-
+import { Users, Share2, Trophy, TrendingUp, Gift, Crown, Target, Sparkles, Copy, MessageSquare } from 'lucide-react';
 const Referrals: React.FC = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/20 via-purple-500/20 to-pink-500/20 border-b">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        <div className="relative max-w-7xl mx-auto px-4 py-12">
+        <div className="relative max-w-7xl mx-auto px-4 py-12 bg-neutral-950">
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Users className="h-8 w-8 text-primary" />
@@ -132,12 +119,7 @@ const Referrals: React.FC = () => {
                     <CardTitle className="text-lg">Your Bird Status</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <UserProfileBirds 
-                      points={0} 
-                      tasksCompleted={0} 
-                      level={1} 
-                      activeReferrals={0}
-                    />
+                    <UserProfileBirds points={0} tasksCompleted={0} level={1} activeReferrals={0} />
                   </CardContent>
                 </Card>
 
@@ -208,8 +190,6 @@ const Referrals: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Referrals;
