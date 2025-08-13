@@ -8,21 +8,11 @@ import { BirdAvatar } from '@/components/bird/BirdAvatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { userService } from '@/services/userService';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  Trophy, 
-  Target, 
-  Star, 
-  Crown,
-  Sparkles,
-  TrendingUp,
-  Award,
-  Zap,
-  Users,
-  Gift
-} from 'lucide-react';
-
+import { Trophy, Target, Star, Crown, Sparkles, TrendingUp, Award, Zap, Users, Gift } from 'lucide-react';
 const Birds: React.FC = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [userStats, setUserStats] = useState({
     points: 0,
     tasksCompleted: 0,
@@ -31,35 +21,31 @@ const Birds: React.FC = () => {
   });
   const [birdLevels, setBirdLevels] = useState([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     if (user) {
       loadUserStats();
       loadBirdLevels();
     }
   }, [user]);
-
   const loadBirdLevels = async () => {
     try {
-      const { data, error } = await supabase
-        .from('bird_levels')
-        .select('*')
-        .order('min_referrals', { ascending: true });
-
+      const {
+        data,
+        error
+      } = await supabase.from('bird_levels').select('*').order('min_referrals', {
+        ascending: true
+      });
       if (error) {
         console.error('Error fetching bird levels:', error);
         return;
       }
-
       setBirdLevels(data || []);
     } catch (error) {
       console.error('Error loading bird levels:', error);
     }
   };
-
   const loadUserStats = async () => {
     if (!user) return;
-
     try {
       const profile = await userService.getUserProfile(user.id);
       if (profile) {
@@ -76,47 +62,43 @@ const Birds: React.FC = () => {
       setLoading(false);
     }
   };
-
   const getCurrentBirdLevel = () => {
     if (!birdLevels.length) return null;
-    
     for (let i = birdLevels.length - 1; i >= 0; i--) {
       const level = birdLevels[i];
       if (userStats.activeReferrals >= level.min_referrals && userStats.points >= level.min_points) {
-        return { ...level, index: i };
+        return {
+          ...level,
+          index: i
+        };
       }
     }
-    return { ...birdLevels[0], index: 0 };
+    return {
+      ...birdLevels[0],
+      index: 0
+    };
   };
-
   const currentBirdLevel = getCurrentBirdLevel();
   const nextLevel = currentBirdLevel && birdLevels[currentBirdLevel.index + 1];
-
   const calculateProgress = () => {
     if (!nextLevel) return 100;
-    
-    const referralProgress = (userStats.activeReferrals / nextLevel.min_referrals) * 100;
-    const pointsProgress = (userStats.points / nextLevel.min_points) * 100;
+    const referralProgress = userStats.activeReferrals / nextLevel.min_referrals * 100;
+    const pointsProgress = userStats.points / nextLevel.min_points * 100;
     return Math.min((referralProgress + pointsProgress) / 2, 100);
   };
-
   if (loading || !currentBirdLevel) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center">
+    return <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center">
         <div className="text-center space-y-4">
           <Sparkles className="h-8 w-8 animate-spin mx-auto text-primary" />
           <p className="text-muted-foreground">Loading your bird status...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/20 via-purple-500/20 to-orange-500/20 border-b">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        <div className="relative max-w-7xl mx-auto px-4 py-12">
+        <div className="relative max-w-7xl mx-auto px-4 py-12 bg-neutral-950">
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-4 mb-4">
               <BirdAvatar name={currentBirdLevel.name} size="xl" animated={true} />
@@ -124,15 +106,13 @@ const Birds: React.FC = () => {
                 Bird Status System
               </h1>
             </div>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg max-w-2xl mx-auto text-neutral-50">
               Rise through the ranks and unlock exclusive benefits as you complete tasks and refer friends
             </p>
             <div className="flex items-center justify-center gap-4 pt-4">
-              <Badge 
-                variant="secondary" 
-                className="flex items-center gap-1 text-white"
-                style={{ backgroundColor: currentBirdLevel.color }}
-              >
+              <Badge variant="secondary" className="flex items-center gap-1 text-white" style={{
+              backgroundColor: currentBirdLevel.color
+            }}>
                 <Crown className="h-3 w-3" />
                 {currentBirdLevel.name}
               </Badge>
@@ -157,15 +137,9 @@ const Birds: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <UserProfileBirds 
-                  points={userStats.points}
-                  tasksCompleted={userStats.tasksCompleted}
-                  level={userStats.level}
-                  activeReferrals={userStats.activeReferrals}
-                />
+                <UserProfileBirds points={userStats.points} tasksCompleted={userStats.tasksCompleted} level={userStats.level} activeReferrals={userStats.activeReferrals} />
                 
-                {nextLevel && (
-                  <div className="mt-6 space-y-3">
+                {nextLevel && <div className="mt-6 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Progress to {nextLevel.name}</span>
                       <span className="text-sm text-muted-foreground">{Math.round(calculateProgress())}%</span>
@@ -175,8 +149,7 @@ const Birds: React.FC = () => {
                       <span>Referrals: {userStats.activeReferrals}/{nextLevel.min_referrals}</span>
                       <span>Points: {userStats.points.toLocaleString()}/{nextLevel.min_points.toLocaleString()}</span>
                     </div>
-                  </div>
-                )}
+                  </div>}
               </CardContent>
             </Card>
           </div>
@@ -218,12 +191,10 @@ const Birds: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {currentBirdLevel.benefits?.map((benefit, index) => (
-                    <div key={index} className="flex items-center gap-2">
+                  {currentBirdLevel.benefits?.map((benefit, index) => <div key={index} className="flex items-center gap-2">
                       <Star className="h-3 w-3 text-yellow-500" />
                       <span className="text-sm">{benefit}</span>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
               </CardContent>
             </Card>
@@ -238,38 +209,20 @@ const Birds: React.FC = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
             {birdLevels.map((level, index) => {
-              const isUnlocked = userStats.activeReferrals >= level.min_referrals && userStats.points >= level.min_points;
-              const isCurrent = currentBirdLevel && level.name === currentBirdLevel.name;
-              
-              return (
-                <Card 
-                  key={level.name}
-                  className={`relative transition-all duration-300 hover:scale-105 ${
-                    isCurrent 
-                      ? 'ring-2 ring-primary shadow-lg' 
-                      : isUnlocked 
-                        ? 'opacity-100' 
-                        : 'opacity-60'
-                  }`}
-                >
-                  {isCurrent && (
-                    <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full font-bold">
+            const isUnlocked = userStats.activeReferrals >= level.min_referrals && userStats.points >= level.min_points;
+            const isCurrent = currentBirdLevel && level.name === currentBirdLevel.name;
+            return <Card key={level.name} className={`relative transition-all duration-300 hover:scale-105 ${isCurrent ? 'ring-2 ring-primary shadow-lg' : isUnlocked ? 'opacity-100' : 'opacity-60'}`}>
+                  {isCurrent && <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full font-bold">
                       Current
-                    </div>
-                  )}
+                    </div>}
                   
                   <CardContent className="p-4 text-center">
                     <div className="mb-3 flex justify-center">
-                      <BirdAvatar 
-                        name={level.name} 
-                        size="lg" 
-                        animated={isCurrent || level.name.toLowerCase() === 'phoenix'} 
-                      />
+                      <BirdAvatar name={level.name} size="lg" animated={isCurrent || level.name.toLowerCase() === 'phoenix'} />
                     </div>
-                    <h3 
-                      className="font-bold text-lg mb-1"
-                      style={{ color: isUnlocked ? level.color : undefined }}
-                    >
+                    <h3 className="font-bold text-lg mb-1" style={{
+                  color: isUnlocked ? level.color : undefined
+                }}>
                       {level.name}
                     </h3>
                     <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
@@ -290,23 +243,16 @@ const Birds: React.FC = () => {
                     <div className="mt-3 pt-3 border-t">
                       <p className="text-xs font-medium mb-1">Benefits:</p>
                       <div className="space-y-1">
-                        {level.benefits?.slice(0, 2).map((benefit, idx) => (
-                          <div key={idx} className="flex items-center gap-1">
+                        {level.benefits?.slice(0, 2).map((benefit, idx) => <div key={idx} className="flex items-center gap-1">
                             <Zap className="h-2 w-2 text-yellow-500" />
                             <span className="text-xs">{benefit}</span>
-                          </div>
-                        )) || (
-                          <div className="text-xs text-muted-foreground">Coming soon...</div>
-                        )}
-                        {level.benefits && level.benefits.length > 2 && (
-                          <p className="text-xs text-muted-foreground">+{level.benefits.length - 2} more</p>
-                        )}
+                          </div>) || <div className="text-xs text-muted-foreground">Coming soon...</div>}
+                        {level.benefits && level.benefits.length > 2 && <p className="text-xs text-muted-foreground">+{level.benefits.length - 2} more</p>}
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              );
-            })}
+                </Card>;
+          })}
           </div>
         </div>
 
@@ -339,8 +285,6 @@ const Birds: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Birds;
