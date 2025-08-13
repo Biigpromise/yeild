@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,30 +10,18 @@ import { Leaderboard } from '@/components/Leaderboard';
 import { WeeklyChampions } from '@/components/social/WeeklyChampions';
 import { UserProfileBirds } from '@/components/community/UserProfileBirds';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  Users, 
-  MessageCircle, 
-  Trophy, 
-  Star, 
-  TrendingUp,
-  Activity,
-  Crown,
-  Heart,
-  Share2,
-  BookOpen
-} from 'lucide-react';
-
+import { Users, MessageCircle, Trophy, Star, TrendingUp, Activity, Crown, Heart, Share2, BookOpen } from 'lucide-react';
 const Social: React.FC = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [activeTab, setActiveTab] = useState('community');
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/20 via-purple-500/20 to-blue-500/20 border-b">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        <div className="relative max-w-7xl mx-auto px-4 py-12">
+        <div className="relative max-w-7xl mx-auto px-4 py-12 bg-neutral-950">
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Users className="h-8 w-8 text-primary" />
@@ -122,8 +109,7 @@ const Social: React.FC = () => {
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Hide tabs when in chat mode */}
-          {activeTab !== 'chat' && (
-            <TabsList className="grid w-full grid-cols-4">
+          {activeTab !== 'chat' && <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="community" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 Community
@@ -140,59 +126,41 @@ const Social: React.FC = () => {
                 <BookOpen className="h-4 w-4" />
                 Stories
               </TabsTrigger>
-            </TabsList>
-          )}
+            </TabsList>}
 
           {/* Navigation Panel for Chat Mode */}
-          {activeTab === 'chat' && isNavigationOpen && (
-            <>
-              <div 
-                className="fixed inset-0 bg-black/50 z-40"
-                onClick={() => setIsNavigationOpen(false)}
-              />
+          {activeTab === 'chat' && isNavigationOpen && <>
+              <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsNavigationOpen(false)} />
               <div className="fixed top-16 left-0 right-0 bg-background border-b shadow-lg z-50 animate-fade-in">
                 <div className="grid grid-cols-4 p-2">
-                  <button
-                    onClick={() => {
-                      setActiveTab("community");
-                      setIsNavigationOpen(false);
-                    }}
-                    className="flex items-center justify-center gap-2 p-3 rounded-lg hover:bg-muted transition-colors"
-                  >
+                  <button onClick={() => {
+                setActiveTab("community");
+                setIsNavigationOpen(false);
+              }} className="flex items-center justify-center gap-2 p-3 rounded-lg hover:bg-muted transition-colors">
                     <Users className="h-4 w-4" />
                     Community
                   </button>
-                  <button
-                    onClick={() => setIsNavigationOpen(false)}
-                    className="flex items-center justify-center gap-2 p-3 rounded-lg bg-muted"
-                  >
+                  <button onClick={() => setIsNavigationOpen(false)} className="flex items-center justify-center gap-2 p-3 rounded-lg bg-muted">
                     <MessageCircle className="h-4 w-4" />
                     Chat
                   </button>
-                  <button
-                    onClick={() => {
-                      setActiveTab("leaderboard");
-                      setIsNavigationOpen(false);
-                    }}
-                    className="flex items-center justify-center gap-2 p-3 rounded-lg hover:bg-muted transition-colors"
-                  >
+                  <button onClick={() => {
+                setActiveTab("leaderboard");
+                setIsNavigationOpen(false);
+              }} className="flex items-center justify-center gap-2 p-3 rounded-lg hover:bg-muted transition-colors">
                     <Trophy className="h-4 w-4" />
                     Leaderboard
                   </button>
-                  <button
-                    onClick={() => {
-                      setActiveTab("stories");
-                      setIsNavigationOpen(false);
-                    }}
-                    className="flex items-center justify-center gap-2 p-3 rounded-lg hover:bg-muted transition-colors"
-                  >
+                  <button onClick={() => {
+                setActiveTab("stories");
+                setIsNavigationOpen(false);
+              }} className="flex items-center justify-center gap-2 p-3 rounded-lg hover:bg-muted transition-colors">
                     <BookOpen className="h-4 w-4" />
                     Stories
                   </button>
                 </div>
               </div>
-            </>
-          )}
+            </>}
 
           <TabsContent value="community" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -208,14 +176,7 @@ const Social: React.FC = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {user && (
-                      <UserProfileBirds 
-                        points={0} 
-                        tasksCompleted={0} 
-                        level={1} 
-                        activeReferrals={0}
-                      />
-                    )}
+                    {user && <UserProfileBirds points={0} tasksCompleted={0} level={1} activeReferrals={0} />}
                   </CardContent>
                 </Card>
                 <Card>
@@ -275,8 +236,6 @@ const Social: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Social;
