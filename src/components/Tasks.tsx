@@ -12,32 +12,14 @@ import { taskSubmissionService } from "@/services/tasks/taskSubmissionService";
 import { useAuth } from "@/contexts/AuthContext";
 import { CreateTaskForm } from "@/components/admin/CreateTaskForm";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  Search, 
-  Filter, 
-  Calendar, 
-  Star, 
-  Trophy, 
-  Target, 
-  ArrowLeft,
-  Sparkles,
-  TrendingUp,
-  Clock,
-  Users,
-  Award,
-  CheckCircle,
-  Zap,
-  Gift,
-  Plus,
-  Shield,
-  Building2
-} from "lucide-react";
+import { Search, Filter, Calendar, Star, Trophy, Target, ArrowLeft, Sparkles, TrendingUp, Clock, Users, Award, CheckCircle, Zap, Gift, Plus, Shield, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-
 const Tasks = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<TaskCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,24 +32,19 @@ const Tasks = () => {
   const [activeTab, setActiveTab] = useState("available");
   const [isAdmin, setIsAdmin] = useState(false);
   const [showCreateTask, setShowCreateTask] = useState(false);
-
   useEffect(() => {
     loadTasks();
     loadCategories();
     checkUserSubmissions();
     checkAdminStatus();
   }, []);
-
   const checkAdminStatus = async () => {
     if (!user) return;
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .single();
-      
+      const {
+        data,
+        error
+      } = await supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin').single();
       if (!error && data) {
         setIsAdmin(true);
       }
@@ -75,7 +52,6 @@ const Tasks = () => {
       console.log('User is not admin');
     }
   };
-
   const loadTasks = async () => {
     try {
       console.log('Loading tasks...');
@@ -89,7 +65,6 @@ const Tasks = () => {
       setLoading(false);
     }
   };
-
   const loadCategories = async () => {
     try {
       const categoriesData = await taskService.getCategories();
@@ -98,7 +73,6 @@ const Tasks = () => {
       console.error('Error loading categories:', error);
     }
   };
-
   const checkUserSubmissions = async () => {
     try {
       const submissions = await taskService.getUserSubmissions();
@@ -108,7 +82,6 @@ const Tasks = () => {
       console.error('Error checking user submissions:', error);
     }
   };
-
   const handleTaskClick = async (task: Task) => {
     const hasSubmitted = await taskSubmissionService.hasUserSubmittedTask(task.id);
     if (hasSubmitted) {
@@ -118,62 +91,56 @@ const Tasks = () => {
     setSelectedTask(task);
     setIsModalOpen(true);
   };
-
   const handleTaskSubmitted = () => {
     checkUserSubmissions();
     loadTasks();
   };
-
   const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) || task.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || task.category === selectedCategory;
     const matchesTaskSource = selectedTaskSource === "all" || task.task_source === selectedTaskSource;
     const matchesTab = activeTab === "available" ? !userSubmissions.has(task.id) : userSubmissions.has(task.id);
     return matchesSearch && matchesCategory && matchesTaskSource && matchesTab;
   });
-
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty?.toLowerCase()) {
-      case 'easy': return 'bg-green-500/10 text-green-600 border border-green-500/20';
-      case 'medium': return 'bg-yellow-500/10 text-yellow-600 border border-yellow-500/20';
-      case 'hard': return 'bg-red-500/10 text-red-600 border border-red-500/20';
-      default: return 'bg-gray-500/10 text-gray-600 border border-gray-500/20';
+      case 'easy':
+        return 'bg-green-500/10 text-green-600 border border-green-500/20';
+      case 'medium':
+        return 'bg-yellow-500/10 text-yellow-600 border border-yellow-500/20';
+      case 'hard':
+        return 'bg-red-500/10 text-red-600 border border-red-500/20';
+      default:
+        return 'bg-gray-500/10 text-gray-600 border border-gray-500/20';
     }
   };
-
   const getCategoryIcon = (category: string) => {
     switch (category?.toLowerCase()) {
-      case 'social_media': return <Star className="h-4 w-4" />;
-      case 'content_creation': return <Trophy className="h-4 w-4" />;
-      case 'engagement': return <Target className="h-4 w-4" />;
-      default: return <Calendar className="h-4 w-4" />;
+      case 'social_media':
+        return <Star className="h-4 w-4" />;
+      case 'content_creation':
+        return <Trophy className="h-4 w-4" />;
+      case 'engagement':
+        return <Target className="h-4 w-4" />;
+      default:
+        return <Calendar className="h-4 w-4" />;
     }
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center">
+    return <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center">
         <div className="text-center space-y-4">
           <Sparkles className="h-8 w-8 animate-spin mx-auto text-primary" />
           <p className="text-muted-foreground">Loading your tasks...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/20 via-blue-500/20 to-purple-500/20 border-b">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        <div className="relative max-w-7xl mx-auto px-4 py-12">
+        <div className="relative max-w-7xl mx-auto px-4 py-12 bg-stone-950">
           <div className="flex items-center justify-between mb-6">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 text-muted-foreground hover:text-primary"
-            >
+            <Button variant="ghost" onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-muted-foreground hover:text-primary">
               <ArrowLeft className="h-4 w-4" />
               Back to Dashboard
             </Button>
@@ -181,7 +148,7 @@ const Tasks = () => {
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Target className="h-8 w-8 text-primary" />
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-[#bea200]">
                 Tasks
               </h1>
             </div>
@@ -272,39 +239,19 @@ const Tasks = () => {
             <div className="space-y-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search tasks by title or description..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+                <Input placeholder="Search tasks by title or description..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
               </div>
               
               {/* Task Source Filter */}
               <div className="flex gap-2 overflow-x-auto pb-2">
-                <Button
-                  variant={selectedTaskSource === "all" ? "default" : "outline"}
-                  onClick={() => setSelectedTaskSource("all")}
-                  size="sm"
-                  className="whitespace-nowrap"
-                >
+                <Button variant={selectedTaskSource === "all" ? "default" : "outline"} onClick={() => setSelectedTaskSource("all")} size="sm" className="whitespace-nowrap">
                   All Tasks
                 </Button>
-                <Button
-                  variant={selectedTaskSource === "platform" ? "default" : "outline"}
-                  onClick={() => setSelectedTaskSource("platform")}
-                  size="sm"
-                  className="whitespace-nowrap flex items-center gap-1"
-                >
+                <Button variant={selectedTaskSource === "platform" ? "default" : "outline"} onClick={() => setSelectedTaskSource("platform")} size="sm" className="whitespace-nowrap flex items-center gap-1">
                   <Shield className="h-3 w-3" />
                   Platform Tasks
                 </Button>
-                <Button
-                  variant={selectedTaskSource === "brand_campaign" ? "default" : "outline"}
-                  onClick={() => setSelectedTaskSource("brand_campaign")}
-                  size="sm"
-                  className="whitespace-nowrap flex items-center gap-1"
-                >
+                <Button variant={selectedTaskSource === "brand_campaign" ? "default" : "outline"} onClick={() => setSelectedTaskSource("brand_campaign")} size="sm" className="whitespace-nowrap flex items-center gap-1">
                   <Building2 className="h-3 w-3" />
                   Brand Sponsored
                 </Button>
@@ -312,58 +259,38 @@ const Tasks = () => {
 
               {/* Category Filter */}
               <div className="flex gap-2 overflow-x-auto pb-2">
-                <Button
-                  variant={selectedCategory === "all" ? "default" : "outline"}
-                  onClick={() => setSelectedCategory("all")}
-                  size="sm"
-                  className="whitespace-nowrap"
-                >
+                <Button variant={selectedCategory === "all" ? "default" : "outline"} onClick={() => setSelectedCategory("all")} size="sm" className="whitespace-nowrap">
                   All Categories
                 </Button>
-                {categories.map((category) => (
-                  <Button
-                    key={category.id}
-                    variant={selectedCategory === category.name ? "default" : "outline"}
-                    onClick={() => setSelectedCategory(category.name)}
-                    size="sm"
-                    className="whitespace-nowrap"
-                  >
+                {categories.map(category => <Button key={category.id} variant={selectedCategory === category.name ? "default" : "outline"} onClick={() => setSelectedCategory(category.name)} size="sm" className="whitespace-nowrap">
                     {category.name.replace('_', ' ')}
-                  </Button>
-                ))}
+                  </Button>)}
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Admin Create Task Section */}
-        {isAdmin && (
-          <Card>
+        {isAdmin && <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Plus className="h-5 w-5" />
                   Admin Task Management
                 </CardTitle>
-                <Button 
-                  onClick={() => setShowCreateTask(!showCreateTask)}
-                  variant={showCreateTask ? "secondary" : "default"}
-                >
+                <Button onClick={() => setShowCreateTask(!showCreateTask)} variant={showCreateTask ? "secondary" : "default"}>
                   {showCreateTask ? "Hide Form" : "Create New Task"}
                 </Button>
               </div>
             </CardHeader>
-            {showCreateTask && (
-              <CardContent>
+            {showCreateTask && <CardContent>
                 <CreateTaskForm onTaskCreated={() => {
-                  loadTasks();
-                  setShowCreateTask(false);
-                  toast.success("Task created successfully!");
-                }} />
-              </CardContent>
-            )}
-          </Card>
-        )}
+            loadTasks();
+            setShowCreateTask(false);
+            toast.success("Task created successfully!");
+          }} />
+              </CardContent>}
+          </Card>}
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -380,14 +307,9 @@ const Tasks = () => {
 
           <TabsContent value="available" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTasks.map((task) => {
-                const isSubmitted = userSubmissions.has(task.id);
-                return (
-                  <Card 
-                    key={task.id} 
-                    className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 border-2 hover:border-primary/50"
-                    onClick={() => !isSubmitted && handleTaskClick(task)}
-                  >
+              {filteredTasks.map(task => {
+              const isSubmitted = userSubmissions.has(task.id);
+              return <Card key={task.id} className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 border-2 hover:border-primary/50" onClick={() => !isSubmitted && handleTaskClick(task)}>
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2 flex-1">
@@ -404,15 +326,7 @@ const Tasks = () => {
                       
                       {/* Task Source Badge */}
                       <div className="mb-2">
-                        <TaskSourceBadgeEnhanced
-                          taskSource={task.task_source || 'platform'}
-                          brandName={task.brand_name}
-                          brandLogo={task.brand_logo_url}
-                          originalBudget={task.original_budget}
-                          points={task.points}
-                          size="sm"
-                          showBudget={task.task_source === 'brand_campaign'}
-                        />
+                        <TaskSourceBadgeEnhanced taskSource={task.task_source || 'platform'} brandName={task.brand_name} brandLogo={task.brand_logo_url} originalBudget={task.original_budget} points={task.points} size="sm" showBudget={task.task_source === 'brand_campaign'} />
                       </div>
                       
                       <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors">
@@ -425,10 +339,7 @@ const Tasks = () => {
                       </p>
                       
                       {/* Show social media links if available */}
-                      <TaskSocialMediaDisplay 
-                        socialLinks={task.social_media_links} 
-                        taskTitle={task.title}
-                      />
+                      <TaskSocialMediaDisplay socialLinks={task.social_media_links} taskTitle={task.title} />
                       
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
@@ -446,16 +357,14 @@ const Tasks = () => {
                         Start Task
                       </Button>
                     </CardContent>
-                  </Card>
-                );
-              })}
+                  </Card>;
+            })}
             </div>
           </TabsContent>
 
           <TabsContent value="completed" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTasks.map((task) => (
-                <Card key={task.id} className="opacity-75 border-2 border-green-500/20">
+              {filteredTasks.map(task => <Card key={task.id} className="opacity-75 border-2 border-green-500/20">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2 flex-1">
@@ -487,47 +396,29 @@ const Tasks = () => {
                       </Badge>
                     </div>
                   </CardContent>
-                </Card>
-              ))}
+                </Card>)}
             </div>
           </TabsContent>
         </Tabs>
 
-        {filteredTasks.length === 0 && !loading && (
-          <Card>
+        {filteredTasks.length === 0 && !loading && <Card>
             <CardContent className="p-12 text-center">
               <Target className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
               <h3 className="text-xl font-semibold mb-2">No tasks found</h3>
               <p className="text-muted-foreground mb-4">
-                {searchTerm || selectedCategory !== "all" 
-                  ? "Try adjusting your search or filters to find more tasks"
-                  : "Check back later for new tasks to complete"
-                }
+                {searchTerm || selectedCategory !== "all" ? "Try adjusting your search or filters to find more tasks" : "Check back later for new tasks to complete"}
               </p>
-              {(searchTerm || selectedCategory !== "all") && (
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setSearchTerm("");
-                    setSelectedCategory("all");
-                  }}
-                >
+              {(searchTerm || selectedCategory !== "all") && <Button variant="outline" onClick={() => {
+            setSearchTerm("");
+            setSelectedCategory("all");
+          }}>
                   Clear Filters
-                </Button>
-              )}
+                </Button>}
             </CardContent>
-          </Card>
-        )}
+          </Card>}
 
-        <TaskSubmissionModal
-          task={selectedTask}
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSubmitted={handleTaskSubmitted}
-        />
+        <TaskSubmissionModal task={selectedTask} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmitted={handleTaskSubmitted} />
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Tasks;
