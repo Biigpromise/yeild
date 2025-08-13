@@ -22,7 +22,7 @@ export const EnhancedWalletOverview: React.FC<EnhancedWalletOverviewProps> = ({
   const usdValue = currencyService.pointsToUSD(userPoints);
   return <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 bg-gray-950">
       <CardHeader className="bg-neutral-950">
-        <div className="flex items-center justify-between bg-slate-950">
+        <div className="flex items-center justify-between bg-stone-950">
           <CardTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5 text-blue-600" />
             Enhanced Wallet
@@ -39,12 +39,12 @@ export const EnhancedWalletOverview: React.FC<EnhancedWalletOverviewProps> = ({
       </CardHeader>
       <CardContent className="space-y-6 bg-neutral-950">
         {/* Main Balance Display */}
-        <div className="text-center p-6 bg-white/50 backdrop-blur-sm rounded-lg border border-blue-100">
+        <div className="text-center p-6 backdrop-blur-sm rounded-lg border border-blue-100 bg-neutral-950">
           <div className="text-4xl font-bold text-blue-600 mb-2">
             {showBalance ? `${userPoints.toLocaleString()}` : '•••••••'}
           </div>
           <div className="text-lg text-blue-500 mb-1">Points</div>
-          <div className="text-sm text-muted-foreground bg-slate-950">
+          <div className="text-sm text-muted-foreground bg-amber-400">
             ≈ ${showBalance ? usdValue : '•••'} USD
           </div>
         </div>
