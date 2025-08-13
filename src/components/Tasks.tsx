@@ -334,7 +334,7 @@ const Tasks = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-muted-foreground text-sm line-clamp-3">
+                      <p className="text-sm line-clamp-3 text-red-600">
                         {task.description}
                       </p>
                       
