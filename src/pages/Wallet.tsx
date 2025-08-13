@@ -68,7 +68,7 @@ const Wallet: React.FC = () => {
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/20 via-green-500/20 to-blue-500/20 border-b">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        <div className="relative max-w-7xl mx-auto px-4 py-12 bg-gray-950">
+        <div className="relative max-w-7xl mx-auto px-4 py-12 bg-neutral-950">
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-2 mb-4">
               <WalletIcon className="h-8 w-8 text-primary" />
@@ -93,11 +93,11 @@ const Wallet: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="max-w-7xl mx-auto p-6 space-y-6 bg-zinc-950">
         {/* Balance Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-primary/10 to-primary/5">
-            <CardContent className="p-6">
+            <CardContent className="p-6 bg-neutral-950">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Available Balance</p>
@@ -117,7 +117,7 @@ const Wallet: React.FC = () => {
           </Card>
 
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-green-500/10 to-green-500/5">
-            <CardContent className="p-6">
+            <CardContent className="p-6 bg-zinc-950">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Total Earned</p>
@@ -132,7 +132,7 @@ const Wallet: React.FC = () => {
           </Card>
 
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-orange-500/10 to-orange-500/5">
-            <CardContent className="p-6">
+            <CardContent className="p-6 bg-neutral-950">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Pending Withdrawals</p>
@@ -147,7 +147,7 @@ const Wallet: React.FC = () => {
           </Card>
 
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
-            <CardContent className="p-6">
+            <CardContent className="p-6 bg-neutral-950">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Completed</p>

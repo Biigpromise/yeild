@@ -21,7 +21,7 @@ export const EnhancedWalletOverview: React.FC<EnhancedWalletOverviewProps> = ({
   };
   const usdValue = currencyService.pointsToUSD(userPoints);
   return <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 bg-gray-950">
-      <CardHeader className="bg-gray-950">
+      <CardHeader className="bg-neutral-950">
         <div className="flex items-center justify-between bg-slate-950">
           <CardTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5 text-blue-600" />
@@ -37,7 +37,7 @@ export const EnhancedWalletOverview: React.FC<EnhancedWalletOverviewProps> = ({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6 bg-gray-950">
+      <CardContent className="space-y-6 bg-neutral-950">
         {/* Main Balance Display */}
         <div className="text-center p-6 bg-white/50 backdrop-blur-sm rounded-lg border border-blue-100">
           <div className="text-4xl font-bold text-blue-600 mb-2">
