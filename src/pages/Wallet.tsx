@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,41 +9,27 @@ import { WithdrawalHistory } from '@/components/wallet/WithdrawalHistory';
 import { useAuth } from '@/contexts/AuthContext';
 import { userService } from '@/services/userService';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  Wallet as WalletIcon, 
-  TrendingUp, 
-  Download,
-  RefreshCw,
-  DollarSign,
-  CreditCard,
-  PiggyBank,
-  ArrowUpRight,
-  ArrowDownRight,
-  Eye,
-  EyeOff
-} from 'lucide-react';
-
+import { Wallet as WalletIcon, TrendingUp, Download, RefreshCw, DollarSign, CreditCard, PiggyBank, ArrowUpRight, ArrowDownRight, Eye, EyeOff } from 'lucide-react';
 const Wallet: React.FC = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [userPoints, setUserPoints] = useState(0);
   const [totalEarned, setTotalEarned] = useState(0);
   const [pendingWithdrawals, setPendingWithdrawals] = useState(0);
   const [completedWithdrawals, setCompletedWithdrawals] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showBalance, setShowBalance] = useState(true);
-
   useEffect(() => {
     if (user) {
       loadWalletData();
     }
   }, [user]);
-
   const loadWalletData = async () => {
     if (!user) return;
-
     try {
       setLoading(true);
-      
+
       // Get user profile data
       const profile = await userService.getUserProfile(user.id);
       if (profile) {
@@ -53,11 +38,9 @@ const Wallet: React.FC = () => {
       }
 
       // Get withdrawal statistics
-      const { data: withdrawals } = await supabase
-        .from('withdrawal_requests')
-        .select('status, amount')
-        .eq('user_id', user.id);
-
+      const {
+        data: withdrawals
+      } = await supabase.from('withdrawal_requests').select('status, amount').eq('user_id', user.id);
       if (withdrawals) {
         const pending = withdrawals.filter(w => w.status === 'pending').length;
         const completed = withdrawals.filter(w => w.status === 'completed').length;
@@ -70,28 +53,22 @@ const Wallet: React.FC = () => {
       setLoading(false);
     }
   };
-
   const handleRefresh = () => {
     loadWalletData();
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center">
+    return <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center">
         <div className="text-center space-y-4">
           <RefreshCw className="h-8 w-8 animate-spin mx-auto text-primary" />
           <p className="text-muted-foreground">Loading your wallet...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/20 via-green-500/20 to-blue-500/20 border-b">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        <div className="relative max-w-7xl mx-auto px-4 py-12">
+        <div className="relative max-w-7xl mx-auto px-4 py-12 bg-gray-950">
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-2 mb-4">
               <WalletIcon className="h-8 w-8 text-primary" />
@@ -99,7 +76,7 @@ const Wallet: React.FC = () => {
                 Your Wallet
               </h1>
             </div>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg max-w-2xl mx-auto text-slate-50">
               Manage your earnings, track transactions, and withdraw your rewards
             </p>
             <div className="flex items-center justify-center gap-4 pt-4">
@@ -125,16 +102,8 @@ const Wallet: React.FC = () => {
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Available Balance</p>
                   <div className="flex items-center gap-2">
-                    {showBalance ? (
-                      <p className="text-3xl font-bold">{userPoints.toLocaleString()}</p>
-                    ) : (
-                      <p className="text-3xl font-bold">••••••</p>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowBalance(!showBalance)}
-                    >
+                    {showBalance ? <p className="text-3xl font-bold">{userPoints.toLocaleString()}</p> : <p className="text-3xl font-bold">••••••</p>}
+                    <Button variant="ghost" size="sm" onClick={() => setShowBalance(!showBalance)}>
                       {showBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
@@ -242,15 +211,8 @@ const Wallet: React.FC = () => {
         </div>
 
         {/* Main Wallet Interface */}
-        <WalletOverview
-          userPoints={userPoints}
-          totalEarned={totalEarned}
-          pendingWithdrawals={pendingWithdrawals}
-          completedWithdrawals={completedWithdrawals}
-        />
+        <WalletOverview userPoints={userPoints} totalEarned={totalEarned} pendingWithdrawals={pendingWithdrawals} completedWithdrawals={completedWithdrawals} />
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Wallet;
