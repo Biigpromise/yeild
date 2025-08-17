@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -3886,11 +3886,11 @@ export type Database = {
     }
     Functions: {
       auto_convert_campaign_to_tasks: {
-        Args: { p_campaign_id: string; p_admin_id: string; p_task_data?: Json }
+        Args: { p_admin_id: string; p_campaign_id: string; p_task_data?: Json }
         Returns: {
-          task_id: string
-          success: boolean
           message: string
+          success: boolean
+          task_id: string
         }[]
       }
       award_referral_commission: {
@@ -3930,7 +3930,7 @@ export type Database = {
         Returns: undefined
       }
       credit_user_account: {
-        Args: { user_id: string; amount: number; reference: string }
+        Args: { amount: number; reference: string; user_id: string }
         Returns: undefined
       }
       generate_referral_code: {
@@ -3948,43 +3948,43 @@ export type Database = {
       get_admin_dashboard_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
-          total_task_submissions: number
-          pending_submissions: number
-          total_campaigns: number
           active_campaigns: number
-          total_applications: number
           pending_applications: number
+          pending_submissions: number
+          total_applications: number
+          total_campaigns: number
+          total_task_submissions: number
         }[]
       }
       get_admin_task_submissions: {
         Args: { limit_count?: number }
         Returns: {
-          id: string
-          user_id: string
-          task_id: string
-          status: string
           evidence: string
+          evidence_file_url: string
           evidence_files: Json
-          submitted_at: string
+          id: string
+          rejection_reason: string
           reviewed_at: string
           reviewer_id: string
-          rejection_reason: string
           social_media_handle: string
-          evidence_file_url: string
-          user_name: string
-          user_email: string
-          task_title: string
+          status: string
+          submitted_at: string
           task_description: string
+          task_id: string
+          task_title: string
+          user_email: string
+          user_id: string
+          user_name: string
         }[]
       }
       get_current_user_profile: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
           email: string
+          id: string
+          level: number
           name: string
           points: number
-          level: number
           tasks_completed: number
         }[]
       }
@@ -3992,26 +3992,26 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: {
           id: string
+          level: number
           name: string
           points: number
-          level: number
-          tasks_completed: number
           profile_picture_url: string
+          tasks_completed: number
         }[]
       }
       get_next_bird_level: {
         Args: { user_id_param: string }
         Returns: {
-          id: number
-          name: string
-          icon: string
-          emoji: string
-          min_referrals: number
-          min_points: number
-          description: string
           color: string
-          referrals_needed: number
+          description: string
+          emoji: string
+          icon: string
+          id: number
+          min_points: number
+          min_referrals: number
+          name: string
           points_needed: number
+          referrals_needed: number
         }[]
       }
       get_performance_metrics: {
@@ -4025,17 +4025,17 @@ export type Database = {
       get_user_bird_level: {
         Args: { user_id_param: string }
         Returns: {
-          id: number
-          name: string
-          icon: string
-          emoji: string
-          min_referrals: number
-          min_points: number
-          description: string
-          color: string
-          benefits: string[]
           animation_type: string
+          benefits: string[]
+          color: string
+          description: string
+          emoji: string
           glow_effect: boolean
+          icon: string
+          id: number
+          min_points: number
+          min_referrals: number
+          name: string
         }[]
       }
       get_user_role_for_policy: {
@@ -4055,7 +4055,7 @@ export type Database = {
         Returns: undefined
       }
       has_role: {
-        Args: { _user_id: string; _role: string }
+        Args: { _role: string; _user_id: string }
         Returns: boolean
       }
       increment_message_view: {
@@ -4086,39 +4086,39 @@ export type Database = {
       }
       log_security_event: {
         Args: {
-          user_id_param: string
-          event_type: string
           event_details?: Json
+          event_type: string
+          user_id_param: string
         }
         Returns: undefined
       }
       log_security_event_enhanced: {
         Args: {
-          user_id_param: string
-          event_type: string
           event_details?: Json
+          event_type: string
           severity_param?: string
+          user_id_param: string
         }
         Returns: undefined
       }
       process_referral_signup_complete: {
-        Args: { referral_code_param: string; new_user_id: string }
+        Args: { new_user_id: string; referral_code_param: string }
         Returns: Json
       }
       process_wallet_transaction: {
         Args: {
-          p_brand_id: string
-          p_transaction_type: string
           p_amount: number
-          p_description: string
-          p_reference_id?: string
+          p_brand_id: string
           p_campaign_id?: string
+          p_description: string
           p_payment_transaction_id?: string
+          p_reference_id?: string
+          p_transaction_type: string
         }
         Returns: string
       }
       redeem_reward: {
-        Args: { p_user_id: string; p_reward_id: string }
+        Args: { p_reward_id: string; p_user_id: string }
         Returns: string
       }
       refresh_referral_counts: {
@@ -4139,9 +4139,9 @@ export type Database = {
       }
       update_user_streak: {
         Args: {
-          p_user_id: string
-          p_streak_type: string
           p_activity_date?: string
+          p_streak_type: string
+          p_user_id: string
         }
         Returns: undefined
       }
