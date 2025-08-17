@@ -1,24 +1,48 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.9'
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
+Deno.serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { transaction_id, tx_ref } = await req.json();
+    console.log('Webhook verification endpoint called');
+    console.log('Method:', req.method);
+    console.log('Headers:', Object.fromEntries(req.headers.entries()));
+    
+    // Handle both verification requests and test requests
+    let requestData = {};
+    try {
+      const body = await req.text();
+      console.log('Body:', body);
+      if (body) {
+        requestData = JSON.parse(body);
+      }
+    } catch (e) {
+      console.log('No JSON body or empty body');
+    }
 
+    const { transaction_id, tx_ref } = requestData as any;
+
+    // If no transaction details provided, return test response
     if (!transaction_id && !tx_ref) {
-      return new Response(
-        JSON.stringify({ error: "Transaction ID or reference required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({
+        status: 'success',
+        message: 'Webhook verification endpoint is working',
+        timestamp: new Date().toISOString(),
+        endpoint: 'flutterwave-verify',
+        webhook_url: 'https://stehjqdbncykevpokcvj.supabase.co/functions/v1/flutterwave-webhook',
+        verification_url: 'https://stehjqdbncykevpokcvj.supabase.co/functions/v1/flutterwave-verify'
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
     console.log("Verifying payment:", { transaction_id, tx_ref });
