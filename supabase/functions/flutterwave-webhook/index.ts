@@ -101,7 +101,7 @@ async function handleChargeCompleted(supabase: any, event: FlutterwaveWebhookEve
   const { error: updateError } = await supabase
     .from('payment_transactions')
     .update({
-      status: 'completed',
+      status: 'successful',
       verified_at: new Date().toISOString(),
       amount_settled: data.amount - data.app_fee,
       processor_response: data

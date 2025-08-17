@@ -14,6 +14,7 @@ export const AdminBrandPayments: React.FC = () => {
   const [userEmail, setUserEmail] = useState('');
   const [txRef, setTxRef] = useState('');
   const [results, setResults] = useState<any>(null);
+  const [fixingPending, setFixingPending] = useState(false);
 
   const reconcilePayments = async () => {
     setReconciling(true);
@@ -36,6 +37,29 @@ export const AdminBrandPayments: React.FC = () => {
       toast.error('Failed to reconcile payments');
     } finally {
       setReconciling(false);
+    }
+  };
+
+  const fixPendingPayments = async () => {
+    setFixingPending(true);
+    try {
+      // First run reconciliation to process any successful payments
+      const { data, error } = await supabase.functions.invoke('reconcile-brand-payments', {
+        body: {
+          dry_run: false,
+          limit: 100
+        }
+      });
+
+      if (error) throw error;
+
+      setResults(data);
+      toast.success('Pending payments fixed and reconciled');
+    } catch (error) {
+      console.error('Fix pending payments error:', error);
+      toast.error('Failed to fix pending payments');
+    } finally {
+      setFixingPending(false);
     }
   };
 
@@ -81,17 +105,29 @@ export const AdminBrandPayments: React.FC = () => {
             </Label>
           </div>
 
-          <Button
-            onClick={reconcilePayments}
-            disabled={reconciling}
-            className="w-full"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${reconciling ? 'animate-spin' : ''}`} />
-            {reconciling 
-              ? 'Processing...' 
-              : `${dryRun ? 'Simulate' : 'Run'} Reconciliation`
-            }
-          </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <Button
+              onClick={reconcilePayments}
+              disabled={reconciling || fixingPending}
+              className="w-full"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${reconciling ? 'animate-spin' : ''}`} />
+              {reconciling 
+                ? 'Processing...' 
+                : `${dryRun ? 'Simulate' : 'Run'} Reconciliation`
+              }
+            </Button>
+            
+            <Button
+              onClick={fixPendingPayments}
+              disabled={reconciling || fixingPending}
+              variant="outline"
+              className="w-full"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${fixingPending ? 'animate-spin' : ''}`} />
+              {fixingPending ? 'Fixing...' : 'Fix Pending Payments'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
