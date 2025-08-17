@@ -48,17 +48,25 @@ Deno.serve(async (req) => {
     )
 
     const flutterwaveSecretKey = Deno.env.get('FLUTTERWAVE_SECRET_KEY');
+    const webhookSecretHash = Deno.env.get('FLUTTERWAVE_WEBHOOK_SECRET_HASH');
+    
     if (!flutterwaveSecretKey) {
       console.error('Flutterwave secret key not configured');
+      return new Response('Configuration error', { status: 500, headers: corsHeaders });
+    }
+    
+    if (!webhookSecretHash) {
+      console.error('Flutterwave webhook secret hash not configured');
       return new Response('Configuration error', { status: 500, headers: corsHeaders });
     }
 
     // Verify webhook signature
     const signature = req.headers.get('verif-hash');
-    const webhookSecret = flutterwaveSecretKey; // Use your webhook secret hash
+    console.log('Received signature:', signature);
+    console.log('Expected webhook secret hash:', webhookSecretHash);
     
-    if (signature !== webhookSecret) {
-      console.error('Invalid webhook signature');
+    if (signature !== webhookSecretHash) {
+      console.error('Invalid webhook signature. Received:', signature, 'Expected:', webhookSecretHash);
       return new Response('Unauthorized', { status: 401, headers: corsHeaders });
     }
 
