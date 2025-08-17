@@ -4151,6 +4151,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_chat_participant: {
+        Args: { chat_id_param: string; user_id_param: string }
+        Returns: boolean
+      }
       is_current_user_admin_secure: {
         Args: Record<PropertyKey, never>
         Returns: boolean
