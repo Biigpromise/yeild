@@ -167,13 +167,20 @@ async function handleTransferCompleted(supabase: any, event: FlutterwaveWebhookE
 async function handleTransferFailed(supabase: any, event: FlutterwaveWebhookEvent) {
   const { data } = event;
   
+  // Get current retry count first
+  const { data: existingTransfer } = await supabase
+    .from('fund_transfers')
+    .select('retry_count')
+    .eq('flutterwave_id', data.id.toString())
+    .single();
+  
   // Update fund transfer status and increment retry count
   const { error } = await supabase
     .from('fund_transfers')
     .update({
       status: 'failed',
       error_message: data.processor_response,
-      retry_count: supabase.raw('retry_count + 1'),
+      retry_count: (existingTransfer?.retry_count || 0) + 1,
       flutterwave_response: data
     })
     .eq('flutterwave_id', data.id.toString());
@@ -192,29 +199,49 @@ async function updateDailyRevenue(supabase: any, params: {
 }) {
   const today = new Date().toISOString().split('T')[0];
   
-  const updateData = params.type === 'payment' 
-    ? {
-        total_payments: supabase.raw(`total_payments + ${params.amount}`),
-        total_fees: supabase.raw(`total_fees + ${params.fee}`),
-        net_revenue: supabase.raw(`net_revenue + ${params.fee}`),
-        payment_count: supabase.raw('payment_count + 1')
-      }
-    : {
-        total_withdrawals: supabase.raw(`total_withdrawals + ${params.amount}`),
-        withdrawal_count: supabase.raw('withdrawal_count + 1')
-      };
-
-  const { error } = await supabase
+  // Get existing record or create new one
+  const { data: existing } = await supabase
     .from('company_revenue')
-    .upsert({
-      revenue_date: today,
-      ...updateData
-    }, {
-      onConflict: 'revenue_date'
-    });
+    .select('*')
+    .eq('revenue_date', today)
+    .single();
 
-  if (error) {
-    console.error('Error updating daily revenue:', error);
+  if (params.type === 'payment') {
+    const { error } = await supabase
+      .from('company_revenue')
+      .upsert({
+        revenue_date: today,
+        total_payments: (existing?.total_payments || 0) + params.amount,
+        total_fees: (existing?.total_fees || 0) + params.fee,
+        net_revenue: (existing?.net_revenue || 0) + params.fee,
+        payment_count: (existing?.payment_count || 0) + 1,
+        total_withdrawals: existing?.total_withdrawals || 0,
+        withdrawal_count: existing?.withdrawal_count || 0
+      }, {
+        onConflict: 'revenue_date'
+      });
+
+    if (error) {
+      console.error('Error updating daily revenue for payment:', error);
+    }
+  } else {
+    const { error } = await supabase
+      .from('company_revenue')
+      .upsert({
+        revenue_date: today,
+        total_withdrawals: (existing?.total_withdrawals || 0) + params.amount,
+        withdrawal_count: (existing?.withdrawal_count || 0) + 1,
+        total_payments: existing?.total_payments || 0,
+        total_fees: existing?.total_fees || 0,
+        net_revenue: existing?.net_revenue || 0,
+        payment_count: existing?.payment_count || 0
+      }, {
+        onConflict: 'revenue_date'
+      });
+
+    if (error) {
+      console.error('Error updating daily revenue for withdrawal:', error);
+    }
   }
 }
 
