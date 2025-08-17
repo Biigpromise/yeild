@@ -27,7 +27,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onMessageSent }) => 
         .from('messages')
         .insert({
           content: message.trim(),
-          user_id: user.id
+          user_id: user.id,
+          chat_id: null, // Community messages have null chat_id
+          message_context: 'community'
         })
         .select()
         .single();
@@ -86,7 +88,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onMessageSent }) => 
         .insert({
           content: `📷 ${file.name}`,
           media_url: publicUrl,
-          user_id: user.id
+          user_id: user.id,
+          chat_id: null, // Community messages have null chat_id
+          message_context: 'community'
         });
 
       if (messageError) {

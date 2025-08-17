@@ -63,6 +63,8 @@ export const EnhancedChatWindow: React.FC<EnhancedChatWindowProps> = ({
   }, [messages]);
 
   const loadMessages = async () => {
+    if (!chatId) return;
+    
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -71,6 +73,8 @@ export const EnhancedChatWindow: React.FC<EnhancedChatWindowProps> = ({
           *,
           sender:profiles!messages_user_id_fkey(id, name, profile_picture_url)
         `)
+        .eq('chat_id', chatId) // Only fetch messages for this specific chat
+        .eq('message_context', 'private')
         .order('created_at', { ascending: true })
         .limit(100);
 
@@ -91,19 +95,25 @@ export const EnhancedChatWindow: React.FC<EnhancedChatWindowProps> = ({
   };
 
   const setupRealtimeSubscription = () => {
+    if (!chatId) return;
+
     // Create unique channel name to avoid conflicts
     const channel = supabase
-      .channel(`enhanced_messages_changes_${chatId}_${Date.now()}`)
+      .channel(`private_messages_${chatId}_${Date.now()}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'messages'
+          table: 'messages',
+          filter: `chat_id=eq.${chatId}`
         },
         (payload) => {
-          const newMessage = payload.new as Message;
-          setMessages(prev => [...prev, newMessage]);
+          // Only handle messages for this specific chat
+          if (payload.new.chat_id === chatId && payload.new.message_context === 'private') {
+            const newMessage = payload.new as Message;
+            setMessages(prev => [...prev, newMessage]);
+          }
         }
       )
       .subscribe();
@@ -121,6 +131,7 @@ export const EnhancedChatWindow: React.FC<EnhancedChatWindowProps> = ({
         content: inputValue.trim(),
         user_id: user.id,
         chat_id: chatId,
+        message_context: 'private',
         message_type: 'text',
         reply_to_message_id: replyToMessage?.id || null
       };

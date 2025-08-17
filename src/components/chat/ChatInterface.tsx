@@ -94,6 +94,8 @@ export const ChatInterface: React.FC = () => {
             profile_picture_url
           )
         `)
+        .is('chat_id', null) // Only fetch community messages
+        .eq('message_context', 'community')
         .order('created_at', { ascending: true })
         .limit(50);
 
@@ -109,35 +111,39 @@ export const ChatInterface: React.FC = () => {
 
   const setupRealtimeSubscription = () => {
     const channel = supabase
-      .channel('chat_messages')
+      .channel('community_messages')
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'messages'
+          table: 'messages',
+          filter: 'chat_id=is.null'
         },
         async (payload) => {
-          // Fetch the complete message with profile data
-          const { data } = await supabase
-            .from('messages')
-            .select(`
-              id,
-              content,
-              user_id,
-              created_at,
-              views_count,
-              media_url,
-              profiles:user_id (
-                name,
-                profile_picture_url
-              )
-            `)
-            .eq('id', payload.new.id)
-            .maybeSingle();
+          // Only handle community messages
+          if (payload.new.chat_id === null && payload.new.message_context === 'community') {
+            // Fetch the complete message with profile data
+            const { data } = await supabase
+              .from('messages')
+              .select(`
+                id,
+                content,
+                user_id,
+                created_at,
+                views_count,
+                media_url,
+                profiles:user_id (
+                  name,
+                  profile_picture_url
+                )
+              `)
+              .eq('id', payload.new.id)
+              .maybeSingle();
 
-          if (data) {
-            setMessages(prev => [...prev, data]);
+            if (data) {
+              setMessages(prev => [...prev, data]);
+            }
           }
         }
       )

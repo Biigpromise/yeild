@@ -813,6 +813,71 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_participants: {
+        Row: {
+          chat_id: string
+          id: string
+          joined_at: string | null
+          last_read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          id?: string
+          joined_at?: string | null
+          last_read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          id?: string
+          joined_at?: string | null
+          last_read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_participants_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chats: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_group_chat: boolean | null
+          last_message: string | null
+          last_message_at: string | null
+          name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_group_chat?: boolean | null
+          last_message?: string | null
+          last_message_at?: string | null
+          name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_group_chat?: boolean | null
+          last_message?: string | null
+          last_message_at?: string | null
+          name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       colors: {
         Row: {
           blue: number | null
@@ -1727,6 +1792,7 @@ export type Database = {
       }
       messages: {
         Row: {
+          chat_id: string | null
           content: string
           created_at: string
           deleted_at: string | null
@@ -1736,6 +1802,7 @@ export type Database = {
           is_edited: boolean | null
           last_edited_at: string | null
           media_url: string | null
+          message_context: string | null
           message_type: string | null
           parent_message_id: string | null
           reply_count: number | null
@@ -1745,6 +1812,7 @@ export type Database = {
           voice_transcript: string | null
         }
         Insert: {
+          chat_id?: string | null
           content: string
           created_at?: string
           deleted_at?: string | null
@@ -1754,6 +1822,7 @@ export type Database = {
           is_edited?: boolean | null
           last_edited_at?: string | null
           media_url?: string | null
+          message_context?: string | null
           message_type?: string | null
           parent_message_id?: string | null
           reply_count?: number | null
@@ -1763,6 +1832,7 @@ export type Database = {
           voice_transcript?: string | null
         }
         Update: {
+          chat_id?: string | null
           content?: string
           created_at?: string
           deleted_at?: string | null
@@ -1772,6 +1842,7 @@ export type Database = {
           is_edited?: boolean | null
           last_edited_at?: string | null
           media_url?: string | null
+          message_context?: string | null
           message_type?: string | null
           parent_message_id?: string | null
           reply_count?: number | null
