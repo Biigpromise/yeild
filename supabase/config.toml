@@ -81,3 +81,9 @@ verify_jwt = false
 
 [functions.mark-code-verified]
 verify_jwt = false
+
+[functions.reconcile-wallet-funding]
+verify_jwt = true
+
+[functions.reconcile-brand-payments]
+verify_jwt = true

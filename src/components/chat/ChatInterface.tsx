@@ -203,15 +203,23 @@ export const ChatInterface: React.FC = () => {
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">
           <div className="p-2 md:p-4 space-y-3 md:space-y-4">
-            {messages.map((message) => (
-              <MessageItem
-                key={message.id}
-                message={message}
-                currentUserId={user.id}
-                onView={() => trackMessageView(message.id)}
-                onProfileClick={() => handleProfileClick(message.user_id)}
-              />
-            ))}
+            {messages.length === 0 ? (
+              <div className="text-center py-8">
+                <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No messages yet</h3>
+                <p className="text-muted-foreground">Be the first to start the conversation!</p>
+              </div>
+            ) : (
+              messages.map((message) => (
+                <MessageItem
+                  key={message.id}
+                  message={message}
+                  currentUserId={user.id}
+                  onView={() => trackMessageView(message.id)}
+                  onProfileClick={() => handleProfileClick(message.user_id)}
+                />
+              ))
+            )}
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
