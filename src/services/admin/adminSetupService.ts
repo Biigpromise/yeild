@@ -14,14 +14,16 @@ export const adminSetupService = {
 
       console.log('adminSetupService: Checking admin access for user:', user.id, user.email);
 
-      // ONLY grant access to yeildsocials@gmail.com
-      if (user.email === 'yeildsocials@gmail.com') {
-        console.log('adminSetupService: Admin email detected, granting access');
-        return true;
+      // Check admin role from database using the secure function
+      const { data: isAdmin, error } = await supabase.rpc('is_current_user_admin_secure');
+      
+      if (error) {
+        console.error('adminSetupService: Error checking admin role:', error);
+        return false;
       }
 
-      console.log('adminSetupService: Access denied - not admin email');
-      return false;
+      console.log('adminSetupService: Admin check result:', isAdmin);
+      return Boolean(isAdmin);
     } catch (error) {
       console.error('adminSetupService: Exception checking admin access:', error);
       return false;
@@ -38,16 +40,26 @@ export const adminSetupService = {
         return false;
       }
 
-      // Only allow yeildsocials@gmail.com to become admin
-      if (user.email !== 'yeildsocials@gmail.com') {
-        console.error('adminSetupService: Unauthorized email attempting admin access');
-        toast.error('Unauthorized access');
+      // Use the secure admin verification function that handles role assignment
+      const { data: success, error } = await supabase.rpc('verify_single_admin_access', {
+        user_email: user.email
+      });
+
+      if (error) {
+        console.error('adminSetupService: Error assigning admin role:', error);
+        toast.error('Failed to assign admin role');
         return false;
       }
 
-      console.log('adminSetupService: Attempting to make user admin:', user.id);
-      toast.success('Admin access confirmed');
-      return true;
+      if (success) {
+        console.log('adminSetupService: Successfully assigned admin role to user:', user.id);
+        toast.success('Admin access granted');
+        return true;
+      } else {
+        console.log('adminSetupService: Admin role assignment failed for user:', user.email);
+        toast.error('Admin access denied');
+        return false;
+      }
     } catch (error) {
       console.error('adminSetupService: Exception:', error);
       toast.error('Failed to assign admin role');
@@ -64,12 +76,20 @@ export const adminSetupService = {
         return [];
       }
 
-      // Only return admin role for yeildsocials@gmail.com
-      if (user.email === 'yeildsocials@gmail.com') {
-        return ['admin'];
+      // Fetch user roles from database
+      const { data: roles, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('adminSetupService: Error fetching user roles:', error);
+        return [];
       }
 
-      return [];
+      const userRoles = roles?.map(r => r.role) || [];
+      console.log('adminSetupService: User roles:', userRoles);
+      return userRoles;
     } catch (error) {
       console.error('adminSetupService: Exception fetching user roles:', error);
       return [];
