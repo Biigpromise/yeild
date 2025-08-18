@@ -12,6 +12,7 @@ export const useRole = (requiredRole?: string) => {
   useEffect(() => {
     const checkRole = async () => {
       if (!user) {
+        console.log('useRole: No user found');
         setRole('user');
         setHasRequiredRole(false);
         setLoading(false);
@@ -19,28 +20,33 @@ export const useRole = (requiredRole?: string) => {
       }
 
       try {
+        console.log('useRole: Checking role for user:', user.id, user.email);
         const { data, error } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', user.id);
 
         if (error && error.code !== 'PGRST116') {
-          console.error('Error checking role:', error);
+          console.error('useRole: Error checking role:', error);
           setRole('user');
           setHasRequiredRole(!requiredRole || requiredRole === 'user');
         } else {
           const userRoles = data || [];
+          console.log('useRole: Found user roles:', userRoles);
           const userRole = userRoles.length > 0 ? userRoles[0].role : 'user';
+          console.log('useRole: Setting role to:', userRole);
           setRole(userRole);
           
           if (requiredRole) {
-            setHasRequiredRole(userRoles.some(r => r.role === requiredRole));
+            const hasRole = userRoles.some(r => r.role === requiredRole);
+            console.log('useRole: Required role check for', requiredRole, ':', hasRole);
+            setHasRequiredRole(hasRole);
           } else {
             setHasRequiredRole(true);
           }
         }
       } catch (error) {
-        console.error('Unexpected error checking role:', error);
+        console.error('useRole: Unexpected error checking role:', error);
         setRole('user');
         setHasRequiredRole(!requiredRole || requiredRole === 'user');
       } finally {
