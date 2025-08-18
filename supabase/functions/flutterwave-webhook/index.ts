@@ -108,6 +108,18 @@ Deno.serve(async (req) => {
 async function handleChargeCompleted(supabase: any, event: FlutterwaveWebhookEvent) {
   const { data } = event;
   
+  // Get the payment transaction to check payment type and user
+  const { data: paymentTransaction, error: fetchError } = await supabase
+    .from('payment_transactions')
+    .select('payment_type, user_id, amount')
+    .eq('transaction_ref', data.tx_ref)
+    .single();
+
+  if (fetchError) {
+    console.error('Error fetching payment transaction:', fetchError);
+    return;
+  }
+
   // Update payment transaction status
   const { error: updateError } = await supabase
     .from('payment_transactions')
@@ -122,6 +134,60 @@ async function handleChargeCompleted(supabase: any, event: FlutterwaveWebhookEve
   if (updateError) {
     console.error('Error updating payment transaction:', updateError);
     return;
+  }
+
+  // Automatically credit brand wallet for wallet_funding payments
+  if (paymentTransaction.payment_type === 'wallet_funding') {
+    try {
+      console.log(`Processing wallet funding for user ${paymentTransaction.user_id}, amount: ${data.amount}`);
+      
+      // Credit the brand wallet using the existing database function
+      const { error: walletError } = await supabase.rpc('process_wallet_transaction', {
+        p_brand_id: paymentTransaction.user_id,
+        p_transaction_type: 'deposit',
+        p_amount: data.amount,
+        p_description: `Wallet funding via Flutterwave - ${data.tx_ref}`,
+        p_reference_id: null,
+        p_campaign_id: null,
+        p_payment_transaction_id: data.tx_ref
+      });
+
+      if (walletError) {
+        console.error('Error crediting brand wallet:', walletError);
+        
+        // Create notification about failed wallet crediting for admin review
+        await supabase
+          .from('admin_notifications')
+          .insert({
+            type: 'wallet_credit_failed',
+            message: `Failed to credit wallet for payment ${data.tx_ref}. User: ${paymentTransaction.user_id}, Amount: ${data.amount}`,
+            link_to: `/admin?section=payments&payment=${data.tx_ref}`
+          });
+      } else {
+        console.log(`Successfully credited ${data.amount} to brand wallet for user ${paymentTransaction.user_id}`);
+        
+        // Create notification for the brand user
+        await supabase
+          .from('brand_notifications')
+          .insert({
+            brand_id: paymentTransaction.user_id,
+            type: 'wallet_credited',
+            title: 'Wallet Funded Successfully',
+            message: `Your wallet has been credited with ₦${data.amount.toLocaleString()} from payment ${data.tx_ref}`
+          });
+      }
+    } catch (walletProcessingError) {
+      console.error('Unexpected error during wallet processing:', walletProcessingError);
+      
+      // Create admin notification for manual review
+      await supabase
+        .from('admin_notifications')
+        .insert({
+          type: 'wallet_processing_error',
+          message: `Unexpected error processing wallet funding for payment ${data.tx_ref}. User: ${paymentTransaction.user_id}, Amount: ${data.amount}`,
+          link_to: `/admin?section=payments&payment=${data.tx_ref}`
+        });
+    }
   }
 
   // Calculate company revenue
