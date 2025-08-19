@@ -1,41 +1,38 @@
 import React, { useState } from "react";
-import { ChatList } from "./ChatList";
-import { EnhancedChatWindow } from "../chat/EnhancedChatWindow";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Hash, MessageSquare } from "lucide-react";
 import { ModernChatInterface } from "../chat/ModernChatInterface";
-
-interface Chat {
-  id: string;
-  name: string;
-  isGroupChat: boolean;
-  lastMessage?: string;
-  lastMessageTime?: string;
-  unreadCount: number;
-  participants: Array<{
-    id: string;
-    name: string;
-    avatar?: string;
-    isOnline?: boolean;
-  }>;
-  avatar?: string;
-}
+import { DirectMessagesInterface } from "./DirectMessagesInterface";
 
 export const MessagingHub = () => {
-  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-
-  const handleChatSelect = (chat: Chat) => {
-    setSelectedChat(chat);
-  };
-
-  const handleCloseChat = () => {
-    setSelectedChat(null);
-  };
+  const [activeTab, setActiveTab] = useState("community");
 
   return (
-    <div className="flex h-full">
-      {/* Show modern community chat interface directly */}
-      <div className="flex-1">
-        <ModernChatInterface />
-      </div>
+    <div className="h-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+        <div className="px-4 pt-4 pb-0 border-b">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="community" className="flex items-center gap-2">
+              <Hash className="h-4 w-4" />
+              Community Chat
+            </TabsTrigger>
+            <TabsTrigger value="direct" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Direct Messages
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        
+        <div className="flex-1 overflow-hidden">
+          <TabsContent value="community" className="h-full mt-0">
+            <ModernChatInterface />
+          </TabsContent>
+          
+          <TabsContent value="direct" className="h-full mt-0">
+            <DirectMessagesInterface />
+          </TabsContent>
+        </div>
+      </Tabs>
     </div>
   );
 };

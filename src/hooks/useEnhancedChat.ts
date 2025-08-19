@@ -109,6 +109,7 @@ export const useEnhancedChat = (chatId: string = 'community') => {
           .select(selectQuery)
           .eq('is_deleted', false)
           .is('chat_id', null)
+          .eq('message_context', 'community')
           .order('created_at', { ascending: false })
           .limit(50);
         data = result.data;
@@ -142,15 +143,15 @@ export const useEnhancedChat = (chatId: string = 'community') => {
 
     loadMessages();
 
-    // Message subscriptions with unique channel names
+    // Message subscriptions with unique channel names to prevent "subscribe multiple times" error
     const messageChannel = supabase
-      .channel(`messages_${chatId}_${Date.now()}`)
+      .channel(`messages_${chatId}_${user?.id}_${Date.now()}`)
       .on('postgres_changes', 
         { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
           const newMessage = payload.new as any; // Use any to avoid type issues with payload
           // Filter messages based on chat type
-          if (chatId === 'community' && newMessage.chat_id === null) {
+          if (chatId === 'community' && newMessage.chat_id === null && newMessage.message_context === 'community') {
             setMessages(prev => [...prev, { ...newMessage, reactions: [], mentions: [], replies: [] }]);
           } else if (chatId !== 'community' && newMessage.chat_id === chatId) {
             setMessages(prev => [...prev, { ...newMessage, reactions: [], mentions: [], replies: [] }]);
@@ -170,7 +171,7 @@ export const useEnhancedChat = (chatId: string = 'community') => {
 
     // Reaction subscriptions
     const reactionChannel = supabase
-      .channel(`reactions_${chatId}_${Date.now()}`)
+      .channel(`reactions_${chatId}_${user?.id}_${Date.now()}`)
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'message_reactions' },
         () => {
@@ -182,7 +183,7 @@ export const useEnhancedChat = (chatId: string = 'community') => {
 
     // Typing indicators
     const typingChannel = supabase
-      .channel(`typing_indicators_${chatId}_${Date.now()}`)
+      .channel(`typing_indicators_${chatId}_${user?.id}_${Date.now()}`)
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'typing_indicators' },
         async () => {

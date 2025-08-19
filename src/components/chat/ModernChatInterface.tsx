@@ -75,8 +75,8 @@ export const ModernChatInterface: React.FC = () => {
             profile_picture_url
           )
         `)
-        .or(`chat_id.is.null,and(chat_id.not.is.null,message_context.eq.direct)`)
-        .in('message_context', ['community', 'direct'])
+        .is('chat_id', null)
+        .eq('message_context', 'community')
         .order('created_at', { ascending: true })
         .limit(100);
 
@@ -98,7 +98,7 @@ export const ModernChatInterface: React.FC = () => {
     }
 
     const channel = supabase
-      .channel(`community_messages_${Date.now()}`)
+      .channel(`community_messages_${user?.id}_${Date.now()}`)
       .on(
         'postgres_changes',
         {
@@ -107,8 +107,8 @@ export const ModernChatInterface: React.FC = () => {
           table: 'messages'
         },
         async (payload) => {
-          if ((payload.new.chat_id === null && payload.new.message_context === 'community') || 
-              (payload.new.chat_id !== null && payload.new.message_context === 'direct')) {
+          // Only handle community messages (chat_id is null and message_context is community)
+          if (payload.new.chat_id === null && payload.new.message_context === 'community') {
             const { data } = await supabase
               .from('messages')
               .select(`
