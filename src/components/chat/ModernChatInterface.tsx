@@ -48,7 +48,8 @@ export const ModernChatInterface: React.FC = () => {
   useEffect(() => {
     if (!user) return;
     fetchMessages();
-    setupRealtimeSubscription();
+    const cleanup = setupRealtimeSubscription();
+    return cleanup;
   }, [user]);
 
   const fetchMessages = async () => {

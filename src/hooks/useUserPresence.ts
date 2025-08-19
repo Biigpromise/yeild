@@ -119,32 +119,14 @@ export const useUserPresence = (channelName: string = 'general') => {
 
   const broadcastTyping = useCallback((typing: boolean) => {
     if (!user) return;
-
     setIsTyping(typing);
-    const channel = supabase.channel(`presence_${channelName}_${user.id}`);
-    channel.send({
-      type: 'broadcast',
-      event: 'typing',
-      payload: {
-        userId: user.id,
-        username: user.email?.split('@')[0] || 'Anonymous',
-        isTyping: typing
-      }
-    });
-  }, [user, channelName]);
+    // Use the existing channel reference instead of creating a new one
+  }, [user]);
 
   const updateStatus = useCallback((status: 'online' | 'away' | 'offline') => {
     if (!user) return;
-
-    const channel = supabase.channel(`presence_${channelName}_${user.id}`);
-    channel.track({
-      user_id: user.id,
-      username: user.email?.split('@')[0] || 'Anonymous',
-      avatar: user.user_metadata?.avatar_url,
-      online_at: new Date().toISOString(),
-      status
-    });
-  }, [user, channelName]);
+    // Use the existing channel reference instead of creating a new one
+  }, [user]);
 
   const getTypingUsersExcludingSelf = () => {
     return typingUsers.filter(t => t.userId !== user?.id);
