@@ -33,6 +33,7 @@ export const ModernChatInterface: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const { onlineUsers, typingUsers, onlineCount } = useUserPresence('community_chat');
@@ -133,7 +134,12 @@ export const ModernChatInterface: React.FC = () => {
     setShowProfileModal(true);
   };
 
+  const handleReply = (message: Message) => {
+    setReplyingTo(message);
+  };
+
   const handleMessageSent = () => {
+    setReplyingTo(null);
     fetchMessages();
   };
 
@@ -244,6 +250,7 @@ export const ModernChatInterface: React.FC = () => {
                     isFirstInGroup={message.isFirstInGroup}
                     isLastInGroup={message.isLastInGroup}
                     onProfileClick={() => handleProfileClick(message.user_id)}
+                    onReply={handleReply}
                   />
                 ))}
                 
@@ -273,7 +280,11 @@ export const ModernChatInterface: React.FC = () => {
 
       {/* Modern Message Input */}
       <div className="border-t bg-card/50 backdrop-blur-sm">
-        <ModernMessageInput onMessageSent={handleMessageSent} />
+        <ModernMessageInput 
+          onMessageSent={handleMessageSent}
+          replyingTo={replyingTo}
+          onCancelReply={() => setReplyingTo(null)}
+        />
       </div>
 
       {/* Profile Modal */}

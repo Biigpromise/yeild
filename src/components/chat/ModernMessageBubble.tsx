@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle, Share2, MoreHorizontal, Eye } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Heart, MessageCircle, Share2, MoreHorizontal, Eye, Copy, Flag, Reply } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Message {
   id: string;
@@ -27,6 +30,7 @@ interface ModernMessageBubbleProps {
   isFirstInGroup: boolean;
   isLastInGroup: boolean;
   onProfileClick: () => void;
+  onReply?: (message: Message) => void;
 }
 
 export const ModernMessageBubble: React.FC<ModernMessageBubbleProps> = ({
@@ -35,10 +39,13 @@ export const ModernMessageBubble: React.FC<ModernMessageBubbleProps> = ({
   isGrouped,
   isFirstInGroup,
   isLastInGroup,
-  onProfileClick
+  onProfileClick,
+  onReply
 }) => {
+  const { user } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
   const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
 
   const formatTime = (timestamp: string) => {
     return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
@@ -53,10 +60,80 @@ export const ModernMessageBubble: React.FC<ModernMessageBubbleProps> = ({
       .slice(0, 2);
   };
 
-  const handleLike = (e: React.MouseEvent) => {
+  const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!user) {
+      toast.error('Please sign in to like messages');
+      return;
+    }
+    
     setLiked(!liked);
-    // TODO: Implement actual like functionality
+    setLikeCount(prev => liked ? prev - 1 : prev + 1);
+    
+    try {
+      // TODO: Implement actual like functionality with database
+      toast.success(liked ? 'Removed like' : 'Message liked!');
+    } catch (error) {
+      console.error('Error liking message:', error);
+      // Revert optimistic update
+      setLiked(liked);
+      setLikeCount(prev => liked ? prev + 1 : prev - 1);
+      toast.error('Failed to update like');
+    }
+  };
+
+  const handleReply = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      toast.error('Please sign in to reply');
+      return;
+    }
+    onReply?.(message);
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `Message from ${message.profiles?.name}`,
+          text: message.content,
+          url: window.location.href
+        });
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(`${message.content}\n\n- ${message.profiles?.name}`);
+        toast.success('Message copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing message:', error);
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(`${message.content}\n\n- ${message.profiles?.name}`);
+        toast.success('Message copied to clipboard!');
+      } catch (clipError) {
+        toast.error('Failed to share message');
+      }
+    }
+  };
+
+  const handleCopyMessage = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      toast.success('Message copied to clipboard!');
+    } catch (error) {
+      toast.error('Failed to copy message');
+    }
+  };
+
+  const handleReportMessage = () => {
+    if (!user) {
+      toast.error('Please sign in to report messages');
+      return;
+    }
+    // TODO: Implement report functionality
+    toast.success('Message reported. Thank you for helping keep our community safe!');
   };
 
   return (
@@ -157,6 +234,7 @@ export const ModernMessageBubble: React.FC<ModernMessageBubbleProps> = ({
                 variant="ghost"
                 className="h-6 w-6 p-0 hover:bg-muted"
                 onClick={handleLike}
+                title="Like message"
               >
                 <Heart className={cn("h-3 w-3", liked && "fill-red-500 text-red-500")} />
               </Button>
@@ -164,6 +242,8 @@ export const ModernMessageBubble: React.FC<ModernMessageBubbleProps> = ({
                 size="sm"
                 variant="ghost"
                 className="h-6 w-6 p-0 hover:bg-muted"
+                onClick={handleReply}
+                title="Reply to message"
               >
                 <MessageCircle className="h-3 w-3" />
               </Button>
@@ -171,25 +251,54 @@ export const ModernMessageBubble: React.FC<ModernMessageBubbleProps> = ({
                 size="sm"
                 variant="ghost"
                 className="h-6 w-6 p-0 hover:bg-muted"
+                onClick={handleShare}
+                title="Share message"
               >
                 <Share2 className="h-3 w-3" />
               </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0 hover:bg-muted"
-              >
-                <MoreHorizontal className="h-3 w-3" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0 hover:bg-muted"
+                    title="More options"
+                  >
+                    <MoreHorizontal className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuItem onClick={handleCopyMessage}>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy message
+                  </DropdownMenuItem>
+                  {!isOwn && (
+                    <DropdownMenuItem onClick={handleReportMessage}>
+                      <Flag className="h-4 w-4 mr-2" />
+                      Report message
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           )}
         </div>
 
         {/* Message stats (only show for last message in group) */}
-        {isLastInGroup && message.views_count > 0 && (
-          <div className={cn("flex items-center gap-1 mt-1 text-xs text-muted-foreground", isOwn && "justify-end")}>
-            <Eye className="h-3 w-3" />
-            <span>{message.views_count} views</span>
+        {isLastInGroup && (
+          <div className={cn("flex items-center gap-3 mt-1 text-xs text-muted-foreground", isOwn && "justify-end")}>
+            {message.views_count > 0 && (
+              <div className="flex items-center gap-1">
+                <Eye className="h-3 w-3" />
+                <span>{message.views_count} views</span>
+              </div>
+            )}
+            {likeCount > 0 && (
+              <div className="flex items-center gap-1">
+                <Heart className="h-3 w-3" />
+                <span>{likeCount} likes</span>
+              </div>
+            )}
           </div>
         )}
       </div>

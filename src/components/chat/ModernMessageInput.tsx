@@ -1,20 +1,38 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Send, Image, Smile, Paperclip, Mic } from 'lucide-react';
+import { Send, Image, Smile, Paperclip, Mic, X, Reply } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserPresence } from '@/hooks/useUserPresence';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
+interface Message {
+  id: string;
+  content: string;
+  user_id: string;
+  created_at: string;
+  views_count: number;
+  media_url?: string;
+  message_type?: string;
+  profiles: {
+    name: string;
+    profile_picture_url?: string;
+  } | null;
+}
+
 interface ModernMessageInputProps {
   onMessageSent: () => void;
+  replyingTo?: Message | null;
+  onCancelReply?: () => void;
 }
 
 export const ModernMessageInput: React.FC<ModernMessageInputProps> = ({ 
-  onMessageSent 
+  onMessageSent,
+  replyingTo,
+  onCancelReply
 }) => {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -24,6 +42,13 @@ export const ModernMessageInput: React.FC<ModernMessageInputProps> = ({
   const { broadcastTyping } = useUserPresence('community_chat');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Focus textarea when replying
+  useEffect(() => {
+    if (replyingTo && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [replyingTo]);
 
   // Auto-resize textarea
   const adjustTextareaHeight = useCallback(() => {
@@ -54,15 +79,22 @@ export const ModernMessageInput: React.FC<ModernMessageInputProps> = ({
     broadcastTyping(false);
 
     try {
+      const messageData: any = {
+        content: message.trim(),
+        user_id: user.id,
+        chat_id: null,
+        message_context: 'community',
+        message_type: 'text'
+      };
+
+      // Add parent message ID if replying
+      if (replyingTo) {
+        messageData.parent_message_id = replyingTo.id;
+      }
+
       const { error } = await supabase
         .from('messages')
-        .insert({
-          content: message.trim(),
-          user_id: user.id,
-          chat_id: null,
-          message_context: 'community',
-          message_type: 'text'
-        });
+        .insert(messageData);
 
       if (error) {
         console.error('Error sending message:', error);
@@ -79,6 +111,11 @@ export const ModernMessageInput: React.FC<ModernMessageInputProps> = ({
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
+      
+      if (replyingTo) {
+        toast.success('Reply sent!');
+      }
+      
       onMessageSent();
     } catch (error) {
       console.error('Unexpected error sending message:', error);
@@ -162,6 +199,29 @@ export const ModernMessageInput: React.FC<ModernMessageInputProps> = ({
 
   return (
     <div className="p-4">
+      {/* Reply Preview */}
+      {replyingTo && (
+        <div className="mb-3 p-3 bg-muted/50 rounded-lg border-l-4 border-primary">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Reply className="h-4 w-4" />
+              <span>Replying to {replyingTo.profiles?.name || 'Anonymous'}</span>
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onCancelReply}
+              className="h-6 w-6 p-0 hover:bg-muted"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+          <p className="text-sm text-foreground/80 line-clamp-2">
+            {replyingTo.content || '📷 Image'}
+          </p>
+        </div>
+      )}
+      
       <div className={cn(
         "flex items-end gap-3 p-3 rounded-2xl border transition-all duration-200",
         isFocused 
@@ -188,7 +248,7 @@ export const ModernMessageInput: React.FC<ModernMessageInputProps> = ({
             onKeyDown={handleKeyDown}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder="Type your message..."
+            placeholder={replyingTo ? `Reply to ${replyingTo.profiles?.name}...` : "Type your message..."}
             disabled={sending || uploading}
             className={cn(
               "min-h-[40px] resize-none border-0 bg-transparent p-0 text-sm placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0",
