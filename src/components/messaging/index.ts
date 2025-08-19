@@ -7,3 +7,6 @@ export { MessagingHub } from "./MessagingHub";
 export { ModernChatInterface } from "../chat/ModernChatInterface";
 export { ModernMessageBubble } from "../chat/ModernMessageBubble";
 export { ModernMessageInput } from "../chat/ModernMessageInput";
+export { ModernChatList } from "./ModernChatList";
+export { ModernChatWindow } from "./ModernChatWindow";
+export { DirectMessagesInterface } from "./DirectMessagesInterface";

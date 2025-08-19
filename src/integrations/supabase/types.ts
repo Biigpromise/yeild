@@ -1156,6 +1156,160 @@ export type Database = {
           },
         ]
       }
+      direct_chat_participants: {
+        Row: {
+          chat_id: string
+          id: string
+          joined_at: string
+          last_read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_chat_participants_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "direct_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      direct_chats: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_group_chat: boolean
+          last_message_at: string | null
+          last_message_id: string | null
+          name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_group_chat?: boolean
+          last_message_at?: string | null
+          last_message_id?: string | null
+          name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_group_chat?: boolean
+          last_message_at?: string | null
+          last_message_id?: string | null
+          name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      direct_message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "direct_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      direct_messages: {
+        Row: {
+          chat_id: string
+          content: string | null
+          created_at: string
+          id: string
+          is_edited: boolean
+          media_url: string | null
+          message_type: string
+          reply_to_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_edited?: boolean
+          media_url?: string | null
+          message_type?: string
+          reply_to_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_edited?: boolean
+          media_url?: string | null
+          message_type?: string
+          reply_to_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "direct_chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "direct_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       duplicate_image_flags: {
         Row: {
           admin_notes: string | null
@@ -4119,6 +4273,10 @@ export type Database = {
           metric_value: number
           recorded_at: string
         }[]
+      }
+      get_unread_message_count: {
+        Args: { chat_id_param: string; user_id_param: string }
+        Returns: number
       }
       get_user_bird_level: {
         Args: { user_id_param: string }
