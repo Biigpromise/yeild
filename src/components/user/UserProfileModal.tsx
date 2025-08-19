@@ -34,7 +34,13 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     setLoading(true);
     try {
       const data = await userService.getUserProfile(userId);
-      setProfile(data);
+      if (data) {
+        // Convert level to string to match UserProfile interface
+        setProfile({
+          ...data,
+          level: String(data.level)
+        });
+      }
     } catch (error) {
       console.error('Error loading user profile:', error);
     } finally {
