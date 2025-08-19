@@ -39,18 +39,18 @@ interface MediaAsset {
 
 interface SocialLinksData {
   website?: string;
-  social_profiles: Array<{
+  socialProfiles: Array<{
     platform: string;
     url: string;
     description?: string;
   }>;
-  engagement_posts: string[];
+  engagementPosts: string[];
   hashtags: string[];
-  mention_requirements?: string;
+  mentionRequirements: string[];
 }
 
 interface CampaignBriefData {
-  brief: string;
+  mainBrief: string;
   objectives: string[];
   deliverables: Array<{
     id: string;
@@ -59,13 +59,11 @@ interface CampaignBriefData {
     specifications: string;
     deadline?: string;
   }>;
-  content_guidelines: string;
-  brand_voice: string;
-  do_and_dont: {
-    dos: string[];
-    donts: string[];
-  };
-  success_metrics: string[];
+  contentGuidelines: string;
+  brandVoice: string;
+  dos: string[];
+  donts: string[];
+  successMetrics: string[];
 }
 
 interface TargetDemographics {
@@ -108,19 +106,21 @@ export const EnhancedCampaignCreation: React.FC = () => {
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
   
   const [socialLinks, setSocialLinks] = useState<SocialLinksData>({
-    social_profiles: [],
-    engagement_posts: [],
-    hashtags: []
+    socialProfiles: [],
+    engagementPosts: [],
+    hashtags: [],
+    mentionRequirements: []
   });
 
   const [briefData, setBriefData] = useState<CampaignBriefData>({
-    brief: '',
+    mainBrief: '',
     objectives: [],
     deliverables: [],
-    content_guidelines: '',
-    brand_voice: '',
-    do_and_dont: { dos: [], donts: [] },
-    success_metrics: []
+    contentGuidelines: '',
+    brandVoice: '',
+    dos: [],
+    donts: [],
+    successMetrics: []
   });
 
   const [targetDemographics, setTargetDemographics] = useState<TargetDemographics>({
@@ -211,7 +211,7 @@ export const EnhancedCampaignCreation: React.FC = () => {
       case 2: // Social Links
         return true; // Optional
       case 3: // Campaign Brief
-        if (!briefData.brief.trim()) {
+        if (!briefData.mainBrief.trim()) {
           toast.error('Campaign brief is required');
           return false;
         }
@@ -261,9 +261,13 @@ export const EnhancedCampaignCreation: React.FC = () => {
         end_date: basicInfo.end_date || null,
         media_assets: JSON.parse(JSON.stringify(mediaAssets)),
         social_links: JSON.parse(JSON.stringify(socialLinks)),
-        campaign_brief: briefData.brief,
+        campaign_brief: briefData.mainBrief,
         target_demographics: JSON.parse(JSON.stringify(targetDemographics)),
-        deliverable_specifications: JSON.parse(JSON.stringify(briefData.deliverables)),
+        deliverable_specifications: JSON.parse(JSON.stringify({
+          deliverables: briefData.deliverables,
+          contentGuidelines: briefData.contentGuidelines,
+          brandVoice: briefData.brandVoice
+        })),
         hashtags: socialLinks.hashtags,
         admin_approval_status: 'pending' as const,
         payment_status: status === 'active' ? 'paid' as const : 'unpaid' as const
@@ -590,18 +594,18 @@ export const EnhancedCampaignCreation: React.FC = () => {
                     <h3 className="font-medium mb-2">Assets & Content</h3>
                     <div className="text-sm space-y-1">
                       <p><strong>Media Assets:</strong> {mediaAssets.length} files</p>
-                      <p><strong>Social Profiles:</strong> {socialLinks.social_profiles.length}</p>
+                      <p><strong>Social Profiles:</strong> {socialLinks.socialProfiles.length}</p>
                       <p><strong>Hashtags:</strong> {socialLinks.hashtags.length}</p>
                       <p><strong>Deliverables:</strong> {briefData.deliverables.length}</p>
                     </div>
                   </div>
                 </div>
 
-                {briefData.brief && (
+                {briefData.mainBrief && (
                   <div>
                     <h3 className="font-medium mb-2">Campaign Brief</h3>
                     <p className="text-sm text-muted-foreground bg-muted p-3 rounded">
-                      {briefData.brief.substring(0, 200)}...
+                      {briefData.mainBrief.substring(0, 200)}...
                     </p>
                   </div>
                 )}

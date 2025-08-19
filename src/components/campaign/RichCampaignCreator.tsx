@@ -154,20 +154,20 @@ export const RichCampaignCreator = () => {
         payment_status: 'unpaid',
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
-        target_audience: formData.target_demographics,
-        requirements: formData.brief,
-        media_assets: formData.media_assets,
-        social_links: formData.social_links,
+        target_audience: JSON.parse(JSON.stringify(formData.target_demographics)),
+        requirements: JSON.parse(JSON.stringify(formData.brief)),
+        media_assets: JSON.parse(JSON.stringify(formData.media_assets)),
+        social_links: JSON.parse(JSON.stringify(formData.social_links)),
         campaign_brief: formData.brief.mainBrief,
-        deliverable_specifications: {
+        deliverable_specifications: JSON.parse(JSON.stringify({
           deliverables: formData.brief.deliverables,
           contentGuidelines: formData.brief.contentGuidelines,
           brandVoice: formData.brief.brandVoice
-        },
-        tracking_parameters: {
+        })),
+        tracking_parameters: JSON.parse(JSON.stringify({
           hashtags: formData.social_links.hashtags,
           mentionRequirements: formData.social_links.mentionRequirements
-        }
+        }))
       };
 
       const { error } = await supabase
