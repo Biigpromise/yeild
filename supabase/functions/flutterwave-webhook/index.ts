@@ -36,8 +36,14 @@ interface FlutterwaveWebhookEvent {
 }
 
 Deno.serve(async (req) => {
+  console.log('=== FLUTTERWAVE WEBHOOK RECEIVED ===');
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Headers:', Object.fromEntries(req.headers.entries()));
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling CORS preflight request');
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -74,7 +80,9 @@ Deno.serve(async (req) => {
     console.log('All webhook headers:', Object.fromEntries(req.headers.entries()));
 
     const event: FlutterwaveWebhookEvent = await req.json();
-    console.log('Received webhook event:', event.event);
+    console.log('=== WEBHOOK EVENT DETAILS ===');
+    console.log('Event type:', event.event);
+    console.log('Event data:', JSON.stringify(event.data, null, 2));
 
     // Process different event types
     switch (event.event) {

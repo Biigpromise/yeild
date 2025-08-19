@@ -9,6 +9,7 @@ import { BrandSettings } from '@/components/brand/dashboard/BrandSettings';
 import { CreateCampaignDialog } from '@/components/brand/CreateCampaignDialog';
 import { BrandWalletFundingDialog } from '@/components/brand/BrandWalletFundingDialog';
 import { BrandCampaignManager } from '@/components/brand/dashboard/BrandCampaignManager';
+import { AdminDebugPanel } from '@/components/AdminDebugPanel';
 import { toast } from 'sonner';
 
 const BrandDashboard = () => {
@@ -65,6 +66,7 @@ const BrandDashboard = () => {
 
   return (
     <ModernBrandLayout profile={profile} wallet={wallet}>
+      <AdminDebugPanel />
       <Routes>
         <Route
           path="/"
