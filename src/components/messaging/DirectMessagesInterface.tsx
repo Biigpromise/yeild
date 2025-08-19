@@ -71,7 +71,6 @@ export const DirectMessagesInterface: React.FC<DirectMessagesInterfaceProps> = (
         {/* Chat List */}
         <div className="flex-1 overflow-hidden">
           <ChatList
-            searchTerm={searchTerm}
             onChatSelect={handleChatSelect}
             selectedChatId={selectedChat?.id}
           />
@@ -84,8 +83,6 @@ export const DirectMessagesInterface: React.FC<DirectMessagesInterfaceProps> = (
           <EnhancedChatWindow
             chatId={selectedChat.id}
             chatName={selectedChat.name}
-            isGroupChat={selectedChat.isGroupChat}
-            participants={selectedChat.participants}
             onClose={handleCloseChat}
           />
         ) : (
