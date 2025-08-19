@@ -53,6 +53,9 @@ export const ModernChatInterface: React.FC = () => {
     return cleanup;
   }, [user]);
 
+  // Prevent multiple subscriptions by using a ref to track if already subscribed
+  const subscriptionRef = useRef<(() => void) | null>(null);
+
   const fetchMessages = async () => {
     try {
       const { data, error } = await supabase
@@ -88,6 +91,12 @@ export const ModernChatInterface: React.FC = () => {
   };
 
   const setupRealtimeSubscription = () => {
+    // Clean up any existing subscription first
+    if (subscriptionRef.current) {
+      subscriptionRef.current();
+      subscriptionRef.current = null;
+    }
+
     const channel = supabase
       .channel(`community_messages_${Date.now()}`)
       .on(
@@ -128,9 +137,12 @@ export const ModernChatInterface: React.FC = () => {
       )
       .subscribe();
 
-    return () => {
+    const cleanup = () => {
       supabase.removeChannel(channel);
     };
+
+    subscriptionRef.current = cleanup;
+    return cleanup;
   };
 
   const handleProfileClick = (userId: string) => {

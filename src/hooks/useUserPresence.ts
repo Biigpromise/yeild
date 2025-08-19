@@ -22,14 +22,16 @@ export const useUserPresence = (channelName: string = 'general') => {
   const [typingUsers, setTypingUsers] = useState<TypingStatus[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [channel, setChannel] = useState<any>(null);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || isSubscribed) return;
 
     // Create unique channel name to avoid conflicts
     const uniqueChannelName = `presence_${channelName}_${Date.now()}`;
     const newChannel = supabase.channel(uniqueChannelName);
     setChannel(newChannel);
+    setIsSubscribed(true);
 
     // Subscribe to presence changes
     newChannel
@@ -118,8 +120,9 @@ export const useUserPresence = (channelName: string = 'general') => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       supabase.removeChannel(newChannel);
       setChannel(null);
+      setIsSubscribed(false);
     };
-  }, [user, channelName]);
+  }, [user, channelName, isSubscribed]);
 
   const broadcastTyping = useCallback((typing: boolean) => {
     if (!user || !channel) return;
