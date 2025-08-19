@@ -227,7 +227,7 @@ export const ModernMessageBubble: React.FC<ModernMessageBubbleProps> = ({
           {isHovered && (
             <div className={cn(
               "absolute flex items-center gap-1 bg-background border rounded-lg shadow-lg p-1 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10",
-              isOwn ? "-left-20 top-0" : "-right-20 top-0"
+              isOwn ? "right-full mr-2 top-0" : "left-full ml-2 top-0"
             )}>
               <Button
                 size="sm"

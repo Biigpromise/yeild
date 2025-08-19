@@ -65,13 +65,15 @@ export const ModernChatInterface: React.FC = () => {
           views_count,
           media_url,
           message_type,
+          chat_id,
+          message_context,
           profiles:user_id (
             name,
             profile_picture_url
           )
         `)
-        .is('chat_id', null)
-        .eq('message_context', 'community')
+        .or(`chat_id.is.null,and(chat_id.not.is.null,message_context.eq.direct)`)
+        .in('message_context', ['community', 'direct'])
         .order('created_at', { ascending: true })
         .limit(100);
 
@@ -93,11 +95,11 @@ export const ModernChatInterface: React.FC = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'messages',
-          filter: 'chat_id=is.null'
+          table: 'messages'
         },
         async (payload) => {
-          if (payload.new.chat_id === null && payload.new.message_context === 'community') {
+          if ((payload.new.chat_id === null && payload.new.message_context === 'community') || 
+              (payload.new.chat_id !== null && payload.new.message_context === 'direct')) {
             const { data } = await supabase
               .from('messages')
               .select(`
@@ -108,6 +110,8 @@ export const ModernChatInterface: React.FC = () => {
                 views_count,
                 media_url,
                 message_type,
+                chat_id,
+                message_context,
                 profiles:user_id (
                   name,
                   profile_picture_url
