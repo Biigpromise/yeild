@@ -9,6 +9,11 @@ import { BrandSettings } from '@/components/brand/dashboard/BrandSettings';
 import { CreateCampaignDialog } from '@/components/brand/CreateCampaignDialog';
 import { BrandWalletFundingDialog } from '@/components/brand/BrandWalletFundingDialog';
 import { BrandCampaignManager } from '@/components/brand/dashboard/BrandCampaignManager';
+import { BrandAudienceInsights } from '@/components/brand/dashboard/BrandAudienceInsights';
+import { BrandCreativeStudio } from '@/components/brand/dashboard/BrandCreativeStudio';
+import { BrandFinancialHub } from '@/components/brand/dashboard/BrandFinancialHub';
+import { BrandAnalytics } from '@/components/brand/dashboard/BrandAnalytics';
+import { BrandSupport } from '@/components/brand/dashboard/BrandSupport';
 import { toast } from 'sonner';
 
 const BrandDashboard = () => {
@@ -83,48 +88,23 @@ const BrandDashboard = () => {
         />
         <Route
           path="/audience"
-          element={
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Audience Insights</h2>
-              <p className="text-muted-foreground">Coming soon...</p>
-            </div>
-          }
+          element={<BrandAudienceInsights />}
         />
         <Route
           path="/creative"
-          element={
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Creative Studio</h2>
-              <p className="text-muted-foreground">Coming soon...</p>
-            </div>
-          }
+          element={<BrandCreativeStudio />}
         />
         <Route
           path="/finance"
-          element={
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Financial Hub</h2>
-              <p className="text-muted-foreground">Coming soon...</p>
-            </div>
-          }
+          element={<BrandFinancialHub />}
         />
         <Route
           path="/analytics"
-          element={
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Analytics</h2>
-              <p className="text-muted-foreground">Coming soon...</p>
-            </div>
-          }
+          element={<BrandAnalytics />}
         />
         <Route
           path="/support"
-          element={
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Help & Support</h2>
-              <p className="text-muted-foreground">Coming soon...</p>
-            </div>
-          }
+          element={<BrandSupport />}
         />
         <Route
           path="/settings"
