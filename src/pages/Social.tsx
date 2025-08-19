@@ -158,7 +158,7 @@ const Social: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="chat" className="mt-6">
-            <div className="h-[calc(100vh-300px)] bg-background rounded-lg border">
+            <div className="h-[calc(100vh-200px)] bg-background rounded-lg border overflow-hidden">
               <CommunityChatTab onToggleNavigation={() => setIsNavigationOpen(!isNavigationOpen)} />
             </div>
           </TabsContent>
