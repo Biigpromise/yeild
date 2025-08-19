@@ -6,18 +6,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Link, Instagram, Twitter, Facebook, Youtube, Plus, X, ExternalLink } from 'lucide-react';
 
-interface SocialLink {
+export interface SocialLink {
   platform: string;
   url: string;
   description?: string;
 }
 
-interface SocialLinksData {
+export interface SocialLinksData {
   website?: string;
-  social_profiles: SocialLink[];
-  engagement_posts: string[];
+  socialProfiles: SocialLink[];
+  engagementPosts: string[];
   hashtags: string[];
-  mention_requirements?: string;
+  mentionRequirements: string[];
 }
 
 interface SocialLinksSectionProps {
@@ -46,37 +46,37 @@ export const SocialLinksSection: React.FC<SocialLinksSectionProps> = ({
     const newProfile: SocialLink = { platform: 'instagram', url: '', description: '' };
     onSocialLinksChange({
       ...socialLinks,
-      social_profiles: [...socialLinks.social_profiles, newProfile]
+      socialProfiles: [...socialLinks.socialProfiles, newProfile]
     });
   };
 
   const updateSocialProfile = (index: number, field: keyof SocialLink, value: string) => {
-    const updated = [...socialLinks.social_profiles];
+    const updated = [...socialLinks.socialProfiles];
     updated[index] = { ...updated[index], [field]: value };
-    onSocialLinksChange({ ...socialLinks, social_profiles: updated });
+    onSocialLinksChange({ ...socialLinks, socialProfiles: updated });
   };
 
   const removeSocialProfile = (index: number) => {
-    const updated = socialLinks.social_profiles.filter((_, i) => i !== index);
-    onSocialLinksChange({ ...socialLinks, social_profiles: updated });
+    const updated = socialLinks.socialProfiles.filter((_, i) => i !== index);
+    onSocialLinksChange({ ...socialLinks, socialProfiles: updated });
   };
 
   const addEngagementPost = () => {
     onSocialLinksChange({
       ...socialLinks,
-      engagement_posts: [...socialLinks.engagement_posts, '']
+      engagementPosts: [...socialLinks.engagementPosts, '']
     });
   };
 
   const updateEngagementPost = (index: number, url: string) => {
-    const updated = [...socialLinks.engagement_posts];
+    const updated = [...socialLinks.engagementPosts];
     updated[index] = url;
-    onSocialLinksChange({ ...socialLinks, engagement_posts: updated });
+    onSocialLinksChange({ ...socialLinks, engagementPosts: updated });
   };
 
   const removeEngagementPost = (index: number) => {
-    const updated = socialLinks.engagement_posts.filter((_, i) => i !== index);
-    onSocialLinksChange({ ...socialLinks, engagement_posts: updated });
+    const updated = socialLinks.engagementPosts.filter((_, i) => i !== index);
+    onSocialLinksChange({ ...socialLinks, engagementPosts: updated });
   };
 
   const updateHashtags = (hashtagsText: string) => {
@@ -134,7 +134,7 @@ export const SocialLinksSection: React.FC<SocialLinksSectionProps> = ({
             </Button>
           </div>
           
-          {socialLinks.social_profiles.map((profile, index) => (
+          {socialLinks.socialProfiles.map((profile, index) => (
             <div key={index} className="flex gap-3 items-start">
               <select
                 value={profile.platform}
@@ -186,7 +186,7 @@ export const SocialLinksSection: React.FC<SocialLinksSectionProps> = ({
             </Button>
           </div>
           
-          {socialLinks.engagement_posts.map((post, index) => (
+          {socialLinks.engagementPosts.map((post, index) => (
             <div key={index} className="flex gap-3 items-center">
               <Input
                 type="url"
@@ -205,7 +205,7 @@ export const SocialLinksSection: React.FC<SocialLinksSectionProps> = ({
               </Button>
             </div>
           ))}
-          {socialLinks.engagement_posts.length === 0 && (
+          {socialLinks.engagementPosts.length === 0 && (
             <p className="text-sm text-muted-foreground">
               Add specific posts you want creators to like, comment on, or share
             </p>
@@ -241,10 +241,10 @@ export const SocialLinksSection: React.FC<SocialLinksSectionProps> = ({
           <Label htmlFor="mentions">Mention Requirements</Label>
           <Textarea
             id="mentions"
-            value={socialLinks.mention_requirements || ''}
+            value={socialLinks.mentionRequirements.join('\n') || ''}
             onChange={(e) => onSocialLinksChange({
               ...socialLinks,
-              mention_requirements: e.target.value
+              mentionRequirements: e.target.value.split('\n').filter(req => req.trim())
             })}
             placeholder="Specify any accounts that must be mentioned in posts (e.g., @yourbrand, @partner)"
             rows={2}

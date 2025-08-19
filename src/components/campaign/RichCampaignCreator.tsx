@@ -172,7 +172,7 @@ export const RichCampaignCreator = () => {
 
       const { error } = await supabase
         .from('brand_campaigns')
-        .insert([campaignData]);
+        .insert(campaignData);
       
       if (error) throw error;
       

@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Plus, X, Clock, Target, CheckSquare } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface Deliverable {
+export interface Deliverable {
   id: string;
   type: 'post' | 'story' | 'reel' | 'video' | 'review' | 'unboxing' | 'tutorial';
   quantity: number;
@@ -17,17 +17,15 @@ interface Deliverable {
   deadline?: string;
 }
 
-interface CampaignBriefData {
-  brief: string;
+export interface CampaignBriefData {
+  mainBrief: string;
   objectives: string[];
   deliverables: Deliverable[];
-  content_guidelines: string;
-  brand_voice: string;
-  do_and_dont: {
-    dos: string[];
-    donts: string[];
-  };
-  success_metrics: string[];
+  contentGuidelines: string;
+  brandVoice: string;
+  dos: string[];
+  donts: string[];
+  successMetrics: string[];
 }
 
 interface CampaignBriefSectionProps {
@@ -48,7 +46,7 @@ const deliverableTypes = [
 const campaignTemplates = [
   {
     name: 'Product Launch',
-    brief: 'Help us introduce our new product to your audience through authentic content creation.',
+    mainBrief: 'Help us introduce our new product to your audience through authentic content creation.',
     objectives: ['Increase brand awareness', 'Drive product sales', 'Generate user-generated content'],
     deliverables: [
       { id: '1', type: 'post' as const, quantity: 2, specifications: 'High-quality product photos with lifestyle context' },
@@ -57,7 +55,7 @@ const campaignTemplates = [
   },
   {
     name: 'Brand Awareness',
-    brief: 'Create engaging content that showcases our brand values and connects with your audience.',
+    mainBrief: 'Create engaging content that showcases our brand values and connects with your audience.',
     objectives: ['Increase brand visibility', 'Build brand affinity', 'Reach new audiences'],
     deliverables: [
       { id: '1', type: 'post' as const, quantity: 1, specifications: 'Authentic brand integration in your content style' },
@@ -66,7 +64,7 @@ const campaignTemplates = [
   },
   {
     name: 'Event Promotion',
-    brief: 'Help promote our upcoming event and encourage attendance through compelling content.',
+    mainBrief: 'Help promote our upcoming event and encourage attendance through compelling content.',
     objectives: ['Drive event registrations', 'Create event buzz', 'Increase social engagement'],
     deliverables: [
       { id: '1', type: 'post' as const, quantity: 1, specifications: 'Event announcement with compelling visuals' },
@@ -87,7 +85,7 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
   const loadTemplate = (template: typeof campaignTemplates[0]) => {
     onBriefDataChange({
       ...briefData,
-      brief: template.brief,
+      mainBrief: template.mainBrief,
       objectives: template.objectives,
       deliverables: template.deliverables
     });
@@ -144,10 +142,7 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
     if (newDo.trim()) {
       onBriefDataChange({
         ...briefData,
-        do_and_dont: {
-          ...briefData.do_and_dont,
-          dos: [...briefData.do_and_dont.dos, newDo.trim()]
-        }
+        dos: [...briefData.dos, newDo.trim()]
       });
       setNewDo('');
     }
@@ -157,10 +152,7 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
     if (newDont.trim()) {
       onBriefDataChange({
         ...briefData,
-        do_and_dont: {
-          ...briefData.do_and_dont,
-          donts: [...briefData.do_and_dont.donts, newDont.trim()]
-        }
+        donts: [...briefData.donts, newDont.trim()]
       });
       setNewDont('');
     }
@@ -170,7 +162,7 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
     if (newMetric.trim()) {
       onBriefDataChange({
         ...briefData,
-        success_metrics: [...briefData.success_metrics, newMetric.trim()]
+        successMetrics: [...briefData.successMetrics, newMetric.trim()]
       });
       setNewMetric('');
     }
@@ -199,7 +191,7 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
                 <div>
                   <p className="font-medium">{template.name}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {template.brief.substring(0, 60)}...
+                    {template.mainBrief.substring(0, 60)}...
                   </p>
                 </div>
               </Button>
@@ -212,8 +204,8 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
           <Label htmlFor="brief">Campaign Brief</Label>
           <Textarea
             id="brief"
-            value={briefData.brief}
-            onChange={(e) => onBriefDataChange({ ...briefData, brief: e.target.value })}
+            value={briefData.mainBrief}
+            onChange={(e) => onBriefDataChange({ ...briefData, mainBrief: e.target.value })}
             placeholder="Describe your campaign in detail. What is the main goal? What message do you want to convey? What should creators know about your brand?"
             rows={4}
           />
@@ -321,8 +313,8 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
           <Label htmlFor="guidelines">Content Guidelines</Label>
           <Textarea
             id="guidelines"
-            value={briefData.content_guidelines}
-            onChange={(e) => onBriefDataChange({ ...briefData, content_guidelines: e.target.value })}
+            value={briefData.contentGuidelines}
+            onChange={(e) => onBriefDataChange({ ...briefData, contentGuidelines: e.target.value })}
             placeholder="Specific guidelines for content creation (style, tone, format, etc.)"
             rows={3}
           />
@@ -333,8 +325,8 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
           <Label htmlFor="brand-voice">Brand Voice & Personality</Label>
           <Textarea
             id="brand-voice"
-            value={briefData.brand_voice}
-            onChange={(e) => onBriefDataChange({ ...briefData, brand_voice: e.target.value })}
+            value={briefData.brandVoice}
+            onChange={(e) => onBriefDataChange({ ...briefData, brandVoice: e.target.value })}
             placeholder="Describe your brand's personality and how creators should represent it"
             rows={2}
           />
@@ -356,7 +348,7 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
               </Button>
             </div>
             <div className="space-y-2">
-              {briefData.do_and_dont.dos.map((item, index) => (
+              {briefData.dos.map((item, index) => (
                 <div key={index} className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950/20 rounded">
                   <CheckSquare className="w-4 h-4 text-green-600" />
                   <span className="flex-1 text-sm">{item}</span>
@@ -366,10 +358,7 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
                     className="h-auto p-0 w-4 h-4"
                     onClick={() => onBriefDataChange({
                       ...briefData,
-                      do_and_dont: {
-                        ...briefData.do_and_dont,
-                        dos: briefData.do_and_dont.dos.filter((_, i) => i !== index)
-                      }
+                      dos: briefData.dos.filter((_, i) => i !== index)
                     })}
                   >
                     <X className="w-3 h-3" />
@@ -393,7 +382,7 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
               </Button>
             </div>
             <div className="space-y-2">
-              {briefData.do_and_dont.donts.map((item, index) => (
+              {briefData.donts.map((item, index) => (
                 <div key={index} className="flex items-center gap-2 p-2 bg-red-50 dark:bg-red-950/20 rounded">
                   <X className="w-4 h-4 text-red-600" />
                   <span className="flex-1 text-sm">{item}</span>
@@ -403,10 +392,7 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
                     className="h-auto p-0 w-4 h-4"
                     onClick={() => onBriefDataChange({
                       ...briefData,
-                      do_and_dont: {
-                        ...briefData.do_and_dont,
-                        donts: briefData.do_and_dont.donts.filter((_, i) => i !== index)
-                      }
+                      donts: briefData.donts.filter((_, i) => i !== index)
                     })}
                   >
                     <X className="w-3 h-3" />
@@ -432,7 +418,7 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
             </Button>
           </div>
           <div className="flex flex-wrap gap-2">
-            {briefData.success_metrics.map((metric, index) => (
+            {briefData.successMetrics.map((metric, index) => (
               <Badge key={index} variant="outline" className="flex items-center gap-1">
                 {metric}
                 <Button
@@ -441,7 +427,7 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
                   className="h-auto p-0 w-4 h-4 ml-1"
                   onClick={() => onBriefDataChange({
                     ...briefData,
-                    success_metrics: briefData.success_metrics.filter((_, i) => i !== index)
+                    successMetrics: briefData.successMetrics.filter((_, i) => i !== index)
                   })}
                 >
                   <X className="w-3 h-3" />
