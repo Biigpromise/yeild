@@ -11,7 +11,6 @@ import { SocialHub } from '@/components/social/SocialHub';
 import { StoriesBar } from '@/components/social/StoriesBar';
 import { UpcomingTasksTab } from '@/components/social/UpcomingTasksTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CommunityChatTab } from '@/components/dashboard/CommunityChatTab';
 
 const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) => (
   <div className="p-6">
@@ -41,12 +40,8 @@ export const SocialTab: React.FC = () => {
         <BirdStatusDisplay />
       </ErrorBoundary>
       
-      <Tabs defaultValue="community" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 h-auto p-1">
-          <TabsTrigger value="community" className="text-xs sm:text-sm px-1 sm:px-3 py-2">
-            <span className="hidden sm:inline">Community Chat</span>
-            <span className="sm:hidden">Chat</span>
-          </TabsTrigger>
+      <Tabs defaultValue="upcoming" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 h-auto p-1">
           <TabsTrigger value="upcoming" className="text-xs sm:text-sm px-1 sm:px-3 py-2">
             <span className="hidden sm:inline">Upcoming Tasks</span>
             <span className="sm:hidden">Tasks</span>
@@ -59,14 +54,6 @@ export const SocialTab: React.FC = () => {
             <span className="sm:hidden">Feed</span>
           </TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="community" className="mt-6">
-          <ErrorBoundary FallbackComponent={ErrorFallback}>
-            <div className="h-[600px]">
-              <CommunityChatTab />
-            </div>
-          </ErrorBoundary>
-        </TabsContent>
         
         <TabsContent value="upcoming" className="mt-6">
           <ErrorBoundary FallbackComponent={ErrorFallback}>
