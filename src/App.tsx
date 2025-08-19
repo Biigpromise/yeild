@@ -15,6 +15,7 @@ import BrandAuth from "./pages/BrandAuth";
 import BrandDashboard from "./pages/BrandDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminTaskCreate from "./pages/AdminTaskCreate";
+import CreateCampaign from "./pages/CreateCampaign";
 import ResetPassword from "./pages/ResetPassword";
 import CustomResetPassword from "./pages/CustomResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -31,6 +32,7 @@ import Social from "./pages/Social";
 import Wallet from "./pages/Wallet";
 import Referrals from "./pages/Referrals";
 import Birds from "./pages/Birds";
+import { EnhancedCampaignCreation } from "@/components/campaign/EnhancedCampaignCreation";
 import { AppLayout } from "./components/AppLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { RoleBasedRoute } from "@/components/RoleBasedRoute";
@@ -128,6 +130,14 @@ const AppContent = () => {
           element={
             <RoleBasedRoute requiredRole="admin">
               <AdminTaskCreate />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/create-campaign"
+          element={
+            <RoleBasedRoute requiredRole="brand">
+              <EnhancedCampaignCreation />
             </RoleBasedRoute>
           }
         />

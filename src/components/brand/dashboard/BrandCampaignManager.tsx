@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ import { BrandWalletFundingDialog } from '@/components/brand/BrandWalletFundingD
 import { toast } from 'sonner';
 
 export const BrandCampaignManager: React.FC = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -259,7 +261,7 @@ export const BrandCampaignManager: React.FC = () => {
             <DollarSign className="w-4 h-4" />
             Add Funds
           </Button>
-          <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+          <Button onClick={() => navigate('/create-campaign')} className="gap-2">
             <Plus className="w-4 h-4" />
             New Campaign
           </Button>
