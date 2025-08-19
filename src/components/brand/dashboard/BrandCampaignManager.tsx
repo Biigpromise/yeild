@@ -261,8 +261,8 @@ export const BrandCampaignManager: React.FC = () => {
             <DollarSign className="w-4 h-4" />
             Add Funds
           </Button>
-          <Button onClick={() => navigate('/create-campaign')} className="gap-2">
-            <Plus className="w-4 h-4" />
+          <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+            <Plus className="w-4 w-4" />
             New Campaign
           </Button>
         </div>
@@ -390,7 +390,7 @@ export const BrandCampaignManager: React.FC = () => {
                 }
               </p>
               {!searchTerm && statusFilter === 'all' && (
-                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
                   <Plus className="w-4 h-4 mr-2" />
                   Create Campaign
                 </Button>

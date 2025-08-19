@@ -1,146 +1,161 @@
 
-import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
-  DialogTitle 
+  DialogTitle,
+  DialogDescription 
 } from '@/components/ui/dialog';
-import { toast } from 'sonner';
+import { Card, CardContent } from '@/components/ui/card';
+import { 
+  Sparkles, 
+  Zap, 
+  Target, 
+  Users, 
+  ArrowRight,
+  Plus,
+  Wand2
+} from 'lucide-react';
 
 interface CreateCampaignDialogProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface CampaignFormData {
-  title: string;
-  description: string;
-  budget: number;
-  target_audience: string;
-  requirements: string;
-}
+const campaignTypes = [
+  {
+    id: 'rich',
+    title: 'Rich Campaign Creator',
+    description: 'Advanced campaign builder with media assets, social links, and detailed targeting',
+    icon: Sparkles,
+    features: ['Media Upload', 'Social Integration', 'Advanced Targeting', 'Campaign Brief'],
+    route: '/brand-dashboard/campaigns/create',
+    recommended: true
+  },
+  {
+    id: 'enhanced',
+    title: 'Enhanced Campaign Creation',
+    description: 'Step-by-step guided campaign creation with wallet integration',
+    icon: Zap,
+    features: ['Guided Steps', 'Wallet Integration', 'Budget Management', 'Review System'],
+    route: '/brand-dashboard/campaigns/enhanced',
+    recommended: false
+  },
+  {
+    id: 'quick',
+    title: 'Quick Campaign',
+    description: 'Simple and fast campaign creation for immediate launch',
+    icon: Target,
+    features: ['Quick Setup', 'Basic Targeting', 'Instant Launch', 'Simplified Flow'],
+    route: '/brand-dashboard/campaigns/quick-create',
+    recommended: false
+  }
+];
 
 export const CreateCampaignDialog: React.FC<CreateCampaignDialogProps> = ({ isOpen, onClose }) => {
-  const [formData, setFormData] = useState<CampaignFormData>({
-    title: '',
-    description: '',
-    budget: 0,
-    target_audience: '',
-    requirements: '',
-  });
+  const navigate = useNavigate();
 
-  const queryClient = useQueryClient();
-
-  const createCampaignMutation = useMutation({
-    mutationFn: async (campaignData: CampaignFormData) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { error } = await supabase
-        .from('brand_campaigns')
-        .insert([{
-          ...campaignData,
-          brand_id: user.id,
-          target_audience: { description: campaignData.target_audience },
-          requirements: { description: campaignData.requirements },
-          status: 'draft'
-        }]);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['brand-campaigns'] });
-      toast.success('Campaign created successfully');
-      onClose();
-      resetForm();
-    },
-    onError: (error) => {
-      console.error('Error creating campaign:', error);
-      toast.error('Failed to create campaign');
-    },
-  });
-
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      budget: 0,
-      target_audience: '',
-      requirements: '',
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    createCampaignMutation.mutate(formData);
+  const handleCampaignTypeSelect = (route: string) => {
+    onClose();
+    navigate(route);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Create New Campaign</DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+        <DialogHeader className="text-center pb-6">
+          <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            Create New Campaign
+          </DialogTitle>
+          <DialogDescription className="text-lg text-muted-foreground">
+            Choose the perfect campaign creation experience for your needs
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="title">Campaign Title</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            />
-          </div>
-          <div>
-            <Label htmlFor="budget">Budget ($)</Label>
-            <Input
-              id="budget"
-              type="number"
-              value={formData.budget}
-              onChange={(e) => setFormData(prev => ({ ...prev, budget: Number(e.target.value) }))}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="target-audience">Target Audience</Label>
-            <Input
-              id="target-audience"
-              value={formData.target_audience}
-              onChange={(e) => setFormData(prev => ({ ...prev, target_audience: e.target.value }))}
-            />
-          </div>
-          <div>
-            <Label htmlFor="requirements">Requirements</Label>
-            <Textarea
-              id="requirements"
-              value={formData.requirements}
-              onChange={(e) => setFormData(prev => ({ ...prev, requirements: e.target.value }))}
-            />
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={createCampaignMutation.isPending}>
-              {createCampaignMutation.isPending ? 'Creating...' : 'Create Campaign'}
-            </Button>
-          </div>
-        </form>
+
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3 max-h-[60vh] overflow-y-auto">
+          {campaignTypes.map((type) => {
+            const IconComponent = type.icon;
+            return (
+              <Card 
+                key={type.id} 
+                className={`relative cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 ${
+                  type.recommended 
+                    ? 'ring-2 ring-primary bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20' 
+                    : 'hover:border-primary/30'
+                }`}
+                onClick={() => handleCampaignTypeSelect(type.route)}
+              >
+                {type.recommended && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <div className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                      <Wand2 className="h-3 w-3" />
+                      Recommended
+                    </div>
+                  </div>
+                )}
+                
+                <CardContent className="p-6 h-full flex flex-col">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      type.recommended 
+                        ? 'bg-primary/20 text-primary' 
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      <IconComponent className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg text-foreground">
+                        {type.title}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <p className="text-muted-foreground text-sm mb-4 flex-1">
+                    {type.description}
+                  </p>
+
+                  <div className="space-y-2 mb-6">
+                    <h4 className="text-sm font-medium text-foreground">Features:</h4>
+                    <ul className="space-y-1">
+                      {type.features.map((feature, index) => (
+                        <li key={index} className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <Button 
+                    className={`w-full ${
+                      type.recommended 
+                        ? 'bg-primary hover:bg-primary/90' 
+                        : 'bg-secondary hover:bg-secondary/80'
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCampaignTypeSelect(type.route);
+                    }}
+                  >
+                    <span className="flex items-center gap-2">
+                      {type.recommended ? 'Start Creating' : 'Choose This Option'}
+                      <ArrowRight className="h-4 w-4" />
+                    </span>
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        <div className="flex justify-center pt-6 border-t">
+          <Button variant="outline" onClick={onClose} className="min-w-32">
+            Cancel
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
