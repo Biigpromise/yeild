@@ -21,17 +21,20 @@ export const useUserPresence = (channelName: string = 'general') => {
   const [onlineUsers, setOnlineUsers] = useState<UserPresence[]>([]);
   const [typingUsers, setTypingUsers] = useState<TypingStatus[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [channel, setChannel] = useState<any>(null);
 
   useEffect(() => {
     if (!user) return;
 
-    // Create channel inside useEffect to prevent recreation on every render
-    const channel = supabase.channel(`presence_${channelName}_${user.id}`);
+    // Create unique channel name to avoid conflicts
+    const uniqueChannelName = `presence_${channelName}_${Date.now()}`;
+    const newChannel = supabase.channel(uniqueChannelName);
+    setChannel(newChannel);
 
     // Subscribe to presence changes
-    channel
+    newChannel
       .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
+        const state = newChannel.presenceState();
         const users: UserPresence[] = [];
         
         Object.keys(state).forEach(key => {
@@ -78,7 +81,7 @@ export const useUserPresence = (channelName: string = 'general') => {
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           // Track current user's presence
-          await channel.track({
+          await newChannel.track({
             user_id: user.id,
             username: user.email?.split('@')[0] || 'Anonymous',
             avatar: user.user_metadata?.avatar_url,
@@ -91,7 +94,7 @@ export const useUserPresence = (channelName: string = 'general') => {
     // Handle page visibility changes
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        channel.track({
+        newChannel.track({
           user_id: user.id,
           username: user.email?.split('@')[0] || 'Anonymous',
           avatar: user.user_metadata?.avatar_url,
@@ -99,7 +102,7 @@ export const useUserPresence = (channelName: string = 'general') => {
           status: 'away'
         });
       } else {
-        channel.track({
+        newChannel.track({
           user_id: user.id,
           username: user.email?.split('@')[0] || 'Anonymous',
           avatar: user.user_metadata?.avatar_url,
@@ -113,20 +116,37 @@ export const useUserPresence = (channelName: string = 'general') => {
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      supabase.removeChannel(channel);
+      supabase.removeChannel(newChannel);
+      setChannel(null);
     };
   }, [user, channelName]);
 
   const broadcastTyping = useCallback((typing: boolean) => {
-    if (!user) return;
+    if (!user || !channel) return;
+
     setIsTyping(typing);
-    // Use the existing channel reference instead of creating a new one
-  }, [user]);
+    channel.send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: {
+        userId: user.id,
+        username: user.email?.split('@')[0] || 'Anonymous',
+        isTyping: typing
+      }
+    });
+  }, [user, channel]);
 
   const updateStatus = useCallback((status: 'online' | 'away' | 'offline') => {
-    if (!user) return;
-    // Use the existing channel reference instead of creating a new one
-  }, [user]);
+    if (!user || !channel) return;
+
+    channel.track({
+      user_id: user.id,
+      username: user.email?.split('@')[0] || 'Anonymous',
+      avatar: user.user_metadata?.avatar_url,
+      online_at: new Date().toISOString(),
+      status
+    });
+  }, [user, channel]);
 
   const getTypingUsersExcludingSelf = () => {
     return typingUsers.filter(t => t.userId !== user?.id);

@@ -86,7 +86,7 @@ export const ModernChatInterface: React.FC = () => {
 
   const setupRealtimeSubscription = () => {
     const channel = supabase
-      .channel('community_messages')
+      .channel(`community_messages_${Date.now()}`)
       .on(
         'postgres_changes',
         {
