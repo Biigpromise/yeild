@@ -119,7 +119,7 @@ async function handleChargeCompleted(supabase: any, event: FlutterwaveWebhookEve
   // Get the payment transaction to check payment type and user
   const { data: paymentTransaction, error: fetchError } = await supabase
     .from('payment_transactions')
-    .select('payment_type, user_id, amount')
+    .select('id, payment_type, user_id, amount')
     .eq('transaction_ref', data.tx_ref)
     .single();
 
@@ -155,9 +155,9 @@ async function handleChargeCompleted(supabase: any, event: FlutterwaveWebhookEve
         p_transaction_type: 'deposit',
         p_amount: data.amount,
         p_description: `Wallet funding via Flutterwave - ${data.tx_ref}`,
-        p_reference_id: null,
+        p_reference_id: paymentTransaction.id,
         p_campaign_id: null,
-        p_payment_transaction_id: data.tx_ref
+        p_payment_transaction_id: paymentTransaction.id
       });
 
       if (walletError) {
@@ -209,7 +209,7 @@ async function handleChargeCompleted(supabase: any, event: FlutterwaveWebhookEve
   // Queue for settlement if amount meets threshold
   await queueForSettlement(supabase, {
     sourceType: 'payment',
-    sourceId: data.tx_ref,
+    sourceId: paymentTransaction.id,
     amount: data.amount - data.app_fee,
     fee: data.app_fee,
     reference: `PAY-${data.tx_ref}`
