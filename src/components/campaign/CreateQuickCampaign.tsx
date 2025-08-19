@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { ArrowLeft, Zap, Target, Clock } from 'lucide-react';
+import { ArrowLeft, Zap, Target, Clock, Upload, Image as ImageIcon, X } from 'lucide-react';
 
 interface QuickCampaignFormData {
   title: string;
@@ -20,6 +20,7 @@ interface QuickCampaignFormData {
   requirements: string;
   category: string;
   duration: string;
+  logo_url: string;
 }
 
 export const CreateQuickCampaign = () => {
@@ -30,12 +31,17 @@ export const CreateQuickCampaign = () => {
   const [formData, setFormData] = useState<QuickCampaignFormData>({
     title: '',
     description: '',
-    budget: 0,
+    budget: 5000,
     target_audience: '',
     requirements: '',
     category: '',
-    duration: '7'
+    duration: '7',
+    logo_url: ''
   });
+
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const createCampaignMutation = useMutation({
     mutationFn: async (campaignData: QuickCampaignFormData) => {
@@ -50,6 +56,8 @@ export const CreateQuickCampaign = () => {
           brand_id: user.id,
           title: campaignData.title,
           description: campaignData.description,
+          category: campaignData.category,
+          logo_url: campaignData.logo_url,
           budget: campaignData.budget,
           target_audience: { description: campaignData.target_audience },
           requirements: { description: campaignData.requirements },
@@ -93,6 +101,51 @@ export const CreateQuickCampaign = () => {
       return;
     }
     createCampaignMutation.mutate(formData);
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLogoFile(file);
+    setUploading(true);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `campaign-logo-${Date.now()}.${fileExt}`;
+      const filePath = `campaign-logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('campaign-media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('campaign-media')
+        .getPublicUrl(filePath);
+
+      updateFormData('logo_url', urlData.publicUrl);
+      toast.success('Logo uploaded successfully!');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload logo');
+      setLogoPreview(null);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    updateFormData('logo_url', '');
   };
 
   const updateFormData = (field: keyof QuickCampaignFormData, value: string | number) => {
@@ -201,6 +254,53 @@ export const CreateQuickCampaign = () => {
                         <SelectItem value="30">1 month</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Campaign Logo (Optional)</Label>
+                  <div className="mt-1">
+                    {logoPreview || formData.logo_url ? (
+                      <div className="relative inline-block">
+                        <img
+                          src={logoPreview || formData.logo_url}
+                          alt="Campaign logo"
+                          className="w-24 h-24 object-contain border border-border rounded-lg"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0"
+                          onClick={removeLogo}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center w-full">
+                        <label htmlFor="logo-upload" className="flex flex-col items-center justify-center w-full h-24 border-2 border-border border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted transition-colors">
+                          <div className="flex flex-col items-center justify-center">
+                            {uploading ? (
+                              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <>
+                                <ImageIcon className="w-6 h-6 mb-1 text-muted-foreground" />
+                                <p className="text-xs text-muted-foreground">Upload logo</p>
+                              </>
+                            )}
+                          </div>
+                          <input
+                            id="logo-upload"
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleLogoUpload}
+                            disabled={uploading}
+                          />
+                        </label>
+                      </div>
+                    )}
                   </div>
                 </div>
 

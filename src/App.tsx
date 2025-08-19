@@ -16,6 +16,8 @@ import BrandDashboard from "./pages/BrandDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminTaskCreate from "./pages/AdminTaskCreate";
 import CreateCampaign from "./pages/CreateCampaign";
+import { CreateQuickCampaign } from "@/components/campaign/CreateQuickCampaign";
+import { SimplifiedCampaignCreator } from "@/components/campaign/SimplifiedCampaignCreator";
 import ResetPassword from "./pages/ResetPassword";
 import CustomResetPassword from "./pages/CustomResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -135,6 +137,30 @@ const AppContent = () => {
         />
         <Route
           path="/create-campaign"
+          element={
+            <RoleBasedRoute requiredRole="brand">
+              <EnhancedCampaignCreation />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/brand-dashboard/campaigns/create"
+          element={
+            <RoleBasedRoute requiredRole="brand">
+              <SimplifiedCampaignCreator />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/brand-dashboard/campaigns/create-quick"
+          element={
+            <RoleBasedRoute requiredRole="brand">
+              <CreateQuickCampaign />
+            </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/brand-dashboard/campaigns/create-enhanced"
           element={
             <RoleBasedRoute requiredRole="brand">
               <EnhancedCampaignCreation />

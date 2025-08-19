@@ -70,13 +70,13 @@ export const CampaignBasicDetails: React.FC<CampaignBasicDetailsProps> = ({
       const filePath = `campaign-logos/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('posts')
+        .from('campaign-media')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage
-        .from('posts')
+        .from('campaign-media')
         .getPublicUrl(filePath);
 
       handleInputChange('logo_url', urlData.publicUrl);

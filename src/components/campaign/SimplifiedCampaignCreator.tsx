@@ -1,0 +1,518 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { toast } from 'sonner';
+import { ArrowLeft, ArrowRight, CheckCircle, Upload, Image as ImageIcon, X } from 'lucide-react';
+import { useSimpleFormPersistence } from '@/hooks/useSimpleFormPersistence';
+
+interface CampaignFormData {
+  title: string;
+  description: string;
+  category: string;
+  logo_url: string;
+  budget: number;
+  target_audience: string;
+  requirements: string;
+  duration: string;
+}
+
+const campaignCategories = [
+  'Social Media Marketing',
+  'Content Creation',
+  'Influencer Marketing',
+  'Product Launch',
+  'Brand Awareness',
+  'Lead Generation',
+  'Community Building',
+  'User Generated Content',
+  'Reviews & Testimonials',
+  'Event Promotion'
+];
+
+export const SimplifiedCampaignCreator = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  
+  const [formData, setFormData] = useState<CampaignFormData>({
+    title: '',
+    description: '',
+    category: '',
+    logo_url: '',
+    budget: 5000,
+    target_audience: '',
+    requirements: '',
+    duration: '7'
+  });
+
+  const [currentStep, setCurrentStep] = useState(1);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  // Auto-save form data
+  useSimpleFormPersistence({
+    formData,
+    setFormData,
+    storageKey: 'simplified-campaign-draft',
+    enabled: true,
+    excludeKeys: ['logo_url']
+  });
+
+  const steps = [
+    { id: 1, title: 'Essentials', description: 'Basic campaign details' },
+    { id: 2, title: 'Requirements', description: 'Target audience & specs' },
+    { id: 3, title: 'Review & Submit', description: 'Final review' }
+  ];
+
+  const createCampaignMutation = useMutation({
+    mutationFn: async (campaignData: CampaignFormData) => {
+      if (!user) throw new Error('Not authenticated');
+
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + parseInt(campaignData.duration));
+
+      const { error } = await supabase
+        .from('brand_campaigns')
+        .insert([{
+          brand_id: user.id,
+          title: campaignData.title,
+          description: campaignData.description,
+          category: campaignData.category,
+          logo_url: campaignData.logo_url,
+          budget: campaignData.budget,
+          target_audience: { description: campaignData.target_audience },
+          requirements: { description: campaignData.requirements },
+          status: 'draft',
+          admin_approval_status: 'pending',
+          payment_status: 'unpaid',
+          start_date: new Date().toISOString().split('T')[0],
+          end_date: endDate.toISOString().split('T')[0],
+          campaign_brief: `Campaign created for ${campaignData.category}`,
+          deliverable_specifications: {
+            deliverables: [
+              {
+                type: 'social_post',
+                platform: 'instagram',
+                quantity: 1,
+                requirements: campaignData.requirements
+              }
+            ],
+            contentGuidelines: 'Follow brand guidelines and campaign requirements',
+            brandVoice: 'Professional and engaging'
+          }
+        }]);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['brand-campaigns'] });
+      localStorage.removeItem('simplified-campaign-draft');
+      toast.success('Campaign created successfully!');
+      navigate('/brand-dashboard/campaigns');
+    },
+    onError: (error) => {
+      console.error('Error creating campaign:', error);
+      toast.error('Failed to create campaign');
+    },
+  });
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLogoFile(file);
+    setUploading(true);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `campaign-logo-${Date.now()}.${fileExt}`;
+      const filePath = `campaign-logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('campaign-media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('campaign-media')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({ ...prev, logo_url: urlData.publicUrl }));
+      toast.success('Logo uploaded successfully!');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload logo');
+      setLogoPreview(null);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    setFormData(prev => ({ ...prev, logo_url: '' }));
+  };
+
+  const updateFormData = (field: keyof CampaignFormData, value: string | number) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const validateStep = (step: number): boolean => {
+    switch (step) {
+      case 1:
+        return !!(formData.title && formData.description && formData.category);
+      case 2:
+        return !!(formData.budget && formData.target_audience);
+      case 3:
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  const nextStep = () => {
+    if (validateStep(currentStep) && currentStep < 3) {
+      setCurrentStep(currentStep + 1);
+    } else if (!validateStep(currentStep)) {
+      toast.error('Please fill in all required fields');
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (!validateStep(1) || !validateStep(2)) {
+      toast.error('Please complete all required fields');
+      return;
+    }
+    createCampaignMutation.mutate(formData);
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="title" className="text-base font-medium">Campaign Title *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => updateFormData('title', e.target.value)}
+                placeholder="Enter a compelling campaign title"
+                className="mt-2"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="description" className="text-base font-medium">Campaign Description *</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => updateFormData('description', e.target.value)}
+                placeholder="Describe your campaign goals and objectives..."
+                rows={4}
+                className="mt-2"
+              />
+            </div>
+
+            <div>
+              <Label className="text-base font-medium">Campaign Category *</Label>
+              <Select value={formData.category} onValueChange={(value) => updateFormData('category', value)}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select campaign category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {campaignCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-base font-medium">Campaign Logo (Optional)</Label>
+              <div className="mt-2">
+                {logoPreview || formData.logo_url ? (
+                  <div className="relative inline-block">
+                    <img
+                      src={logoPreview || formData.logo_url}
+                      alt="Campaign logo"
+                      className="w-32 h-32 object-contain border border-border rounded-lg"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                      onClick={removeLogo}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center w-full">
+                    <label htmlFor="logo-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-border border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted transition-colors">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        {uploading ? (
+                          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground">
+                              <span className="font-semibold">Click to upload</span> campaign logo
+                            </p>
+                            <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
+                          </>
+                        )}
+                      </div>
+                      <input
+                        id="logo-upload"
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        disabled={uploading}
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="budget" className="text-base font-medium">Campaign Budget (₦) *</Label>
+              <Input
+                id="budget"
+                type="number"
+                value={formData.budget}
+                onChange={(e) => updateFormData('budget', Number(e.target.value))}
+                placeholder="Enter your budget"
+                min="1000"
+                className="mt-2"
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Minimum budget: ₦1,000
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="target-audience" className="text-base font-medium">Target Audience *</Label>
+              <Input
+                id="target-audience"
+                value={formData.target_audience}
+                onChange={(e) => updateFormData('target_audience', e.target.value)}
+                placeholder="e.g., Young professionals aged 25-35 in Lagos"
+                className="mt-2"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="requirements" className="text-base font-medium">Campaign Requirements</Label>
+              <Textarea
+                id="requirements"
+                value={formData.requirements}
+                onChange={(e) => updateFormData('requirements', e.target.value)}
+                placeholder="Specify any requirements for content creators..."
+                rows={4}
+                className="mt-2"
+              />
+            </div>
+
+            <div>
+              <Label className="text-base font-medium">Campaign Duration</Label>
+              <Select value={formData.duration} onValueChange={(value) => updateFormData('duration', value)}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="3">3 days</SelectItem>
+                  <SelectItem value="7">1 week</SelectItem>
+                  <SelectItem value="14">2 weeks</SelectItem>
+                  <SelectItem value="30">1 month</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Review Your Campaign</h3>
+              <p className="text-muted-foreground">
+                Please review your campaign details before submitting
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-between py-2 border-b">
+                <span className="font-medium">Title:</span>
+                <span>{formData.title}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b">
+                <span className="font-medium">Category:</span>
+                <span>{formData.category}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b">
+                <span className="font-medium">Budget:</span>
+                <span>₦{formData.budget.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b">
+                <span className="font-medium">Duration:</span>
+                <span>{formData.duration} days</span>
+              </div>
+              <div className="flex justify-between py-2 border-b">
+                <span className="font-medium">Target Audience:</span>
+                <span>{formData.target_audience}</span>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+              <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">What happens next?</h4>
+              <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                <li>• Your campaign will be submitted for admin review</li>
+                <li>• You'll receive approval notification within 24 hours</li>
+                <li>• Once approved, your campaign goes live automatically</li>
+                <li>• You can track progress in your dashboard</li>
+              </ul>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/50 p-6">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/brand-dashboard')}
+            className="mb-4 hover:bg-primary/10"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          
+          <div className="text-center">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-2">
+              Create Campaign
+            </h1>
+            <p className="text-muted-foreground">
+              Create your campaign in just 3 simple steps
+            </p>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            {steps.map((step, index) => (
+              <div key={step.id} className="flex items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  currentStep >= step.id 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-muted text-muted-foreground'
+                }`}>
+                  {currentStep > step.id ? <CheckCircle className="w-4 h-4" /> : step.id}
+                </div>
+                <div className="ml-2 hidden sm:block">
+                  <div className={`text-sm font-medium ${
+                    currentStep >= step.id ? 'text-primary' : 'text-muted-foreground'
+                  }`}>
+                    {step.title}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {step.description}
+                  </div>
+                </div>
+                {index < steps.length - 1 && (
+                  <div className={`h-px w-8 sm:w-16 ml-4 ${
+                    currentStep > step.id ? 'bg-primary' : 'bg-muted'
+                  }`} />
+                )}
+              </div>
+            ))}
+          </div>
+          <Progress value={(currentStep / steps.length) * 100} className="h-2" />
+        </div>
+
+        {/* Form Content */}
+        <Card className="border-border/50 bg-background/50 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle>{steps[currentStep - 1].title}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {renderStepContent()}
+
+            {/* Navigation */}
+            <div className="flex justify-between pt-6 border-t">
+              <Button
+                variant="outline"
+                onClick={prevStep}
+                disabled={currentStep === 1}
+              >
+                Previous
+              </Button>
+              
+              {currentStep < 3 ? (
+                <Button onClick={nextStep} disabled={!validateStep(currentStep)}>
+                  Next
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              ) : (
+                <Button 
+                  onClick={handleSubmit}
+                  disabled={createCampaignMutation.isPending}
+                  className="bg-gradient-to-r from-primary to-primary/90"
+                >
+                  {createCampaignMutation.isPending ? (
+                    'Creating Campaign...'
+                  ) : (
+                    'Create Campaign'
+                  )}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};

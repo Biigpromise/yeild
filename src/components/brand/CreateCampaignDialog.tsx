@@ -27,30 +27,30 @@ interface CreateCampaignDialogProps {
 
 const campaignTypes = [
   {
-    id: 'rich',
-    title: 'Rich Campaign Creator',
-    description: 'Advanced campaign builder with media assets, social links, and detailed targeting',
-    icon: Sparkles,
-    features: ['Media Upload', 'Social Integration', 'Advanced Targeting', 'Campaign Brief'],
+    id: 'simplified',
+    title: 'Standard Campaign',
+    description: 'Streamlined 3-step process with all essential features',
+    icon: Target,
+    features: ['3 simple steps', 'Logo upload', 'Smart targeting', 'Quick approval'],
     route: '/brand-dashboard/campaigns/create',
     recommended: true
   },
   {
-    id: 'enhanced',
-    title: 'Enhanced Campaign Creation',
-    description: 'Step-by-step guided campaign creation with wallet integration',
+    id: 'quick',
+    title: 'Quick Campaign',
+    description: 'Single-page creation for immediate deployment',
     icon: Zap,
-    features: ['Guided Steps', 'Wallet Integration', 'Budget Management', 'Review System'],
-    route: '/brand-dashboard/campaigns/enhanced',
+    features: ['One-page setup', 'Logo upload', 'Smart defaults', 'Instant submit'],
+    route: '/brand-dashboard/campaigns/create-quick',
     recommended: false
   },
   {
-    id: 'quick',
-    title: 'Quick Campaign',
-    description: 'Simple and fast campaign creation for immediate launch',
-    icon: Target,
-    features: ['Quick Setup', 'Basic Targeting', 'Instant Launch', 'Simplified Flow'],
-    route: '/brand-dashboard/campaigns/quick-create',
+    id: 'enhanced',
+    title: 'Advanced Campaign',
+    description: 'Full-featured campaign with media management and detailed targeting',
+    icon: Sparkles,
+    features: ['Advanced targeting', 'Media upload', 'Social links', 'Detailed analytics'],
+    route: '/brand-dashboard/campaigns/create-enhanced',
     recommended: false
   }
 ];
