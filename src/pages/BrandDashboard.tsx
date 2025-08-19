@@ -14,6 +14,7 @@ import { BrandCreativeStudio } from '@/components/brand/dashboard/BrandCreativeS
 import { BrandFinancialHub } from '@/components/brand/dashboard/BrandFinancialHub';
 import { BrandAnalytics } from '@/components/brand/dashboard/BrandAnalytics';
 import { BrandSupport } from '@/components/brand/dashboard/BrandSupport';
+import { RichCampaignCreator } from '@/components/campaign/RichCampaignCreator';
 import { toast } from 'sonner';
 
 const BrandDashboard = () => {
@@ -85,6 +86,10 @@ const BrandDashboard = () => {
         <Route
           path="/campaigns"
           element={<BrandCampaignManager />}
+        />
+        <Route
+          path="/campaigns/create"
+          element={<RichCampaignCreator />}
         />
         <Route
           path="/audience"
