@@ -223,23 +223,32 @@ export type Database = {
           auto_convert_enabled: boolean | null
           brand_id: string | null
           budget: number
+          campaign_brief: string | null
+          collaboration_settings: Json | null
           converted_to_tasks: boolean | null
           created_at: string | null
+          deliverable_specifications: Json | null
           description: string | null
           end_date: string | null
           funded_amount: number | null
+          hashtags: string[] | null
           id: string
           logo_url: string | null
+          media_assets: Json | null
           payment_status: string | null
           payment_transaction_id: string | null
           rejection_reason: string | null
           requirements: Json | null
+          social_links: Json | null
           start_date: string | null
           status: string | null
           target_audience: Json | null
+          target_demographics: Json | null
           tasks_generated_at: string | null
           tasks_generated_by: string | null
+          template_id: string | null
           title: string
+          tracking_parameters: Json | null
           updated_at: string | null
           wallet_transaction_id: string | null
         }
@@ -250,23 +259,32 @@ export type Database = {
           auto_convert_enabled?: boolean | null
           brand_id?: string | null
           budget: number
+          campaign_brief?: string | null
+          collaboration_settings?: Json | null
           converted_to_tasks?: boolean | null
           created_at?: string | null
+          deliverable_specifications?: Json | null
           description?: string | null
           end_date?: string | null
           funded_amount?: number | null
+          hashtags?: string[] | null
           id?: string
           logo_url?: string | null
+          media_assets?: Json | null
           payment_status?: string | null
           payment_transaction_id?: string | null
           rejection_reason?: string | null
           requirements?: Json | null
+          social_links?: Json | null
           start_date?: string | null
           status?: string | null
           target_audience?: Json | null
+          target_demographics?: Json | null
           tasks_generated_at?: string | null
           tasks_generated_by?: string | null
+          template_id?: string | null
           title: string
+          tracking_parameters?: Json | null
           updated_at?: string | null
           wallet_transaction_id?: string | null
         }
@@ -277,23 +295,32 @@ export type Database = {
           auto_convert_enabled?: boolean | null
           brand_id?: string | null
           budget?: number
+          campaign_brief?: string | null
+          collaboration_settings?: Json | null
           converted_to_tasks?: boolean | null
           created_at?: string | null
+          deliverable_specifications?: Json | null
           description?: string | null
           end_date?: string | null
           funded_amount?: number | null
+          hashtags?: string[] | null
           id?: string
           logo_url?: string | null
+          media_assets?: Json | null
           payment_status?: string | null
           payment_transaction_id?: string | null
           rejection_reason?: string | null
           requirements?: Json | null
+          social_links?: Json | null
           start_date?: string | null
           status?: string | null
           target_audience?: Json | null
+          target_demographics?: Json | null
           tasks_generated_at?: string | null
           tasks_generated_by?: string | null
+          template_id?: string | null
           title?: string
+          tracking_parameters?: Json | null
           updated_at?: string | null
           wallet_transaction_id?: string | null
         }
