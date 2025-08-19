@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { MessageCircle, Users, Hash } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { subscriptionManager } from '@/utils/subscriptionManager';
 import { toast } from 'sonner';
 import { ModernMessageBubble } from './ModernMessageBubble';
 import { ModernMessageInput } from './ModernMessageInput';
@@ -36,7 +37,7 @@ export const ModernChatInterface: React.FC = () => {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const { onlineUsers, typingUsers, onlineCount } = useUserPresence('community_chat');
+  const { onlineUsers, typingUsers, onlineCount } = useUserPresence(`community_chat_${user?.id || 'anon'}`);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -48,10 +49,28 @@ export const ModernChatInterface: React.FC = () => {
 
   useEffect(() => {
     if (!user) return;
-    fetchMessages();
-    const cleanup = setupRealtimeSubscription();
-    return cleanup;
-  }, [user]);
+    
+    // Use a flag to ensure we only set up subscriptions once
+    let isSubscribed = false;
+    let cleanup: (() => void) | null = null;
+    
+    const initializeChat = async () => {
+      if (isSubscribed) return;
+      isSubscribed = true;
+      
+      await fetchMessages();
+      cleanup = setupRealtimeSubscription();
+    };
+    
+    initializeChat();
+    
+    return () => {
+      isSubscribed = false;
+      if (cleanup) {
+        cleanup();
+      }
+    };
+  }, [user?.id]); // Only depend on user.id, not the entire user object
 
   // Prevent multiple subscriptions by using a ref to track if already subscribed
   const subscriptionRef = useRef<(() => void) | null>(null);
@@ -91,14 +110,19 @@ export const ModernChatInterface: React.FC = () => {
   };
 
   const setupRealtimeSubscription = () => {
-    // Clean up any existing subscription first
-    if (subscriptionRef.current) {
-      subscriptionRef.current();
-      subscriptionRef.current = null;
-    }
+    if (!user?.id) return () => {};
 
+    // Use subscription manager to prevent conflicts
+    const subscriptionKey = `community_chat_${user.id}`;
+    
+    // Clean up any existing subscription for this user
+    subscriptionManager.unsubscribe(subscriptionKey);
+
+    // Create a truly unique channel name
+    const channelName = subscriptionManager.getUniqueChannelName('community_chat', user.id);
+    
     const channel = supabase
-      .channel(`community_messages_${user?.id}_${Date.now()}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -137,8 +161,11 @@ export const ModernChatInterface: React.FC = () => {
       )
       .subscribe();
 
+    // Register with subscription manager
+    subscriptionManager.subscribe(subscriptionKey, channel);
+
     const cleanup = () => {
-      supabase.removeChannel(channel);
+      subscriptionManager.unsubscribe(subscriptionKey);
     };
 
     subscriptionRef.current = cleanup;

@@ -143,9 +143,15 @@ export const useEnhancedChat = (chatId: string = 'community') => {
 
     loadMessages();
 
+    // Only set up subscriptions if we don't already have them
+    if (!user?.id) return;
+
+    // Create subscription management with unique identifiers
+    const subscriptionId = `${chatId}_${user.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     // Message subscriptions with unique channel names to prevent "subscribe multiple times" error
     const messageChannel = supabase
-      .channel(`messages_${chatId}_${user?.id}_${Date.now()}`)
+      .channel(`messages_${subscriptionId}`)
       .on('postgres_changes', 
         { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
@@ -171,7 +177,7 @@ export const useEnhancedChat = (chatId: string = 'community') => {
 
     // Reaction subscriptions
     const reactionChannel = supabase
-      .channel(`reactions_${chatId}_${user?.id}_${Date.now()}`)
+      .channel(`reactions_${subscriptionId}`)
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'message_reactions' },
         () => {
@@ -183,7 +189,7 @@ export const useEnhancedChat = (chatId: string = 'community') => {
 
     // Typing indicators
     const typingChannel = supabase
-      .channel(`typing_indicators_${chatId}_${user?.id}_${Date.now()}`)
+      .channel(`typing_indicators_${subscriptionId}`)
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'typing_indicators' },
         async () => {
@@ -213,9 +219,13 @@ export const useEnhancedChat = (chatId: string = 'community') => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(messageChannel);
-      supabase.removeChannel(reactionChannel);
-      supabase.removeChannel(typingChannel);
+      try {
+        supabase.removeChannel(messageChannel);
+        supabase.removeChannel(reactionChannel);
+        supabase.removeChannel(typingChannel);
+      } catch (error) {
+        console.warn('Channel cleanup warning:', error);
+      }
     };
   }, [chatId, user?.id]);
 
