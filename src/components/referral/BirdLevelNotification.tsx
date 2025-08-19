@@ -1,13 +1,22 @@
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Crown, Sparkles, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Badge } from '@/components/ui/badge';
+import { TrendingUp } from 'lucide-react';
+
+interface BirdLevel {
+  id: number;
+  name: string;
+  icon: string;
+  color: string;
+  min_referrals: number;
+  min_points: number;
+  description: string;
+  benefits: string[];
+}
 
 interface BirdLevelNotificationProps {
-  previousLevel: any;
-  currentLevel: any;
+  previousLevel: BirdLevel | null;
+  currentLevel: BirdLevel | null;
   activeReferrals: number;
 }
 
@@ -16,86 +25,41 @@ export const BirdLevelNotification: React.FC<BirdLevelNotificationProps> = ({
   currentLevel,
   activeReferrals
 }) => {
-  const [showNotification, setShowNotification] = useState(false);
+  // Only show if there's been a level change
+  if (!previousLevel || !currentLevel || previousLevel.id === currentLevel.id) {
+    return null;
+  }
 
-  useEffect(() => {
-    // Show notification if level has changed and we have a new level
-    if (previousLevel && currentLevel && previousLevel.id !== currentLevel.id) {
-      setShowNotification(true);
-      
-      // Auto-hide after 10 seconds
-      const timer = setTimeout(() => {
-        setShowNotification(false);
-      }, 10000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [previousLevel, currentLevel]);
-
-  if (!showNotification || !currentLevel) return null;
+  // Only show for level ups (not downs)
+  if (currentLevel.id <= previousLevel.id) {
+    return null;
+  }
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: -50, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -50, scale: 0.9 }}
-        transition={{ duration: 0.3 }}
-        className="fixed top-4 right-4 z-50 max-w-md"
-      >
-        <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 shadow-lg">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0">
-                <div 
-                  className="w-12 h-12 rounded-full flex items-center justify-center border-2 animate-pulse"
-                  style={{ 
-                    backgroundColor: currentLevel.color + '20',
-                    borderColor: currentLevel.color,
-                    boxShadow: `0 0 15px ${currentLevel.color}40`
-                  }}
-                >
-                  <span className="text-2xl">{currentLevel.emoji}</span>
-                </div>
-              </div>
-              
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <Crown className="h-4 w-4 text-yellow-600" />
-                  <span className="font-semibold text-yellow-800">
-                    Bird Badge Upgraded!
-                  </span>
-                </div>
-                <div className="text-sm text-gray-700">
-                  Congratulations! You've earned the{' '}
-                  <span 
-                    className="font-semibold"
-                    style={{ color: currentLevel.color }}
-                  >
-                    {currentLevel.name}
-                  </span>{' '}
-                  badge with {activeReferrals} active referrals!
-                </div>
-                {currentLevel.benefits && currentLevel.benefits.length > 0 && (
-                  <div className="text-xs text-gray-600 mt-1">
-                    <Sparkles className="h-3 w-3 inline mr-1" />
-                    New benefits: {currentLevel.benefits.join(', ')}
-                  </div>
-                )}
-              </div>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowNotification(false)}
-                className="flex-shrink-0 h-6 w-6 p-0"
-              >
-                <X className="h-3 w-3" />
-              </Button>
+    <Card className="border-green-200 bg-green-50 border-2">
+      <CardContent className="p-4">
+        <div className="flex items-center gap-4">
+          <div className="text-4xl">{currentLevel.icon}</div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className="h-4 w-4 text-green-600" />
+              <span className="font-medium text-green-800">Level Up!</span>
+              <Badge variant="default" className="bg-green-600">
+                New Achievement
+              </Badge>
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </AnimatePresence>
+            <h3 className="text-lg font-bold text-green-800">
+              Welcome to {currentLevel.name} Level!
+            </h3>
+            <p className="text-sm text-green-700 mb-2">
+              {currentLevel.description}
+            </p>
+            <p className="text-xs text-green-600">
+              You now have {activeReferrals} active referrals. Keep growing your network!
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

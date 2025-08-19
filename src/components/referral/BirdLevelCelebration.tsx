@@ -1,17 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Sparkles, Trophy, Crown } from 'lucide-react';
+import { Crown, Sparkles, Share2 } from 'lucide-react';
+
+interface BirdLevel {
+  id: number;
+  name: string;
+  icon: string;
+  color: string;
+  min_referrals: number;
+  min_points: number;
+  description: string;
+  benefits: string[];
+}
 
 interface BirdLevelCelebrationProps {
-  newLevel: {
-    name: string;
-    emoji: string;
-    color: string;
-    benefits: string[];
-  } | null;
+  newLevel: BirdLevel | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -21,183 +26,95 @@ export const BirdLevelCelebration: React.FC<BirdLevelCelebrationProps> = ({
   isOpen,
   onClose
 }) => {
-  const [showFireworks, setShowFireworks] = useState(false);
-
-  useEffect(() => {
-    if (isOpen && newLevel) {
-      setShowFireworks(true);
-      const timer = setTimeout(() => setShowFireworks(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, newLevel]);
-
   if (!newLevel) return null;
 
+  const shareAchievement = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: `I just reached ${newLevel.name} level on YIELD! 🎉`,
+        text: `Just achieved ${newLevel.name} status with ${newLevel.min_referrals} referrals! Join me on YIELD and let's grow together! 🚀`,
+        url: window.location.origin
+      });
+    } else {
+      // Fallback to copying to clipboard
+      navigator.clipboard.writeText(
+        `I just reached ${newLevel.name} level on YIELD! 🎉 Join me and let's grow together! ${window.location.origin}`
+      );
+    }
+  };
+
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-        >
-          {/* Fireworks Effect */}
-          {showFireworks && (
-            <div className="absolute inset-0 pointer-events-none">
-              {[...Array(20)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute w-2 h-2 bg-yellow-400 rounded-full"
-                  initial={{
-                    x: '50vw',
-                    y: '50vh',
-                    scale: 0,
-                  }}
-                  animate={{
-                    x: `${Math.random() * 100}vw`,
-                    y: `${Math.random() * 100}vh`,
-                    scale: [0, 1, 0],
-                  }}
-                  transition={{
-                    duration: 2,
-                    delay: Math.random() * 0.5,
-                    ease: "easeOut"
-                  }}
-                />
-              ))}
-              {[...Array(15)].map((_, i) => (
-                <motion.div
-                  key={`rocket-${i}`}
-                  className="absolute text-2xl"
-                  initial={{
-                    x: '50vw',
-                    y: '50vh',
-                    opacity: 0,
-                  }}
-                  animate={{
-                    x: `${Math.random() * 100}vw`,
-                    y: `${Math.random() * 50}vh`,
-                    opacity: [0, 1, 0],
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    delay: Math.random() * 1,
-                  }}
-                >
-                  🚀
-                </motion.div>
-              ))}
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Crown className="h-6 w-6 text-yellow-500" />
+              <span>Level Up Achievement!</span>
+              <Sparkles className="h-6 w-6 text-yellow-500" />
+            </div>
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="text-center space-y-6 py-4">
+          {/* Achievement Icon */}
+          <div className="relative">
+            <div className="text-8xl animate-bounce">{newLevel.icon}</div>
+            <div className="absolute -top-2 -right-2">
+              <div className="animate-ping absolute inline-flex h-6 w-6 rounded-full bg-yellow-400 opacity-75"></div>
+              <div className="relative inline-flex rounded-full h-6 w-6 bg-yellow-500 items-center justify-center">
+                <Sparkles className="h-3 w-3 text-white" />
+              </div>
+            </div>
+          </div>
+
+          {/* Level Info */}
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold" style={{ color: newLevel.color }}>
+              {newLevel.name}
+            </h2>
+            <p className="text-muted-foreground">
+              {newLevel.description}
+            </p>
+            <Badge variant="default" className="bg-gradient-to-r from-yellow-400 to-yellow-600">
+              🏆 New Achievement Unlocked
+            </Badge>
+          </div>
+
+          {/* Benefits */}
+          {newLevel.benefits && newLevel.benefits.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="font-medium text-sm">New Benefits Unlocked:</h3>
+              <div className="flex flex-wrap gap-1 justify-center">
+                {newLevel.benefits.map((benefit, index) => (
+                  <Badge key={index} variant="outline" className="text-xs">
+                    ✨ {benefit}
+                  </Badge>
+                ))}
+              </div>
             </div>
           )}
 
-          <motion.div
-            initial={{ scale: 0.5, y: 50, opacity: 0 }}
-            animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.5, y: 50, opacity: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="relative max-w-md w-full"
-          >
-            <Card className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-yellow-500/50 shadow-2xl">
-              <CardContent className="p-8 text-center relative overflow-hidden">
-                {/* Background sparkles */}
-                <div className="absolute inset-0 pointer-events-none">
-                  {[...Array(10)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="absolute"
-                      style={{
-                        left: `${Math.random() * 100}%`,
-                        top: `${Math.random() * 100}%`,
-                      }}
-                      animate={{
-                        scale: [0, 1, 0],
-                        rotate: [0, 360],
-                        opacity: [0, 1, 0],
-                      }}
-                      transition={{
-                        duration: 2,
-                        delay: Math.random() * 2,
-                        repeat: Infinity,
-                      }}
-                    >
-                      <Sparkles className="h-4 w-4 text-yellow-400" />
-                    </motion.div>
-                  ))}
-                </div>
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button
+              onClick={shareAchievement}
+              className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              Share Achievement
+            </Button>
+            <Button variant="outline" onClick={onClose} className="flex-1">
+              Continue
+            </Button>
+          </div>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onClose}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-white"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
-                  className="mb-6"
-                >
-                  <div className="text-6xl mb-4">{newLevel.emoji}</div>
-                  <Trophy className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
-                </motion.div>
-
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="space-y-4"
-                >
-                  <h2 className="text-2xl font-bold text-white">
-                    🎉 Congratulations! 🎉
-                  </h2>
-                  
-                  <div className="space-y-2">
-                    <p className="text-lg text-yellow-400">
-                      You've reached
-                    </p>
-                    <Badge 
-                      className="text-lg px-4 py-2"
-                      style={{ 
-                        backgroundColor: newLevel.color + '20',
-                        color: newLevel.color,
-                        borderColor: newLevel.color
-                      }}
-                    >
-                      <Crown className="h-4 w-4 mr-2" />
-                      {newLevel.name} Level
-                    </Badge>
-                  </div>
-
-                  <div className="bg-gray-800/50 rounded-lg p-4 mt-6">
-                    <h3 className="text-sm font-semibold text-gray-300 mb-2">
-                      New Benefits Unlocked:
-                    </h3>
-                    <ul className="text-xs text-gray-400 space-y-1">
-                      {newLevel.benefits.map((benefit, index) => (
-                        <li key={index} className="flex items-center gap-2">
-                          <span className="text-green-400">✓</span>
-                          {benefit}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <Button 
-                    onClick={onClose}
-                    className="mt-6 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
-                  >
-                    Continue Your Journey! 🚀
-                  </Button>
-                </motion.div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          {/* Motivational Message */}
+          <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded-lg">
+            🎯 Keep referring friends to unlock even higher levels and exclusive rewards!
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };

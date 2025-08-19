@@ -10,8 +10,8 @@ export const useUserProfile = () => {
   };
 
   const closeUserProfile = () => {
-    setSelectedUserId(null);
     setIsModalOpen(false);
+    setSelectedUserId(null);
   };
 
   return {
