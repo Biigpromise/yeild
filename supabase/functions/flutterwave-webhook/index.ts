@@ -144,17 +144,24 @@ async function handleChargeCompleted(supabase: any, event: FlutterwaveWebhookEve
     return;
   }
 
-  // Automatically credit brand wallet for wallet_funding payments
+  // Handle wallet funding with 70/30 revenue split
   if (paymentTransaction.payment_type === 'wallet_funding') {
     try {
       console.log(`Processing wallet funding for user ${paymentTransaction.user_id}, amount: ${data.amount}`);
       
-      // Credit the brand wallet using the existing database function
+      // Implement 70/30 split: 70% to brand wallet, 30% to YIELD company revenue
+      const totalAmount = data.amount;
+      const yieldRevenue = Math.round(totalAmount * 0.30); // 30% for YIELD
+      const brandAmount = totalAmount - yieldRevenue; // 70% for brand
+      
+      console.log(`Revenue split - Total: ${totalAmount}, YIELD (30%): ${yieldRevenue}, Brand (70%): ${brandAmount}`);
+      
+      // 1. Credit 70% to brand wallet for user payments
       const { error: walletError } = await supabase.rpc('process_wallet_transaction', {
         p_brand_id: paymentTransaction.user_id,
         p_transaction_type: 'deposit',
-        p_amount: data.amount,
-        p_description: `Wallet funding via Flutterwave - ${data.tx_ref}`,
+        p_amount: brandAmount,
+        p_description: `Wallet funding (70%) via Flutterwave - ${data.tx_ref}`,
         p_reference_id: paymentTransaction.id,
         p_campaign_id: null,
         p_payment_transaction_id: paymentTransaction.id
@@ -168,11 +175,30 @@ async function handleChargeCompleted(supabase: any, event: FlutterwaveWebhookEve
           .from('admin_notifications')
           .insert({
             type: 'wallet_credit_failed',
-            message: `Failed to credit wallet for payment ${data.tx_ref}. User: ${paymentTransaction.user_id}, Amount: ${data.amount}`,
+            message: `Failed to credit wallet for payment ${data.tx_ref}. User: ${paymentTransaction.user_id}, Amount: ${brandAmount}`,
             link_to: `/admin?section=payments&payment=${data.tx_ref}`
           });
       } else {
-        console.log(`Successfully credited ${data.amount} to brand wallet for user ${paymentTransaction.user_id}`);
+        console.log(`Successfully credited ${brandAmount} (70%) to brand wallet for user ${paymentTransaction.user_id}`);
+        
+        // 2. Record 30% as YIELD company revenue
+        await updateDailyRevenue(supabase, {
+          amount: totalAmount,
+          fee: data.app_fee,
+          yieldRevenue: yieldRevenue,
+          type: 'payment'
+        });
+        
+        console.log(`Recorded ${yieldRevenue} (30%) as YIELD company revenue`);
+        
+        // 3. Queue YIELD revenue for settlement
+        await queueYieldRevenue(supabase, {
+          sourceType: 'revenue_split',
+          sourceId: paymentTransaction.id,
+          amount: yieldRevenue,
+          reference: `YIELD-${data.tx_ref}`,
+          description: `YIELD 30% revenue from payment ${data.tx_ref}`
+        });
         
         // Create notification for the brand user
         await supabase
@@ -180,8 +206,8 @@ async function handleChargeCompleted(supabase: any, event: FlutterwaveWebhookEve
           .insert({
             brand_id: paymentTransaction.user_id,
             type: 'wallet_credited',
-            title: 'Wallet Funded Successfully',
-            message: `Your wallet has been credited with ₦${data.amount.toLocaleString()} from payment ${data.tx_ref}`
+            title: 'Payment Received',
+            message: `Your wallet has been credited with ₦${brandAmount.toLocaleString()} (70% of ₦${totalAmount.toLocaleString()}). Platform fee: ₦${yieldRevenue.toLocaleString()}`
           });
       }
     } catch (walletProcessingError) {
@@ -198,13 +224,17 @@ async function handleChargeCompleted(supabase: any, event: FlutterwaveWebhookEve
     }
   }
 
-  // Calculate company revenue
-  const companyFee = data.app_fee || (data.amount * 0.015); // 1.5% default fee
-  await updateDailyRevenue(supabase, {
-    amount: data.amount,
-    fee: companyFee,
-    type: 'payment'
-  });
+  // Note: Company revenue is now handled in the wallet funding section with 70/30 split
+  // For non-wallet-funding payments, still record transaction fees
+  if (paymentTransaction.payment_type !== 'wallet_funding') {
+    const companyFee = data.app_fee || (data.amount * 0.015); // 1.5% default fee
+    await updateDailyRevenue(supabase, {
+      amount: data.amount,
+      fee: companyFee,
+      yieldRevenue: 0,
+      type: 'payment'
+    });
+  }
 
   // Queue for settlement if amount meets threshold
   await queueForSettlement(supabase, {
@@ -269,6 +299,7 @@ async function handleTransferFailed(supabase: any, event: FlutterwaveWebhookEven
 async function updateDailyRevenue(supabase: any, params: {
   amount: number;
   fee: number;
+  yieldRevenue?: number;
   type: 'payment' | 'withdrawal';
 }) {
   const today = new Date().toISOString().split('T')[0];
@@ -281,13 +312,16 @@ async function updateDailyRevenue(supabase: any, params: {
     .single();
 
   if (params.type === 'payment') {
+    // Calculate net revenue: either YIELD revenue split (30%) + transaction fees, or just transaction fees
+    const netRevenue = (params.yieldRevenue || 0) + params.fee;
+    
     const { error } = await supabase
       .from('company_revenue')
       .upsert({
         revenue_date: today,
         total_payments: (existing?.total_payments || 0) + params.amount,
         total_fees: (existing?.total_fees || 0) + params.fee,
-        net_revenue: (existing?.net_revenue || 0) + params.fee,
+        net_revenue: (existing?.net_revenue || 0) + netRevenue,
         payment_count: (existing?.payment_count || 0) + 1,
         total_withdrawals: existing?.total_withdrawals || 0,
         withdrawal_count: existing?.withdrawal_count || 0
@@ -316,6 +350,49 @@ async function updateDailyRevenue(supabase: any, params: {
     if (error) {
       console.error('Error updating daily revenue for withdrawal:', error);
     }
+  }
+}
+
+async function queueYieldRevenue(supabase: any, params: {
+  sourceType: string;
+  sourceId: string;
+  amount: number;
+  reference: string;
+  description: string;
+}) {
+  // Get YIELD settlement account
+  const { data: account } = await supabase
+    .from('company_financial_accounts')
+    .select('*')
+    .eq('account_type', 'settlement')
+    .eq('is_active', true)
+    .single();
+
+  if (!account) {
+    console.error('No active YIELD settlement account found');
+    return;
+  }
+
+  // Create fund transfer record for YIELD revenue
+  const { error } = await supabase
+    .from('fund_transfers')
+    .insert({
+      transfer_reference: params.reference,
+      source_type: params.sourceType,
+      source_id: params.sourceId,
+      amount: params.amount,
+      fee: 0, // No additional fees for YIELD revenue
+      net_amount: params.amount,
+      recipient_account: account.account_number,
+      recipient_bank: account.bank_name,
+      status: 'pending',
+      currency: 'NGN'
+    });
+
+  if (error) {
+    console.error('Error queueing YIELD revenue for settlement:', error);
+  } else {
+    console.log(`Queued ${params.amount} YIELD revenue for settlement: ${params.reference}`);
   }
 }
 

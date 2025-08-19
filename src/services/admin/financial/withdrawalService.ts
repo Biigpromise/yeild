@@ -2,29 +2,60 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { WithdrawalRequest } from "./types";
+import { processInstantUserPayment, bulkProcessUserPayments } from './userPaymentService';
 
-// Process withdrawal request with real data
+// Process withdrawal request with instant payment
 export async function processWithdrawalRequest(
   requestId: string,
   action: 'approve' | 'reject',
   notes?: string
 ): Promise<boolean> {
   try {
-    const updateData: any = {
-      status: action === 'approve' ? 'approved' : 'rejected',
-      processed_at: new Date().toISOString(),
-      admin_notes: notes
-    };
+    if (action === 'reject') {
+      // Simple rejection
+      const { error } = await supabase
+        .from('withdrawal_requests')
+        .update({
+          status: 'rejected',
+          processed_at: new Date().toISOString(),
+          admin_notes: notes
+        })
+        .eq('id', requestId);
 
-    const { error } = await supabase
-      .from('withdrawal_requests')
-      .update(updateData)
-      .eq('id', requestId);
+      if (error) throw error;
+      toast.success('Withdrawal request rejected');
+      return true;
+    } else {
+      // Approval with instant payment
+      const { data: request, error: fetchError } = await supabase
+        .from('withdrawal_requests')
+        .select('*')
+        .eq('id', requestId)
+        .single();
 
-    if (error) throw error;
-    
-    toast.success(`Withdrawal request ${action}d successfully`);
-    return true;
+      if (fetchError || !request) {
+        console.error('Error fetching withdrawal request:', fetchError);
+        toast.error('Failed to fetch withdrawal request');
+        return false;
+      }
+
+      // Process instant payment
+      const paymentResult = await processInstantUserPayment({
+        userId: request.user_id,
+        amount: request.amount,
+        payoutMethod: request.payout_method,
+        payoutDetails: request.payout_details,
+        description: `Admin approved payout - ${requestId}`
+      });
+
+      if (paymentResult.status === 'success') {
+        toast.success('Withdrawal approved and payment processed instantly');
+        return true;
+      } else {
+        toast.error(`Payment failed: ${paymentResult.message}`);
+        return false;
+      }
+    }
   } catch (error) {
     console.error('Error processing withdrawal request:', error);
     toast.error('Failed to process withdrawal request');
@@ -46,7 +77,7 @@ export async function getWithdrawalRequests(filters?: {
         *,
         profiles(name, email)
       `)
-      .order('requested_at', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (filters?.status) {
       query = query.eq('status', filters.status);
@@ -62,8 +93,8 @@ export async function getWithdrawalRequests(filters?: {
 
     if (filters?.dateRange) {
       query = query
-        .gte('requested_at', filters.dateRange.start.toISOString())
-        .lte('requested_at', filters.dateRange.end.toISOString());
+        .gte('created_at', filters.dateRange.start.toISOString())
+        .lte('created_at', filters.dateRange.end.toISOString());
     }
 
     const { data, error } = await query;
@@ -84,7 +115,7 @@ export async function getWithdrawalRequests(filters?: {
       amount: request.amount,
       payoutMethod: request.payout_method,
       status: request.status as 'pending' | 'approved' | 'rejected' | 'processed',
-      requestedAt: request.requested_at,
+      requestedAt: request.created_at,
       processedAt: request.processed_at,
       payoutDetails: request.payout_details,
       adminNotes: request.admin_notes
@@ -95,28 +126,43 @@ export async function getWithdrawalRequests(filters?: {
   }
 }
 
-// Bulk process withdrawal requests
+// Bulk process withdrawal requests with instant payments
 export async function bulkProcessWithdrawals(
   requestIds: string[],
   action: 'approve' | 'reject',
   notes?: string
 ): Promise<boolean> {
   try {
-    const updateData = {
-      status: action === 'approve' ? 'approved' : 'rejected',
-      processed_at: new Date().toISOString(),
-      admin_notes: notes
-    };
+    if (action === 'reject') {
+      // Bulk rejection
+      const { error } = await supabase
+        .from('withdrawal_requests')
+        .update({
+          status: 'rejected',
+          processed_at: new Date().toISOString(),
+          admin_notes: notes
+        })
+        .in('id', requestIds);
 
-    const { error } = await supabase
-      .from('withdrawal_requests')
-      .update(updateData)
-      .in('id', requestIds);
+      if (error) throw error;
+      toast.success(`Bulk rejection completed for ${requestIds.length} requests`);
+      return true;
+    } else {
+      // Bulk approval with instant payments
+      const results = await bulkProcessUserPayments(requestIds);
+      
+      const successCount = results.filter(r => r.status === 'success').length;
+      const failedCount = results.length - successCount;
 
-    if (error) throw error;
-    
-    toast.success(`Bulk ${action} completed for ${requestIds.length} requests`);
-    return true;
+      if (successCount > 0) {
+        toast.success(`${successCount} payments processed successfully`);
+      }
+      if (failedCount > 0) {
+        toast.error(`${failedCount} payments failed`);
+      }
+
+      return successCount === results.length;
+    }
   } catch (error) {
     console.error('Error bulk processing withdrawals:', error);
     toast.error('Failed to bulk process withdrawals');
