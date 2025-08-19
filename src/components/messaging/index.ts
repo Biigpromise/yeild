@@ -4,3 +4,6 @@ export { MessageBubble } from "./MessageBubble";
 export { EmojiPicker } from "./EmojiPicker";
 export { TypingIndicator } from "./TypingIndicator";
 export { MessagingHub } from "./MessagingHub";
+export { ModernChatInterface } from "../chat/ModernChatInterface";
+export { ModernMessageBubble } from "../chat/ModernMessageBubble";
+export { ModernMessageInput } from "../chat/ModernMessageInput";
