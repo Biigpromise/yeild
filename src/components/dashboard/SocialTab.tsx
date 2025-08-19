@@ -62,7 +62,9 @@ export const SocialTab: React.FC = () => {
         
         <TabsContent value="community" className="mt-6">
           <ErrorBoundary FallbackComponent={ErrorFallback}>
-            <CommunityChatTab />
+            <div className="h-[600px]">
+              <CommunityChatTab />
+            </div>
           </ErrorBoundary>
         </TabsContent>
         
