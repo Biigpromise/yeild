@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { MessageCircle, Plus } from 'lucide-react';
 import { ModernChatList } from './ModernChatList';
 import { ModernChatWindow } from './ModernChatWindow';
+import { NewChatDialog } from './NewChatDialog';
 
 interface Chat {
   id: string;
@@ -29,6 +30,7 @@ export const DirectMessagesInterface: React.FC<DirectMessagesInterfaceProps> = (
   onChatSelect
 }) => {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+  const [showNewChatDialog, setShowNewChatDialog] = useState(false);
 
   const handleChatSelect = (chat: Chat) => {
     setSelectedChat(chat);
@@ -37,6 +39,11 @@ export const DirectMessagesInterface: React.FC<DirectMessagesInterfaceProps> = (
 
   const handleCloseChat = () => {
     setSelectedChat(null);
+  };
+
+  const handleChatCreated = (chatId: string) => {
+    // Refresh the chat list and select the new chat
+    window.location.reload(); // Simple refresh for now
   };
 
   return (
@@ -77,6 +84,7 @@ export const DirectMessagesInterface: React.FC<DirectMessagesInterfaceProps> = (
               <Button 
                 variant="outline" 
                 className="bg-background/80 backdrop-blur-sm hover:bg-primary/10 border-primary/20 hover:border-primary/40 transition-all duration-200"
+                onClick={() => setShowNewChatDialog(true)}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Start New Chat
@@ -85,6 +93,13 @@ export const DirectMessagesInterface: React.FC<DirectMessagesInterfaceProps> = (
           </div>
         )}
       </div>
+
+      {/* New Chat Dialog */}
+      <NewChatDialog
+        open={showNewChatDialog}
+        onOpenChange={setShowNewChatDialog}
+        onChatCreated={handleChatCreated}
+      />
     </div>
   );
 };

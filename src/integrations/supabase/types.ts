@@ -4405,6 +4405,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      user_has_brand_role: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       verify_admin_access_secure: {
         Args: { user_email: string }
         Returns: boolean

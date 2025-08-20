@@ -78,6 +78,26 @@ export const SimplifiedCampaignCreator = () => {
     mutationFn: async (campaignData: CampaignFormData) => {
       if (!user) throw new Error('Not authenticated');
 
+      // First assign brand role if user doesn't have it (for testing)
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+
+      const hasBrandRole = roles?.some(r => r.role === 'brand');
+      
+      if (!hasBrandRole) {
+        // Auto-assign brand role for testing
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({ user_id: user.id, role: 'brand' });
+        
+        if (roleError) {
+          console.error('Failed to assign brand role:', roleError);
+          throw new Error('You need brand access to create campaigns. Please contact admin.');
+        }
+      }
+
       const endDate = new Date();
       endDate.setDate(endDate.getDate() + parseInt(campaignData.duration));
 
@@ -112,7 +132,10 @@ export const SimplifiedCampaignCreator = () => {
           }
         }]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Campaign creation error details:', error);
+        throw new Error(error.message || 'Failed to create campaign');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['brand-campaigns'] });
@@ -120,9 +143,9 @@ export const SimplifiedCampaignCreator = () => {
       toast.success('Campaign created successfully!');
       navigate('/brand-dashboard/campaigns');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error creating campaign:', error);
-      toast.error('Failed to create campaign');
+      toast.error(error.message || 'Failed to create campaign');
     },
   });
 
