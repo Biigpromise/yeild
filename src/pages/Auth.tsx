@@ -1,9 +1,9 @@
 
 import React from 'react';
-import ProgressiveAuthFlow from '@/components/auth/ProgressiveAuthFlow';
+import { SimplifiedAuthFlow } from '@/components/auth/SimplifiedAuthFlow';
 
 const Auth = () => {
-  return <ProgressiveAuthFlow />;
+  return <SimplifiedAuthFlow />;
 };
 
 export default Auth;
