@@ -93,8 +93,8 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
   };
 
   const handleTaskClick = (task: Task) => {
-    // Navigate to task details or start task
-    navigate(`/tasks/${task.id}`);
+    // Navigate to tasks page with focus on this task
+    navigate('/tasks', { state: { focusTaskId: task.id } });
   };
 
   return (
@@ -154,9 +154,9 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
       >
         <Card>
           <CardContent className="p-4">
-            <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex flex-col gap-4">
               {/* Search */}
-              <div className="relative flex-1">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search tasks..."
@@ -167,22 +167,24 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
               </div>
               
               {/* Category Filter */}
-              <div className="flex gap-2 overflow-x-auto pb-2 lg:pb-0">
-                {categories.map((category) => {
-                  const Icon = category.icon;
-                  return (
-                    <Button
-                      key={category.id}
-                      variant={selectedCategory === category.id ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedCategory(category.id)}
-                      className="whitespace-nowrap"
-                    >
-                      <Icon className="h-4 w-4 mr-1" />
-                      {category.name}
-                    </Button>
-                  );
-                })}
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                <div className="flex gap-2 min-w-max">
+                  {categories.map((category) => {
+                    const Icon = category.icon;
+                    return (
+                      <Button
+                        key={category.id}
+                        variant={selectedCategory === category.id ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedCategory(category.id)}
+                        className="whitespace-nowrap flex-shrink-0"
+                      >
+                        <Icon className="h-4 w-4 mr-1" />
+                        {category.name}
+                      </Button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -220,15 +222,15 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
             {filteredTasks.map((task) => (
               <Card key={task.id} className="hover:shadow-md transition-shadow cursor-pointer group">
                 <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0 mr-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold group-hover:text-primary transition-colors">
+                        <h3 className="font-semibold group-hover:text-primary transition-colors text-sm sm:text-base">
                           {task.title}
                         </h3>
-                        <div className="flex items-center gap-1 text-primary font-bold">
+                        <div className="flex items-center gap-1 text-primary font-bold ml-2 flex-shrink-0">
                           <Star className="h-4 w-4" />
-                          {task.points}
+                          <span className="text-sm">{task.points}</span>
                         </div>
                       </div>
                       
@@ -237,17 +239,17 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
                       </p>
                       
                       <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline" className={getDifficultyColor(task.difficulty)}>
+                        <Badge variant="outline" className={`${getDifficultyColor(task.difficulty)} text-xs`}>
                           {task.difficulty}
                         </Badge>
                         
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="text-xs">
                           <Clock className="h-3 w-3 mr-1" />
                           {task.estimated_time}
                         </Badge>
                         
                         {task.brand_name && (
-                          <Badge variant="secondary">
+                          <Badge variant="secondary" className="text-xs">
                             {task.brand_name}
                           </Badge>
                         )}
@@ -257,7 +259,7 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
                     <Button 
                       size="sm"
                       onClick={() => handleTaskClick(task)}
-                      className="shrink-0"
+                      className="shrink-0 w-full sm:w-auto"
                     >
                       Start
                       <ArrowUpRight className="h-3 w-3 ml-1" />

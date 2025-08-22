@@ -8,15 +8,22 @@ import { BirdStatusDisplay } from '@/components/bird/BirdStatusDisplay';
 import { DashboardProgress } from '@/components/dashboard/DashboardProgress';
 import { 
   Trophy, 
-  Zap, 
   Target, 
   Users, 
-  ArrowUpRight, 
-  TrendingUp,
+  TrendingUp, 
+  Zap, 
+  Gift, 
+  Heart, 
+  MessageCircle,
+  ArrowRight,
+  Medal,
+  Star,
   Clock,
-  Star
+  Calendar,
+  ArrowUpRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface HomeTabProps {
   userStats?: {

@@ -48,6 +48,18 @@ export const WalletTab: React.FC<WalletTabProps> = ({ userProfile, userStats }) 
     setWithdrawAmount('');
   };
 
+  const handleAddFunds = () => {
+    toast.info('Add funds feature coming soon!');
+  };
+
+  const handleViewStatement = () => {
+    toast.info('Statement viewing coming soon!');
+  };
+
+  const handlePaymentMethods = () => {
+    toast.info('Payment methods management coming soon!');
+  };
+
   const walletStats = [
     {
       title: 'Available Points',
@@ -162,6 +174,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({ userProfile, userStats }) 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
+            className="space-y-4"
           >
             <Card>
               <CardHeader>
@@ -318,19 +331,19 @@ export const WalletTab: React.FC<WalletTabProps> = ({ userProfile, userStats }) 
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Button variant="outline" className="h-auto flex-col p-4">
+              <Button variant="outline" className="h-auto flex-col p-4" onClick={handleAddFunds}>
                 <Upload className="h-5 w-5 mb-2" />
                 <span className="text-sm">Add Funds</span>
               </Button>
-              <Button variant="outline" className="h-auto flex-col p-4">
+              <Button variant="outline" className="h-auto flex-col p-4" onClick={handleWithdraw}>
                 <Download className="h-5 w-5 mb-2" />
                 <span className="text-sm">Withdraw</span>
               </Button>
-              <Button variant="outline" className="h-auto flex-col p-4">
+              <Button variant="outline" className="h-auto flex-col p-4" onClick={handleViewStatement}>
                 <Eye className="h-5 w-5 mb-2" />
                 <span className="text-sm">View Statement</span>
               </Button>
-              <Button variant="outline" className="h-auto flex-col p-4">
+              <Button variant="outline" className="h-auto flex-col p-4" onClick={handlePaymentMethods}>
                 <CreditCard className="h-5 w-5 mb-2" />
                 <span className="text-sm">Payment Methods</span>
               </Button>
