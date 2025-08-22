@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { BirdStatusDisplay } from '@/components/bird/BirdStatusDisplay';
+import { DashboardProgress } from '@/components/dashboard/DashboardProgress';
 import { 
   Trophy, 
   Zap, 
@@ -44,18 +46,18 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile }) => {
       onClick: () => navigate('/tasks')
     },
     {
-      title: 'View Wallet',
-      description: 'Check earnings & withdraw',
+      title: 'View Birds',
+      description: 'Check your bird progress',
       icon: Target,
       color: 'bg-green-500/10 text-green-600 border-green-500/20',
-      onClick: () => navigate('/wallet')
+      onClick: () => navigate('/birds')
     },
     {
-      title: 'Invite Friends',
-      description: 'Earn referral bonuses',
+      title: 'Social Hub',
+      description: 'Connect with community',
       icon: Users,
       color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-      onClick: () => navigate('/referrals')
+      onClick: () => navigate('/social')
     }
   ];
 
@@ -108,34 +110,29 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile }) => {
         </div>
       </motion.div>
 
-      {/* Level Progress */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Level Progress</CardTitle>
-              <Badge variant="secondary" className="bg-primary/20 text-primary">
-                Level {currentLevel}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span>Progress to Level {currentLevel + 1}</span>
-                <span className="text-muted-foreground">
-                  {pointsToNextLevel} points to go
-                </span>
-              </div>
-              <Progress value={progressToNextLevel} className="h-3" />
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+      {/* Bird Progress & Level */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <BirdStatusDisplay />
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
+          <DashboardProgress 
+            userStats={{
+              tasksCompleted: userStats?.tasksCompleted || 0,
+              level: userStats?.level || 1
+            }}
+          />
+        </motion.div>
+      </div>
 
       {/* Stats Grid */}
       <motion.div

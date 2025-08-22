@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ProfileBirdDisplay } from '@/components/profile/ProfileBirdDisplay';
+import { UserProfileBirds } from '@/components/community/UserProfileBirds';
 import { 
   User, 
   Wallet, 
@@ -117,8 +119,14 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ userProfile, userStats }
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
-                    <User className="h-8 w-8 text-primary" />
+                  <div className="w-16 h-16">
+                    <UserProfileBirds 
+                      points={userStats?.points || 0}
+                      tasksCompleted={userStats?.tasksCompleted || 0}
+                      level={userStats?.level || 1}
+                      activeReferrals={userStats?.referrals || 0}
+                      compact={true}
+                    />
                   </div>
                   <div>
                     <Badge variant="secondary">Level {userStats?.level || 1}</Badge>
@@ -241,11 +249,24 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ userProfile, userStats }
             </Card>
           </motion.div>
 
-          {/* Referral */}
+          {/* Bird Status */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
+          >
+            <ProfileBirdDisplay 
+              userId={user?.id || ''}
+              activeReferrals={userStats?.referrals || 0}
+              totalReferrals={userStats?.referrals || 0}
+            />
+          </motion.div>
+
+          {/* Referral */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
           >
             <Card>
               <CardHeader>

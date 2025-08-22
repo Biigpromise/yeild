@@ -168,21 +168,12 @@ const AppContent = () => {
           }
         />
         
-        {/* Protected App Routes with Sidebar */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <AppLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="social" element={<Social />} />
-          <Route path="chat" element={<Chat />} />
-          <Route path="wallet" element={<Wallet />} />
-          <Route path="referrals" element={<Referrals />} />
-          <Route path="birds" element={<Birds />} />
-        </Route>
+        {/* Legacy Routes - redirect to dashboard */}
+        <Route path="/social" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/chat" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/wallet" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/referrals" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/birds" element={<Navigate to="/dashboard" replace />} />
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -9,6 +9,7 @@ import {
   Home, 
   Zap, 
   User, 
+  Wallet,
   Bell,
   Menu,
   X,
@@ -23,9 +24,10 @@ import { cn } from '@/lib/utils';
 import { HomeTab } from './tabs/HomeTab';
 import { EarnTab } from './tabs/EarnTab';
 import { ProfileTab } from './tabs/ProfileTab';
+import { WalletTab } from './tabs/WalletTab';
 import { LiveNotifications } from './LiveNotifications';
 
-type TabType = 'home' | 'earn' | 'profile';
+type TabType = 'home' | 'earn' | 'wallet' | 'profile';
 
 interface SimplifiedDashboardProps {
   className?: string;
@@ -76,10 +78,16 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
       description: 'Tasks & opportunities'
     },
     {
+      id: 'wallet' as TabType,
+      name: 'Wallet',
+      icon: Wallet,
+      description: 'Earnings & withdrawals'
+    },
+    {
       id: 'profile' as TabType,
       name: 'Profile',
       icon: User,
-      description: 'Wallet & settings'
+      description: 'Settings & birds'
     }
   ];
 
@@ -115,6 +123,8 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
         return <HomeTab userStats={userStats} userProfile={userProfile} />;
       case 'earn':
         return <EarnTab userTasks={userTasks} userStats={userStats} />;
+      case 'wallet':
+        return <WalletTab userProfile={userProfile} userStats={userStats} />;
       case 'profile':
         return <ProfileTab userProfile={userProfile} userStats={userStats} />;
       default:
