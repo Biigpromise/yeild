@@ -93,22 +93,21 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
   };
 
   const handleTaskClick = (task: Task) => {
-    // Navigate to tasks page with focus on this task
-    navigate('/tasks', { state: { focusTaskId: task.id } });
+    navigate(`/tasks/${task.id}`);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 max-w-full overflow-hidden px-4 sm:px-0">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center lg:text-left"
       >
-        <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
           Earn Points
         </h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-muted-foreground mt-2 text-sm sm:text-base">
           Complete tasks and earn points to level up your account
         </p>
       </motion.div>
@@ -119,27 +118,27 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-            <CardContent className="p-4 text-center">
-              <Zap className="h-6 w-6 text-primary mx-auto mb-2" />
-              <p className="text-2xl font-bold text-primary">{userStats?.points || 0}</p>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-primary mx-auto mb-2" />
+              <p className="text-xl sm:text-2xl font-bold text-primary">{userStats?.points || 0}</p>
               <p className="text-xs text-muted-foreground">Total Points</p>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4 text-center">
-              <Trophy className="h-6 w-6 text-green-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold">{userStats?.tasksCompleted || 0}</p>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 mx-auto mb-2" />
+              <p className="text-xl sm:text-2xl font-bold">{userStats?.tasksCompleted || 0}</p>
               <p className="text-xs text-muted-foreground">Tasks Completed</p>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4 text-center">
-              <Star className="h-6 w-6 text-yellow-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold">Level {userStats?.level || 1}</p>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <Star className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 mx-auto mb-2" />
+              <p className="text-xl sm:text-2xl font-bold">Level {userStats?.level || 1}</p>
               <p className="text-xs text-muted-foreground">Current Level</p>
             </CardContent>
           </Card>
@@ -153,8 +152,8 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
         transition={{ delay: 0.2 }}
       >
         <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col gap-4">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
               {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -162,13 +161,13 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
                   placeholder="Search tasks..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 text-sm"
                 />
               </div>
               
               {/* Category Filter */}
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                <div className="flex gap-2 min-w-max">
+              <div className="overflow-x-auto scrollbar-hide">
+                <div className="flex gap-2 min-w-max pb-1">
                   {categories.map((category) => {
                     const Icon = category.icon;
                     return (
@@ -177,10 +176,11 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
                         variant={selectedCategory === category.id ? "default" : "outline"}
                         size="sm"
                         onClick={() => setSelectedCategory(category.id)}
-                        className="whitespace-nowrap flex-shrink-0"
+                        className="whitespace-nowrap flex-shrink-0 text-xs sm:text-sm"
                       >
-                        <Icon className="h-4 w-4 mr-1" />
-                        {category.name}
+                        <Icon className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                        <span className="hidden sm:inline">{category.name}</span>
+                        <span className="sm:hidden">{category.name.split(' ')[0]}</span>
                       </Button>
                     );
                   })}

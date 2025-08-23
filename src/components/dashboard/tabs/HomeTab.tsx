@@ -53,18 +53,18 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile }) => {
       onClick: () => navigate('/tasks')
     },
     {
-      title: 'View Birds',
-      description: 'Check your bird progress',
-      icon: Target,
-      color: 'bg-green-500/10 text-green-600 border-green-500/20',
-      onClick: () => navigate('/birds')
-    },
-    {
-      title: 'Social Hub',
-      description: 'Connect with community',
+      title: 'Community',
+      description: 'Connect with other users',
       icon: Users,
       color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-      onClick: () => navigate('/social')
+      onClick: () => toast.info('Community features coming soon!')
+    },
+    {
+      title: 'Social Media',
+      description: 'Share your achievements',
+      icon: Heart,
+      color: 'bg-pink-500/10 text-pink-600 border-pink-500/20',
+      onClick: () => toast.info('Social features coming soon!')
     }
   ];
 

@@ -49,15 +49,15 @@ export const WalletTab: React.FC<WalletTabProps> = ({ userProfile, userStats }) 
   };
 
   const handleAddFunds = () => {
-    toast.info('Add funds feature coming soon!');
+    toast.success('Add funds feature coming soon!');
   };
 
   const handleViewStatement = () => {
-    toast.info('Statement viewing coming soon!');
+    toast.success('Statement feature coming soon!');
   };
 
   const handlePaymentMethods = () => {
-    toast.info('Payment methods management coming soon!');
+    toast.success('Payment methods coming soon!');
   };
 
   const walletStats = [
