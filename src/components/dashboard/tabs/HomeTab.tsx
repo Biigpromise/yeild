@@ -34,37 +34,55 @@ interface HomeTabProps {
     referrals: number;
   };
   userProfile?: any;
+  onNavigateToEarn?: () => void;
 }
 
-export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile }) => {
-  const navigate = useNavigate();
+export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onNavigateToEarn }) => {
   
   const currentLevel = userStats?.level || 1;
   const currentPoints = userStats?.points || 0;
   const pointsToNextLevel = (currentLevel * 1000) - currentPoints;
   const progressToNextLevel = Math.min(100, (currentPoints % 1000) / 10);
 
+  // Add setActiveTab prop to HomeTab interface and pass it from SimplifiedDashboard
   const quickActions = [
     {
       title: 'Find Tasks',
       description: 'Explore available opportunities',
       icon: Zap,
       color: 'bg-primary/10 text-primary border-primary/20',
-      onClick: () => navigate('/tasks')
+      onClick: () => {
+        if (onNavigateToEarn) {
+          onNavigateToEarn();
+        } else {
+          toast.info('Switching to Earn tab...');
+        }
+      }
     },
     {
       title: 'Community',
       description: 'Connect with other users',
       icon: Users,
       color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-      onClick: () => toast.info('Community features coming soon!')
+      onClick: () => {
+        // Placeholder for community features
+        window.open('https://discord.gg/yield', '_blank');
+      }
     },
     {
       title: 'Social Media',
       description: 'Share your achievements',
       icon: Heart,
       color: 'bg-pink-500/10 text-pink-600 border-pink-500/20',
-      onClick: () => toast.info('Social features coming soon!')
+      onClick: () => {
+        const shareText = `Just completed ${userStats?.tasksCompleted || 0} tasks and earned ${userStats?.points || 0} points on YIELD! 🚀`;
+        if (navigator.share) {
+          navigator.share({ text: shareText });
+        } else {
+          navigator.clipboard.writeText(shareText);
+          toast.success('Achievement copied to clipboard!');
+        }
+      }
     }
   ];
 

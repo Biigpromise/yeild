@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface Task {
   id: string;
@@ -93,11 +94,14 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
   };
 
   const handleTaskClick = (task: Task) => {
-    navigate(`/tasks/${task.id}`);
+    // For now, show task details in a toast until we implement task detail modal
+    toast.info(`Task: ${task.title} - ${task.points} points`);
+    // TODO: Implement task detail modal within dashboard
+    // navigate(`/tasks/${task.id}`);
   };
 
   return (
-    <div className="space-y-4 max-w-full overflow-hidden px-4 sm:px-0">
+    <div className="space-y-4 max-w-full overflow-hidden">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
