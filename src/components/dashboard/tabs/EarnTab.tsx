@@ -94,10 +94,8 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
   };
 
   const handleTaskClick = (task: Task) => {
-    // For now, show task details in a toast until we implement task detail modal
-    toast.info(`Task: ${task.title} - ${task.points} points`);
-    // TODO: Implement task detail modal within dashboard
-    // navigate(`/tasks/${task.id}`);
+    // Open task in new tab to keep dashboard open
+    window.open(`/tasks/${task.id}`, '_blank');
   };
 
   return (
