@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
 interface Task {
   id: string;
@@ -94,12 +93,11 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
   };
 
   const handleTaskClick = (task: Task) => {
-    // Open task in new tab to keep dashboard open
-    window.open(`/tasks/${task.id}`, '_blank');
+    navigate(`/tasks/${task.id}`);
   };
 
   return (
-    <div className="space-y-4 max-w-full overflow-hidden">
+    <div className="space-y-4 max-w-full overflow-hidden px-4 sm:px-0">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

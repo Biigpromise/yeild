@@ -49,22 +49,15 @@ export const WalletTab: React.FC<WalletTabProps> = ({ userProfile, userStats }) 
   };
 
   const handleAddFunds = () => {
-    // Placeholder for add funds modal
-    toast.info('Add funds feature - Contact support for now');
+    toast.success('Add funds feature coming soon!');
   };
 
   const handleViewStatement = () => {
-    // Generate a simple statement view
-    const statement = `YIELD Statement\n\nCurrent Balance: ${userStats?.points || 0} points\nTotal Earned: ${userStats?.totalEarned || userStats?.points || 0} points\nTotal Spent: ${userStats?.totalSpent || 0} points\n\nGenerated: ${new Date().toLocaleDateString()}`;
-    
-    // Copy to clipboard
-    navigator.clipboard.writeText(statement);
-    toast.success('Statement copied to clipboard!');
+    toast.success('Statement feature coming soon!');
   };
 
   const handlePaymentMethods = () => {
-    // Placeholder for payment methods modal
-    toast.info('Payment methods - Available: Bank Transfer, PayPal, Crypto');
+    toast.success('Payment methods coming soon!');
   };
 
   const walletStats = [
