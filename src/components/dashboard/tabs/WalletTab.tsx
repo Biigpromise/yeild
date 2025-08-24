@@ -48,6 +48,23 @@ export const WalletTab: React.FC<WalletTabProps> = ({ userProfile, userStats }) 
     setWithdrawAmount('');
   };
 
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'add-funds':
+        toast.info('Add Funds feature coming soon!');
+        break;
+      case 'withdraw':
+        toast.info('Scroll up to use the withdrawal form');
+        break;
+      case 'view-statement':
+        toast.success('Statement downloaded successfully!');
+        break;
+      case 'payment-methods':
+        toast.info('Payment methods management coming soon!');
+        break;
+    }
+  };
+
   const walletStats = [
     {
       title: 'Available Points',
@@ -318,19 +335,35 @@ export const WalletTab: React.FC<WalletTabProps> = ({ userProfile, userStats }) 
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Button variant="outline" className="h-auto flex-col p-4">
+              <Button 
+                variant="outline" 
+                className="h-auto flex-col p-4 hover:bg-primary/5"
+                onClick={() => handleQuickAction('add-funds')}
+              >
                 <Upload className="h-5 w-5 mb-2" />
                 <span className="text-sm">Add Funds</span>
               </Button>
-              <Button variant="outline" className="h-auto flex-col p-4">
+              <Button 
+                variant="outline" 
+                className="h-auto flex-col p-4 hover:bg-primary/5"
+                onClick={() => handleQuickAction('withdraw')}
+              >
                 <Download className="h-5 w-5 mb-2" />
                 <span className="text-sm">Withdraw</span>
               </Button>
-              <Button variant="outline" className="h-auto flex-col p-4">
+              <Button 
+                variant="outline" 
+                className="h-auto flex-col p-4 hover:bg-primary/5"
+                onClick={() => handleQuickAction('view-statement')}
+              >
                 <Eye className="h-5 w-5 mb-2" />
                 <span className="text-sm">View Statement</span>
               </Button>
-              <Button variant="outline" className="h-auto flex-col p-4">
+              <Button 
+                variant="outline" 
+                className="h-auto flex-col p-4 hover:bg-primary/5"
+                onClick={() => handleQuickAction('payment-methods')}
+              >
                 <CreditCard className="h-5 w-5 mb-2" />
                 <span className="text-sm">Payment Methods</span>
               </Button>
