@@ -4,7 +4,7 @@ import { ModernAdminLayout } from './ModernAdminLayout';
 import { AdminOverview } from './simple/AdminOverview';
 import { AdminTasksSimple } from './simple/AdminTasksSimple';
 import { AdminCreateTaskTab } from './tabs/AdminCreateTaskTab';
-import { AdminCampaignsSimple } from './simple/AdminCampaignsSimple';
+import { EnhancedCampaignApprovalTab } from './campaigns/EnhancedCampaignApprovalTab';
 import { AdminUsersSimple } from './simple/AdminUsersSimple';
 import { AdminSystemHealth } from './simple/AdminSystemHealth';
 import { AdminAnalytics } from './analytics/AdminAnalytics';
@@ -37,7 +37,7 @@ export const AdminDashboard = () => {
       case 'create-task':
         return <AdminCreateTaskTab />;
       case 'campaigns':
-        return <AdminCampaignsSimple />;
+        return <EnhancedCampaignApprovalTab />;
       case 'analytics':
         return <AdminAnalytics />;
       case 'financial':

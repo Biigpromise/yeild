@@ -113,8 +113,13 @@ export const EnhancedCampaignApprovalTab: React.FC = () => {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="flex items-center justify-between mb-3">
-          <div className="text-sm">
-            <span className="font-medium">Budget:</span> ₦{campaign.budget}
+          <div className="flex gap-4 text-sm">
+            <div>
+              <span className="font-medium">Budget:</span> ₦{campaign.budget?.toLocaleString() || 0}
+            </div>
+            <div className="text-blue-600">
+              <span className="font-medium">Funded:</span> ₦{campaign.funded_amount?.toLocaleString() || 0}
+            </div>
           </div>
           <div className="text-sm text-muted-foreground">
             {new Date(campaign.created_at).toLocaleDateString()}
