@@ -56,11 +56,13 @@ export const CreateQuickCampaign = () => {
           brand_id: user.id,
           title: campaignData.title,
           description: campaignData.description,
-          category: campaignData.category,
           logo_url: campaignData.logo_url,
           budget: campaignData.budget,
           target_audience: { description: campaignData.target_audience },
-          requirements: { description: campaignData.requirements },
+          requirements: { 
+            description: campaignData.requirements,
+            category: campaignData.category
+          },
           status: 'draft',
           admin_approval_status: 'pending',
           payment_status: 'unpaid',

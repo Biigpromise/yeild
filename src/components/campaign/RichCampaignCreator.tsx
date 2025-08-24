@@ -155,7 +155,10 @@ export const RichCampaignCreator = () => {
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
         target_audience: JSON.parse(JSON.stringify(formData.target_demographics)),
-        requirements: JSON.parse(JSON.stringify(formData.brief)),
+        requirements: JSON.parse(JSON.stringify({
+          ...formData.brief,
+          category: formData.category
+        })),
         media_assets: JSON.parse(JSON.stringify(formData.media_assets)),
         social_links: JSON.parse(JSON.stringify(formData.social_links)),
         campaign_brief: formData.brief.mainBrief,
