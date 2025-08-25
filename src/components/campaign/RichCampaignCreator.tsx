@@ -143,15 +143,59 @@ export const RichCampaignCreator = () => {
     
     setLoading(true);
     try {
+      // Check wallet balance if wallet funding is selected
+      let fundedAmount = 0;
+      let paymentStatus = 'unpaid';
+      let walletTransactionId = null;
+
+      if (formData.funding_source === 'wallet') {
+        // Get wallet balance
+        const { data: wallet, error: walletError } = await supabase
+          .from('brand_wallets')
+          .select('balance')
+          .eq('brand_id', user.id)
+          .single();
+
+        if (walletError) {
+          toast.error('Failed to check wallet balance');
+          return;
+        }
+
+        if (!wallet || wallet.balance < formData.budget) {
+          toast.error(`Insufficient wallet balance. Required: ₦${formData.budget}, Available: ₦${wallet?.balance || 0}`);
+          return;
+        }
+
+        // Process wallet transaction
+        const { data: transaction, error: transactionError } = await supabase
+          .rpc('process_wallet_transaction', {
+            p_brand_id: user.id,
+            p_transaction_type: 'campaign_charge',
+            p_amount: formData.budget,
+            p_description: `Campaign funding: ${formData.title}`
+          });
+
+        if (transactionError) {
+          toast.error('Failed to process wallet transaction');
+          return;
+        }
+
+        fundedAmount = formData.budget;
+        paymentStatus = 'paid';
+        walletTransactionId = transaction;
+      }
+
       const campaignData = {
         brand_id: user.id,
         title: formData.title,
         description: formData.description,
         budget: formData.budget,
+        funded_amount: fundedAmount,
         logo_url: formData.logo_url,
         status: 'draft',
         admin_approval_status: 'pending',
-        payment_status: 'unpaid',
+        payment_status: paymentStatus,
+        wallet_transaction_id: walletTransactionId,
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
         target_audience: JSON.parse(JSON.stringify(formData.target_demographics)),
@@ -179,7 +223,9 @@ export const RichCampaignCreator = () => {
       
       if (error) throw error;
       
-      toast.success('Campaign created successfully!');
+      toast.success(paymentStatus === 'paid' 
+        ? 'Campaign created and funded successfully!' 
+        : 'Campaign created successfully!');
       navigate('/brand-dashboard/campaigns');
     } catch (error: any) {
       console.error('Error creating campaign:', error);

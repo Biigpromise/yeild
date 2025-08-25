@@ -298,7 +298,10 @@ export const EnhancedCampaignCreation: React.FC = () => {
 
         await supabase
           .from('brand_campaigns')
-          .update({ wallet_transaction_id: transactionId })
+          .update({ 
+            wallet_transaction_id: transactionId,
+            funded_amount: budgetAmount
+          })
           .eq('id', campaign.id);
       }
 

@@ -47,6 +47,40 @@ export const CreateQuickCampaign = () => {
     mutationFn: async (campaignData: QuickCampaignFormData) => {
       if (!user) throw new Error('Not authenticated');
 
+      // Check wallet balance and fund campaign
+      const { data: wallet, error: walletError } = await supabase
+        .from('brand_wallets')
+        .select('balance')
+        .eq('brand_id', user.id)
+        .single();
+
+      if (walletError) {
+        throw new Error('Failed to check wallet balance');
+      }
+
+      let fundedAmount = 0;
+      let paymentStatus = 'unpaid';
+      let walletTransactionId = null;
+
+      if (wallet && wallet.balance >= campaignData.budget) {
+        // Process wallet transaction
+        const { data: transaction, error: transactionError } = await supabase
+          .rpc('process_wallet_transaction', {
+            p_brand_id: user.id,
+            p_transaction_type: 'campaign_charge',
+            p_amount: campaignData.budget,
+            p_description: `Quick Campaign funding: ${campaignData.title}`
+          });
+
+        if (transactionError) {
+          throw new Error('Failed to process wallet transaction');
+        }
+
+        fundedAmount = campaignData.budget;
+        paymentStatus = 'paid';
+        walletTransactionId = transaction;
+      }
+
       const endDate = new Date();
       endDate.setDate(endDate.getDate() + parseInt(campaignData.duration));
 
@@ -58,6 +92,9 @@ export const CreateQuickCampaign = () => {
           description: campaignData.description,
           logo_url: campaignData.logo_url,
           budget: campaignData.budget,
+          funded_amount: fundedAmount,
+          payment_status: paymentStatus,
+          wallet_transaction_id: walletTransactionId,
           target_audience: { description: campaignData.target_audience },
           requirements: { 
             description: campaignData.requirements,
@@ -65,7 +102,6 @@ export const CreateQuickCampaign = () => {
           },
           status: 'draft',
           admin_approval_status: 'pending',
-          payment_status: 'unpaid',
           start_date: new Date().toISOString().split('T')[0],
           end_date: endDate.toISOString().split('T')[0],
           campaign_brief: `Quick campaign created for ${campaignData.category}`,
