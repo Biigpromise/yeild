@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, Clock, Zap, Settings, Eye } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Zap, Settings, Eye, DollarSign } from "lucide-react";
 import { BrandCampaignDetailsDialog } from "../brands/BrandCampaignDetailsDialog";
 import { CampaignToTaskConverter } from "./CampaignToTaskConverter";
 import { useBrandCampaigns } from "@/hooks/useBrandCampaigns";
@@ -39,6 +39,66 @@ export const EnhancedCampaignApprovalTab: React.FC = () => {
     } catch (error) {
       console.error("Approval error:", error);
       toast.error("Failed to approve campaign");
+    } finally {
+      setProcessingCampaign(null);
+    }
+  };
+
+  const handleFundCampaign = async (campaign: any) => {
+    setProcessingCampaign(campaign.id);
+    try {
+      // Check wallet balance
+      const { data: wallet, error: walletError } = await supabase
+        .from('brand_wallets')
+        .select('balance')
+        .eq('brand_id', campaign.brand_id)
+        .single();
+
+      if (walletError) {
+        toast.error('Failed to check wallet balance');
+        return;
+      }
+
+      if (!wallet || wallet.balance < campaign.budget) {
+        toast.error(`Insufficient wallet balance. Required: ₦${campaign.budget}, Available: ₦${wallet?.balance || 0}`);
+        return;
+      }
+
+      // Process wallet transaction
+      const { data: transaction, error: transactionError } = await supabase
+        .rpc('process_wallet_transaction', {
+          p_brand_id: campaign.brand_id,
+          p_transaction_type: 'campaign_charge',
+          p_amount: campaign.budget,
+          p_description: `Campaign funding: ${campaign.title}`,
+          p_campaign_id: campaign.id
+        });
+
+      if (transactionError) {
+        toast.error('Failed to process wallet transaction');
+        return;
+      }
+
+      // Update campaign with funding details
+      const { error: updateError } = await supabase
+        .from('brand_campaigns')
+        .update({
+          funded_amount: campaign.budget,
+          payment_status: 'paid',
+          wallet_transaction_id: transaction
+        })
+        .eq('id', campaign.id);
+
+      if (updateError) {
+        toast.error('Failed to update campaign funding status');
+        return;
+      }
+
+      toast.success('Campaign funded successfully!');
+      fetchBrandCampaigns();
+    } catch (error) {
+      console.error('Funding error:', error);
+      toast.error('Failed to fund campaign');
     } finally {
       setProcessingCampaign(null);
     }
@@ -159,6 +219,17 @@ export const EnhancedCampaignApprovalTab: React.FC = () => {
                 <XCircle className="h-4 w-4 mr-1" />
                 Reject
               </Button>
+              {campaign.payment_status !== 'paid' && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => handleFundCampaign(campaign)}
+                  disabled={processingCampaign === campaign.id}
+                >
+                  <DollarSign className="h-4 w-4 mr-1" />
+                  Fund Campaign
+                </Button>
+              )}
             </>
           )}
 
