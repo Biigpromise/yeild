@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { BrandCampaign } from "@/hooks/useBrandCampaigns";
+import { MediaUploadSection } from "@/components/campaign/MediaUploadSection";
+import { SocialLinksSection } from "@/components/campaign/SocialLinksSection";
 
 const campaignSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -45,6 +48,14 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
   const [logoFile, setLogoFile] = React.useState<File | null>(null);
   const [logoPreview, setLogoPreview] = React.useState<string | null>(null);
   const [conversionRate] = React.useState(1500);
+  const [mediaAssets, setMediaAssets] = React.useState<any[]>([]);
+  const [socialLinks, setSocialLinks] = React.useState<any>({
+    website: '',
+    socialProfiles: [],
+    engagementPosts: [],
+    hashtags: '',
+    mentionRequirements: ''
+  });
 
   const form = useForm<CampaignFormData>({
     resolver: zodResolver(campaignSchema),
@@ -73,6 +84,16 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
         start_date: campaign.start_date || "",
         end_date: campaign.end_date || "",
       });
+      
+      // Initialize media assets and social links from campaign data
+      setMediaAssets((campaign as any).media_assets || []);
+      setSocialLinks((campaign as any).social_links || {
+        website: '',
+        socialProfiles: [],
+        engagementPosts: [],
+        hashtags: '',
+        mentionRequirements: ''
+      });
     } else {
       form.reset({
         title: "",
@@ -82,6 +103,14 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
         status: 'draft',
         start_date: "",
         end_date: "",
+      });
+      setMediaAssets([]);
+      setSocialLinks({
+        website: '',
+        socialProfiles: [],
+        engagementPosts: [],
+        hashtags: '',
+        mentionRequirements: ''
       });
     }
   }, [campaign, form]);
@@ -135,10 +164,12 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
         title: data.title,
         description: data.description,
         budget: budgetInUSD,
-        logo_url: logoUrl,
+        logo_url: logoUrl || campaign?.logo_url,
         status: data.status,
         start_date: data.start_date || null,
         end_date: data.end_date || null,
+        media_assets: mediaAssets,
+        social_links: socialLinks,
       };
 
       if (campaign) {
@@ -169,138 +200,164 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{campaign ? 'Edit Campaign' : 'Create New Campaign'}</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <Label htmlFor="title">Campaign Title</Label>
-            <Input
-              id="title"
-              {...form.register('title')}
-              placeholder="Enter campaign title"
-            />
-            {form.formState.errors.title && (
-              <p className="text-sm text-red-600 mt-1">{form.formState.errors.title.message}</p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              {...form.register('description')}
-              placeholder="Describe your campaign objectives"
-              rows={3}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="currency">Currency</Label>
-              <Select onValueChange={(value) => form.setValue('currency', value as 'USD' | 'NGN')} defaultValue="USD">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select currency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USD">USD ($)</SelectItem>
-                  <SelectItem value="NGN">NGN (₦)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="budget">Budget ({watchedCurrency}) *</Label>
-              <Input
-                id="budget"
-                type="number"
-                min="10"
-                step="0.01"
-                {...form.register('budget', { valueAsNumber: true })}
-                placeholder={watchedCurrency === 'USD' ? '10.00' : '15000.00'}
-                onFocus={(e) => {
-                  if (e.target.value === '0') {
-                    e.target.value = '';
-                  }
-                }}
-              />
-              {watchedCurrency && watchedBudget && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  ≈ {watchedCurrency === 'USD' ? '₦' : '$'}{(watchedCurrency === 'USD' ? watchedBudget * conversionRate : watchedBudget / conversionRate).toLocaleString()} {watchedCurrency === 'USD' ? 'NGN' : 'USD'}
-                </p>
-              )}
-              {form.formState.errors.budget && (
-                <p className="text-sm text-red-600 mt-1">{form.formState.errors.budget.message}</p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="status">Status</Label>
-            <Select onValueChange={(value) => form.setValue('status', value as any)} defaultValue={form.getValues('status')}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="paused">Paused</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="start_date">Start Date</Label>
-              <Input
-                id="start_date"
-                type="date"
-                {...form.register('start_date')}
-              />
-            </div>
-            <div>
-              <Label htmlFor="end_date">End Date</Label>
-              <Input
-                id="end_date"
-                type="date"
-                {...form.register('end_date')}
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label>Campaign Logo</Label>
-            <div className="mt-1">
-              <div className="flex items-center justify-center w-full">
-                <label htmlFor="logo-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-border border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted">
-                  {logoPreview ? (
-                    <img src={logoPreview} alt="Logo preview" className="h-20 w-20 object-contain" />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                      <p className="mb-2 text-sm text-muted-foreground">
-                        <span className="font-semibold">Click to upload</span> your campaign logo
-                      </p>
-                      <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
-                    </div>
-                  )}
-                  <input
-                    id="logo-upload"
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleLogoUpload}
-                  />
-                </label>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="basic">Basic Info</TabsTrigger>
+              <TabsTrigger value="media">Media & Links</TabsTrigger>
+              <TabsTrigger value="social">Social Links</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="basic" className="space-y-4">
+              <div>
+                <Label htmlFor="title">Campaign Title</Label>
+                <Input
+                  id="title"
+                  {...form.register('title')}
+                  placeholder="Enter campaign title"
+                />
+                {form.formState.errors.title && (
+                  <p className="text-sm text-red-600 mt-1">{form.formState.errors.title.message}</p>
+                )}
               </div>
-            </div>
-          </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  {...form.register('description')}
+                  placeholder="Describe your campaign objectives"
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="currency">Currency</Label>
+                  <Select onValueChange={(value) => form.setValue('currency', value as 'USD' | 'NGN')} defaultValue="USD">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD ($)</SelectItem>
+                      <SelectItem value="NGN">NGN (₦)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="budget">Budget ({watchedCurrency}) *</Label>
+                  <Input
+                    id="budget"
+                    type="number"
+                    min="10"
+                    step="0.01"
+                    {...form.register('budget', { valueAsNumber: true })}
+                    placeholder={watchedCurrency === 'USD' ? '10.00' : '15000.00'}
+                    onFocus={(e) => {
+                      if (e.target.value === '0') {
+                        e.target.value = '';
+                      }
+                    }}
+                  />
+                  {watchedCurrency && watchedBudget && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      ≈ {watchedCurrency === 'USD' ? '₦' : '$'}{(watchedCurrency === 'USD' ? watchedBudget * conversionRate : watchedBudget / conversionRate).toLocaleString()} {watchedCurrency === 'USD' ? 'NGN' : 'USD'}
+                    </p>
+                  )}
+                  {form.formState.errors.budget && (
+                    <p className="text-sm text-red-600 mt-1">{form.formState.errors.budget.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select onValueChange={(value) => form.setValue('status', value as any)} defaultValue={form.getValues('status')}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="paused">Paused</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="start_date">Start Date</Label>
+                  <Input
+                    id="start_date"
+                    type="date"
+                    {...form.register('start_date')}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="end_date">End Date</Label>
+                  <Input
+                    id="end_date"
+                    type="date"
+                    {...form.register('end_date')}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Campaign Logo</Label>
+                <div className="mt-1">
+                  <div className="flex items-center justify-center w-full">
+                    <label htmlFor="logo-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-border border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted">
+                      {logoPreview ? (
+                        <img src={logoPreview} alt="Logo preview" className="h-20 w-20 object-contain" />
+                      ) : campaign?.logo_url ? (
+                        <img src={campaign.logo_url} alt="Current logo" className="h-20 w-20 object-contain" />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                          <p className="mb-2 text-sm text-muted-foreground">
+                            <span className="font-semibold">Click to upload</span> your campaign logo
+                          </p>
+                          <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
+                        </div>
+                      )}
+                      <input
+                        id="logo-upload"
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="media" className="space-y-4">
+              <MediaUploadSection 
+                mediaAssets={mediaAssets}
+                onMediaAssetsChange={setMediaAssets}
+              />
+            </TabsContent>
+
+            <TabsContent value="social" className="space-y-4">
+              <SocialLinksSection 
+                socialLinks={socialLinks}
+                onSocialLinksChange={setSocialLinks}
+              />
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex justify-end space-x-2 pt-4 border-t">
             <Button
               type="button"
               variant="outline"
