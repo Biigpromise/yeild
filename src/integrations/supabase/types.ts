@@ -221,7 +221,7 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           auto_convert_enabled: boolean | null
-          brand_id: string | null
+          brand_id: string
           budget: number
           campaign_brief: string | null
           collaboration_settings: Json | null
@@ -257,7 +257,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           auto_convert_enabled?: boolean | null
-          brand_id?: string | null
+          brand_id: string
           budget: number
           campaign_brief?: string | null
           collaboration_settings?: Json | null
@@ -293,7 +293,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           auto_convert_enabled?: boolean | null
-          brand_id?: string | null
+          brand_id?: string
           budget?: number
           campaign_brief?: string | null
           collaboration_settings?: Json | null
