@@ -14,6 +14,29 @@ import { toast } from 'sonner';
 import { ArrowLeft, ArrowRight, CheckCircle, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { useSimpleFormPersistence } from '@/hooks/useSimpleFormPersistence';
 
+interface MediaAsset {
+  id: string;
+  type: 'image' | 'video' | 'document';
+  url: string;
+  name: string;
+  category: 'brand_assets' | 'campaign_visuals' | 'reference_materials' | 'video_briefs';
+  size: number;
+}
+
+interface SocialLink {
+  platform: string;
+  url: string;
+  description?: string;
+}
+
+interface SocialLinksData {
+  website?: string;
+  socialProfiles: SocialLink[];
+  engagementPosts: string[];
+  hashtags: string[];
+  mentionRequirements?: string;
+}
+
 interface CampaignFormData {
   title: string;
   description: string;
@@ -23,6 +46,8 @@ interface CampaignFormData {
   target_audience: string;
   requirements: string;
   duration: string;
+  mediaAssets: MediaAsset[];
+  socialLinks: SocialLinksData;
 }
 
 const campaignCategories = [
@@ -51,7 +76,13 @@ export const SimplifiedCampaignCreator = () => {
     budget: 5000,
     target_audience: '',
     requirements: '',
-    duration: '7'
+    duration: '7',
+    mediaAssets: [],
+    socialLinks: {
+      socialProfiles: [],
+      engagementPosts: [],
+      hashtags: []
+    }
   });
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -70,8 +101,9 @@ export const SimplifiedCampaignCreator = () => {
 
   const steps = [
     { id: 1, title: 'Essentials', description: 'Basic campaign details' },
-    { id: 2, title: 'Requirements', description: 'Target audience & specs' },
-    { id: 3, title: 'Review & Submit', description: 'Final review' }
+    { id: 2, title: 'Media & Links', description: 'Upload assets & social links' },
+    { id: 3, title: 'Requirements', description: 'Target audience & specs' },
+    { id: 4, title: 'Review & Submit', description: 'Final review' }
   ];
 
   const createCampaignMutation = useMutation({
@@ -137,7 +169,7 @@ export const SimplifiedCampaignCreator = () => {
 
       const { error } = await supabase
         .from('brand_campaigns')
-        .insert([{
+        .insert({
           brand_id: user.id,
           title: campaignData.title,
           description: campaignData.description,
@@ -151,6 +183,8 @@ export const SimplifiedCampaignCreator = () => {
             description: campaignData.requirements,
             category: campaignData.category
           },
+          media_assets: campaignData.mediaAssets,
+          social_links: campaignData.socialLinks,
           status: 'draft',
           admin_approval_status: 'pending',
           start_date: new Date().toISOString().split('T')[0],
@@ -168,7 +202,7 @@ export const SimplifiedCampaignCreator = () => {
             contentGuidelines: 'Follow brand guidelines and campaign requirements',
             brandVoice: 'Professional and engaging'
           }
-        }]);
+        });
 
       if (error) {
         console.error('Campaign creation error details:', error);
@@ -241,8 +275,10 @@ export const SimplifiedCampaignCreator = () => {
       case 1:
         return !!(formData.title && formData.description && formData.category);
       case 2:
-        return !!(formData.budget && formData.target_audience);
+        return true; // Media and links are optional
       case 3:
+        return !!(formData.budget && formData.target_audience);
+      case 4:
         return true;
       default:
         return false;
@@ -250,7 +286,7 @@ export const SimplifiedCampaignCreator = () => {
   };
 
   const nextStep = () => {
-    if (validateStep(currentStep) && currentStep < 3) {
+    if (validateStep(currentStep) && currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else if (!validateStep(currentStep)) {
       toast.error('Please fill in all required fields');
@@ -264,11 +300,115 @@ export const SimplifiedCampaignCreator = () => {
   };
 
   const handleSubmit = () => {
-    if (!validateStep(1) || !validateStep(2)) {
+    if (!validateStep(1) || !validateStep(3)) {
       toast.error('Please complete all required fields');
       return;
     }
     createCampaignMutation.mutate(formData);
+  };
+
+  // Media upload functions
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, category: MediaAsset['category']) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    for (const file of files) {
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `campaign-media/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('campaign-media')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('campaign-media')
+          .getPublicUrl(filePath);
+
+        const newAsset: MediaAsset = {
+          id: Math.random().toString(36).substring(7),
+          type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'document',
+          url: urlData.publicUrl,
+          name: file.name,
+          category,
+          size: file.size
+        };
+
+        setFormData(prev => ({
+          ...prev,
+          mediaAssets: [...prev.mediaAssets, newAsset]
+        }));
+
+        toast.success(`${file.name} uploaded successfully!`);
+      } catch (error: any) {
+        console.error('Upload error:', error);
+        toast.error(`Failed to upload ${file.name}`);
+      }
+    }
+  };
+
+  const removeAsset = (assetId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      mediaAssets: prev.mediaAssets.filter(asset => asset.id !== assetId)
+    }));
+  };
+
+  // Social links functions
+  const updateSocialLinks = (updates: Partial<SocialLinksData>) => {
+    setFormData(prev => ({
+      ...prev,
+      socialLinks: { ...prev.socialLinks, ...updates }
+    }));
+  };
+
+  const addSocialProfile = () => {
+    updateSocialLinks({
+      socialProfiles: [...formData.socialLinks.socialProfiles, { platform: '', url: '', description: '' }]
+    });
+  };
+
+  const updateSocialProfile = (index: number, field: keyof SocialLink, value: string) => {
+    const updatedProfiles = [...formData.socialLinks.socialProfiles];
+    updatedProfiles[index] = { ...updatedProfiles[index], [field]: value };
+    updateSocialLinks({ socialProfiles: updatedProfiles });
+  };
+
+  const removeSocialProfile = (index: number) => {
+    updateSocialLinks({
+      socialProfiles: formData.socialLinks.socialProfiles.filter((_, i) => i !== index)
+    });
+  };
+
+  const addEngagementPost = () => {
+    updateSocialLinks({
+      engagementPosts: [...formData.socialLinks.engagementPosts, '']
+    });
+  };
+
+  const updateEngagementPost = (index: number, value: string) => {
+    const updatedPosts = [...formData.socialLinks.engagementPosts];
+    updatedPosts[index] = value;
+    updateSocialLinks({ engagementPosts: updatedPosts });
+  };
+
+  const removeEngagementPost = (index: number) => {
+    updateSocialLinks({
+      engagementPosts: formData.socialLinks.engagementPosts.filter((_, i) => i !== index)
+    });
+  };
+
+  const updateHashtags = (hashtagsText: string) => {
+    const hashtags = hashtagsText
+      .split(/[\s,]+/)
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0)
+      .map(tag => tag.startsWith('#') ? tag : `#${tag}`);
+    
+    updateSocialLinks({ hashtags });
   };
 
   const renderStepContent = () => {
@@ -369,6 +509,173 @@ export const SimplifiedCampaignCreator = () => {
 
       case 2:
         return (
+          <div className="space-y-8">
+            {/* Media Upload Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Upload className="w-5 h-5" />
+                  Media Assets
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Brand Assets */}
+                <div>
+                  <Label className="text-base font-medium">Brand Assets</Label>
+                  <p className="text-sm text-muted-foreground mb-2">Upload logos, brand guidelines, style guides</p>
+                  <div className="flex items-center justify-center w-full">
+                    <label htmlFor="brand-assets" className="flex flex-col items-center justify-center w-full h-24 border-2 border-border border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted transition-colors">
+                      <div className="flex flex-col items-center justify-center pt-2 pb-2">
+                        <Upload className="w-6 h-6 mb-1 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Click to upload brand assets</p>
+                      </div>
+                      <input
+                        id="brand-assets"
+                        type="file"
+                        className="hidden"
+                        multiple
+                        accept="image/*,video/*,.pdf,.doc,.docx"
+                        onChange={(e) => handleFileUpload(e, 'brand_assets')}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Campaign Visuals */}
+                <div>
+                  <Label className="text-base font-medium">Campaign Visuals</Label>
+                  <p className="text-sm text-muted-foreground mb-2">Upload reference images, mockups, visual inspiration</p>
+                  <div className="flex items-center justify-center w-full">
+                    <label htmlFor="campaign-visuals" className="flex flex-col items-center justify-center w-full h-24 border-2 border-border border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted transition-colors">
+                      <div className="flex flex-col items-center justify-center pt-2 pb-2">
+                        <ImageIcon className="w-6 h-6 mb-1 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Click to upload campaign visuals</p>
+                      </div>
+                      <input
+                        id="campaign-visuals"
+                        type="file"
+                        className="hidden"
+                        multiple
+                        accept="image/*,video/*"
+                        onChange={(e) => handleFileUpload(e, 'campaign_visuals')}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Uploaded Files */}
+                {formData.mediaAssets.length > 0 && (
+                  <div>
+                    <Label className="text-base font-medium">Uploaded Files</Label>
+                    <div className="mt-2 space-y-2">
+                      {formData.mediaAssets.map((asset) => (
+                        <div key={asset.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center">
+                              <ImageIcon className="w-4 h-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">{asset.name}</p>
+                              <p className="text-xs text-muted-foreground">{asset.category} • {(asset.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeAsset(asset.id)}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Social Links Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Social Links & Engagement</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Website */}
+                <div>
+                  <Label htmlFor="website" className="text-base font-medium">Website/Landing Page</Label>
+                  <Input
+                    id="website"
+                    value={formData.socialLinks.website || ''}
+                    onChange={(e) => updateSocialLinks({ website: e.target.value })}
+                    placeholder="https://your-website.com"
+                    className="mt-2"
+                  />
+                </div>
+
+                {/* Social Profiles */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <Label className="text-base font-medium">Social Media Profiles</Label>
+                    <Button type="button" variant="outline" size="sm" onClick={addSocialProfile}>
+                      Add Profile
+                    </Button>
+                  </div>
+                  {formData.socialLinks.socialProfiles.map((profile, index) => (
+                    <div key={index} className="flex items-center gap-2 mb-2">
+                      <Input
+                        placeholder="Platform (e.g., Instagram)"
+                        value={profile.platform}
+                        onChange={(e) => updateSocialProfile(index, 'platform', e.target.value)}
+                        className="flex-1"
+                      />
+                      <Input
+                        placeholder="Profile URL"
+                        value={profile.url}
+                        onChange={(e) => updateSocialProfile(index, 'url', e.target.value)}
+                        className="flex-2"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeSocialProfile(index)}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Hashtags */}
+                <div>
+                  <Label htmlFor="hashtags" className="text-base font-medium">Required Hashtags</Label>
+                  <Input
+                    id="hashtags"
+                    value={formData.socialLinks.hashtags.join(' ')}
+                    onChange={(e) => updateHashtags(e.target.value)}
+                    placeholder="#brandname #campaign #hashtag"
+                    className="mt-2"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Separate hashtags with spaces. # will be added automatically.
+                  </p>
+                  {formData.socialLinks.hashtags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {formData.socialLinks.hashtags.map((tag, index) => (
+                        <span key={index} className="bg-primary/10 text-primary px-2 py-1 rounded text-sm">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case 3:
+        return (
           <div className="space-y-6">
             <div>
               <Label htmlFor="budget" className="text-base font-medium">Campaign Budget (₦) *</Label>
@@ -426,7 +733,7 @@ export const SimplifiedCampaignCreator = () => {
           </div>
         );
 
-      case 3:
+      case 4:
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
@@ -457,6 +764,18 @@ export const SimplifiedCampaignCreator = () => {
               <div className="flex justify-between py-2 border-b">
                 <span className="font-medium">Target Audience:</span>
                 <span>{formData.target_audience}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b">
+                <span className="font-medium">Media Assets:</span>
+                <span>{formData.mediaAssets.length} files</span>
+              </div>
+              <div className="flex justify-between py-2 border-b">
+                <span className="font-medium">Social Profiles:</span>
+                <span>{formData.socialLinks.socialProfiles.length} profiles</span>
+              </div>
+              <div className="flex justify-between py-2 border-b">
+                <span className="font-medium">Hashtags:</span>
+                <span>{formData.socialLinks.hashtags.length} tags</span>
               </div>
             </div>
 
@@ -552,7 +871,7 @@ export const SimplifiedCampaignCreator = () => {
                 Previous
               </Button>
               
-              {currentStep < 3 ? (
+              {currentStep < 4 ? (
                 <Button onClick={nextStep} disabled={!validateStep(currentStep)}>
                   Next
                   <ArrowRight className="h-4 w-4 ml-2" />
