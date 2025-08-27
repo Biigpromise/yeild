@@ -167,42 +167,44 @@ export const SimplifiedCampaignCreator = () => {
       const endDate = new Date();
       endDate.setDate(endDate.getDate() + parseInt(campaignData.duration));
 
+      const campaignInsert = {
+        brand_id: user.id,
+        title: campaignData.title,
+        description: campaignData.description,
+        logo_url: campaignData.logo_url,
+        budget: campaignData.budget,
+        funded_amount: fundedAmount,
+        payment_status: paymentStatus,
+        wallet_transaction_id: walletTransactionId,
+        target_audience: { description: campaignData.target_audience },
+        requirements: { 
+          description: campaignData.requirements,
+          category: campaignData.category
+        },
+        media_assets: campaignData.mediaAssets as any,
+        social_links: campaignData.socialLinks as any,
+        status: 'draft' as const,
+        admin_approval_status: 'pending' as const,
+        start_date: new Date().toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
+        campaign_brief: `Campaign created for ${campaignData.category}`,
+        deliverable_specifications: {
+          deliverables: [
+            {
+              type: 'social_post',
+              platform: 'instagram',
+              quantity: 1,
+              requirements: campaignData.requirements
+            }
+          ],
+          contentGuidelines: 'Follow brand guidelines and campaign requirements',
+          brandVoice: 'Professional and engaging'
+        }
+      };
+
       const { error } = await supabase
         .from('brand_campaigns')
-        .insert({
-          brand_id: user.id,
-          title: campaignData.title,
-          description: campaignData.description,
-          logo_url: campaignData.logo_url,
-          budget: campaignData.budget,
-          funded_amount: fundedAmount,
-          payment_status: paymentStatus,
-          wallet_transaction_id: walletTransactionId,
-          target_audience: { description: campaignData.target_audience },
-          requirements: { 
-            description: campaignData.requirements,
-            category: campaignData.category
-          },
-          media_assets: campaignData.mediaAssets,
-          social_links: campaignData.socialLinks,
-          status: 'draft',
-          admin_approval_status: 'pending',
-          start_date: new Date().toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0],
-          campaign_brief: `Campaign created for ${campaignData.category}`,
-          deliverable_specifications: {
-            deliverables: [
-              {
-                type: 'social_post',
-                platform: 'instagram',
-                quantity: 1,
-                requirements: campaignData.requirements
-              }
-            ],
-            contentGuidelines: 'Follow brand guidelines and campaign requirements',
-            brandVoice: 'Professional and engaging'
-          }
-        });
+        .insert(campaignInsert);
 
       if (error) {
         console.error('Campaign creation error details:', error);
