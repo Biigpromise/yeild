@@ -37,7 +37,7 @@ export const CampaignToTaskConverter: React.FC<CampaignToTaskConverterProps> = (
     category: "Social Media",
     points: Math.min(Math.floor(campaign.budget), 100),
     estimated_time: "30 minutes",
-    difficulty: "Medium"
+    difficulty: "medium"
   });
 
   const handleManualConversion = async () => {
@@ -180,9 +180,9 @@ export const CampaignToTaskConverter: React.FC<CampaignToTaskConverterProps> = (
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Easy">Easy</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="Hard">Hard</SelectItem>
+                <SelectItem value="easy">Easy</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="hard">Hard</SelectItem>
               </SelectContent>
             </Select>
           </div>
