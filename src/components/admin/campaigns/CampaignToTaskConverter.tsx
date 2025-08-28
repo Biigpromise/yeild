@@ -84,19 +84,20 @@ export const CampaignToTaskConverter: React.FC<CampaignToTaskConverterProps> = (
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5" />
-          Convert Campaign to Task
-        </CardTitle>
-        <div className="flex items-center gap-2">
-          <Badge variant={campaign.auto_convert_enabled ? "default" : "secondary"}>
-            {campaign.auto_convert_enabled ? "Auto-Convert Enabled" : "Manual Convert Only"}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="h-screen overflow-y-auto">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Convert Campaign to Task
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Badge variant={campaign.auto_convert_enabled ? "default" : "secondary"}>
+              {campaign.auto_convert_enabled ? "Auto-Convert Enabled" : "Manual Convert Only"}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="title">Task Title</Label>
@@ -202,5 +203,6 @@ export const CampaignToTaskConverter: React.FC<CampaignToTaskConverterProps> = (
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 };
