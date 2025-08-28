@@ -98,7 +98,8 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
+    <div className="h-full max-h-screen overflow-y-auto">
+      <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -293,6 +294,7 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
           </Card>
         )}
       </motion.div>
+      </div>
     </div>
   );
 };
