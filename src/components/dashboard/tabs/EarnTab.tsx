@@ -98,8 +98,8 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
   };
 
   return (
-    <div className="h-full max-h-screen overflow-y-auto">
-      <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
+    <div className="h-full max-h-[calc(100vh-120px)] overflow-y-auto">
+      <div className="space-y-4 sm:space-y-6 px-2 sm:px-4 pb-4">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -221,17 +221,17 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
             {filteredTasks.map((task) => (
               <Card key={task.id} className="hover:shadow-md transition-shadow cursor-pointer group">
                 <CardContent className="p-3 sm:p-4">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold group-hover:text-primary transition-colors text-sm sm:text-base">
-                          {task.title}
-                        </h3>
-                        <div className="flex items-center gap-1 text-primary font-bold text-sm">
-                          <Star className="h-3 w-3 sm:h-4 sm:w-4" />
-                          {task.points}
-                        </div>
-                      </div>
+                   <div className="flex flex-col gap-3">
+                     <div className="flex-1 min-w-0">
+                       <div className="flex items-start justify-between mb-2">
+                         <h3 className="font-semibold group-hover:text-primary transition-colors text-sm sm:text-base pr-2 flex-1">
+                           {task.title}
+                         </h3>
+                         <div className="flex items-center gap-1 text-primary font-bold text-sm shrink-0">
+                           <Star className="h-3 w-3 sm:h-4 sm:w-4" />
+                           {task.points}
+                         </div>
+                       </div>
                       
                       <p className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2">
                         {task.description}
@@ -255,14 +255,14 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
                       </div>
                     </div>
                     
-                    <Button 
-                      size="sm"
-                      onClick={() => handleTaskClick(task)}
-                      className="shrink-0 w-full sm:w-auto"
-                    >
-                      Start
-                      <ArrowUpRight className="h-3 w-3 ml-1" />
-                    </Button>
+                     <Button 
+                       size="sm"
+                       onClick={() => handleTaskClick(task)}
+                       className="shrink-0 w-full"
+                     >
+                       Start Task
+                       <ArrowUpRight className="h-3 w-3 ml-1" />
+                     </Button>
                   </div>
                 </CardContent>
               </Card>

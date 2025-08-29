@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, MailCheck } from "lucide-react";
 import { useSignUp } from '@/hooks/useSignUp';
 import PasswordStrengthMeter from "@/components/ui/PasswordStrengthMeter";
+import { AuthErrorHandler } from '@/components/auth/AuthErrorHandler';
 
 const SignUpForm = () => {
   const {
@@ -21,6 +22,7 @@ const SignUpForm = () => {
     awaitingConfirmation,
     signUpError,
     setAwaitingConfirmation,
+    handleResendConfirmation
   } = useSignUp();
 
   const navigate = useNavigate();
@@ -155,7 +157,12 @@ const SignUpForm = () => {
         </div>
       </div>
       {signUpError && (
-        <div className="text-red-400 text-sm mt-1">{signUpError}</div>
+        <AuthErrorHandler 
+          error={signUpError}
+          onRetry={() => window.location.reload()}
+          onResendEmail={handleResendConfirmation}
+          email={email}
+        />
       )}
       <Button 
         type="submit" 

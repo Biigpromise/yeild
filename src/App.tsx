@@ -173,7 +173,18 @@ const AppContent = () => {
         <Route path="/chat" element={<Navigate to="/dashboard" replace />} />
         <Route path="/wallet" element={<Navigate to="/dashboard" replace />} />
         <Route path="/referrals" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/birds" element={<Navigate to="/dashboard" replace />} />
+        
+        {/* Birds Route - Show actual birds page */}
+        <Route
+          path="/birds"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundaryWrapper>
+                <Birds />
+              </ErrorBoundaryWrapper>
+            </ProtectedRoute>
+          }
+        />
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
