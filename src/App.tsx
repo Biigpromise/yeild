@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import TaskDetail from "./components/tasks/TaskDetail";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -109,6 +110,16 @@ const AppContent = () => {
                 <BrandDashboard />
               </ErrorBoundaryWrapper>
             </RoleBasedRoute>
+          }
+        />
+        <Route
+          path="/tasks/:id"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundaryWrapper>
+                <TaskDetail />
+              </ErrorBoundaryWrapper>
+            </ProtectedRoute>
           }
         />
         <Route
