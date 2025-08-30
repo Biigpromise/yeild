@@ -12,7 +12,14 @@ export const TaskSocialMediaDisplay: React.FC<TaskSocialMediaDisplayProps> = ({
   socialLinks,
   taskTitle
 }) => {
+  console.log('TaskSocialMediaDisplay - socialLinks:', socialLinks);
+  
   if (!socialLinks) return null;
+
+  // Handle both object and array formats for social links
+  const linksObject = typeof socialLinks === 'object' && !Array.isArray(socialLinks) 
+    ? socialLinks 
+    : {};
 
   const platforms = [
     { key: 'facebook', icon: Facebook, color: 'bg-blue-600 hover:bg-blue-700', name: 'Facebook' },
@@ -24,8 +31,10 @@ export const TaskSocialMediaDisplay: React.FC<TaskSocialMediaDisplayProps> = ({
   ];
 
   const activePlatforms = platforms.filter(platform => 
-    socialLinks[platform.key] && socialLinks[platform.key].trim() !== ''
+    linksObject[platform.key] && String(linksObject[platform.key]).trim() !== ''
   );
+
+  console.log('TaskSocialMediaDisplay - activePlatforms:', activePlatforms);
 
   if (activePlatforms.length === 0) return null;
 
@@ -54,7 +63,7 @@ export const TaskSocialMediaDisplay: React.FC<TaskSocialMediaDisplayProps> = ({
               key={platform.key}
               size="sm"
               className={`${platform.color} text-white transition-all duration-200 hover:scale-105 cursor-pointer`}
-              onClick={() => handleLinkClick(socialLinks[platform.key], platform.name)}
+              onClick={() => handleLinkClick(String(linksObject[platform.key]), platform.name)}
             >
               <Icon className="h-4 w-4 mr-2" />
               <span className="text-xs">Visit {platform.name}</span>

@@ -99,7 +99,7 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
 
   return (
     <div className="h-full max-h-[calc(100vh-120px)] overflow-y-auto">
-      <div className="space-y-4 sm:space-y-6 px-2 sm:px-4 pb-4">
+      <div className="space-y-3 sm:space-y-6 px-1 sm:px-4 pb-4">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -120,28 +120,28 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 px-1">
           <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-            <CardContent className="p-3 sm:p-4 text-center">
-              <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-primary mx-auto mb-2" />
-              <p className="text-lg sm:text-2xl font-bold text-primary">{userStats?.points || 0}</p>
-              <p className="text-xs text-muted-foreground">Total Points</p>
+            <CardContent className="p-3 text-center min-h-[80px] flex flex-col justify-center">
+              <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-primary mx-auto mb-1" />
+              <p className="text-base sm:text-xl font-bold text-primary leading-tight">{userStats?.points || 0}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Total Points</p>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-3 sm:p-4 text-center">
-              <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 mx-auto mb-2" />
-              <p className="text-lg sm:text-2xl font-bold">{userStats?.tasksCompleted || 0}</p>
-              <p className="text-xs text-muted-foreground">Tasks Completed</p>
+            <CardContent className="p-3 text-center min-h-[80px] flex flex-col justify-center">
+              <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mx-auto mb-1" />
+              <p className="text-base sm:text-xl font-bold leading-tight">{userStats?.tasksCompleted || 0}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Tasks Completed</p>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-3 sm:p-4 text-center">
-              <Star className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 mx-auto mb-2" />
-              <p className="text-lg sm:text-2xl font-bold">Level {userStats?.level || 1}</p>
-              <p className="text-xs text-muted-foreground">Current Level</p>
+            <CardContent className="p-3 text-center min-h-[80px] flex flex-col justify-center">
+              <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 mx-auto mb-1" />
+              <p className="text-base sm:text-xl font-bold leading-tight">Level {userStats?.level || 1}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Current Level</p>
             </CardContent>
           </Card>
         </div>
@@ -220,50 +220,50 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
           <div className="grid gap-4">
             {filteredTasks.map((task) => (
               <Card key={task.id} className="hover:shadow-md transition-shadow cursor-pointer group">
-                <CardContent className="p-3 sm:p-4">
-                   <div className="flex flex-col gap-3">
-                     <div className="flex-1 min-w-0">
-                       <div className="flex items-start justify-between mb-2">
-                         <h3 className="font-semibold group-hover:text-primary transition-colors text-sm sm:text-base pr-2 flex-1">
-                           {task.title}
-                         </h3>
-                         <div className="flex items-center gap-1 text-primary font-bold text-sm shrink-0">
-                           <Star className="h-3 w-3 sm:h-4 sm:w-4" />
-                           {task.points}
-                         </div>
+                 <CardContent className="p-3 sm:p-4">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-semibold group-hover:text-primary transition-colors text-sm sm:text-base pr-2 flex-1 line-clamp-2">
+                            {task.title}
+                          </h3>
+                          <div className="flex items-center gap-1 text-primary font-bold text-xs sm:text-sm shrink-0 ml-2">
+                            <Star className="h-3 w-3 sm:h-4 sm:w-4" />
+                            {task.points}
+                          </div>
+                        </div>
+                       
+                       <p className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2">
+                         {task.description}
+                       </p>
+                       
+                       <div className="flex flex-wrap gap-1 mb-3">
+                         <Badge variant="outline" className={`${getDifficultyColor(task.difficulty)} text-[10px] sm:text-xs`}>
+                           {task.difficulty}
+                         </Badge>
+                         
+                         <Badge variant="outline" className="text-[10px] sm:text-xs">
+                           <Clock className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
+                           {task.estimated_time}
+                         </Badge>
+                         
+                         {task.brand_name && (
+                           <Badge variant="secondary" className="text-[10px] sm:text-xs">
+                             {task.brand_name}
+                           </Badge>
+                         )}
                        </div>
-                      
-                      <p className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2">
-                        {task.description}
-                      </p>
-                      
-                      <div className="flex flex-wrap gap-1 sm:gap-2">
-                        <Badge variant="outline" className={getDifficultyColor(task.difficulty)}>
-                          {task.difficulty}
-                        </Badge>
-                        
-                        <Badge variant="outline">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {task.estimated_time}
-                        </Badge>
-                        
-                        {task.brand_name && (
-                          <Badge variant="secondary">
-                            {task.brand_name}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    
-                     <Button 
-                       size="sm"
-                       onClick={() => handleTaskClick(task)}
-                       className="shrink-0 w-full"
-                     >
-                       Start Task
-                       <ArrowUpRight className="h-3 w-3 ml-1" />
-                     </Button>
-                  </div>
+                     </div>
+                     
+                      <Button 
+                        size="sm"
+                        onClick={() => handleTaskClick(task)}
+                        className="shrink-0 w-full text-xs sm:text-sm"
+                      >
+                        Start Task
+                        <ArrowUpRight className="h-3 w-3 ml-1" />
+                      </Button>
+                   </div>
                 </CardContent>
               </Card>
             ))}
