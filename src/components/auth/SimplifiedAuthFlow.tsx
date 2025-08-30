@@ -77,10 +77,15 @@ export const SimplifiedAuthFlow = () => {
       if (isLogin) {
         const { error } = await signIn(formData.email, formData.password);
         if (error) {
-          if (error.message.includes('Invalid login credentials')) {
-            toast.error('Invalid email or password');
+          console.error('Sign in error:', error);
+          if (error.message?.includes('Invalid login credentials')) {
+            toast.error('Invalid email or password. Please check your credentials.');
+          } else if (error.message?.includes('Email not confirmed')) {
+            toast.error('Please check your email and confirm your account before signing in.');
+          } else if (error.message?.includes('Too many requests')) {
+            toast.error('Too many attempts. Please wait a moment before trying again.');
           } else {
-            toast.error(error.message);
+            toast.error(error.message || 'Failed to sign in. Please try again.');
           }
         } else {
           toast.success('Welcome back!');
@@ -88,12 +93,26 @@ export const SimplifiedAuthFlow = () => {
       } else {
         const { error } = await signUp(formData.email, formData.password, formData.name, formData.userType);
         if (error) {
-          toast.error(error.message);
+          console.error('Sign up error:', error);
+          if (error.message?.includes('User already registered')) {
+            toast.error('An account with this email already exists. Try signing in instead.');
+          } else if (error.message?.includes('Password should be at least')) {
+            toast.error('Password must be at least 8 characters long.');
+          } else if (error.message?.includes('invalid email')) {
+            toast.error('Please enter a valid email address.');
+          } else if (error.message?.includes('signup disabled')) {
+            toast.error('Account creation is temporarily disabled. Please try again later.');
+          } else {
+            toast.error(error.message || 'Failed to create account. Please try again.');
+          }
         } else {
-          toast.success('Account created! Please check your email to verify.');
+          toast.success('Account created successfully! Please check your email to verify your account.');
+          // Switch to login mode after successful signup
+          setIsLogin(true);
         }
       }
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast.error('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);

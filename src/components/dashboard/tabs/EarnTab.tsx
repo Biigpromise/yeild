@@ -217,53 +217,52 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
             ))}
           </div>
         ) : filteredTasks.length > 0 ? (
-          <div className="grid gap-4">
+          <div className="grid gap-3 sm:gap-4">
             {filteredTasks.map((task) => (
-              <Card key={task.id} className="hover:shadow-md transition-shadow cursor-pointer group">
-                 <CardContent className="p-3 sm:p-4">
-                    <div className="flex flex-col gap-3">
+              <Card key={task.id} className="group hover:border-primary/30 transition-all duration-300 hover:shadow-md">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-semibold group-hover:text-primary transition-colors text-sm sm:text-base pr-2 flex-1 line-clamp-2">
-                            {task.title}
-                          </h3>
-                          <div className="flex items-center gap-1 text-primary font-bold text-xs sm:text-sm shrink-0 ml-2">
-                            <Star className="h-3 w-3 sm:h-4 sm:w-4" />
-                            {task.points}
-                          </div>
-                        </div>
-                       
-                       <p className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2">
-                         {task.description}
-                       </p>
-                       
-                       <div className="flex flex-wrap gap-1 mb-3">
-                         <Badge variant="outline" className={`${getDifficultyColor(task.difficulty)} text-[10px] sm:text-xs`}>
-                           {task.difficulty}
-                         </Badge>
-                         
-                         <Badge variant="outline" className="text-[10px] sm:text-xs">
-                           <Clock className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
-                           {task.estimated_time}
-                         </Badge>
-                         
-                         {task.brand_name && (
-                           <Badge variant="secondary" className="text-[10px] sm:text-xs">
-                             {task.brand_name}
-                           </Badge>
-                         )}
-                       </div>
-                     </div>
-                     
-                      <Button 
-                        size="sm"
-                        onClick={() => handleTaskClick(task)}
-                        className="shrink-0 w-full text-xs sm:text-sm"
-                      >
-                        Start Task
-                        <ArrowUpRight className="h-3 w-3 ml-1" />
-                      </Button>
-                   </div>
+                        <h3 className="font-semibold group-hover:text-primary transition-colors text-sm sm:text-base line-clamp-2 mb-1">
+                          {task.title}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-2">
+                          {task.description}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 text-primary font-bold text-sm shrink-0 bg-primary/10 px-2 py-1 rounded-full">
+                        <Star className="h-3 w-3" />
+                        <span className="text-xs">{task.points}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" className={`${getDifficultyColor(task.difficulty)} text-[10px] sm:text-xs`}>
+                        {task.difficulty}
+                      </Badge>
+                      
+                      <Badge variant="outline" className="text-[10px] sm:text-xs">
+                        <Clock className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
+                        {task.estimated_time}
+                      </Badge>
+                      
+                      {task.brand_name && (
+                        <Badge variant="secondary" className="text-[10px] sm:text-xs">
+                          <Briefcase className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
+                          {task.brand_name}
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <Button 
+                      onClick={() => handleTaskClick(task)}
+                      className="w-full group-hover:bg-primary/90 transition-colors text-xs sm:text-sm h-9"
+                    >
+                      Start Task
+                      <ArrowUpRight className="h-3 w-3 ml-1 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
