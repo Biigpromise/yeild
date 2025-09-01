@@ -48,7 +48,16 @@ export const TaskSocialMediaDisplay: React.FC<TaskSocialMediaDisplayProps> = ({
 
   console.log('TaskSocialMediaDisplay - activePlatforms:', activePlatforms);
 
-  if (activePlatforms.length === 0) return null;
+  if (activePlatforms.length === 0) {
+    // Show a subtle message if task has empty social media requirements
+    return (
+      <div className="mt-4 p-3 bg-muted/30 rounded-lg border border-border/40">
+        <p className="text-xs text-muted-foreground text-center">
+          💡 This task doesn't require social media actions
+        </p>
+      </div>
+    );
+  }
 
   const handleLinkClick = (url: string, platform: string) => {
     // Ensure URL has proper protocol
