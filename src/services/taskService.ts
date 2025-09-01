@@ -96,30 +96,73 @@ export const taskService = {
 
   async getAllTasks() {
     try {
+      console.log('Fetching all tasks with social media links...');
       const { data, error } = await supabase
         .from('tasks')
-        .select('*')
+        .select(`
+          *,
+          task_categories (
+            name
+          )
+        `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      const transformedTasks = (data || []).map(task => ({
+        ...task,
+        social_media_links: this.transformSocialMediaLinks(task.social_media_links),
+        category: task.task_categories?.name || task.category || 'General'
+      }));
+      
+      console.log('Tasks loaded with social links:', transformedTasks);
+      return transformedTasks;
     } catch (error) {
       console.error('Error fetching tasks:', error);
       return [];
     }
   },
 
+  transformSocialMediaLinks(links: any): Record<string, string> | null {
+    if (!links) return null;
+    if (typeof links === 'string') {
+      try {
+        return JSON.parse(links);
+      } catch {
+        return null;
+      }
+    }
+    if (typeof links === 'object') {
+      return links as Record<string, string>;
+    }
+    return null;
+  },
+
   async getTaskById(taskId: string) {
     try {
+      console.log('Fetching task by ID with social links:', taskId);
       const { data, error } = await supabase
         .from('tasks')
-        .select('*')
+        .select(`
+          *,
+          task_categories (
+            name
+          )
+        `)
         .eq('id', taskId)
         .single();
 
       if (error) throw error;
-      return data;
+      
+      const transformedTask = {
+        ...data,
+        social_media_links: this.transformSocialMediaLinks(data.social_media_links),
+        category: data.task_categories?.name || data.category || 'General'
+      };
+      
+      console.log('Task loaded with social links:', transformedTask);
+      return transformedTask;
     } catch (error) {
       console.error('Error fetching task:', error);
       throw error;

@@ -231,9 +231,9 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
                           {task.description}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1 text-primary font-bold text-sm shrink-0 bg-primary/10 px-2 py-1 rounded-full">
-                        <Star className="h-3 w-3" />
-                        <span className="text-xs">{task.points}</span>
+                      <div className="flex items-center gap-1 text-primary font-bold text-xs sm:text-sm shrink-0 bg-primary/10 px-2 py-1 rounded-full">
+                        <Star className="h-3 w-3 shrink-0" />
+                        <span>{task.points}</span>
                       </div>
                     </div>
                     

@@ -83,13 +83,8 @@ const Tasks = () => {
     }
   };
   const handleTaskClick = async (task: Task) => {
-    const hasSubmitted = await taskSubmissionService.hasUserSubmittedTask(task.id);
-    if (hasSubmitted) {
-      toast.info("You have already submitted this task");
-      return;
-    }
-    setSelectedTask(task);
-    setIsModalOpen(true);
+    // Navigate to task detail page instead of opening modal
+    navigate(`/tasks/${task.id}`);
   };
   const handleTaskSubmitted = () => {
     checkUserSubmissions();
@@ -175,58 +170,58 @@ const Tasks = () => {
 
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/10 rounded-lg">
-                  <Target className="h-6 w-6 text-blue-500" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-blue-500/10 rounded-lg shrink-0">
+                  <Target className="h-4 w-4 sm:h-6 sm:w-6 text-blue-500" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Available</p>
-                  <p className="text-2xl font-bold">{tasks.length - userSubmissions.size}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Available</p>
+                  <p className="text-lg sm:text-2xl font-bold">{tasks.length - userSubmissions.size}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-green-500/10 to-green-500/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500/10 rounded-lg">
-                  <CheckCircle className="h-6 w-6 text-green-500" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-green-500/10 rounded-lg shrink-0">
+                  <CheckCircle className="h-4 w-4 sm:h-6 sm:w-6 text-green-500" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Completed</p>
-                  <p className="text-2xl font-bold">{userSubmissions.size}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Completed</p>
+                  <p className="text-lg sm:text-2xl font-bold">{userSubmissions.size}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-purple-500/10 to-purple-500/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-500/10 rounded-lg">
-                  <Trophy className="h-6 w-6 text-purple-500" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-purple-500/10 rounded-lg shrink-0">
+                  <Trophy className="h-4 w-4 sm:h-6 sm:w-6 text-purple-500" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Points</p>
-                  <p className="text-2xl font-bold">{tasks.reduce((sum, task) => sum + task.points, 0)}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Total Points</p>
+                  <p className="text-lg sm:text-2xl font-bold">{tasks.reduce((sum, task) => sum + task.points, 0)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-orange-500/10 to-orange-500/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-500/10 rounded-lg">
-                  <Award className="h-6 w-6 text-orange-500" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-orange-500/10 rounded-lg shrink-0">
+                  <Award className="h-4 w-4 sm:h-6 sm:w-6 text-orange-500" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Categories</p>
-                  <p className="text-2xl font-bold">{categories.length}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Categories</p>
+                  <p className="text-lg sm:text-2xl font-bold">{categories.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -306,7 +301,7 @@ const Tasks = () => {
           </TabsList>
 
           <TabsContent value="available" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredTasks.map(task => {
               const isSubmitted = userSubmissions.has(task.id);
               return <Card key={task.id} className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 border-2 hover:border-primary/50" onClick={() => !isSubmitted && handleTaskClick(task)}>
@@ -334,12 +329,22 @@ const Tasks = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-sm line-clamp-3 text-red-600">
+                      <p className="text-sm line-clamp-3 text-muted-foreground">
                         {task.description}
                       </p>
                       
-                      {/* Show social media links if available */}
-                      <TaskSocialMediaDisplay socialLinks={task.social_media_links} taskTitle={task.title} />
+                      {/* Show social media links preview if available */}
+                      {task.social_media_links && Object.keys(task.social_media_links).length > 0 && (
+                        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+                          <p className="text-xs text-primary font-medium mb-1 flex items-center gap-1">
+                            <Target className="h-3 w-3" />
+                            Social Media Tasks Required
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Visit required social media pages. Click to see details.
+                          </p>
+                        </div>
+                      )}
                       
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
