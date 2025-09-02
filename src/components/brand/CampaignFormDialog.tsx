@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import type { BrandCampaign } from "@/hooks/useBrandCampaigns";
 import { MediaUploadSection } from "@/components/campaign/MediaUploadSection";
 import { SocialLinksSection } from "@/components/campaign/SocialLinksSection";
+import { SocialLinksPreview } from "@/components/campaign/SocialLinksPreview";
 
 const campaignSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -353,6 +354,12 @@ export const CampaignFormDialog: React.FC<CampaignFormDialogProps> = ({
               <SocialLinksSection 
                 socialLinks={socialLinks}
                 onSocialLinksChange={setSocialLinks}
+              />
+              
+              {/* Live Preview */}
+              <SocialLinksPreview 
+                socialLinks={socialLinks}
+                campaignTitle={form.watch('title') || 'Your Campaign'}
               />
             </TabsContent>
           </Tabs>

@@ -104,11 +104,17 @@ export const SocialLinksSection: React.FC<SocialLinksSectionProps> = ({
           <Link className="w-5 h-5" />
           Social Links & Online Presence
         </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Add your social media links and engagement requirements. These will be displayed to users when they view your campaign tasks.
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Website */}
         <div className="space-y-2">
-          <Label htmlFor="website">Website/Landing Page</Label>
+          <Label htmlFor="website" className="text-sm font-medium">
+            Website/Landing Page
+            <span className="text-xs text-muted-foreground ml-2">(Required)</span>
+          </Label>
           <div className="relative">
             <Input
               id="website"
@@ -119,59 +125,96 @@ export const SocialLinksSection: React.FC<SocialLinksSectionProps> = ({
               className={socialLinks.website && !validateUrl(socialLinks.website) ? 'border-destructive' : ''}
             />
             {socialLinks.website && validateUrl(socialLinks.website) && (
-              <ExternalLink className="absolute right-3 top-3 w-4 h-4 text-muted-foreground" />
+              <ExternalLink className="absolute right-3 top-3 w-4 h-4 text-green-600" />
             )}
           </div>
+          {socialLinks.website && !validateUrl(socialLinks.website) && (
+            <p className="text-xs text-destructive">Please enter a valid URL</p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Your main website or landing page that users should visit
+          </p>
         </div>
 
         {/* Social Media Profiles */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label>Social Media Profiles</Label>
+            <Label className="text-sm font-medium">
+              Social Media Profiles
+              <span className="text-xs text-muted-foreground ml-2">(Required - Add at least one)</span>
+            </Label>
             <Button variant="outline" size="sm" onClick={addSocialProfile}>
               <Plus className="w-4 h-4 mr-2" />
               Add Platform
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Add your social media accounts that users should follow or engage with
+          </p>
           
           {socialLinks.socialProfiles.map((profile, index) => (
-            <div key={index} className="flex gap-3 items-start">
-              <select
-                value={profile.platform}
-                onChange={(e) => updateSocialProfile(index, 'platform', e.target.value)}
-                className="px-3 py-2 border border-border rounded-md bg-background"
-              >
-                <option value="instagram">Instagram</option>
-                <option value="twitter">Twitter/X</option>
-                <option value="facebook">Facebook</option>
-                <option value="youtube">YouTube</option>
-                <option value="tiktok">TikTok</option>
-                <option value="linkedin">LinkedIn</option>
-              </select>
-              
-              <div className="flex-1 space-y-2">
-                <Input
-                  type="url"
-                  value={profile.url}
-                  onChange={(e) => updateSocialProfile(index, 'url', e.target.value)}
-                  placeholder={`https://${profile.platform}.com/yourprofile`}
-                  className={profile.url && !validateUrl(profile.url) ? 'border-destructive' : ''}
-                />
-                <Input
-                  value={profile.description || ''}
-                  onChange={(e) => updateSocialProfile(index, 'description', e.target.value)}
-                  placeholder="Brief description (optional)"
-                />
+            <div key={index} className="p-4 border border-border rounded-lg bg-muted/50 space-y-3">
+              <div className="flex gap-3 items-start">
+                <div className="flex items-center gap-2 min-w-[140px]">
+                  {platformIcons[profile.platform]}
+                  <select
+                    value={profile.platform}
+                    onChange={(e) => updateSocialProfile(index, 'platform', e.target.value)}
+                    className="px-2 py-1 border border-border rounded bg-background text-sm"
+                  >
+                    <option value="instagram">Instagram</option>
+                    <option value="twitter">Twitter/X</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="linkedin">LinkedIn</option>
+                  </select>
+                </div>
+                
+                <div className="flex-1 space-y-2">
+                  <div className="relative">
+                    <Input
+                      type="url"
+                      value={profile.url}
+                      onChange={(e) => updateSocialProfile(index, 'url', e.target.value)}
+                      placeholder={`https://${profile.platform}.com/yourprofile`}
+                      className={profile.url && !validateUrl(profile.url) ? 'border-destructive' : ''}
+                    />
+                    {profile.url && validateUrl(profile.url) && (
+                      <ExternalLink className="absolute right-3 top-3 w-4 h-4 text-green-600" />
+                    )}
+                  </div>
+                  <Input
+                    value={profile.description || ''}
+                    onChange={(e) => updateSocialProfile(index, 'description', e.target.value)}
+                    placeholder="What should users do? (e.g., Follow, Like recent posts)"
+                  />
+                </div>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeSocialProfile(index)}
+                  className="text-destructive hover:text-destructive mt-1"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
               
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => removeSocialProfile(index)}
-                className="text-destructive hover:text-destructive"
-              >
-                <X className="w-4 h-4" />
-              </Button>
+              {/* Preview how this will appear to users */}
+              {profile.url && validateUrl(profile.url) && (
+                <div className="mt-2 p-2 bg-background rounded border-l-4 border-l-primary">
+                  <p className="text-xs text-muted-foreground">Preview for users:</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {platformIcons[profile.platform]}
+                    <span className="text-sm font-medium capitalize">{profile.platform}</span>
+                    <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                  </div>
+                  {profile.description && (
+                    <p className="text-xs text-muted-foreground mt-1">{profile.description}</p>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -179,12 +222,18 @@ export const SocialLinksSection: React.FC<SocialLinksSectionProps> = ({
         {/* Specific Posts for Engagement */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label>Specific Posts to Engage With</Label>
+            <Label className="text-sm font-medium">
+              Specific Posts to Engage With
+              <span className="text-xs text-muted-foreground ml-2">(Optional)</span>
+            </Label>
             <Button variant="outline" size="sm" onClick={addEngagementPost}>
               <Plus className="w-4 h-4 mr-2" />
               Add Post
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Link to specific posts you want users to like, comment on, or share
+          </p>
           
           {socialLinks.engagementPosts.map((post, index) => (
             <div key={index} className="flex gap-3 items-center">
