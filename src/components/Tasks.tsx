@@ -170,58 +170,58 @@ const Tasks = () => {
 
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-2 sm:px-0">
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="p-1.5 sm:p-2 bg-blue-500/10 rounded-lg shrink-0">
-                  <Target className="h-4 w-4 sm:h-6 sm:w-6 text-blue-500" />
+            <CardContent className="p-2 sm:p-4">
+              <div className="flex items-center gap-1 sm:gap-3">
+                <div className="p-1 sm:p-2 bg-blue-500/10 rounded-lg shrink-0">
+                  <Target className="h-3 w-3 sm:h-6 sm:w-6 text-blue-500" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Available</p>
-                  <p className="text-lg sm:text-2xl font-bold">{tasks.length - userSubmissions.size}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground leading-tight">Available</p>
+                  <p className="text-sm sm:text-2xl font-bold leading-tight">{tasks.length - userSubmissions.size}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-green-500/10 to-green-500/5">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="p-1.5 sm:p-2 bg-green-500/10 rounded-lg shrink-0">
-                  <CheckCircle className="h-4 w-4 sm:h-6 sm:w-6 text-green-500" />
+            <CardContent className="p-2 sm:p-4">
+              <div className="flex items-center gap-1 sm:gap-3">
+                <div className="p-1 sm:p-2 bg-green-500/10 rounded-lg shrink-0">
+                  <CheckCircle className="h-3 w-3 sm:h-6 sm:w-6 text-green-500" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Completed</p>
-                  <p className="text-lg sm:text-2xl font-bold">{userSubmissions.size}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground leading-tight">Completed</p>
+                  <p className="text-sm sm:text-2xl font-bold leading-tight">{userSubmissions.size}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-purple-500/10 to-purple-500/5">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="p-1.5 sm:p-2 bg-purple-500/10 rounded-lg shrink-0">
-                  <Trophy className="h-4 w-4 sm:h-6 sm:w-6 text-purple-500" />
+            <CardContent className="p-2 sm:p-4">
+              <div className="flex items-center gap-1 sm:gap-3">
+                <div className="p-1 sm:p-2 bg-purple-500/10 rounded-lg shrink-0">
+                  <Trophy className="h-3 w-3 sm:h-6 sm:w-6 text-purple-500" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Total Points</p>
-                  <p className="text-lg sm:text-2xl font-bold">{tasks.reduce((sum, task) => sum + task.points, 0)}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground leading-tight">Total Points</p>
+                  <p className="text-sm sm:text-2xl font-bold leading-tight">{tasks.reduce((sum, task) => sum + task.points, 0)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-orange-500/10 to-orange-500/5">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="p-1.5 sm:p-2 bg-orange-500/10 rounded-lg shrink-0">
-                  <Award className="h-4 w-4 sm:h-6 sm:w-6 text-orange-500" />
+            <CardContent className="p-2 sm:p-4">
+              <div className="flex items-center gap-1 sm:gap-3">
+                <div className="p-1 sm:p-2 bg-orange-500/10 rounded-lg shrink-0">
+                  <Award className="h-3 w-3 sm:h-6 sm:w-6 text-orange-500" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Categories</p>
-                  <p className="text-lg sm:text-2xl font-bold">{categories.length}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground leading-tight">Categories</p>
+                  <p className="text-sm sm:text-2xl font-bold leading-tight">{categories.length}</p>
                 </div>
               </div>
             </CardContent>
