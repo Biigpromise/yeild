@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Facebook, Twitter, Instagram, Linkedin, Youtube, ExternalLink, Music } from "lucide-react";
@@ -16,35 +15,84 @@ export const TaskSocialMediaDisplay: React.FC<TaskSocialMediaDisplayProps> = ({
   
   if (!socialLinks) return null;
 
+  // Helper function to detect platform from URL
+  const detectPlatformFromUrl = (url: string): string => {
+    const lowercaseUrl = url.toLowerCase();
+    if (lowercaseUrl.includes('instagram.com')) return 'instagram';
+    if (lowercaseUrl.includes('twitter.com') || lowercaseUrl.includes('x.com')) return 'twitter';
+    if (lowercaseUrl.includes('facebook.com')) return 'facebook';
+    if (lowercaseUrl.includes('youtube.com')) return 'youtube';
+    if (lowercaseUrl.includes('tiktok.com')) return 'tiktok';
+    if (lowercaseUrl.includes('linkedin.com')) return 'linkedin';
+    return 'website';
+  };
+
+  function getPlatformConfig(platform: string) {
+    const configs = {
+      instagram: { icon: Instagram, color: 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white', name: 'Instagram' },
+      twitter: { icon: Twitter, color: 'bg-blue-400 hover:bg-blue-500 text-white', name: 'Twitter' },
+      facebook: { icon: Facebook, color: 'bg-brand-blue hover:bg-brand-blue-dark text-white', name: 'Facebook' },
+      youtube: { icon: Youtube, color: 'bg-red-600 hover:bg-red-700 text-white', name: 'YouTube' },
+      tiktok: { icon: Music, color: 'bg-foreground hover:bg-foreground/80 text-background', name: 'TikTok' },
+      linkedin: { icon: Linkedin, color: 'bg-blue-700 hover:bg-blue-800 text-white', name: 'LinkedIn' }
+    };
+    return configs[platform as keyof typeof configs];
+  }
+
   // Handle multiple data formats for social links
-  let linksObject: Record<string, string> = {};
+  let activePlatforms: Array<{key: string, icon: any, color: string, name: string, url: string}> = [];
   
   if (typeof socialLinks === 'string') {
     try {
       // Try to parse JSON string
       const parsed = JSON.parse(socialLinks);
-      linksObject = typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+      socialLinks = parsed;
     } catch {
       // If parsing fails, treat as empty
-      linksObject = {};
+      return null;
     }
-  } else if (typeof socialLinks === 'object' && !Array.isArray(socialLinks)) {
-    linksObject = socialLinks;
   }
 
-  const platforms = [
-    { key: 'facebook', icon: Facebook, color: 'bg-brand-blue hover:bg-brand-blue-dark text-white', name: 'Facebook' },
-    { key: 'twitter', icon: Twitter, color: 'bg-blue-400 hover:bg-blue-500 text-white', name: 'Twitter' },
-    { key: 'instagram', icon: Instagram, color: 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white', name: 'Instagram' },
-    { key: 'linkedin', icon: Linkedin, color: 'bg-blue-700 hover:bg-blue-800 text-white', name: 'LinkedIn' },
-    { key: 'youtube', icon: Youtube, color: 'bg-red-600 hover:bg-red-700 text-white', name: 'YouTube' },
-    { key: 'tiktok', icon: Music, color: 'bg-foreground hover:bg-foreground/80 text-background', name: 'TikTok' }
-  ];
+  if (typeof socialLinks === 'object' && socialLinks !== null) {
+    // New format: check for socialProfiles array
+    if ('socialProfiles' in socialLinks && Array.isArray(socialLinks.socialProfiles)) {
+      const profiles = socialLinks.socialProfiles.filter((profile: any) => 
+        profile.url && String(profile.url).trim() !== ''
+      );
+      
+      profiles.forEach((profile: any) => {
+        const detectedPlatform = profile.platform || detectPlatformFromUrl(profile.url);
+        const platformConfig = getPlatformConfig(detectedPlatform);
+        if (platformConfig) {
+          activePlatforms.push({
+            key: detectedPlatform,
+            icon: platformConfig.icon,
+            color: platformConfig.color,
+            name: platformConfig.name,
+            url: profile.url
+          });
+        }
+      });
+    } else {
+      // Old format: direct platform keys
+      const platforms = [
+        { key: 'facebook', icon: Facebook, color: 'bg-brand-blue hover:bg-brand-blue-dark text-white', name: 'Facebook' },
+        { key: 'twitter', icon: Twitter, color: 'bg-blue-400 hover:bg-blue-500 text-white', name: 'Twitter' },
+        { key: 'instagram', icon: Instagram, color: 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white', name: 'Instagram' },
+        { key: 'linkedin', icon: Linkedin, color: 'bg-blue-700 hover:bg-blue-800 text-white', name: 'LinkedIn' },
+        { key: 'youtube', icon: Youtube, color: 'bg-red-600 hover:bg-red-700 text-white', name: 'YouTube' },
+        { key: 'tiktok', icon: Music, color: 'bg-foreground hover:bg-foreground/80 text-background', name: 'TikTok' }
+      ];
 
-  const activePlatforms = platforms.filter(platform => {
-    const value = linksObject[platform.key];
-    return value && String(value).trim() !== '' && String(value) !== 'null' && String(value) !== 'undefined';
-  });
+      activePlatforms = platforms.filter(platform => {
+        const value = (socialLinks as Record<string, string>)[platform.key];
+        return value && String(value).trim() !== '' && String(value) !== 'null' && String(value) !== 'undefined';
+      }).map(platform => ({
+        ...platform,
+        url: (socialLinks as Record<string, string>)[platform.key]
+      }));
+    }
+  }
 
   console.log('TaskSocialMediaDisplay - activePlatforms:', activePlatforms);
 
@@ -77,15 +125,15 @@ export const TaskSocialMediaDisplay: React.FC<TaskSocialMediaDisplayProps> = ({
         Required Social Media Actions
       </h4>
       <div className="flex flex-wrap gap-2 mb-3">
-        {activePlatforms.map((platform) => {
+        {activePlatforms.map((platform, index) => {
           const Icon = platform.icon;
           return (
             <Button
-              key={platform.key}
+              key={`${platform.key}-${index}`}
               variant="secondary"
               size="sm"
               className={`${platform.color} transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 shadow-md hover:shadow-lg`}
-              onClick={() => handleLinkClick(String(linksObject[platform.key]), platform.name)}
+              onClick={() => handleLinkClick(platform.url, platform.name)}
             >
               <Icon className="h-4 w-4 mr-2" />
               <span className="text-xs font-medium">Visit {platform.name}</span>
