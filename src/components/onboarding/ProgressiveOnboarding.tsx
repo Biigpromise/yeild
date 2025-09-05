@@ -19,21 +19,30 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
       title: 'Real Success Stories',
       subtitle: 'Meet users earning thousands on YEILD',
       content: (
-        <div className="space-y-8">
-          {/* Success Stories - Condensed */}
-          <div className="space-y-4">
+        <div className="space-y-6 sm:space-y-8">
+          {/* Success Stories - Enhanced */}
+          <div className="space-y-4 sm:space-y-6">
             {[
               { 
                 name: "Sarah M.", 
                 earnings: "$2,847", 
                 period: "3 months",
-                image: "👩‍💼"
+                image: "👩‍💼",
+                role: "Marketing Specialist"
               },
               { 
                 name: "Mike D.", 
                 earnings: "$1,923", 
                 period: "2 months",
-                image: "👨‍💻"
+                image: "👨‍💻",
+                role: "Freelance Designer"
+              },
+              { 
+                name: "Alex K.", 
+                earnings: "$3,241", 
+                period: "4 months",
+                image: "🧑‍🎓",
+                role: "College Student"
               }
             ].map((user, index) => (
               <motion.div
@@ -41,15 +50,20 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.2 }}
-                className="bg-gradient-to-r from-primary/10 to-primary/20 p-4 rounded-xl border border-primary/30"
+                className="feature-card bg-gradient-to-r from-primary/5 via-card to-primary/5 hover:shadow-glow-yellow hover:-translate-y-2"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="text-3xl">{user.image}</div>
+                  <div className="text-4xl">{user.image}</div>
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      <span className="font-bold text-white">{user.name}</span>
-                      <span className="text-xl font-bold text-primary">{user.earnings}</span>
-                      <span className="text-white/60 text-sm">in {user.period}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-1 sm:space-y-0">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-bold text-foreground">{user.name}</span>
+                        <span className="text-sm text-muted-foreground">• {user.role}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xl font-bold text-primary">{user.earnings}</span>
+                        <span className="text-muted-foreground text-sm">in {user.period}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -57,11 +71,21 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
             ))}
           </div>
           
-          <div className="text-center bg-white/5 p-4 rounded-xl">
-            <p className="text-white font-semibold">
-              <span className="text-primary">Ready to be next?</span> Join 125,000+ earning users today!
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.6 }}
+            className="text-center feature-card bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 shadow-glow-yellow"
+          >
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <Star className="h-5 w-5 text-primary" />
+              <span className="text-lg font-bold text-primary">Join the Success</span>
+              <Star className="h-5 w-5 text-primary" />
+            </div>
+            <p className="text-foreground font-medium">
+              Ready to be next? Join <span className="text-primary font-bold">125,000+</span> earning users today!
             </p>
-          </div>
+          </motion.div>
         </div>
       )
     },
@@ -267,85 +291,101 @@ const ProgressiveOnboarding: React.FC<ProgressiveOnboardingProps> = ({ onComplet
   };
 
   return (
-    <div className="h-screen bg-black text-white flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/80 text-foreground flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 flex-shrink-0">
+      <div className="flex items-center justify-between p-4 sm:p-6 flex-shrink-0 bg-card/50 backdrop-blur-sm border-b border-border">
         <div className="text-center flex-1">
-          <span className="text-primary text-2xl font-bold">YEILD</span>
+          <span className="text-primary text-2xl sm:text-3xl font-bold glow-text">YEILD</span>
         </div>
         <Button 
           variant="ghost"
           size="sm"
           onClick={handleSkip}
-          className="text-white/60 hover:text-white"
+          className="text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
         >
           Skip
         </Button>
       </div>
 
       {/* Progress Indicator */}
-      <div className="px-6 mb-4 flex-shrink-0">
-        <div className="flex space-x-2">
+      <div className="px-4 sm:px-6 mb-4 sm:mb-6 flex-shrink-0">
+        <div className="flex space-x-2 max-w-2xl mx-auto">
           {slides.map((_, index) => (
             <div
               key={index}
-              className={`h-2 rounded-full flex-1 transition-colors ${
-                index <= currentSlide ? 'bg-primary' : 'bg-white/20'
+              className={`h-2 rounded-full flex-1 transition-all duration-500 ${
+                index <= currentSlide ? 'bg-gradient-to-r from-primary to-primary/80 shadow-glow-yellow' : 'bg-muted/30'
               }`}
             />
           ))}
         </div>
       </div>
 
-      {/* Content - Scrollable area to handle overflow */}
-      <div className="flex-1 px-6 flex flex-col min-h-0">
+      {/* Content - Responsive scrollable container */}
+      <div className="flex-1 px-4 sm:px-6 flex flex-col min-h-0 pb-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="flex-1 flex flex-col min-h-0"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+            className="flex-1 flex flex-col min-h-0 max-w-4xl mx-auto w-full"
           >
-            <div className="text-center mb-4 flex-shrink-0">
-              <h1 className="text-2xl md:text-3xl font-bold mb-2 text-white">
+            <div className="text-center mb-6 sm:mb-8 flex-shrink-0">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
                 {slides[currentSlide].title}
               </h1>
-              <p className="text-white/60">
+              <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
                 {slides[currentSlide].subtitle}
               </p>
             </div>
 
-            <div className="flex-1 max-w-2xl mx-auto w-full overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-              {slides[currentSlide].content}
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+              <div className="pb-6">
+                {slides[currentSlide].content}
+              </div>
             </div>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Navigation - Fixed at bottom */}
-      <div className="px-6 py-4 flex-shrink-0 border-t border-white/10">
-        <div className="flex items-center justify-between max-w-2xl mx-auto">
+      {/* Navigation - Responsive fixed bottom */}
+      <div className="px-4 sm:px-6 py-4 sm:py-6 flex-shrink-0 bg-card/50 backdrop-blur-sm border-t border-border">
+        <div className="flex items-center justify-between max-w-4xl mx-auto">
           <Button
             onClick={handlePrev}
             disabled={currentSlide === 0}
             variant="outline"
-            className="border-white/20 text-white hover:bg-white/10 disabled:opacity-30"
+            className="border-border/50 text-muted-foreground hover:bg-muted/50 hover:text-foreground disabled:opacity-30 transition-all"
+            size={window.innerWidth < 640 ? "sm" : "default"}
           >
             <ChevronLeft className="w-4 h-4 mr-2" />
-            Back
+            <span className="hidden sm:inline">Back</span>
           </Button>
 
-          <div className="text-white/60 text-sm">
-            {currentSlide + 1} of {slides.length}
+          <div className="flex items-center space-x-2">
+            {slides.map((_, index) => (
+              <div
+                key={index}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  index === currentSlide ? 'bg-primary' : 'bg-muted/50'
+                }`}
+              />
+            ))}
           </div>
 
           <Button
             onClick={handleNext}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow-yellow hover:shadow-glow-yellow-lg transition-all"
+            size={window.innerWidth < 640 ? "sm" : "default"}
           >
-            {currentSlide === slides.length - 1 ? 'Get Started' : 'Next'}
+            <span className="hidden sm:inline">
+              {currentSlide === slides.length - 1 ? 'Get Started' : 'Next'}
+            </span>
+            <span className="sm:hidden">
+              {currentSlide === slides.length - 1 ? 'Start' : 'Next'}
+            </span>
             <ChevronRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

@@ -2,6 +2,7 @@
 import React from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import ProgressiveOnboarding from './ProgressiveOnboarding';
+import EnhancedUserOnboarding from './EnhancedUserOnboarding';
 import BrandOnboarding from './BrandOnboarding';
 
 interface OnboardingFlowProps {
@@ -15,7 +16,7 @@ const OnboardingFlowContent: React.FC<OnboardingFlowProps> = ({ userType, onComp
   }
 
   // Use the new ProgressiveOnboarding with 5 enticing slides
-  return <ProgressiveOnboarding onComplete={onComplete} />;
+  return <EnhancedUserOnboarding onComplete={onComplete} />;
 };
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = (props) => {

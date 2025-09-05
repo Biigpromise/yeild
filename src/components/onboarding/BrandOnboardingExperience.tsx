@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
-import { Building2, Globe, Users, Target, DollarSign, CheckCircle, ArrowRight } from 'lucide-react';
+import { Building2, Globe, Users, Target, DollarSign, CheckCircle, ArrowRight, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface BrandOnboardingExperienceProps {
@@ -302,54 +302,85 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl bg-black border border-white/20">
-        <CardHeader className="text-center pb-2">
+    <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/80 flex items-center justify-center p-4">
+      <Card className="w-full max-w-4xl bg-card/90 backdrop-blur-sm border border-border shadow-xl hover:shadow-glow-yellow transition-all duration-500">
+        <CardHeader className="text-center pb-2 space-y-6">
           <div className="flex justify-center mb-4">
-            <div className="text-3xl font-bold text-yeild-yellow">YIELD</div>
+            <div className="text-4xl font-bold text-primary glow-text animate-pulse-subtle">YIELD</div>
           </div>
           <Progress 
             value={(currentStep / steps.length) * 100} 
-            className="mb-4 bg-white/10"
+            className="mb-6 bg-muted/30 h-3 rounded-full overflow-hidden"
           />
-          <div className="flex justify-center space-x-2 mb-4">
-            {steps.map((step, index) => (
-              <div
-                key={step.id}
-                className={`w-3 h-3 rounded-full ${
-                  index + 1 <= currentStep ? 'bg-yeild-yellow' : 'bg-white/20'
-                }`}
-              />
-            ))}
+          <div className="flex justify-center space-x-3 mb-6">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <motion.div
+                  key={step.id}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  className={`relative w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                    index + 1 <= currentStep 
+                      ? 'bg-primary border-primary text-primary-foreground shadow-glow-yellow' 
+                      : index + 1 === currentStep + 1
+                      ? 'bg-primary/20 border-primary text-primary animate-pulse'
+                      : 'bg-muted/20 border-muted text-muted-foreground'
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  {index + 1 < currentStep && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center"
+                    >
+                      <CheckCircle className="h-3 w-3 text-primary-foreground" />
+                    </motion.div>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         </CardHeader>
         
-        <CardContent className="px-8 pb-8">
+        <CardContent className="px-6 sm:px-8 pb-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="min-h-[400px] flex flex-col"
             >
-              {renderStepContent()}
+              <div className="flex-1">
+                {renderStepContent()}
+              </div>
             </motion.div>
           </AnimatePresence>
           
-          <div className="flex justify-between mt-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-8 space-y-4 sm:space-y-0 pt-6 border-t border-border">
             <Button
               variant="outline"
               onClick={handlePrevious}
               disabled={currentStep === 1}
-              className="border-white/20 text-white hover:bg-white/10 disabled:opacity-30"
+              className="order-2 sm:order-1 w-full sm:w-auto border-border hover:bg-muted/50 disabled:opacity-30 transition-all"
             >
+              <ChevronLeft className="mr-2 h-4 w-4" />
               Previous
             </Button>
             
+            <div className="flex items-center space-x-2 order-1 sm:order-2">
+              <span className="text-sm text-muted-foreground">
+                Step {currentStep} of {steps.length}
+              </span>
+            </div>
+            
             <Button
               onClick={handleNext}
-              className="bg-yeild-yellow hover:bg-yeild-yellow/90 text-black"
+              className="order-3 w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow-yellow hover:shadow-glow-yellow-lg transition-all"
             >
               {currentStep === steps.length ? 'Complete Setup' : 'Next'}
               <ArrowRight className="ml-2 h-4 w-4" />
