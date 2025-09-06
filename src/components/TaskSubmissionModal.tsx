@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, CheckCircle, Upload, FileText, Camera, Video } from "lucide-react";
 import { toast } from "sonner";
 import { taskService, Task } from "@/services/taskService";
-import { taskSubmissionService } from "@/services/tasks/taskSubmissionService";
+import { simplifiedTaskSubmissionService as taskSubmissionService } from "@/services/tasks/simplifiedTaskSubmissionService";
 import { useTaskSubmissionPersistence } from "@/hooks/useTaskSubmissionPersistence";
 import { MultipleMediaUpload } from "./posts/MultipleMediaUpload";
 import { TaskSocialMediaDisplay } from "./tasks/TaskSocialMediaDisplay";
@@ -68,8 +68,7 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
 
       const success = await taskSubmissionService.submitTask(
         task.id,
-        evidence.trim() || "Files submitted", // Provide default text if empty
-        undefined,
+        evidence.trim() || "Files submitted",
         evidenceFiles // Pass all files
       );
 

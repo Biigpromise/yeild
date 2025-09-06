@@ -8,7 +8,7 @@ import { TaskSubmissionModal } from "./TaskSubmissionModal";
 import { TaskSocialMediaDisplay } from "./tasks/TaskSocialMediaDisplay";
 import { TaskSourceBadgeEnhanced } from "./tasks/TaskSourceBadgeEnhanced";
 import { taskService, Task, TaskCategory } from "@/services/taskService";
-import { taskSubmissionService } from "@/services/tasks/taskSubmissionService";
+import { simplifiedTaskSubmissionService as taskSubmissionService } from "@/services/tasks/simplifiedTaskSubmissionService";
 import { useAuth } from "@/contexts/AuthContext";
 import { CreateTaskForm } from "@/components/admin/CreateTaskForm";
 import { supabase } from "@/integrations/supabase/client";

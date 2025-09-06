@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { taskService } from '@/services/taskService';
-import { taskSubmissionService } from '@/services/tasks/taskSubmissionService';
+import { simplifiedTaskSubmissionService as taskSubmissionService } from "@/services/tasks/simplifiedTaskSubmissionService";
 import { TaskSocialMediaDisplay } from '@/components/tasks/TaskSocialMediaDisplay';
 import { TaskSubmissionModal } from '@/components/TaskSubmissionModal';
 import { toast } from 'sonner';

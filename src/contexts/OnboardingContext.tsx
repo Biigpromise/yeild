@@ -39,38 +39,44 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
       if (!user) return;
 
       try {
-        // Check multiple sources for brand status
-        const [rolesResponse, profileResponse, applicationResponse] = await Promise.all([
-          supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'brand'),
-          supabase.from('brand_profiles').select('*').eq('user_id', user.id).maybeSingle(),
-          supabase.from('brand_applications').select('*').eq('user_id', user.id).maybeSingle()
-        ]);
+        // Simple check with timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Brand status check timeout')), 3000)
+        );
 
-        const hasBrandRole = rolesResponse.data && rolesResponse.data.length > 0;
-        const hasBrandProfile = profileResponse.data && !profileResponse.error;
-        const hasBrandApplication = applicationResponse.data && !applicationResponse.error;
-        
-        const isBrandUser = hasBrandRole || hasBrandProfile || hasBrandApplication ||
-                           user.user_metadata?.user_type === 'brand' ||
-                           user.user_metadata?.company_name;
+        const checkPromise = (async () => {
+          // Quick check for brand indicators
+          const isBrandFromMetadata = user.user_metadata?.user_type === 'brand' || 
+                                     user.user_metadata?.company_name;
 
-        setBrandStatus({
-          hasBrandRole,
-          hasBrandProfile,
-          hasBrandApplication,
-          isBrandUser
-        });
+          if (isBrandFromMetadata) {
+            return { isBrandUser: true };
+          }
+
+          // Only check database if metadata doesn't indicate brand
+          const { data: roles } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id)
+            .eq('role', 'brand')
+            .limit(1);
+
+          return {
+            isBrandUser: roles && roles.length > 0
+          };
+        })();
+
+        const brandStatus = await Promise.race([checkPromise, timeoutPromise]) as any;
+        setBrandStatus(brandStatus);
 
         console.log('OnboardingProvider: Brand status checked', {
-          hasBrandRole,
-          hasBrandProfile,
-          hasBrandApplication,
-          isBrandUser,
+          isBrandUser: brandStatus.isBrandUser,
           userMetadata: user.user_metadata
         });
 
       } catch (error) {
         console.error('Error checking brand status:', error);
+        // Default to user type on error
         setBrandStatus({ isBrandUser: false });
       }
     };
@@ -85,31 +91,22 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
       // Check if user has seen onboarding
       const hasSeenOnboarding = localStorage.getItem(`onboarding_${user.id}`);
       
-      // Enhanced brand detection using fetched data
+      // Simplified brand detection
       const isBrand = brandStatus?.isBrandUser || false;
       
       console.log('OnboardingProvider: User type detection', { 
         isBrand, 
-        brandStatus,
-        userMetadata: user.user_metadata,
         hasSeenOnboarding
       });
       
+      // Set user type immediately
+      setUserType(isBrand ? 'brand' : 'user');
+      
       // Only show onboarding for new users who haven't seen it
       if (!hasSeenOnboarding) {
-        console.log('OnboardingProvider: Starting onboarding timer');
-        
-        setUserType(isBrand ? 'brand' : 'user');
-        
-        // Show onboarding after a shorter delay to prevent getting stuck
-        const timer = setTimeout(() => {
-          console.log('OnboardingProvider: Showing onboarding for', isBrand ? 'brand' : 'user');
-          setShowOnboarding(true);
-        }, 500);
-        
-        return () => clearTimeout(timer);
+        console.log('OnboardingProvider: Showing onboarding for', isBrand ? 'brand' : 'user');
+        setShowOnboarding(true);
       } else {
-        // If user has seen onboarding but still showing, hide it
         console.log('OnboardingProvider: User has seen onboarding, hiding it');
         setShowOnboarding(false);
       }

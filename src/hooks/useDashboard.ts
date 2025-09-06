@@ -85,6 +85,40 @@ export const useDashboard = () => {
           });
           setTotalPointsEarned(profile.points || 0);
         }
+      } else if (profileResult.status === 'fulfilled' && !profileResult.value.data) {
+        // Profile doesn't exist, create one automatically
+        console.log('No profile found, creating default profile...');
+        try {
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert({
+              id: user.id,
+              name: user.email?.split('@')[0] || 'User',
+              email: user.email,
+              points: 0,
+              level: 1,
+              tasks_completed: 0
+            })
+            .select()
+            .single();
+
+          if (!createError && newProfile) {
+            setUserProfile(newProfile);
+            setUserStats({
+              points: 0,
+              level: 1,
+              tasksCompleted: 0,
+              currentStreak: 0,
+              rank: 0,
+              referrals: 0,
+              followers: 0,
+              following: 0,
+            });
+            setTotalPointsEarned(0);
+          }
+        } catch (createError) {
+          console.error('Failed to create profile:', createError);
+        }
       }
 
       // Handle tasks data
