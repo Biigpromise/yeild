@@ -36,7 +36,7 @@ export const simplifiedTaskSubmissionService = {
         throw new Error("Task not found");
       }
 
-      // Step 4: Upload files if provided (simplified)
+      // Step 4: Upload files if provided (simplified with better validation)
       let evidenceFileUrls: string[] = [];
       
       if (evidenceFiles && evidenceFiles.length > 0) {
@@ -44,26 +44,48 @@ export const simplifiedTaskSubmissionService = {
         
         for (let i = 0; i < evidenceFiles.length; i++) {
           const file = evidenceFiles[i];
-          const ext = file.name.split('.').pop();
-          const filePath = `${user.id}/${taskId}/${Date.now()}_${i}.${ext}`;
           
-          const { data: uploadData, error: uploadError } = await supabase
-            .storage
-            .from('task-evidence')
-            .upload(filePath, file);
-
-          if (uploadError) {
-            console.error('Upload failed:', uploadError);
-            throw new Error(`Failed to upload ${file.name}`);
+          // Validate file
+          if (file.size > 10 * 1024 * 1024) { // 10MB limit
+            throw new Error(`File ${file.name} is too large. Maximum size is 10MB.`);
           }
-
-          const { data: pubUrl } = supabase
-            .storage
-            .from('task-evidence')
-            .getPublicUrl(filePath);
           
-          if (pubUrl?.publicUrl) {
-            evidenceFileUrls.push(pubUrl.publicUrl);
+          const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm'];
+          if (!allowedTypes.includes(file.type)) {
+            throw new Error(`File type ${file.type} is not supported. Please use images or videos.`);
+          }
+          
+          const ext = file.name.split('.').pop();
+          const filePath = `${user.id}/${taskId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+          
+          try {
+            const { data: uploadData, error: uploadError } = await supabase
+              .storage
+              .from('task-evidence')
+              .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false
+              });
+
+            if (uploadError) {
+              console.error('Upload failed:', uploadError);
+              if (uploadError.message.includes('Row Level Security')) {
+                throw new Error('Upload permission denied. Please try again or contact support.');
+              }
+              throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
+            }
+
+            const { data: pubUrl } = supabase
+              .storage
+              .from('task-evidence')
+              .getPublicUrl(filePath);
+            
+            if (pubUrl?.publicUrl) {
+              evidenceFileUrls.push(pubUrl.publicUrl);
+            }
+          } catch (uploadError) {
+            console.error('File upload error:', uploadError);
+            throw uploadError instanceof Error ? uploadError : new Error(`Failed to upload ${file.name}`);
           }
         }
       }

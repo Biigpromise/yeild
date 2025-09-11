@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -92,32 +93,43 @@ export const WalletTab: React.FC<WalletTabProps> = ({ userProfile, userStats }) 
     }
   ];
 
-  const recentTransactions = [
-    {
-      id: 1,
-      type: 'earned',
-      description: 'Task Completion Reward',
-      amount: 150,
-      date: '2 hours ago',
-      status: 'completed'
-    },
-    {
-      id: 2,
-      type: 'earned',
-      description: 'Referral Bonus',
-      amount: 50,
-      date: '1 day ago',
-      status: 'completed'
-    },
-    {
-      id: 3,
-      type: 'spent',
-      description: 'Reward Redemption',
-      amount: -100,
-      date: '2 days ago',
-      status: 'completed'
-    }
-  ];
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(true);
+
+  // Load real transaction data
+  React.useEffect(() => {
+    const loadTransactions = async () => {
+      if (!userProfile?.id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('point_transactions')
+          .select('*')
+          .eq('user_id', userProfile.id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+
+        const formattedTransactions = (data || []).map(transaction => ({
+          id: transaction.id,
+          type: transaction.points > 0 ? 'earned' : 'spent',
+          description: transaction.description || transaction.transaction_type.replace('_', ' '),
+          amount: transaction.points,
+          date: new Date(transaction.created_at).toLocaleDateString(),
+          status: 'completed'
+        }));
+
+        setRecentTransactions(formattedTransactions);
+      } catch (error) {
+        console.error('Error loading transactions:', error);
+      } finally {
+        setTransactionsLoading(false);
+      }
+    };
+
+    loadTransactions();
+  }, [userProfile?.id]);
 
   const withdrawalMethods = [
     { id: 'bank', name: 'Bank Transfer', fee: '2%', time: '1-3 business days' },
@@ -271,7 +283,22 @@ export const WalletTab: React.FC<WalletTabProps> = ({ userProfile, userStats }) 
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {recentTransactions.map((transaction) => (
+                  {transactionsLoading ? (
+                    <div className="space-y-3">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="animate-pulse flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-muted rounded-full"></div>
+                            <div>
+                              <div className="h-4 bg-muted rounded w-32 mb-1"></div>
+                              <div className="h-3 bg-muted rounded w-20"></div>
+                            </div>
+                          </div>
+                          <div className="h-6 bg-muted rounded w-16"></div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : recentTransactions.map((transaction) => (
                     <div
                       key={transaction.id}
                       className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors"

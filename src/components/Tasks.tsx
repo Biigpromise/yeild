@@ -133,21 +133,21 @@ const Tasks = () => {
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/20 via-blue-500/20 to-purple-500/20 border-b">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        <div className="relative max-w-7xl mx-auto px-4 py-12 bg-stone-950">
+        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-12">
           <div className="flex items-center justify-between mb-6">
             <Button variant="ghost" onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-muted-foreground hover:text-primary">
               <ArrowLeft className="h-4 w-4" />
               Back to Dashboard
             </Button>
           </div>
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Target className="h-8 w-8 text-primary" />
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-[#bea200]">
+            <div className="text-center space-y-3 sm:space-y-4">
+            <div className="flex items-center justify-center gap-2 mb-2 sm:mb-4">
+              <Target className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
                 Tasks
               </h1>
             </div>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
               Complete tasks to earn points and unlock rewards. Choose from various categories and difficulty levels.
             </p>
             <div className="flex items-center justify-center gap-4 pt-4">
@@ -168,7 +168,7 @@ const Tasks = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
         {/* Quick Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-2 sm:px-0">
           <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
@@ -301,7 +301,7 @@ const Tasks = () => {
           </TabsList>
 
           <TabsContent value="available" className="space-y-4">
-            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredTasks.map(task => {
               const isSubmitted = userSubmissions.has(task.id);
               return <Card key={task.id} className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 border-2 hover:border-primary/50" onClick={() => !isSubmitted && handleTaskClick(task)}>
