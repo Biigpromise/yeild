@@ -10,6 +10,7 @@ import { TaskSourceBadgeEnhanced } from "./tasks/TaskSourceBadgeEnhanced";
 import { taskService, Task, TaskCategory } from "@/services/taskService";
 import { simplifiedTaskSubmissionService as taskSubmissionService } from "@/services/tasks/simplifiedTaskSubmissionService";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDashboard } from "@/hooks/useDashboard";
 import { CreateTaskForm } from "@/components/admin/CreateTaskForm";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, Filter, Calendar, Star, Trophy, Target, ArrowLeft, Sparkles, TrendingUp, Clock, Users, Award, CheckCircle, Zap, Gift, Plus, Shield, Building2 } from "lucide-react";
@@ -17,9 +18,8 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 const Tasks = () => {
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
+  const { userProfile, userStats } = useDashboard();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<TaskCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,95 +133,68 @@ const Tasks = () => {
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/20 via-blue-500/20 to-purple-500/20 border-b">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-12">
-          <div className="flex items-center justify-between mb-6">
-            <Button variant="ghost" onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-muted-foreground hover:text-primary">
+        <div className="relative w-full mx-auto px-4 py-8 sm:py-12">
+          <div className="flex items-center justify-between mb-4">
+            <Button variant="ghost" onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-muted-foreground hover:text-primary text-sm">
               <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
+              <span className="hidden sm:inline">Back to Dashboard</span>
+              <span className="sm:hidden">Back</span>
             </Button>
           </div>
-            <div className="text-center space-y-3 sm:space-y-4">
-            <div className="flex items-center justify-center gap-2 mb-2 sm:mb-4">
-              <Target className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-              <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
-                Tasks
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Target className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
+                Earn Points
               </h1>
             </div>
-            <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-              Complete tasks to earn points and unlock rewards. Choose from various categories and difficulty levels.
+            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto px-2">
+              Complete tasks and earn points to level up your account
             </p>
-            <div className="flex items-center justify-center gap-4 pt-4">
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Trophy className="h-3 w-3" />
-                {tasks.length} Total Tasks
-              </Badge>
-              <Badge variant="outline" className="flex items-center gap-1">
-                <CheckCircle className="h-3 w-3" />
-                {userSubmissions.size} Completed
-              </Badge>
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Zap className="h-3 w-3" />
-                Earn Points
-              </Badge>
-            </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="w-full px-4 py-6 space-y-6">
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-2 sm:px-0">
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
-            <CardContent className="p-2 sm:p-4">
-              <div className="flex items-center gap-1 sm:gap-3">
-                <div className="p-1 sm:p-2 bg-blue-500/10 rounded-lg shrink-0">
-                  <Target className="h-3 w-3 sm:h-6 sm:w-6 text-blue-500" />
+        <div className="grid grid-cols-3 gap-3">
+          <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20">
+            <CardContent className="p-4 text-center">
+              <div className="flex flex-col items-center gap-2">
+                <div className="p-2 bg-yellow-500/10 rounded-lg">
+                  <Trophy className="h-5 w-5 text-yellow-500" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] sm:text-sm text-muted-foreground leading-tight">Available</p>
-                  <p className="text-sm sm:text-2xl font-bold leading-tight">{tasks.length - userSubmissions.size}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-green-500/10 to-green-500/5">
-            <CardContent className="p-2 sm:p-4">
-              <div className="flex items-center gap-1 sm:gap-3">
-                <div className="p-1 sm:p-2 bg-green-500/10 rounded-lg shrink-0">
-                  <CheckCircle className="h-3 w-3 sm:h-6 sm:w-6 text-green-500" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] sm:text-sm text-muted-foreground leading-tight">Completed</p>
-                  <p className="text-sm sm:text-2xl font-bold leading-tight">{userSubmissions.size}</p>
+                <div>
+                  <p className="text-xl font-bold">{userStats?.points || 0}</p>
+                  <p className="text-xs text-muted-foreground">Total Points</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-purple-500/10 to-purple-500/5">
-            <CardContent className="p-2 sm:p-4">
-              <div className="flex items-center gap-1 sm:gap-3">
-                <div className="p-1 sm:p-2 bg-purple-500/10 rounded-lg shrink-0">
-                  <Trophy className="h-3 w-3 sm:h-6 sm:w-6 text-purple-500" />
+          <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+            <CardContent className="p-4 text-center">
+              <div className="flex flex-col items-center gap-2">
+                <div className="p-2 bg-green-500/10 rounded-lg">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] sm:text-sm text-muted-foreground leading-tight">Total Points</p>
-                  <p className="text-sm sm:text-2xl font-bold leading-tight">{tasks.reduce((sum, task) => sum + task.points, 0)}</p>
+                <div>
+                  <p className="text-xl font-bold">{userSubmissions.size}</p>
+                  <p className="text-xs text-muted-foreground">Tasks Completed</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-orange-500/10 to-orange-500/5">
-            <CardContent className="p-2 sm:p-4">
-              <div className="flex items-center gap-1 sm:gap-3">
-                <div className="p-1 sm:p-2 bg-orange-500/10 rounded-lg shrink-0">
-                  <Award className="h-3 w-3 sm:h-6 sm:w-6 text-orange-500" />
+          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+            <CardContent className="p-4 text-center">
+              <div className="flex flex-col items-center gap-2">
+                <div className="p-2 bg-blue-500/10 rounded-lg">
+                  <Target className="h-5 w-5 text-blue-500" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] sm:text-sm text-muted-foreground leading-tight">Categories</p>
-                  <p className="text-sm sm:text-2xl font-bold leading-tight">{categories.length}</p>
+                <div>
+                  <p className="text-xl font-bold">Level {userProfile?.level || 1}</p>
+                  <p className="text-xs text-muted-foreground">Current Level</p>
                 </div>
               </div>
             </CardContent>
@@ -230,36 +203,46 @@ const Tasks = () => {
 
         {/* Search and Filter Section */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="space-y-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input placeholder="Search tasks by title or description..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
+                <Input 
+                  placeholder="Search tasks..." 
+                  value={searchTerm} 
+                  onChange={e => setSearchTerm(e.target.value)} 
+                  className="pl-10" 
+                />
               </div>
               
-              {/* Task Source Filter */}
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                <Button variant={selectedTaskSource === "all" ? "default" : "outline"} onClick={() => setSelectedTaskSource("all")} size="sm" className="whitespace-nowrap">
-                  All Tasks
-                </Button>
-                <Button variant={selectedTaskSource === "platform" ? "default" : "outline"} onClick={() => setSelectedTaskSource("platform")} size="sm" className="whitespace-nowrap flex items-center gap-1">
-                  <Shield className="h-3 w-3" />
-                  Platform Tasks
-                </Button>
-                <Button variant={selectedTaskSource === "brand_campaign" ? "default" : "outline"} onClick={() => setSelectedTaskSource("brand_campaign")} size="sm" className="whitespace-nowrap flex items-center gap-1">
-                  <Building2 className="h-3 w-3" />
-                  Brand Sponsored
-                </Button>
-              </div>
-
               {/* Category Filter */}
               <div className="flex gap-2 overflow-x-auto pb-2">
-                <Button variant={selectedCategory === "all" ? "default" : "outline"} onClick={() => setSelectedCategory("all")} size="sm" className="whitespace-nowrap">
-                  All Categories
+                <Button 
+                  variant={selectedCategory === "all" ? "default" : "outline"} 
+                  onClick={() => setSelectedCategory("all")} 
+                  size="sm" 
+                  className="whitespace-nowrap bg-yellow-500 hover:bg-yellow-600 text-black"
+                >
+                  All Tasks
                 </Button>
-                {categories.map(category => <Button key={category.id} variant={selectedCategory === category.name ? "default" : "outline"} onClick={() => setSelectedCategory(category.name)} size="sm" className="whitespace-nowrap">
-                    {category.name.replace('_', ' ')}
-                  </Button>)}
+                <Button 
+                  variant={selectedCategory === "social_media" ? "default" : "outline"} 
+                  onClick={() => setSelectedCategory("social_media")} 
+                  size="sm" 
+                  className="whitespace-nowrap"
+                >
+                  <Star className="h-3 w-3 mr-1" />
+                  Social Media
+                </Button>
+                <Button 
+                  variant={selectedCategory === "surveys" ? "default" : "outline"} 
+                  onClick={() => setSelectedCategory("surveys")} 
+                  size="sm" 
+                  className="whitespace-nowrap"
+                >
+                  <Target className="h-3 w-3 mr-1" />
+                  Surveys
+                </Button>
               </div>
             </div>
           </CardContent>
