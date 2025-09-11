@@ -26,6 +26,7 @@ import { EarnTab } from './tabs/EarnTab';
 import { ProfileTab } from './tabs/ProfileTab';
 import { WalletTab } from './tabs/WalletTab';
 import { LiveNotifications } from './LiveNotifications';
+import EarnPage from '@/components/EarnPage';
 
 type TabType = 'home' | 'earn' | 'wallet' | 'profile';
 
@@ -122,7 +123,7 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
       case 'home':
         return <HomeTab userStats={userStats} userProfile={userProfile} />;
       case 'earn':
-        return <EarnTab userTasks={userTasks} userStats={userStats} />;
+        return <EarnPage />;
       case 'wallet':
         return <WalletTab userProfile={userProfile} userStats={userStats} />;
       case 'profile':

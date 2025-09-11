@@ -26,6 +26,7 @@ import VerifyResetCode from "./pages/VerifyResetCode";
 import VerifySignupCode from "./pages/VerifySignupCode";
 import CreateNewPassword from "./pages/CreateNewPassword";
 import Tasks from "./pages/Tasks";
+import EarnPage from "./components/EarnPage";
 import Chat from "./pages/Chat";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -126,7 +127,7 @@ const AppContent = () => {
           path="/tasks"
           element={
             <ProtectedRoute>
-              <Tasks />
+              <EarnPage />
             </ProtectedRoute>
           }
         />
