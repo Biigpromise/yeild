@@ -36,10 +36,10 @@ class PointCalculationService {
     hard: 1.0     // No reduction
   };
 
-  // Level penalty - higher levels get fewer points
-  private calculateLevelPenalty(userLevel: number): number {
-    // Exponential penalty: Level 1 = 100%, Level 5 = 50%, Level 10 = 25%
-    return Math.max(0.25, 1 - (userLevel - 1) * 0.1);
+  // Level bonus - higher levels get more points (fixed from penalty)
+  private calculateLevelBonus(userLevel: number): number {
+    // Progressive bonus: Level 1 = 100%, Level 5 = 120%, Level 10 = 150%
+    return Math.min(1.5, 1 + (userLevel - 1) * 0.05);
   }
 
   // Daily tasks penalty - diminishing returns
@@ -128,14 +128,14 @@ class PointCalculationService {
 
     // Calculate all multipliers with updated ranges
     const difficultyMultiplier = this.difficultyMultipliers[difficulty as keyof typeof this.difficultyMultipliers] || 1.0;
-    const levelPenalty = this.calculateLevelPenalty(userLevel);
+    const levelBonus = this.calculateLevelBonus(userLevel);
     const dailyTasksPenalty = this.calculateDailyTasksPenalty(tasksCompletedToday);
     const categoryBonus = this.getCategoryBonus(taskCategory, totalTasksCompleted);
     const qualityBonus = this.calculateQualityBonus(qualityScore);
     const timeBonus = this.calculateTimeBonus(timeSpent);
 
     // Calculate total multiplier
-    const totalMultiplier = difficultyMultiplier * levelPenalty * dailyTasksPenalty * categoryBonus * qualityBonus * timeBonus;
+    const totalMultiplier = difficultyMultiplier * levelBonus * dailyTasksPenalty * categoryBonus * qualityBonus * timeBonus;
 
     // Calculate final points with economic controls
     let finalPoints = Math.max(1, Math.floor(adjustedBasePoints * totalMultiplier));
@@ -153,8 +153,8 @@ class PointCalculationService {
       explanation.push(`Difficulty (${difficulty}): ${difficultyMultiplier}x`);
     }
     
-    if (levelPenalty < 1.0) {
-      explanation.push(`Level ${userLevel} penalty: ${levelPenalty.toFixed(2)}x`);
+    if (levelBonus > 1.0) {
+      explanation.push(`Level ${userLevel} bonus: ${levelBonus.toFixed(2)}x`);
     }
     
     if (dailyTasksPenalty < 1.0) {
@@ -186,7 +186,7 @@ class PointCalculationService {
       breakdown: {
         basePoints: adjustedBasePoints,
         difficultyMultiplier,
-        levelPenalty,
+        levelPenalty: levelBonus,
         dailyTasksPenalty,
         categoryBonus,
         qualityBonus,

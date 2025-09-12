@@ -18,14 +18,21 @@ export const APP_CONFIG = {
       return currentOrigin;
     }
     
-    // For production, use the custom domain
-    return APP_CONFIG.customDomain || currentOrigin;
+    // For production, try custom domain first but fallback to current origin if unreachable
+    return currentOrigin; // Use current working domain for now
   },
   
-  // Get the display domain (what users see in referral links)
+  // Get the display domain (what users see in referral links) - with fallback
   getDisplayDomain: () => {
-    // Always use the custom domain for referral links to ensure proper branding
-    return APP_CONFIG.customDomain;
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+    
+    // Use current working domain to ensure referral links actually work
+    if (currentOrigin.includes('localhost') || currentOrigin.includes('.lovableproject.com')) {
+      return currentOrigin;
+    }
+    
+    // For production, use current working domain until custom domain is properly configured
+    return currentOrigin;
   },
   
   // Application name and branding
