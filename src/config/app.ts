@@ -26,13 +26,13 @@ export const APP_CONFIG = {
   getDisplayDomain: () => {
     const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
     
-    // Use current working domain to ensure referral links actually work
+    // Use current working domain for development
     if (currentOrigin.includes('localhost') || currentOrigin.includes('.lovableproject.com')) {
       return currentOrigin;
     }
     
-    // For production, use current working domain until custom domain is properly configured
-    return currentOrigin;
+    // For production, use the custom domain yeildsocials.com
+    return 'https://yeildsocials.com';
   },
   
   // Application name and branding
