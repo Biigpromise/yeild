@@ -23,6 +23,9 @@ interface ModernOnboardingProps {
 const ModernOnboarding: React.FC<ModernOnboardingProps> = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
 
+  // Debug logging
+  console.log('ModernOnboarding: Current step =', currentStep);
+
   const steps = [
     {
       id: 'welcome',
@@ -272,20 +275,26 @@ const ModernOnboarding: React.FC<ModernOnboardingProps> = ({ onComplete }) => {
   ];
 
   const handleNext = () => {
+    console.log('ModernOnboarding: handleNext called, currentStep =', currentStep, 'steps.length =', steps.length);
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      const nextStep = currentStep + 1;
+      console.log('ModernOnboarding: Moving to step', nextStep);
+      setCurrentStep(nextStep);
     } else {
+      console.log('ModernOnboarding: Completing onboarding');
       onComplete();
     }
   };
 
   const handlePrevious = () => {
+    console.log('ModernOnboarding: handlePrevious called');
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
 
   const handleSkip = () => {
+    console.log('ModernOnboarding: handleSkip called');
     onComplete();
   };
 
@@ -351,6 +360,7 @@ const ModernOnboarding: React.FC<ModernOnboardingProps> = ({ onComplete }) => {
               onClick={handlePrevious}
               disabled={currentStep === 0}
               className="flex items-center gap-2"
+              data-testid="previous-button"
             >
               <ArrowLeft className="w-4 h-4" />
               Previous
@@ -374,6 +384,7 @@ const ModernOnboarding: React.FC<ModernOnboardingProps> = ({ onComplete }) => {
             <Button
               onClick={handleNext}
               className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+              data-testid="next-button"
             >
               {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
               <ArrowRight className="w-4 h-4" />
