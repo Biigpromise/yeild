@@ -303,9 +303,9 @@ const ModernOnboarding: React.FC<ModernOnboardingProps> = ({ onComplete }) => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl bg-card border border-border shadow-lg">
+      <Card className="w-full max-w-2xl bg-card border border-border shadow-lg flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="p-6 border-b border-border">
+        <div className="p-6 border-b border-border flex-shrink-0">
           <div className="flex items-center justify-between mb-6">
             <div className="text-2xl font-bold text-primary">YEILD</div>
             <Button 
@@ -329,7 +329,7 @@ const ModernOnboarding: React.FC<ModernOnboardingProps> = ({ onComplete }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-6 flex-1 overflow-y-auto">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-foreground mb-2">
               {currentStepData.title}
@@ -352,8 +352,8 @@ const ModernOnboarding: React.FC<ModernOnboardingProps> = ({ onComplete }) => {
           </AnimatePresence>
         </div>
 
-        {/* Navigation */}
-        <div className="p-6 border-t border-border">
+        {/* Navigation - Always visible at bottom */}
+        <div className="p-6 border-t border-border flex-shrink-0 bg-card">
           <div className="flex items-center justify-between">
             <Button
               variant="outline"
