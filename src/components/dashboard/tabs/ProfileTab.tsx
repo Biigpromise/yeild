@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { generateReferralLink } from '@/config/app';
 
 interface ProfileTabProps {
   userProfile?: any;
@@ -51,7 +52,8 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ userProfile, userStats }
 
   const copyReferralCode = () => {
     if (userProfile?.referral_code) {
-      navigator.clipboard.writeText(`https://yeild.app?ref=${userProfile.referral_code}`);
+      const referralLink = generateReferralLink(userProfile.referral_code);
+      navigator.clipboard.writeText(referralLink);
       setCopiedReferral(true);
       toast.success('Referral link copied!');
       setTimeout(() => setCopiedReferral(false), 2000);

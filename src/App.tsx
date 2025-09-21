@@ -32,7 +32,7 @@ import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Onboarding from "./pages/Onboarding";
 import BrandOnboarding from "./pages/BrandOnboarding";
-import Social from "./pages/Social";
+
 import Wallet from "./pages/Wallet";
 import Referrals from "./pages/Referrals";
 import Birds from "./pages/Birds";
