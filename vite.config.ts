@@ -19,4 +19,17 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        // Optimize CSS chunking to reduce render-blocking
+        manualChunks: (id) => {
+          if (id.includes('index.css') || id.includes('/index.css')) {
+            return 'critical-styles';
+          }
+        }
+      }
+    }
+  }
 }));
