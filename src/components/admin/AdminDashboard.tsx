@@ -12,6 +12,7 @@ import { AdminFinancial } from './financial/AdminFinancial';
 import { AdminNotifications } from './notifications/AdminNotifications';
 import { AdminSettings } from './settings/AdminSettings';
 import { AdminUserActions } from './AdminUserActions';
+import { AITesting } from './AITesting';
 
 export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -40,6 +41,8 @@ export const AdminDashboard = () => {
         return <EnhancedCampaignApprovalTab />;
       case 'analytics':
         return <AdminAnalytics />;
+      case 'ai-testing':
+        return <AITesting />;
       case 'financial':
         return <AdminFinancial />;
       case 'notifications':
