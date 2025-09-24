@@ -42,37 +42,24 @@ export const useSignUp = () => {
     
     setResendLoading(true);
     try {
-      // Try custom verification email first
-      const { data: emailData, error: customError } = await supabase.functions.invoke('send-verification-email', {
+      // Use our custom verification code function
+      const { data, error } = await supabase.functions.invoke('send-verification-code', {
         body: {
           email,
-          name: name || email.split('@')[0],
-          confirmationUrl: `${window.location.origin}/auth/callback`
+          type: 'signup'
         }
       });
 
-      if (customError) {
-        console.error('Custom verification email failed:', customError);
-        // Fallback to Supabase's default resend
-        const { error: fallbackError } = await supabase.auth.resend({
-          type: 'signup',
-          email: email,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`
-          }
-        });
-        
-        if (fallbackError) {
-          console.error('Fallback resend failed:', fallbackError);
-          toast.error('Failed to resend confirmation email. Please try again in a few minutes.');
-          return;
-        }
+      if (error || !data?.success) {
+        console.error('Custom verification code failed:', error);
+        toast.error(data?.message || 'Failed to resend verification code. Please try again.');
+        return;
       }
       
-      toast.success('Confirmation email sent! Please check your inbox and spam folder.');
+      toast.success('Verification code sent! Please check your inbox and spam folder.');
     } catch (error: any) {
-      console.error('Error resending confirmation:', error);
-      toast.error('Failed to resend confirmation email. Please try again later.');
+      console.error('Error resending verification code:', error);
+      toast.error('Failed to resend verification code. Please try again later.');
     } finally {
       setResendLoading(false);
     }
@@ -99,7 +86,10 @@ export const useSignUp = () => {
 
     const result = await signUp(signUpData);
     
-    if (result.success) {
+    if (result.success && result.needsVerification) {
+      // Navigate to verification page with user data
+      window.location.href = `/verify-signup-code?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&userType=user`;
+    } else if (result.success) {
       setAwaitingConfirmation(true);
     } else {
       setSignUpError(result.error);
@@ -120,13 +110,25 @@ export const useSignUp = () => {
         metadata.brand_application_data = data.brandData;
       }
 
-      // Create user account
+      // Send verification code first
+      const { data: codeData, error: codeError } = await supabase.functions.invoke('send-verification-code', {
+        body: { 
+          email: data.email, 
+          type: 'signup' 
+        }
+      });
+
+      if (codeError || !codeData?.success) {
+        throw new Error(codeData?.message || 'Failed to send verification code');
+      }
+
+      // Create user account without built-in email confirmation
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
           data: metadata,
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: undefined // Disable Supabase's email confirmation
         }
       });
 
@@ -140,17 +142,17 @@ export const useSignUp = () => {
 
       // Handle referral signup if referral code is provided
       if (data.referralCode) {
-        const result = await referralService.processReferralSignup(data.referralCode, authData.user.id);
-        if (result.success) {
-          toast.success('Account created successfully! Referral bonus will be activated after completing your first task.');
-        } else {
-          toast.warning('Account created, but referral code may be invalid.');
-        }
-      } else {
-        toast.success('Account created successfully! Please check your email for verification.');
+        // Store referral code for later processing after verification
+        sessionStorage.setItem('pendingReferral', JSON.stringify({
+          referralCode: data.referralCode,
+          userId: authData.user.id
+        }));
       }
 
-      return { success: true, data: authData };
+      // Store verification token for later use
+      sessionStorage.setItem('verificationToken', codeData.token);
+
+      return { success: true, data: authData, needsVerification: true };
     } catch (error: any) {
       console.error('Sign up error:', error);
       toast.error(error.message || 'Failed to create account');

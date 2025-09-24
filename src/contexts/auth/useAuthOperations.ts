@@ -34,27 +34,51 @@ export const useAuthOperations = () => {
       ...userData
     };
 
-    const signUpOptions: any = {
-      data: metadata,
-    };
+    try {
+      // First send verification code via our custom function
+      const { data: codeData, error: codeError } = await supabase.functions.invoke('send-verification-code', {
+        body: { 
+          email, 
+          type: 'signup' 
+        }
+      });
 
-    // Only set emailRedirectTo if email confirmation is needed
-    if (userData?.email_confirm !== false) {
-      signUpOptions.emailRedirectTo = redirectUrl || `${window.location.origin}/auth/callback`;
-    }
+      if (codeError) {
+        console.error("Error sending verification code:", codeError);
+        return { data: null, error: codeError };
+      }
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: signUpOptions
-    });
+      if (!codeData?.success) {
+        console.error("Verification code sending failed:", codeData);
+        return { data: null, error: { message: codeData?.message || 'Failed to send verification code' } };
+      }
 
-    if (error) {
+      // Create user account without email confirmation
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata,
+          emailRedirectTo: undefined // Disable Supabase's email confirmation
+        }
+      });
+
+      if (error) {
+        console.error("Sign up error:", error);
+        return { data, error };
+      }
+
+      return { 
+        data, 
+        error: null, 
+        user: data.user,
+        needsEmailVerification: true,
+        verificationToken: codeData.token
+      };
+    } catch (error: any) {
       console.error("Sign up error:", error);
-      return { data, error };
+      return { data: null, error };
     }
-
-    return { data, error, user: data.user };
   };
 
   const signInWithProvider = async (provider: string, userType: string = 'user') => {
@@ -84,11 +108,11 @@ export const useAuthOperations = () => {
 
   const resendConfirmation = async (email: string) => {
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+      // Use our custom verification code function instead of Supabase's built-in
+      const { data, error } = await supabase.functions.invoke('send-verification-code', {
+        body: { 
+          email, 
+          type: 'signup' 
         }
       });
 
@@ -97,7 +121,11 @@ export const useAuthOperations = () => {
         return { error };
       }
 
-      return { error: null };
+      if (!data?.success) {
+        return { error: { message: data?.message || 'Failed to resend verification code' } };
+      }
+
+      return { error: null, token: data.token };
     } catch (error: any) {
       console.error('Resend confirmation error:', error);
       return { error: { message: error.message || 'Failed to resend confirmation email' } };

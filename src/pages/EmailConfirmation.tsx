@@ -21,21 +21,21 @@ const EmailConfirmation = () => {
 
     setIsResending(true);
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+      // Use our custom verification code function
+      const { data, error } = await supabase.functions.invoke('send-verification-code', {
+        body: { 
+          email, 
+          type: 'signup' 
         }
       });
 
-      if (error) {
-        throw error;
+      if (error || !data?.success) {
+        throw new Error(data?.message || 'Failed to send verification code');
       }
 
-      toast.success('Confirmation email sent! Please check your inbox.');
+      toast.success('Verification code sent! Please check your inbox.');
     } catch (error: any) {
-      toast.error(`Failed to resend confirmation: ${error.message}`);
+      toast.error(`Failed to resend verification code: ${error.message}`);
     } finally {
       setIsResending(false);
     }
@@ -57,7 +57,7 @@ const EmailConfirmation = () => {
             </p>
             <p className="font-semibold text-foreground">{email}</p>
             <p className="text-sm text-muted-foreground">
-              Click the confirmation link in the email to activate your account.
+              We've sent a verification code to your email address. Enter the 6-digit code below to complete your account setup.
             </p>
           </div>
 
@@ -76,7 +76,7 @@ const EmailConfirmation = () => {
               ) : (
                 <>
                   <Mail className="w-4 h-4 mr-2" />
-                  Resend Confirmation
+                  Resend Code
                 </>
               )}
             </Button>
