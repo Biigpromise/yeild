@@ -122,13 +122,13 @@ export const useSignUp = () => {
         throw new Error(codeData?.message || 'Failed to send verification code');
       }
 
-      // Create user account without built-in email confirmation
+      // Create user account but DON'T sign them in automatically - they need to verify email first
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
           data: metadata,
-          emailRedirectTo: undefined // Disable Supabase's email confirmation
+          emailRedirectTo: undefined // Disable Supabase's email confirmation since we use custom
         }
       });
 
@@ -138,6 +138,12 @@ export const useSignUp = () => {
 
       if (!authData.user) {
         throw new Error('User creation failed');
+      }
+
+      // Important: Sign out the user immediately so they can't access the app until email is verified
+      if (authData.session) {
+        console.log('Signing out user until email verification is complete');
+        await supabase.auth.signOut();
       }
 
       // Handle referral signup if referral code is provided

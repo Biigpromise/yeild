@@ -4181,6 +4181,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      create_missing_profile_for_user: {
+        Args: { user_id_param: string }
+        Returns: boolean
+      }
       credit_user_account: {
         Args: { amount: number; reference: string; user_id: string }
         Returns: undefined
