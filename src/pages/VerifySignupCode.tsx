@@ -35,7 +35,7 @@ export default function VerifySignupCode() {
     try {
       console.log('Verifying signup code for:', email);
       
-      // First verify the code
+      // Verify the code and confirm the user's email
       const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-signup-code', {
         body: { 
           email, 
@@ -51,53 +51,27 @@ export default function VerifySignupCode() {
       }
 
       if (!verifyData.success) {
-        toast.error('Invalid or expired code');
+        toast.error(verifyData.error || 'Invalid or expired code');
         return;
       }
 
-      // Get password from URL parameters (stored temporarily)
-      const password = searchParams.get('password');
-      if (!password) {
-        toast.error('Session expired. Please try signing up again.');
+      console.log('Email verified successfully!', verifyData);
+      
+      // If magic link is provided, redirect to it for auto-signin
+      if (verifyData.magicLink) {
+        toast.success('Email verified! Signing you in...');
+        setTimeout(() => {
+          window.location.href = verifyData.magicLink;
+        }, 1500);
+        return;
+      }
+
+      // Otherwise show success and navigate to auth for signin
+      toast.success('Email verified successfully! You can now sign in.');
+      
+      setTimeout(() => {
         navigate('/auth');
-        return;
-      }
-
-      console.log('Code verified, creating account...');
-      
-      // Create account using our custom edge function (bypasses email confirmation issues)
-      const { data: createUserData, error: createUserError } = await supabase.functions.invoke('create-verified-user', {
-        body: {
-          email,
-          password,
-          name,
-          userType,
-          codeId: verifyData.codeId
-        }
-      });
-
-      if (createUserError) {
-        console.error('Account creation error:', createUserError);
-        toast.error(createUserError.message || 'Failed to create account');
-        return;
-      }
-
-      if (!createUserData.success) {
-        console.error('Account creation failed:', createUserData.message);
-        toast.error(createUserData.message || 'Failed to create account');
-        return;
-      }
-
-      console.log('Account created successfully:', createUserData);
-      
-      toast.success('Account created successfully!');
-
-      // Show onboarding after successful account creation
-      setUserType(userType as 'user' | 'brand');
-      startOnboarding();
-      
-      // Navigate to dashboard
-      navigate('/dashboard');
+      }, 2000);
 
     } catch (error: any) {
       console.error('Verification catch error:', error);
