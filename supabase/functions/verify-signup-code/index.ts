@@ -221,7 +221,129 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // For signup, return success without marking as verified yet
+    // For signup, confirm the user's email and mark as verified
+    if (type === 'signup') {
+      try {
+        console.log('Confirming user email for signup verification');
+        
+        // Find the user in auth.users by email
+        const { data: authUsers, error: userError } = await supabase.auth.admin.listUsers();
+        
+        if (userError) {
+          console.error('Error fetching users:', userError);
+          return new Response(
+            JSON.stringify({ error: 'Failed to verify user account' }),
+            { 
+              status: 500, 
+              headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+            }
+          );
+        }
+        
+        const user = authUsers.users.find(u => u.email === email);
+        
+        if (!user) {
+          console.log('User not found in auth.users with email:', email);
+          return new Response(
+            JSON.stringify({ error: 'User account not found. Please sign up again.' }),
+            { 
+              status: 400, 
+              headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+            }
+          );
+        }
+        
+        console.log('Found user, confirming email:', user.id);
+        
+        // Update the user to confirm their email
+        const { data: updateResult, error: updateError } = await supabase.auth.admin.updateUserById(
+          user.id,
+          {
+            email_confirm: true
+          }
+        );
+        
+        if (updateError) {
+          console.error('Error confirming user email:', updateError);
+          return new Response(
+            JSON.stringify({ error: 'Failed to confirm email address' }),
+            { 
+              status: 500, 
+              headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+            }
+          );
+        }
+        
+        console.log('User email confirmed successfully');
+        
+        // Mark verification code as used
+        const { error: verifyError } = await supabase
+          .from('email_verification_codes')
+          .update({ 
+            verified_at: new Date().toISOString(),
+            used_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingCode.id);
+        
+        if (verifyError) {
+          console.error('Error marking code as verified:', verifyError);
+          // Continue anyway - the user is confirmed
+        }
+        
+        // Generate a magic link for immediate sign-in
+        const { data: magicLink, error: linkError } = await supabase.auth.admin.generateLink({
+          type: 'magiclink',
+          email: email,
+          options: {
+            redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}/`
+          }
+        });
+        
+        if (!linkError && magicLink?.properties?.action_link) {
+          console.log('Generated magic link for newly verified user');
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              token: existingCode.token,
+              magicLink: magicLink.properties.action_link,
+              message: 'Email verified successfully! Signing you in...',
+              verified: true
+            }),
+            { 
+              status: 200, 
+              headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+            }
+          );
+        } else {
+          console.log('Magic link generation failed, returning success without auto-signin');
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              token: existingCode.token,
+              message: 'Email verified successfully! You can now sign in.',
+              verified: true
+            }),
+            { 
+              status: 200, 
+              headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+            }
+          );
+        }
+        
+      } catch (signupError) {
+        console.error('Error in signup verification process:', signupError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to complete signup verification' }),
+          { 
+            status: 500, 
+            headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+          }
+        );
+      }
+    }
+
+    // For signin, return success without marking as verified yet
     // The code will be marked as verified by the frontend after successful account creation
     console.log('Returning success response for signup verification');
     return new Response(

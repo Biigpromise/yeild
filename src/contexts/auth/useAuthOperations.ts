@@ -53,13 +53,13 @@ export const useAuthOperations = () => {
         return { data: null, error: { message: codeData?.message || 'Failed to send verification code' } };
       }
 
-      // Create user account without email confirmation
+      // Create user account but DON'T sign them in automatically - they need to verify email first
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: metadata,
-          emailRedirectTo: undefined // Disable Supabase's email confirmation
+          emailRedirectTo: undefined // Disable Supabase's email confirmation since we use custom
         }
       });
 
@@ -68,8 +68,14 @@ export const useAuthOperations = () => {
         return { data, error };
       }
 
+      // Important: Don't auto-sign the user in - they must verify their email first
+      // Sign them out immediately if they were auto-signed in
+      if (data.session) {
+        await supabase.auth.signOut();
+      }
+
       return { 
-        data, 
+        data: { ...data, session: null }, // Remove session to prevent auto-login
         error: null, 
         user: data.user,
         needsEmailVerification: true,
