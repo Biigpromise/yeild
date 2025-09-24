@@ -26,8 +26,7 @@ export const useMaintenanceMode = () => {
               .from('platform_settings')
               .insert({
                 key: 'maintenanceMode',
-                value: false,
-                description: 'Enable/disable maintenance mode for the platform'
+                value: false
               });
             
             if (insertError) {
@@ -82,8 +81,7 @@ export const useMaintenanceMode = () => {
         .from('platform_settings')
         .upsert({
           key: 'maintenanceMode',
-          value: !isMaintenanceMode,
-          description: 'Enable/disable maintenance mode for the platform'
+          value: !isMaintenanceMode
         });
 
       if (error) {
