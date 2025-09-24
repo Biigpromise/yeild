@@ -23,13 +23,10 @@ export default defineConfig(({ mode }) => ({
     cssCodeSplit: true,
     rollupOptions: {
       output: {
-        // Optimize CSS chunking for better loading performance
+        // Optimize JS chunking only, avoid CSS chunking that blocks rendering
         manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            return 'vendor-styles';
-          }
-          if (id.includes('index.css') || id.includes('/index.css')) {
-            return 'app-styles';
+          if (id.includes('node_modules') && !id.includes('.css')) {
+            return 'vendor';
           }
         },
         assetFileNames: (assetInfo) => {
