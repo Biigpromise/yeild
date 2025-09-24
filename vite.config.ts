@@ -23,13 +23,26 @@ export default defineConfig(({ mode }) => ({
     cssCodeSplit: true,
     rollupOptions: {
       output: {
-        // Optimize CSS chunking to reduce render-blocking
+        // Optimize CSS chunking for better loading performance
         manualChunks: (id) => {
-          if (id.includes('index.css') || id.includes('/index.css')) {
-            return 'critical-styles';
+          if (id.includes('node_modules')) {
+            return 'vendor-styles';
           }
+          if (id.includes('index.css') || id.includes('/index.css')) {
+            return 'app-styles';
+          }
+        },
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+            return 'assets/[name]-[hash][extname]';
+          }
+          return 'assets/[name]-[hash][extname]';
         }
       }
-    }
+    },
+    // Enable CSS minification and optimization
+    cssMinify: true,
+    // Inline small CSS files
+    assetsInlineLimit: 4096
   }
 }));
