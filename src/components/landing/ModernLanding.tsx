@@ -127,10 +127,10 @@ export const ModernLanding: React.FC = () => {
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button 
-                variant="outline" 
+                variant="brand" 
                 size="lg"
                 onClick={() => navigate('/auth?mode=signup&type=brand')}
-                className="h-14 px-8 text-lg font-semibold border-2"
+                className="h-14 px-8 text-lg font-semibold"
               >
                 Create Campaigns
               </Button>
@@ -311,9 +311,9 @@ export const ModernLanding: React.FC = () => {
                 </Button>
                 <Button 
                   size="lg"
-                  variant="outline"
+                  variant="brand"
                   onClick={() => navigate('/auth?mode=signup&type=brand')}
-                  className="h-14 px-8 text-lg font-semibold bg-transparent border-2 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+                  className="h-14 px-8 text-lg font-semibold"
                 >
                   Sign Up as Brand
                 </Button>
