@@ -12,7 +12,9 @@ import {
   CheckCircle,
   TrendingUp,
   Building2,
-  Megaphone
+  Megaphone,
+  Coins,
+  DollarSign
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -125,7 +127,8 @@ export const ModernLanding: React.FC = () => {
                 onClick={() => navigate('/auth?mode=signup&type=user')}
                 className="h-14 px-8 text-lg font-semibold bg-primary hover:bg-primary/90 group"
               >
-                Start Earning
+                <Coins className="mr-2 h-5 w-5" />
+                For Users: Start Earning Points
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button 
@@ -309,7 +312,8 @@ export const ModernLanding: React.FC = () => {
                   onClick={() => navigate('/auth?mode=signup&type=user')}
                   className="h-14 px-8 text-lg font-semibold"
                 >
-                  Sign Up as User
+                  <DollarSign className="mr-2 h-5 w-5" />
+                  Start Earning Today
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
                 <Button 
