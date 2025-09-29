@@ -10,7 +10,9 @@ import {
   Users, 
   Star,
   CheckCircle,
-  TrendingUp
+  TrendingUp,
+  Building2,
+  Megaphone
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -132,7 +134,8 @@ export const ModernLanding: React.FC = () => {
                 onClick={() => navigate('/auth?mode=signup&type=brand')}
                 className="h-14 px-8 text-lg font-semibold"
               >
-                Create Campaigns
+                <Building2 className="mr-2 h-5 w-5" />
+                For Brands: Launch Campaign
               </Button>
             </motion.div>
 
@@ -315,7 +318,8 @@ export const ModernLanding: React.FC = () => {
                   onClick={() => navigate('/auth?mode=signup&type=brand')}
                   className="h-14 px-8 text-lg font-semibold"
                 >
-                  Sign Up as Brand
+                  <Megaphone className="mr-2 h-5 w-5" />
+                  Start Advertising Today
                 </Button>
               </div>
             </motion.div>
