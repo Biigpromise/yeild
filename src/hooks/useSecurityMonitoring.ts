@@ -38,6 +38,18 @@ export const useSecurityMonitoring = () => {
         severity_param: event.severity
       });
 
+      // Send to external monitoring
+      const { monitoringService } = await import('@/services/monitoringService');
+      await monitoringService.warning(
+        `Security event: ${event.type}`,
+        event.severity,
+        {
+          userId: event.user_id || user?.id,
+          eventType: event.type,
+          details: event.details
+        }
+      );
+
       // Show immediate alert for high/critical events
       if (event.severity === 'high' || event.severity === 'critical') {
         toast({

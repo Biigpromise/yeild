@@ -33,10 +33,8 @@ class ErrorLogger {
     // Console log for development
     console.error('Error logged:', entry);
 
-    // In production, you might want to send to an external service
-    if (process.env.NODE_ENV === 'production') {
-      this.sendToExternalService(entry);
-    }
+    // Send to monitoring service
+    this.sendToExternalService(entry);
   }
 
   getLogs(): ErrorLogEntry[] {
@@ -55,9 +53,18 @@ class ErrorLogger {
 
   private async sendToExternalService(entry: ErrorLogEntry) {
     try {
-      // This would send to your error tracking service
-      // For now, we'll just log it
-      console.log('Would send to external service:', entry);
+      const { monitoringService } = await import('@/services/monitoringService');
+      await monitoringService.error(
+        entry.error.message,
+        'high',
+        {
+          context: entry.context,
+          userId: entry.userId,
+          url: entry.url,
+          stack: entry.stack,
+          userAgent: entry.userAgent
+        }
+      );
     } catch (error) {
       console.error('Failed to send error to external service:', error);
     }
