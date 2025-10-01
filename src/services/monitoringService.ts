@@ -8,12 +8,21 @@ interface MonitoringEvent {
   metadata?: Record<string, any>;
 }
 
-const WEBHOOK_URL = 'https://kbyjeadlmplgzisiwyrz.supabase.co/functions/v1/process-webhook?service=yeild';
+const SENTRY_WEBHOOK = 'https://kbyjeadlmplgzisiwyrz.supabase.co/functions/v1/process-webhook?service=sentry';
+const YEILD_WEBHOOK = 'https://kbyjeadlmplgzisiwyrz.supabase.co/functions/v1/process-webhook?service=yeild';
 
 class MonitoringService {
+  private getWebhookUrl(eventType: EventType): string {
+    // Route errors and warnings to Sentry, everything else to Yeild
+    return (eventType === 'error' || eventType === 'warning') 
+      ? SENTRY_WEBHOOK 
+      : YEILD_WEBHOOK;
+  }
+
   private async sendEvent(event: MonitoringEvent): Promise<void> {
     try {
-      await fetch(WEBHOOK_URL, {
+      const webhookUrl = this.getWebhookUrl(event.event_type);
+      await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
