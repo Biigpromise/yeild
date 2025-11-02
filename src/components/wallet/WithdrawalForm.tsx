@@ -13,6 +13,7 @@ import { CryptoPayment } from "./payment-methods/CryptoPayment";
 import { GiftCardPayment } from "./payment-methods/GiftCardPayment";
 import { YieldWalletPayment } from "./payment-methods/YieldWalletPayment";
 import { FlutterwavePayment } from "./payment-methods/FlutterwavePayment";
+import { PaystackPayment } from "../withdrawal/PaystackPayment";
 import { BankTransferForm } from "./forms/BankTransferForm";
 import { AmountBreakdown } from "./forms/AmountBreakdown";
 import { WithdrawalValidation, useWithdrawalValidation } from "./forms/WithdrawalValidation";
@@ -26,12 +27,12 @@ interface WithdrawalFormProps {
 export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: WithdrawalFormProps) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("flutterwave");
+  const [paymentMethod, setPaymentMethod] = useState("paystack");
   const [amount, setAmount] = useState("");
   const [payoutDetails, setPayoutDetails] = useState<any>({});
 
   const minWithdrawal = 1000;
-  const processingFee = 5; // 5%
+  const processingFee = paymentMethod === 'paystack' ? 2 : paymentMethod === 'flutterwave' ? 5 : 0;
   const maxWithdrawal = Math.min(userPoints, 10000);
   
   const withdrawalAmount = parseInt(amount) || payoutDetails.amount || 0;
@@ -126,12 +127,13 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
       }
 
       // For other payment methods, validate required fields
-      if (paymentMethod === 'flutterwave') {
+      if (paymentMethod === 'paystack' || paymentMethod === 'flutterwave') {
         if (!payoutDetails.accountNumber || !payoutDetails.bankCode || !payoutDetails.accountName) {
           toast.error("Please fill in all required bank details");
           return;
         }
         
+        const feePercent = paymentMethod === 'paystack' ? 0.02 : 0.05;
         details = {
           accountNumber: payoutDetails.accountNumber,
           bankCode: payoutDetails.bankCode,
@@ -139,8 +141,8 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
           phoneNumber: payoutDetails.phoneNumber,
           currency: payoutDetails.currency || 'NGN',
           country: payoutDetails.country || 'NG',
-          processingFee: Math.ceil(withdrawalAmount * 0.05),
-          netAmount: withdrawalAmount - Math.ceil(withdrawalAmount * 0.05)
+          processingFee: Math.ceil(withdrawalAmount * feePercent),
+          netAmount: withdrawalAmount - Math.ceil(withdrawalAmount * feePercent)
         };
       }
 
@@ -187,7 +189,11 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <Tabs value={paymentMethod} onValueChange={setPaymentMethod}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="paystack" className="flex items-center gap-1">
+                  <CreditCard className="h-4 w-4" />
+                  Paystack
+                </TabsTrigger>
                 <TabsTrigger value="flutterwave" className="flex items-center gap-1">
                   <CreditCard className="h-4 w-4" />
                   Flutterwave
@@ -197,6 +203,26 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
                   Yield Wallet
                 </TabsTrigger>
               </TabsList>
+
+              <TabsContent value="paystack">
+                <PaystackPayment
+                  payoutDetails={payoutDetails}
+                  onDetailsChange={setPayoutDetails}
+                />
+                <div className="space-y-2 mt-4">
+                  <Label htmlFor="paystack-amount">Withdrawal Amount (Points)</Label>
+                  <input
+                    id="paystack-amount"
+                    type="number"
+                    placeholder={`Min: ${minWithdrawal.toLocaleString()}`}
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    min={minWithdrawal}
+                    max={maxWithdrawal}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                  />
+                </div>
+              </TabsContent>
 
               <TabsContent value="flutterwave">
                 <FlutterwavePayment
@@ -233,11 +259,11 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
             <AmountBreakdown
               withdrawalAmount={withdrawalAmount}
               paymentMethod={paymentMethod}
-              processingFee={Math.ceil(withdrawalAmount * 0.05)}
+              processingFee={Math.ceil(withdrawalAmount * (processingFee / 100))}
             />
 
             {/* Notes for withdrawal methods */}
-            {paymentMethod === 'flutterwave' && (
+            {(paymentMethod === 'paystack' || paymentMethod === 'flutterwave') && (
               <div className="space-y-2">
                 <Label htmlFor="notes">Additional Notes (Optional)</Label>
                 <Textarea

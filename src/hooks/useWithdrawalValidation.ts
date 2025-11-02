@@ -18,6 +18,7 @@ export const useWithdrawalValidation = (
       case 'yield_wallet':
         return amount >= 100; // Minimum 100 points for yield wallet
       
+      case 'paystack':
       case 'flutterwave':
         if (amount < minWithdrawal) return false;
         return !!(

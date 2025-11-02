@@ -97,15 +97,33 @@ export const processInstantUserPayment = async (
       };
     }
 
-    // 5. Initiate actual payout (Flutterwave transfer)
-    const transferResult = await initiateFlutterwaveTransfer({
-      amount: paymentRequest.amount,
-      accountNumber: paymentRequest.payoutDetails.accountNumber,
-      accountBank: paymentRequest.payoutDetails.bankCode,
-      beneficiaryName: paymentRequest.payoutDetails.accountName,
-      reference: `USER-PAYOUT-${withdrawalRequest.id}`,
-      narration: paymentRequest.description || 'User earning payout'
-    });
+    // 5. Initiate actual payout based on payment method
+    let transferResult;
+    
+    if (paymentRequest.payoutMethod === 'paystack') {
+      transferResult = await initiatePaystackTransfer({
+        amount: paymentRequest.amount,
+        accountNumber: paymentRequest.payoutDetails.accountNumber,
+        bankCode: paymentRequest.payoutDetails.bankCode,
+        accountName: paymentRequest.payoutDetails.accountName,
+        reference: `USER-PAYOUT-${withdrawalRequest.id}`,
+      });
+    } else if (paymentRequest.payoutMethod === 'flutterwave') {
+      transferResult = await initiateFlutterwaveTransfer({
+        amount: paymentRequest.amount,
+        accountNumber: paymentRequest.payoutDetails.accountNumber,
+        accountBank: paymentRequest.payoutDetails.bankCode,
+        beneficiaryName: paymentRequest.payoutDetails.accountName,
+        reference: `USER-PAYOUT-${withdrawalRequest.id}`,
+        narration: paymentRequest.description || 'User earning payout'
+      });
+    } else {
+      return {
+        id: withdrawalRequest.id,
+        status: 'failed',
+        message: `Unsupported payment method: ${paymentRequest.payoutMethod}`
+      };
+    }
 
     if (transferResult.success) {
       // Update withdrawal request as processed
@@ -222,6 +240,54 @@ export const bulkProcessUserPayments = async (
   }
 
   return results;
+};
+
+/**
+ * Initiate Paystack transfer
+ */
+const initiatePaystackTransfer = async (params: {
+  amount: number;
+  accountNumber: string;
+  bankCode: string;
+  accountName: string;
+  reference: string;
+}): Promise<{ success: boolean; transferId?: string; reference?: string; message?: string }> => {
+  try {
+    // Call Supabase Edge Function to initiate Paystack transfer
+    const { data, error } = await supabase.functions.invoke('paystack-transfer', {
+      body: {
+        amount: params.amount,
+        accountNumber: params.accountNumber,
+        bankCode: params.bankCode,
+        accountName: params.accountName,
+        reference: params.reference,
+      }
+    });
+
+    if (error) {
+      console.error('Error invoking Paystack transfer function:', error);
+      return { success: false, message: error.message };
+    }
+
+    if (data?.success) {
+      return {
+        success: true,
+        transferId: data.data?.id || data.data?.transfer_code,
+        reference: data.data?.reference || params.reference
+      };
+    } else {
+      return {
+        success: false,
+        message: data?.error || 'Paystack transfer initiation failed'
+      };
+    }
+  } catch (error) {
+    console.error('Error in initiatePaystackTransfer:', error);
+    return {
+      success: false,
+      message: 'Paystack transfer service error'
+    };
+  }
 };
 
 /**

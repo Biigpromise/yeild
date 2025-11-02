@@ -15,6 +15,15 @@ interface PaymentMethod {
 
 const paymentMethods: PaymentMethod[] = [
   {
+    id: 'paystack',
+    name: 'Paystack Transfer',
+    description: 'Fast bank transfer with lower fees - Recommended',
+    icon: Building,
+    fee: '2% processing fee',
+    processingTime: '2-10 minutes',
+    available: true
+  },
+  {
     id: 'flutterwave',
     name: 'Bank Transfer',
     description: 'Transfer directly to your Nigerian bank account',
@@ -143,10 +152,9 @@ export const WithdrawalMethodSelector: React.FC<WithdrawalMethodSelectorProps> =
               <Building className="w-4 h-4 text-primary" />
             </div>
             <div className="space-y-1">
-              <h5 className="font-medium text-sm">Recommended: Bank Transfer</h5>
+              <h5 className="font-medium text-sm">Recommended: Paystack Transfer</h5>
               <p className="text-xs text-muted-foreground">
-                Most reliable method with direct deposit to your Nigerian bank account. 
-                Fees are competitive and processing is typically within 24 hours.
+                Most affordable option with only 2% fees. Fast processing (2-10 minutes) with direct deposit to any Nigerian bank account.
               </p>
             </div>
           </div>

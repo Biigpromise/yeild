@@ -196,8 +196,9 @@ export const WithdrawalProcessor = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Methods</SelectItem>
-                  <SelectItem value="paypal">PayPal</SelectItem>
-                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="paystack">Paystack Transfer</SelectItem>
+                  <SelectItem value="flutterwave">Flutterwave Transfer</SelectItem>
+                  <SelectItem value="yield_wallet">Yield Wallet</SelectItem>
                   <SelectItem value="crypto">Cryptocurrency</SelectItem>
                   <SelectItem value="gift_card">Gift Card</SelectItem>
                 </SelectContent>

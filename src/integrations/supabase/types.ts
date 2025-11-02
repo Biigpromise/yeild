@@ -2942,7 +2942,7 @@ export type Database = {
           event_details: Json | null
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           severity: string | null
           timestamp: string | null
           user_agent: string | null
@@ -2952,7 +2952,7 @@ export type Database = {
           event_details?: Json | null
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           severity?: string | null
           timestamp?: string | null
           user_agent?: string | null
@@ -2962,7 +2962,7 @@ export type Database = {
           event_details?: Json | null
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           severity?: string | null
           timestamp?: string | null
           user_agent?: string | null
@@ -3467,7 +3467,7 @@ export type Database = {
           activity_type: string
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           user_agent: string | null
           user_id: string
         }
@@ -3476,7 +3476,7 @@ export type Database = {
           activity_type: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
           user_id: string
         }
@@ -3485,7 +3485,7 @@ export type Database = {
           activity_type?: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
           user_id?: string
         }
@@ -3497,7 +3497,7 @@ export type Database = {
           created_at: string
           details: Json | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           user_agent: string | null
           user_id: string
         }
@@ -3506,7 +3506,7 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
           user_id: string
         }
@@ -3515,7 +3515,7 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
           user_id?: string
         }
@@ -3749,7 +3749,7 @@ export type Database = {
           created_at: string
           device_type: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           is_active: boolean
           location_city: string | null
           location_country: string | null
@@ -3765,7 +3765,7 @@ export type Database = {
           created_at?: string
           device_type?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean
           location_city?: string | null
           location_country?: string | null
@@ -3781,7 +3781,7 @@ export type Database = {
           created_at?: string
           device_type?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean
           location_city?: string | null
           location_country?: string | null
@@ -3799,7 +3799,7 @@ export type Database = {
           created_at: string | null
           device_fingerprint: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           location_city: string | null
           location_country: string | null
           signup_timestamp: string | null
@@ -3810,7 +3810,7 @@ export type Database = {
           created_at?: string | null
           device_fingerprint?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           location_city?: string | null
           location_country?: string | null
           signup_timestamp?: string | null
@@ -3821,7 +3821,7 @@ export type Database = {
           created_at?: string | null
           device_fingerprint?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           location_city?: string | null
           location_country?: string | null
           signup_timestamp?: string | null
@@ -4173,14 +4173,8 @@ export type Database = {
         Args: { check_user_id: string; required_role: string }
         Returns: boolean
       }
-      cleanup_expired_reset_tokens: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_expired_verification_codes: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_expired_reset_tokens: { Args: never; Returns: undefined }
+      cleanup_expired_verification_codes: { Args: never; Returns: undefined }
       create_missing_profile_for_user: {
         Args: { user_id_param: string }
         Returns: boolean
@@ -4189,20 +4183,11 @@ export type Database = {
         Args: { amount: number; reference: string; user_id: string }
         Returns: undefined
       }
-      generate_referral_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_reset_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_verification_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_referral_code: { Args: never; Returns: string }
+      generate_reset_code: { Args: never; Returns: string }
+      generate_verification_code: { Args: never; Returns: string }
       get_admin_dashboard_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           active_campaigns: number
           pending_applications: number
@@ -4234,7 +4219,7 @@ export type Database = {
         }[]
       }
       get_current_user_profile: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           email: string
           id: string
@@ -4245,7 +4230,7 @@ export type Database = {
         }[]
       }
       get_leaderboard_data: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           id: string
           level: number
@@ -4271,7 +4256,7 @@ export type Database = {
         }[]
       }
       get_performance_metrics: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           metric_name: string
           metric_value: number
@@ -4298,14 +4283,8 @@ export type Database = {
           name: string
         }[]
       }
-      get_user_role_for_policy: {
-        Args: { user_id: string }
-        Returns: string
-      }
-      get_user_role_safe: {
-        Args: { user_id_param: string }
-        Returns: string
-      }
+      get_user_role_for_policy: { Args: { user_id: string }; Returns: string }
+      get_user_role_safe: { Args: { user_id_param: string }; Returns: string }
       handle_referral_signup: {
         Args: { new_user_id: string; referral_code_param: string }
         Returns: undefined
@@ -4314,40 +4293,25 @@ export type Database = {
         Args: { new_user_id: string; referral_code_param: string }
         Returns: undefined
       }
-      has_role: {
-        Args: { _role: string; _user_id: string }
-        Returns: boolean
-      }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       increment_message_view: {
         Args: { message_id_param: string; user_id_param: string }
         Returns: undefined
       }
-      increment_post_view: {
-        Args:
-          | { post_id_to_inc: string }
-          | { post_id_to_inc: string; user_id_param: string }
-        Returns: undefined
-      }
-      is_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
-      is_admin_safe: {
-        Args: { user_id_param: string }
-        Returns: boolean
-      }
-      is_admin_user: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      increment_post_view:
+        | {
+            Args: { post_id_to_inc: string; user_id_param: string }
+            Returns: undefined
+          }
+        | { Args: { post_id_to_inc: string }; Returns: undefined }
+      is_admin: { Args: { user_id: string }; Returns: boolean }
+      is_admin_safe: { Args: { user_id_param: string }; Returns: boolean }
+      is_admin_user: { Args: never; Returns: boolean }
       is_chat_participant: {
         Args: { chat_id_param: string; user_id_param: string }
         Returns: boolean
       }
-      is_current_user_admin_secure: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_current_user_admin_secure: { Args: never; Returns: boolean }
       log_security_event: {
         Args: {
           event_details?: Json
@@ -4389,10 +4353,7 @@ export type Database = {
         Args: { target_user_id?: string }
         Returns: undefined
       }
-      sanitize_input: {
-        Args: { input_text: string }
-        Returns: string
-      }
+      sanitize_input: { Args: { input_text: string }; Returns: string }
       update_daily_task_analytics: {
         Args: { target_date?: string }
         Returns: undefined
@@ -4409,10 +4370,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      user_has_brand_role: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      user_has_brand_role: { Args: never; Returns: boolean }
       verify_admin_access_secure: {
         Args: { user_email: string }
         Returns: boolean
