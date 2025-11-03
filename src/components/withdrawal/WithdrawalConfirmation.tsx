@@ -122,7 +122,16 @@ export const WithdrawalConfirmation: React.FC<WithdrawalConfirmationProps> = ({
 
         toast.success('Points transferred to yield wallet successfully!');
       } else {
-        // Handle other withdrawal methods
+        // Handle other withdrawal methods (Paystack, Flutterwave, etc.)
+        // Step 1: Deduct points from user's balance immediately
+        const { error: pointsError } = await supabase
+          .from('profiles')
+          .update({ points: userBalance - withdrawalAmount })
+          .eq('id', user.id);
+
+        if (pointsError) throw new Error('Failed to deduct points from balance');
+
+        // Step 2: Create withdrawal request
         const { error: withdrawalError } = await supabase
           .from('withdrawal_requests')
           .insert({
@@ -133,9 +142,26 @@ export const WithdrawalConfirmation: React.FC<WithdrawalConfirmationProps> = ({
             status: 'pending'
           });
 
-        if (withdrawalError) throw new Error('Failed to create withdrawal request');
+        if (withdrawalError) {
+          // If withdrawal request creation fails, refund the points
+          await supabase
+            .from('profiles')
+            .update({ points: userBalance })
+            .eq('id', user.id);
+          throw new Error('Failed to create withdrawal request');
+        }
+
+        // Step 3: Create a point transaction record
+        await supabase
+          .from('point_transactions')
+          .insert({
+            user_id: user.id,
+            points: -withdrawalAmount,
+            transaction_type: 'withdrawal',
+            description: `Withdrawal request via ${selectedMethod}`
+          });
         
-        toast.success('Withdrawal request submitted successfully!');
+        toast.success('Withdrawal request submitted successfully! Your balance has been updated.');
       }
 
       onSubmit();
