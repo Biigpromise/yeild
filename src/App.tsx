@@ -36,6 +36,7 @@ import BrandOnboarding from "./pages/BrandOnboarding";
 import Wallet from "./pages/Wallet";
 import Referrals from "./pages/Referrals";
 import Birds from "./pages/Birds";
+import WithdrawalPage from "./pages/WithdrawalPage";
 import { EnhancedCampaignCreation } from "@/components/campaign/EnhancedCampaignCreation";
 import { AppLayout } from "./components/AppLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -128,6 +129,16 @@ const AppContent = () => {
           element={
             <ProtectedRoute>
               <EarnPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/withdrawal"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundaryWrapper>
+                <WithdrawalPage />
+              </ErrorBoundaryWrapper>
             </ProtectedRoute>
           }
         />
