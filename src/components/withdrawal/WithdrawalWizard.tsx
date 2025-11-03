@@ -6,6 +6,7 @@ import { CheckCircle, Circle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { WithdrawalMethodSelector } from './WithdrawalMethodSelector';
 import { WithdrawalAmountInput } from './WithdrawalAmountInput';
 import { WithdrawalConfirmation } from './WithdrawalConfirmation';
+import { PaystackPayment } from './PaystackPayment';
 
 interface WithdrawalWizardProps {
   userBalance: number;
@@ -46,7 +47,16 @@ export const WithdrawalWizard: React.FC<WithdrawalWizardProps> = ({
       case 1:
         return selectedMethod !== '';
       case 2:
-        return amount !== '' && parseFloat(amount) > 0;
+        const hasAmount = amount !== '' && parseFloat(amount) > 0;
+        // If paystack is selected, also require bank details
+        if (selectedMethod === 'paystack') {
+          return hasAmount && 
+                 payoutDetails.accountNumber && 
+                 payoutDetails.bankCode && 
+                 payoutDetails.accountName &&
+                 payoutDetails.accountNumber.length === 10;
+        }
+        return hasAmount;
       case 3:
         return true;
       default:
@@ -104,12 +114,28 @@ export const WithdrawalWizard: React.FC<WithdrawalWizardProps> = ({
           )}
           
           {currentStep === 2 && (
-            <WithdrawalAmountInput
-              amount={amount}
-              onAmountChange={setAmount}
-              userBalance={userBalance}
-              selectedMethod={selectedMethod}
-            />
+            <div className="space-y-6">
+              <WithdrawalAmountInput
+                amount={amount}
+                onAmountChange={setAmount}
+                userBalance={userBalance}
+                selectedMethod={selectedMethod}
+              />
+              
+              {/* Show bank details form for Paystack */}
+              {selectedMethod === 'paystack' && (
+                <div className="pt-6 border-t border-border/50">
+                  <div className="text-center space-y-2 mb-6">
+                    <h3 className="text-xl font-semibold">Enter Bank Details</h3>
+                    <p className="text-muted-foreground">Provide your Nigerian bank account information</p>
+                  </div>
+                  <PaystackPayment
+                    payoutDetails={payoutDetails}
+                    onDetailsChange={setPayoutDetails}
+                  />
+                </div>
+              )}
+            </div>
           )}
           
           {currentStep === 3 && (

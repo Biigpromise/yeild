@@ -21,7 +21,15 @@ export const WithdrawalAmountInput: React.FC<WithdrawalAmountInputProps> = ({
   const [showBreakdown, setShowBreakdown] = useState(false);
   
   const withdrawalAmount = parseFloat(amount) || 0;
-  const processingFee = selectedMethod === 'yield_wallet' ? 0 : Math.ceil(withdrawalAmount * 0.05);
+  
+  // Dynamic fee calculation based on method
+  const getFeePercentage = () => {
+    if (selectedMethod === 'yield_wallet') return 0;
+    if (selectedMethod === 'paystack') return 0.02; // 2%
+    return 0.05; // 5% for flutterwave and others
+  };
+  
+  const processingFee = Math.ceil(withdrawalAmount * getFeePercentage());
   const netAmount = withdrawalAmount - processingFee;
   
   const minWithdrawal = selectedMethod === 'yield_wallet' ? 100 : 1000;
@@ -124,7 +132,9 @@ export const WithdrawalAmountInput: React.FC<WithdrawalAmountInputProps> = ({
             </div>
             
             <div className="flex justify-between items-center py-2 border-b border-border/30">
-              <span className="text-muted-foreground">Processing Fee ({selectedMethod === 'yield_wallet' ? '0%' : '5%'})</span>
+              <span className="text-muted-foreground">
+                Processing Fee ({selectedMethod === 'yield_wallet' ? '0%' : selectedMethod === 'paystack' ? '2%' : '5%'})
+              </span>
               <span className="font-semibold text-destructive">
                 {processingFee > 0 ? '-' : ''}₦{processingFee.toLocaleString()}
               </span>
@@ -148,7 +158,11 @@ export const WithdrawalAmountInput: React.FC<WithdrawalAmountInputProps> = ({
         <CardContent className="p-4">
           <div className="space-y-2">
             <h5 className="font-medium text-sm">
-              {selectedMethod === 'yield_wallet' ? 'Yield Wallet Transfer' : 'Bank Transfer'} Information
+              {selectedMethod === 'yield_wallet' 
+                ? 'Yield Wallet Transfer' 
+                : selectedMethod === 'paystack'
+                ? 'Paystack Bank Transfer'
+                : 'Bank Transfer'} Information
             </h5>
             <div className="text-xs text-muted-foreground space-y-1">
               {selectedMethod === 'yield_wallet' ? (
@@ -156,6 +170,12 @@ export const WithdrawalAmountInput: React.FC<WithdrawalAmountInputProps> = ({
                   <p>• Instant transfer with no fees</p>
                   <p>• Earn compound interest on transferred amount</p>
                   <p>• Minimum transfer: ₦100</p>
+                </>
+              ) : selectedMethod === 'paystack' ? (
+                <>
+                  <p>• Processing fee: 2% of withdrawal amount</p>
+                  <p>• Processing time: 2-10 minutes</p>
+                  <p>• Minimum withdrawal: ₦1,000</p>
                 </>
               ) : (
                 <>

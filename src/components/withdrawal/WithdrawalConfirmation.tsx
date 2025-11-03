@@ -27,7 +27,15 @@ export const WithdrawalConfirmation: React.FC<WithdrawalConfirmationProps> = ({
   const [confirmed, setConfirmed] = useState(false);
 
   const withdrawalAmount = parseFloat(amount) || 0;
-  const processingFee = selectedMethod === 'yield_wallet' ? 0 : Math.ceil(withdrawalAmount * 0.05);
+  
+  // Dynamic fee calculation
+  const getFeePercentage = () => {
+    if (selectedMethod === 'yield_wallet') return 0;
+    if (selectedMethod === 'paystack') return 0.02; // 2%
+    return 0.05; // 5% for flutterwave and others
+  };
+  
+  const processingFee = Math.ceil(withdrawalAmount * getFeePercentage());
   const netAmount = withdrawalAmount - processingFee;
 
   const getMethodDetails = () => {
@@ -39,9 +47,16 @@ export const WithdrawalConfirmation: React.FC<WithdrawalConfirmationProps> = ({
           processingTime: 'Instant',
           icon: '💰'
         };
+      case 'paystack':
+        return {
+          name: 'Paystack Bank Transfer',
+          description: 'Fast and secure transfer to your Nigerian bank account',
+          processingTime: '2-10 minutes',
+          icon: '🏦'
+        };
       case 'flutterwave':
         return {
-          name: 'Bank Transfer',
+          name: 'Flutterwave Bank Transfer',
           description: 'Direct transfer to your Nigerian bank account',
           processingTime: '1-24 hours',
           icon: '🏦'
