@@ -16,6 +16,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
+import { WithdrawalProcessor } from "./WithdrawalProcessor";
 
 export const AdminFinancial = () => {
   const { data: walletStats, isLoading: loadingWallets } = useQuery({
@@ -149,6 +150,7 @@ export const AdminFinancial = () => {
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="wallets">Wallets</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
@@ -204,6 +206,10 @@ export const AdminFinancial = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="withdrawals">
+          <WithdrawalProcessor />
         </TabsContent>
 
         <TabsContent value="transactions">
