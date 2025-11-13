@@ -34,8 +34,9 @@ export const validateTaskForm = (formData: TaskFormData): boolean => {
     return false;
   }
 
-  if (!formData.points || isNaN(Number(formData.points)) || Number(formData.points) <= 0) {
-    toast.error("Please enter a valid points value");
+  const pointsValue = Number(formData.points);
+  if (!formData.points || isNaN(pointsValue) || pointsValue < 300) {
+    toast.error("Minimum task value is 300 points");
     return false;
   }
 

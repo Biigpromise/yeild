@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { taskService, TaskCategory } from "@/services/taskService";
 import { toast } from "sonner";
 import { useSimpleFormPersistence } from "@/hooks/useSimpleFormPersistence";
+import { BudgetEstimateCalculator } from "@/components/brand/BudgetEstimateCalculator";
 
 interface CreateTaskFormProps {
   onTaskCreated: () => void;
@@ -64,15 +65,15 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
     console.log('Submitting task with data:', formData);
     
     // Validate required fields - only title, description, and points are required
+    const pointsValue = Number(formData.points);
     if (
       !formData.title.trim() ||
       !formData.description.trim() ||
       !formData.points ||
-      formData.points === "0" ||
-      isNaN(Number(formData.points)) ||
-      Number(formData.points) < 1
+      isNaN(pointsValue) ||
+      pointsValue < 300
     ) {
-      toast.error("Please fill in all required fields (title, description, and points must be greater than 0)");
+      toast.error("Please fill in all required fields. Minimum task value is 300 points.");
       return;
     }
 
@@ -135,7 +136,11 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
   );
 
   return (
-    <div className="w-full flex justify-center items-center sm:p-4 p-0">
+    <div className="space-y-6">
+      {/* Budget Calculator */}
+      <BudgetEstimateCalculator />
+
+      <div className="w-full flex justify-center items-center sm:p-4 p-0">
       <Card className="w-full max-w-2xl shadow-lg rounded-lg border sm:my-6 my-0 sm:p-6 p-0 bg-white">
         <CardHeader className="px-4 pt-4">
           <CardTitle>Create New Task</CardTitle>
@@ -162,16 +167,17 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
                 </div>
 
                 <div>
-                  <Label htmlFor="points">Points Reward *</Label>
+                  <Label htmlFor="points">Points Reward * (Min: 300)</Label>
                   <Input
                     id="points"
                     type="number"
                     value={formData.points}
                     onChange={(e) => handleInputChange('points', e.target.value)}
-                    placeholder="50"
-                    min="1"
+                    placeholder="300"
+                    min="300"
                     required
                   />
+                  <p className="text-xs text-muted-foreground mt-1">Minimum 300 points per task</p>
                 </div>
 
                 <div>
@@ -296,6 +302,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated })
           </form>
         </CardContent>
       </Card>
+    </div>
     </div>
   );
 };

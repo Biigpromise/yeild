@@ -9,6 +9,7 @@ import { FileText, Plus, Save, Eye, Star, Tag } from 'lucide-react';
 import { enhancedTaskManagementService } from '@/services/admin/enhancedTaskManagementService';
 import { toast } from 'sonner';
 import { useSimpleFormPersistence } from '@/hooks/useSimpleFormPersistence';
+import { BudgetEstimateCalculator } from '@/components/brand/BudgetEstimateCalculator';
 
 interface TaskCategory {
   id: string;
@@ -109,8 +110,9 @@ export const AdminCreateTaskTab = () => {
       toast.error('Task description is required');
       return false;
     }
-    if (!formData.points || parseInt(formData.points) <= 0) {
-      toast.error('Points must be greater than 0');
+    const pointsValue = parseInt(formData.points);
+    if (!formData.points || isNaN(pointsValue) || pointsValue < 300) {
+      toast.error('Minimum task value is 300 points');
       return false;
     }
     return true;
@@ -255,16 +257,17 @@ export const AdminCreateTaskTab = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="points" className="text-foreground">Points Reward *</Label>
+                  <Label htmlFor="points" className="text-foreground">Points Reward * (Minimum: 300)</Label>
                   <Input
                     id="points"
                     type="number"
                     value={formData.points}
                     onChange={(e) => handleInputChange('points', e.target.value)}
-                    placeholder="e.g., 100"
-                    min="1"
+                    placeholder="e.g., 300"
+                    min="300"
                     className="border-border bg-background text-foreground"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">Minimum 300 points per task</p>
                 </div>
 
                 <div>
@@ -345,6 +348,9 @@ export const AdminCreateTaskTab = () => {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Budget Calculator */}
+          <BudgetEstimateCalculator />
+
           {/* Task Summary */}
           <Card className="border-border">
             <CardHeader>
