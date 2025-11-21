@@ -17,7 +17,8 @@ import {
   ArrowUpRight,
   Clock,
   Trophy,
-  Target
+  Target,
+  Store
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -28,7 +29,9 @@ import { WalletTab } from './tabs/WalletTab';
 import { LiveNotifications } from './LiveNotifications';
 import EarnPage from '@/components/EarnPage';
 
-type TabType = 'home' | 'earn' | 'wallet' | 'profile';
+import { MarketplaceBrowser } from '@/components/marketplace/MarketplaceBrowser';
+
+type TabType = 'home' | 'earn' | 'marketplace' | 'wallet' | 'profile';
 
 interface SimplifiedDashboardProps {
   className?: string;
@@ -79,6 +82,12 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
       description: 'Tasks & opportunities'
     },
     {
+      id: 'marketplace' as TabType,
+      name: 'Market',
+      icon: Store,
+      description: 'Browse listings'
+    },
+    {
       id: 'wallet' as TabType,
       name: 'Wallet',
       icon: Wallet,
@@ -124,6 +133,8 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
         return <HomeTab userStats={userStats} userProfile={userProfile} />;
       case 'earn':
         return <EarnPage />;
+      case 'marketplace':
+        return <MarketplaceBrowser />;
       case 'wallet':
         return <WalletTab userProfile={userProfile} userStats={userStats} />;
       case 'profile':
