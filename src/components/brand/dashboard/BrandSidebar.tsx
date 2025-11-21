@@ -13,6 +13,7 @@ import {
   HelpCircle,
   LogOut,
   User,
+  Store,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -50,6 +51,11 @@ const navigationItems: NavigationItem[] = [
     url: "/brand-dashboard/campaigns",
     icon: Target,
     badge: "3",
+  },
+  {
+    title: "Marketplace",
+    url: "/brand-dashboard/marketplace",
+    icon: Store,
   },
   {
     title: "Audience Insights",

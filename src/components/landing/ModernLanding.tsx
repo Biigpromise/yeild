@@ -128,7 +128,7 @@ export const ModernLanding: React.FC = () => {
                 className="h-14 px-8 text-lg font-semibold bg-primary hover:bg-primary/90 group"
               >
                 <Coins className="mr-2 h-5 w-5" />
-                For Users: Start Earning Points
+                Start Earning Today
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button 
@@ -138,7 +138,7 @@ export const ModernLanding: React.FC = () => {
                 className="h-14 px-8 text-lg font-semibold"
               >
                 <Building2 className="mr-2 h-5 w-5" />
-                For Brands: Launch Campaign
+                Start Advertising Today
               </Button>
             </motion.div>
 

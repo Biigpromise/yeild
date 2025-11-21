@@ -1694,6 +1694,131 @@ export type Database = {
           },
         ]
       }
+      marketplace_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      marketplace_interactions: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          id: string
+          listing_id: string
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          id?: string
+          listing_id: string
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          id?: string
+          listing_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_interactions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_listings: {
+        Row: {
+          brand_id: string
+          category: string
+          clicks_count: number | null
+          created_at: string | null
+          days_paid: number
+          description: string
+          end_date: string
+          external_link: string | null
+          id: string
+          image_url: string | null
+          price_per_day: number | null
+          start_date: string | null
+          status: string | null
+          title: string
+          total_paid: number
+          updated_at: string | null
+          views_count: number | null
+        }
+        Insert: {
+          brand_id: string
+          category: string
+          clicks_count?: number | null
+          created_at?: string | null
+          days_paid: number
+          description: string
+          end_date: string
+          external_link?: string | null
+          id?: string
+          image_url?: string | null
+          price_per_day?: number | null
+          start_date?: string | null
+          status?: string | null
+          title: string
+          total_paid: number
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          brand_id?: string
+          category?: string
+          clicks_count?: number | null
+          created_at?: string | null
+          days_paid?: number
+          description?: string
+          end_date?: string
+          external_link?: string | null
+          id?: string
+          image_url?: string | null
+          price_per_day?: number | null
+          start_date?: string | null
+          status?: string | null
+          title?: string
+          total_paid?: number
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Relationships: []
+      }
       message_comments: {
         Row: {
           content: string
@@ -2323,6 +2448,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      platform_revenue: {
+        Row: {
+          amount: number
+          brand_id: string | null
+          created_at: string | null
+          id: string
+          listing_id: string | null
+          source: string
+          transaction_date: string | null
+        }
+        Insert: {
+          amount: number
+          brand_id?: string | null
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          source: string
+          transaction_date?: string | null
+        }
+        Update: {
+          amount?: number
+          brand_id?: string | null
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          source?: string
+          transaction_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_revenue_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       platform_settings: {
         Row: {
@@ -4145,6 +4308,7 @@ export type Database = {
           task_id: string
         }[]
       }
+      auto_expire_marketplace_listings: { Args: never; Returns: undefined }
       award_referral_commission: {
         Args: { downline_user_id: string; points_earned: number }
         Returns: undefined

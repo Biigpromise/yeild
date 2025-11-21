@@ -17,6 +17,7 @@ import { BrandSupport } from '@/components/brand/dashboard/BrandSupport';
 import { RichCampaignCreator } from '@/components/campaign/RichCampaignCreator';
 import { EnhancedCampaignCreation } from '@/components/campaign/EnhancedCampaignCreation';
 import { CreateQuickCampaign } from '@/components/campaign/CreateQuickCampaign';
+import { MarketplaceManager } from '@/components/brand/marketplace/MarketplaceManager';
 import { toast } from 'sonner';
 
 const BrandDashboard = () => {
@@ -100,6 +101,10 @@ const BrandDashboard = () => {
         <Route
           path="/campaigns/enhanced"
           element={<EnhancedCampaignCreation />}
+        />
+        <Route
+          path="/marketplace"
+          element={<MarketplaceManager />}
         />
         <Route
           path="/audience"
