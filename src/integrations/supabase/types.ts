@@ -1694,6 +1694,79 @@ export type Database = {
           },
         ]
       }
+      marketplace_analytics_daily: {
+        Row: {
+          clicks: number | null
+          created_at: string | null
+          ctr: number | null
+          date: string
+          id: string
+          listing_id: string | null
+          unique_clickers: number | null
+          unique_viewers: number | null
+          views: number | null
+        }
+        Insert: {
+          clicks?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          date: string
+          id?: string
+          listing_id?: string | null
+          unique_clickers?: number | null
+          unique_viewers?: number | null
+          views?: number | null
+        }
+        Update: {
+          clicks?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          date?: string
+          id?: string
+          listing_id?: string | null
+          unique_clickers?: number | null
+          unique_viewers?: number | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_analytics_daily_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_bookmarks: {
+        Row: {
+          created_at: string | null
+          id: string
+          listing_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_bookmarks_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_categories: {
         Row: {
           created_at: string | null
@@ -1759,6 +1832,38 @@ export type Database = {
           },
         ]
       }
+      marketplace_listing_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          listing_id: string | null
+          notification_type: string
+          sent_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          notification_type: string
+          sent_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          notification_type?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_listing_notifications_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_listings: {
         Row: {
           brand_id: string
@@ -1769,8 +1874,13 @@ export type Database = {
           description: string
           end_date: string
           external_link: string | null
+          featured_position: number | null
+          featured_until: string | null
           id: string
           image_url: string | null
+          image_urls: Json | null
+          is_featured: boolean | null
+          listing_tier: string | null
           price_per_day: number | null
           start_date: string | null
           status: string | null
@@ -1788,8 +1898,13 @@ export type Database = {
           description: string
           end_date: string
           external_link?: string | null
+          featured_position?: number | null
+          featured_until?: string | null
           id?: string
           image_url?: string | null
+          image_urls?: Json | null
+          is_featured?: boolean | null
+          listing_tier?: string | null
           price_per_day?: number | null
           start_date?: string | null
           status?: string | null
@@ -1807,8 +1922,13 @@ export type Database = {
           description?: string
           end_date?: string
           external_link?: string | null
+          featured_position?: number | null
+          featured_until?: string | null
           id?: string
           image_url?: string | null
+          image_urls?: Json | null
+          is_featured?: boolean | null
+          listing_tier?: string | null
           price_per_day?: number | null
           start_date?: string | null
           status?: string | null
