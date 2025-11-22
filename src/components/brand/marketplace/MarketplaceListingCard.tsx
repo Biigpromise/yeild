@@ -2,16 +2,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MarketplaceListing } from "@/services/marketplaceService";
-import { Eye, MousePointerClick, Calendar, ExternalLink, Trash2, Plus } from "lucide-react";
+import { Eye, MousePointerClick, Calendar, ExternalLink, Trash2, Plus, Edit, BarChart3 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 interface MarketplaceListingCardProps {
   listing: MarketplaceListing;
   onRemove?: (id: string) => void;
   onExtend?: (id: string) => void;
+  onEdit?: (listing: MarketplaceListing) => void;
 }
 
-export function MarketplaceListingCard({ listing, onRemove, onExtend }: MarketplaceListingCardProps) {
+export function MarketplaceListingCard({ listing, onRemove, onExtend, onEdit }: MarketplaceListingCardProps) {
+  const navigate = useNavigate();
   const daysRemaining = Math.ceil(
     (new Date(listing.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
   );
@@ -110,25 +113,22 @@ export function MarketplaceListingCard({ listing, onRemove, onExtend }: Marketpl
         </div>
 
         <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => navigate(`/brand-dashboard/marketplace/analytics/${listing.id}`)}>
+            <BarChart3 className="h-4 w-4" />
+          </Button>
+          {listing.status === 'active' && onEdit && (
+            <Button size="sm" variant="outline" onClick={() => onEdit(listing)}>
+              <Edit className="h-4 w-4" />
+            </Button>
+          )}
           {listing.status === 'active' && onExtend && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex-1"
-              onClick={() => onExtend(listing.id)}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Extend
+            <Button size="sm" variant="outline" onClick={() => onExtend(listing.id)}>
+              <Plus className="h-4 w-4" />
             </Button>
           )}
           {listing.status === 'active' && onRemove && (
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => onRemove(listing.id)}
-            >
-              <Trash2 className="h-4 w-4 mr-1" />
-              Remove
+            <Button size="sm" variant="destructive" onClick={() => onRemove(listing.id)}>
+              <Trash2 className="h-4 w-4" />
             </Button>
           )}
         </div>

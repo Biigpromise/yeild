@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MarketplaceListing, marketplaceService } from "@/services/marketplaceService";
 import { ExternalLink, Eye, MousePointerClick } from "lucide-react";
 import { toast } from "sonner";
+import { MarketplaceImageCarousel } from "./MarketplaceImageCarousel";
 
 interface MarketplaceListingDetailCardProps {
   listing: MarketplaceListing;
@@ -60,16 +61,17 @@ export function MarketplaceListingDetailCard({ listing }: MarketplaceListingDeta
         <CardTitle className="text-lg line-clamp-2">{listing.title}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
-        {listing.image_url && (
-          <img 
-            src={listing.image_url} 
-            alt={listing.title}
-            className="w-full h-48 object-cover rounded-lg mb-4"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-        )}
+        {(() => {
+          const images = listing.image_urls && Array.isArray(listing.image_urls) && listing.image_urls.length > 0
+            ? listing.image_urls.filter((url): url is string => typeof url === 'string')
+            : listing.image_url ? [listing.image_url] : [];
+          
+          return images.length > 0 ? (
+            <div className="mb-4">
+              <MarketplaceImageCarousel images={images} alt={listing.title} />
+            </div>
+          ) : null;
+        })()}
         
         <p className="text-sm text-muted-foreground mb-4 line-clamp-3 flex-1">
           {listing.description}

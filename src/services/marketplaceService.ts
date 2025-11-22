@@ -10,8 +10,18 @@ export interface CreateListingData {
   description: string;
   category: string;
   image_url?: string;
+  image_urls?: string[];
   external_link?: string;
   days_paid: number;
+  listing_tier?: 'standard' | 'featured' | 'premium';
+}
+
+export interface UpdateListingData {
+  title?: string;
+  description?: string;
+  image_url?: string;
+  image_urls?: string[];
+  external_link?: string;
 }
 
 export interface MarketplaceCategory {
@@ -41,7 +51,16 @@ export const marketplaceService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    const totalCost = listingData.days_paid * 10000;
+    // Pricing by tier
+    const PRICING = {
+      standard: 10000,
+      featured: 20000,
+      premium: 35000
+    };
+    
+    const tier = listingData.listing_tier || 'standard';
+    const pricePerDay = PRICING[tier];
+    const totalCost = listingData.days_paid * pricePerDay;
 
     // Check wallet balance
     const { data: wallet, error: walletError } = await supabase
@@ -68,14 +87,18 @@ export const marketplaceService = {
         title: listingData.title,
         description: listingData.description,
         category: listingData.category,
-        image_url: listingData.image_url,
+        image_url: listingData.image_url || listingData.image_urls?.[0],
+        image_urls: listingData.image_urls || [],
         external_link: listingData.external_link,
-        price_per_day: 10000,
+        price_per_day: pricePerDay,
         days_paid: listingData.days_paid,
         total_paid: totalCost,
         start_date: startDate.toISOString(),
         end_date: endDate.toISOString(),
-        status: 'active'
+        status: 'active',
+        listing_tier: tier,
+        is_featured: tier === 'featured' || tier === 'premium',
+        featured_until: (tier === 'featured' || tier === 'premium') ? endDate.toISOString() : null
       })
       .select()
       .single();
@@ -147,8 +170,22 @@ export const marketplaceService = {
     return data || [];
   },
 
-  // Update listing
-  async updateListing(id: string, updates: Partial<CreateListingData>): Promise<void> {
+  // Update listing (only allowed fields)
+  async updateListing(id: string, updates: UpdateListingData): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    // Verify ownership
+    const { data: listing } = await supabase
+      .from('marketplace_listings')
+      .select('brand_id, status')
+      .eq('id', id)
+      .single();
+
+    if (!listing) throw new Error('Listing not found');
+    if (listing.brand_id !== user.id) throw new Error('Unauthorized');
+    if (listing.status !== 'active') throw new Error('Can only edit active listings');
+
     const { error } = await supabase
       .from('marketplace_listings')
       .update({
@@ -307,5 +344,110 @@ export const marketplaceService = {
       ctr: parseFloat(ctr),
       interactions: interactions || []
     };
+  },
+
+  // Get detailed analytics for dashboard
+  async getListingAnalyticsDetailed(listingId: string, startDate: Date, endDate: Date) {
+    // Get daily stats
+    const { data: dailyStats, error: dailyError } = await supabase
+      .from('marketplace_analytics_daily')
+      .select('*')
+      .eq('listing_id', listingId)
+      .gte('date', startDate.toISOString().split('T')[0])
+      .lte('date', endDate.toISOString().split('T')[0])
+      .order('date', { ascending: true });
+
+    if (dailyError) throw dailyError;
+
+    // Calculate total stats
+    const totalViews = dailyStats?.reduce((sum, day) => sum + (day.views || 0), 0) || 0;
+    const totalClicks = dailyStats?.reduce((sum, day) => sum + (day.clicks || 0), 0) || 0;
+    const avgCTR = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(2) : '0.00';
+
+    // Get category average for comparison
+    const { data: listing } = await supabase
+      .from('marketplace_listings')
+      .select('category')
+      .eq('id', listingId)
+      .single();
+
+    const { data: categoryListings } = await supabase
+      .from('marketplace_listings')
+      .select('views_count, clicks_count')
+      .eq('category', listing?.category)
+      .eq('status', 'active');
+
+    const categoryViews = categoryListings?.reduce((sum, l) => sum + (l.views_count || 0), 0) || 1;
+    const categoryClicks = categoryListings?.reduce((sum, l) => sum + (l.clicks_count || 0), 0) || 0;
+    const categoryAvgCTR = categoryViews > 0 ? ((categoryClicks / categoryViews) * 100).toFixed(2) : '0.00';
+
+    return {
+      dailyStats: dailyStats || [],
+      totalStats: {
+        totalViews,
+        totalClicks,
+        avgCTR: parseFloat(avgCTR)
+      },
+      categoryComparison: {
+        yourCTR: parseFloat(avgCTR),
+        categoryAvgCTR: parseFloat(categoryAvgCTR)
+      }
+    };
+  },
+
+  // Bookmark listing
+  async bookmarkListing(listingId: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('marketplace_bookmarks')
+      .insert({ user_id: user.id, listing_id: listingId });
+
+    if (error) throw error;
+  },
+
+  // Remove bookmark
+  async removeBookmark(listingId: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('marketplace_bookmarks')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('listing_id', listingId);
+
+    if (error) throw error;
+  },
+
+  // Get user bookmarks
+  async getUserBookmarks(): Promise<MarketplaceListing[]> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { data: bookmarks, error } = await supabase
+      .from('marketplace_bookmarks')
+      .select('listing_id, marketplace_listings(*)')
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+
+    return bookmarks?.map((b: any) => b.marketplace_listings).filter(Boolean) || [];
+  },
+
+  // Check if listing is bookmarked
+  async isBookmarked(listingId: string): Promise<boolean> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const { data } = await supabase
+      .from('marketplace_bookmarks')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('listing_id', listingId)
+      .single();
+
+    return !!data;
   }
 };
