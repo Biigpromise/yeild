@@ -9,10 +9,14 @@ export const useAuthOperations = () => {
       password,
     });
 
-    if (error) {
-      console.error("Sign in error:", error);
-      return { data, error };
-    }
+      if (error) {
+        console.error("Sign in error:", error);
+        // Format error message for better user experience
+        const errorMessage = error.message === 'Invalid login credentials' 
+          ? 'Invalid email or password. Please try again.'
+          : error.message || 'Failed to sign in';
+        return { data, error: { message: errorMessage } };
+      }
 
     // Check if email is confirmed
     const needsEmailConfirmation = !data.user?.email_confirmed_at;
@@ -45,12 +49,14 @@ export const useAuthOperations = () => {
 
       if (codeError) {
         console.error("Error sending verification code:", codeError);
-        return { data: null, error: codeError };
+        const errorMessage = 'Failed to send verification code. Please try again.';
+        return { data: null, error: { message: errorMessage } };
       }
 
       if (!codeData?.success) {
         console.error("Verification code sending failed:", codeData);
-        return { data: null, error: { message: codeData?.message || 'Failed to send verification code' } };
+        const errorMessage = codeData?.message || 'Failed to send verification code. Please try again.';
+        return { data: null, error: { message: errorMessage } };
       }
 
       // Create user account but DON'T sign them in automatically - they need to verify email first
@@ -65,7 +71,10 @@ export const useAuthOperations = () => {
 
       if (error) {
         console.error("Sign up error:", error);
-        return { data, error };
+        const errorMessage = error.message === 'User already registered' 
+          ? 'This email is already registered. Please sign in instead.'
+          : error.message || 'Failed to create account';
+        return { data, error: { message: errorMessage } };
       }
 
       // Important: Don't auto-sign the user in - they must verify their email first

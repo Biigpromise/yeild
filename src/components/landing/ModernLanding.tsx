@@ -14,7 +14,8 @@ import {
   Building2,
   Megaphone,
   Coins,
-  DollarSign
+  DollarSign,
+  Target
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -50,7 +51,7 @@ export const ModernLanding: React.FC = () => {
 
   const stats = [
     { number: '10K+', label: 'Active Users' },
-    { number: '50K+', label: 'Tasks Completed' },
+    { number: '500+', label: 'Brands' },
     { number: '₦2M+', label: 'Rewards Paid' }
   ];
 
@@ -111,8 +112,8 @@ export const ModernLanding: React.FC = () => {
                 Get Rewarded.
               </h1>
               <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Join thousands of users earning real rewards by completing simple tasks. 
-                Start earning today with YEILD's user-friendly platform.
+                Join thousands of users earning real rewards or grow your brand with targeted campaigns. 
+                Start with YEILD's user-friendly platform today.
               </p>
             </motion.div>
 
@@ -207,6 +208,90 @@ export const ModernLanding: React.FC = () => {
                 );
               })}
             </div>
+          </div>
+        </section>
+
+        {/* For Brands Section */}
+        <section className="py-16 lg:py-24">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+                Grow Your Brand with YEILD
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Reach thousands of engaged users ready to interact with your brand. Launch campaigns in minutes.
+              </p>
+            </motion.div>
+
+            <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto mb-12">
+              {[
+                {
+                  icon: Target,
+                  title: 'Reach Targeted Users',
+                  description: 'Connect with engaged users who are ready to interact with your brand and complete your campaigns',
+                  color: 'text-blue-600 bg-blue-500/10'
+                },
+                {
+                  icon: TrendingUp,
+                  title: 'Track Performance',
+                  description: 'Get real-time analytics and detailed insights on your campaign performance and ROI',
+                  color: 'text-purple-600 bg-purple-500/10'
+                },
+                {
+                  icon: DollarSign,
+                  title: 'Flexible Campaigns',
+                  description: 'Set your own budget, choose your target audience, and customize campaign goals to match your needs',
+                  color: 'text-green-600 bg-green-500/10'
+                }
+              ].map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                  >
+                    <Card className="text-center p-6 h-full border-border/60 hover:shadow-lg transition-shadow">
+                      <CardContent className="p-6">
+                        <div className={`w-16 h-16 rounded-2xl ${feature.color} mx-auto mb-6 flex items-center justify-center`}>
+                          <Icon className="h-8 w-8" />
+                        </div>
+                        <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
+                        <p className="text-muted-foreground leading-relaxed">
+                          {feature.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-center"
+            >
+              <Button 
+                size="lg"
+                onClick={() => navigate('/auth?mode=signup&type=brand')}
+                className="h-14 px-8 text-lg font-semibold bg-primary hover:bg-primary/90 group"
+              >
+                <Megaphone className="mr-2 h-5 w-5" />
+                Start Advertising Today
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </motion.div>
           </div>
         </section>
 

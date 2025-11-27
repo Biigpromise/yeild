@@ -106,9 +106,9 @@ export const SimplifiedAuthFlow = () => {
             toast.error(error.message || 'Failed to create account. Please try again.');
           }
         } else {
-          toast.success('Account created successfully! Please check your email to verify your account.');
-          // Switch to login mode after successful signup
-          setIsLogin(true);
+          toast.success('Verification code sent! Redirecting...');
+          // Redirect to verification page with email, name, and userType
+          navigate(`/verify-signup-code?email=${encodeURIComponent(formData.email)}&name=${encodeURIComponent(formData.name)}&userType=${formData.userType}`);
         }
       }
     } catch (error: any) {
