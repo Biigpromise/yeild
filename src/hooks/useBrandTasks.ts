@@ -45,7 +45,7 @@ export const useBrandTasks = () => {
     try {
       setLoading(true);
       
-      // Fetch tasks created by this brand
+      // Fetch tasks created by this brand that have allocated budget (funded)
       const { data: tasksData, error: tasksError } = await supabase
         .from('tasks')
         .select(`
@@ -56,6 +56,7 @@ export const useBrandTasks = () => {
           )
         `)
         .eq('brand_user_id', user.id)
+        .gt('budget_allocated', 0)
         .order('created_at', { ascending: false });
 
       if (tasksError) throw tasksError;

@@ -79,6 +79,7 @@ export const EnhancedTaskManagement: React.FC = () => {
   });
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [terminateLoading, setTerminateLoading] = useState<string | null>(null);
 
   // Load real submission data
   React.useEffect(() => {

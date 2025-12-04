@@ -57,6 +57,7 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
         .from('tasks')
         .select('*')
         .eq('status', 'active')
+        .gt('budget_allocated', 0)
         .order('created_at', { ascending: false })
         .limit(20);
 
