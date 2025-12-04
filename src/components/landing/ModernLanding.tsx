@@ -107,13 +107,12 @@ export const ModernLanding: React.FC = () => {
             >
               <YieldLogo size={80} className="mx-auto mb-6" />
               <h1 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight">
-                Earn Points.<br />
-                Complete Tasks.<br />
-                Get Rewarded.
+                Earn rewards as a user.<br />
+                Grow your brand with targeted campaigns.<br />
+                All in one platform.
               </h1>
               <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Join thousands of users earning real rewards or grow your brand with targeted campaigns. 
-                Start with YEILD's user-friendly platform today.
+                YEILD connects users who want to earn with brands who want targeted engagement, on a simple and powerful platform.
               </p>
             </motion.div>
 
@@ -162,9 +161,76 @@ export const ModernLanding: React.FC = () => {
               ))}
             </motion.div>
           </div>
-        </section>
+         </section>
 
-        {/* Features Section */}
+         {/* Audience Section */}
+         <section className="container mx-auto px-4 pb-16">
+           <motion.div
+             initial={{ opacity: 0, y: 20 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true }}
+             transition={{ duration: 0.6 }}
+             className="max-w-5xl mx-auto"
+           >
+             <h2 className="text-2xl lg:text-3xl font-bold mb-6 text-center">
+               Who is YEILD for?
+             </h2>
+             <div className="grid gap-6 md:grid-cols-2">
+               <Card className="border-border/60 hover:shadow-lg transition-shadow">
+                 <CardContent className="p-6 flex flex-col h-full">
+                   <div className="flex items-center gap-3 mb-4">
+                     <Coins className="h-6 w-6 text-primary" />
+                     <span className="text-lg font-semibold">I&apos;m here to earn</span>
+                   </div>
+                   <p className="text-sm text-muted-foreground mb-4">
+                     Complete simple tasks, earn points, unlock bird levels, and withdraw your rewards securely.
+                   </p>
+                   <ul className="text-sm text-muted-foreground space-y-2 mb-6">
+                     <li>• Short, mobile-friendly tasks</li>
+                     <li>• Transparent points and rewards</li>
+                     <li>• Referral bonuses for inviting friends</li>
+                   </ul>
+                   <Button
+                     size="sm"
+                     className="mt-auto self-start"
+                     onClick={() => navigate('/auth?mode=signup&type=user')}
+                   >
+                     Start earning
+                     <ArrowRight className="ml-2 h-4 w-4" />
+                   </Button>
+                 </CardContent>
+               </Card>
+
+               <Card className="border-border/60 hover:shadow-lg transition-shadow">
+                 <CardContent className="p-6 flex flex-col h-full">
+                   <div className="flex items-center gap-3 mb-4">
+                     <Building2 className="h-6 w-6 text-primary" />
+                     <span className="text-lg font-semibold">I&apos;m here to advertise</span>
+                   </div>
+                   <p className="text-sm text-muted-foreground mb-4">
+                     Launch campaigns that put your brand in front of verified, reward-motivated users.
+                   </p>
+                   <ul className="text-sm text-muted-foreground space-y-2 mb-6">
+                     <li>• Create and fund campaigns in minutes</li>
+                     <li>• Reach targeted users at scale</li>
+                     <li>• Monitor performance with real-time insights</li>
+                   </ul>
+                   <Button
+                     variant="brand"
+                     size="sm"
+                     className="mt-auto self-start"
+                     onClick={() => navigate('/auth?mode=signup&type=brand')}
+                   >
+                     Start advertising
+                     <ArrowRight className="ml-2 h-4 w-4" />
+                   </Button>
+                 </CardContent>
+               </Card>
+             </div>
+           </motion.div>
+         </section>
+         
+         {/* Features Section */}
         <section className="py-16 lg:py-24 bg-muted/30">
           <div className="container mx-auto px-4">
             <motion.div
@@ -225,7 +291,7 @@ export const ModernLanding: React.FC = () => {
                 Grow Your Brand with YEILD
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Reach thousands of engaged users ready to interact with your brand. Launch campaigns in minutes.
+                Drive awareness, engagement, and real actions from verified users. Launch and manage campaigns in minutes.
               </p>
             </motion.div>
 

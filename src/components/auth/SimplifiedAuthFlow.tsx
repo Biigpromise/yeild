@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { YieldLogo } from '@/components/ui/YieldLogo';
+import { ForgotPasswordLink } from './ForgotPasswordLink';
 
 interface FormData {
   email: string;
@@ -103,7 +104,7 @@ export const SimplifiedAuthFlow = () => {
           } else if (error.message?.includes('signup disabled')) {
             toast.error('Account creation is temporarily disabled. Please try again later.');
           } else {
-            toast.error(error.message || 'Failed to create account. Please try again.');
+            toast.error('Failed to create account. Please try again.');
           }
         } else {
           toast.success('Verification code sent! Redirecting...');
@@ -245,6 +246,12 @@ export const SimplifiedAuthFlow = () => {
             </button>
           </div>
 
+          {isLogin && (
+            <div className="flex justify-end">
+              <ForgotPasswordLink userType={formData.userType} />
+            </div>
+          )}
+          
           {/* Submit Button */}
           <Button
             type="submit"
@@ -260,6 +267,12 @@ export const SimplifiedAuthFlow = () => {
               </div>
             )}
           </Button>
+
+          {!isLogin && (
+            <p className="mt-2 text-xs text-muted-foreground text-center">
+              You&apos;ll receive a 6-digit verification code to activate your account.
+            </p>
+          )}
         </form>
 
         {/* Google Auth */}

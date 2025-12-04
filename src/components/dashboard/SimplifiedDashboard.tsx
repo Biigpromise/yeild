@@ -130,7 +130,7 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
   const renderTabContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab userStats={userStats} userProfile={userProfile} />;
+        return <HomeTab userStats={userStats} userProfile={userProfile} onExploreMarket={() => setActiveTab('marketplace')} />;
       case 'earn':
         return <EarnPage />;
       case 'marketplace':
