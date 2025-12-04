@@ -67,7 +67,8 @@ export const AdminTaskOverview = () => {
       const { count: activeCount, error: activeError } = await supabase
         .from('tasks')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .gt('budget_allocated', 0);
 
       if (activeError) {
         console.error('Error loading active tasks:', activeError);

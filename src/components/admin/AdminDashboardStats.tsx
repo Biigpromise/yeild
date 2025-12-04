@@ -34,11 +34,11 @@ export const AdminDashboardStatsComponent = () => {
         console.error('Error fetching users count:', usersError);
       }
 
-      // Get active tasks count
       const { count: activeTasks, error: tasksError } = await supabase
         .from('tasks')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .gt('budget_allocated', 0);
 
       if (tasksError) {
         console.error('Error fetching active tasks count:', tasksError);

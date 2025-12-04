@@ -106,6 +106,7 @@ export const taskService = {
           )
         `)
         .eq('status', 'active')
+        .gt('budget_allocated', 0)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -194,6 +195,7 @@ export const taskService = {
         const { data, error } = await supabase
           .from('tasks')
           .select('*')
+          .gt('budget_allocated', 0)
           .order('created_at', { ascending: false });
 
         if (error) throw error;

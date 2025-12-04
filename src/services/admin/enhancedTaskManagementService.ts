@@ -27,6 +27,7 @@ export const enhancedTaskManagementService = {
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
+        .gt('budget_allocated', 0)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -468,7 +469,7 @@ export const enhancedTaskManagementService = {
       }
 
       const totalTasks = tasksData?.length || 0;
-      const activeTasks = tasksData?.filter(t => t.status === 'active').length || 0;
+      const activeTasks = tasksData?.filter(t => t.status === 'active' && (t as any).budget_allocated > 0).length || 0;
 
       // Simplified analytics without complex joins
       const analytics: TaskAnalytics = {
