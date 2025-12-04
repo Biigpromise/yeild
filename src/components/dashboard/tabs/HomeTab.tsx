@@ -14,7 +14,8 @@ import {
   ArrowUpRight, 
   TrendingUp,
   Clock,
-  Star
+  Star,
+  Store
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,9 +28,10 @@ interface HomeTabProps {
     referrals: number;
   };
   userProfile?: any;
+  onExploreMarket?: () => void;
 }
 
-export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile }) => {
+export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExploreMarket }) => {
   const navigate = useNavigate();
   
   const currentLevel = userStats?.level || 1;
@@ -197,6 +199,37 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile }) => {
           </CardContent>
         </Card>
       </motion.div>
+
+      {onExploreMarket && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+        >
+          <Card className="border-dashed border-primary/40 bg-primary/5">
+            <CardContent className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Store className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">Explore the Market</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Discover brand offers, listings, and campaigns tailored for YEILD users.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onExploreMarket}
+                className="whitespace-nowrap"
+              >
+                Go to Market
+                <ArrowUpRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Recent Activity */}
       <motion.div
