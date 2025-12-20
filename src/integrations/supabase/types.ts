@@ -4583,11 +4583,11 @@ export type Database = {
         Returns: undefined
       }
       increment_post_view:
+        | { Args: { post_id_to_inc: string }; Returns: undefined }
         | {
             Args: { post_id_to_inc: string; user_id_param: string }
             Returns: undefined
           }
-        | { Args: { post_id_to_inc: string }; Returns: undefined }
       is_admin: { Args: { user_id: string }; Returns: boolean }
       is_admin_safe: { Args: { user_id_param: string }; Returns: boolean }
       is_admin_user: { Args: never; Returns: boolean }

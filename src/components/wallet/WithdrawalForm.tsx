@@ -1,20 +1,15 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, Banknote, Bitcoin, Gift, Wallet } from "lucide-react";
+import { Building, Banknote, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { CryptoPayment } from "./payment-methods/CryptoPayment";
-import { GiftCardPayment } from "./payment-methods/GiftCardPayment";
 import { YieldWalletPayment } from "./payment-methods/YieldWalletPayment";
-import { FlutterwavePayment } from "./payment-methods/FlutterwavePayment";
 import { PaystackPayment } from "../withdrawal/PaystackPayment";
-import { BankTransferForm } from "./forms/BankTransferForm";
 import { AmountBreakdown } from "./forms/AmountBreakdown";
 import { WithdrawalValidation, useWithdrawalValidation } from "./forms/WithdrawalValidation";
 import { WithdrawalLimits } from "./forms/WithdrawalLimits";
@@ -32,7 +27,7 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
   const [payoutDetails, setPayoutDetails] = useState<any>({});
 
   const minWithdrawal = 1000;
-  const processingFee = paymentMethod === 'paystack' ? 2 : paymentMethod === 'flutterwave' ? 5 : 0;
+  const processingFee = paymentMethod === 'paystack' ? 2 : 0;
   const maxWithdrawal = Math.min(userPoints, 10000);
   
   const withdrawalAmount = parseInt(amount) || payoutDetails.amount || 0;
@@ -126,21 +121,21 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
         return;
       }
 
-      // For other payment methods, validate required fields
-      if (paymentMethod === 'paystack' || paymentMethod === 'flutterwave') {
+      // For Paystack payment method, validate required fields
+      if (paymentMethod === 'paystack') {
         if (!payoutDetails.accountNumber || !payoutDetails.bankCode || !payoutDetails.accountName) {
           toast.error("Please fill in all required bank details");
           return;
         }
         
-        const feePercent = paymentMethod === 'paystack' ? 0.02 : 0.05;
+        const feePercent = 0.02;
         details = {
           accountNumber: payoutDetails.accountNumber,
           bankCode: payoutDetails.bankCode,
           accountName: payoutDetails.accountName,
           phoneNumber: payoutDetails.phoneNumber,
-          currency: payoutDetails.currency || 'NGN',
-          country: payoutDetails.country || 'NG',
+          currency: 'NGN',
+          country: 'NG',
           processingFee: Math.ceil(withdrawalAmount * feePercent),
           netAmount: withdrawalAmount - Math.ceil(withdrawalAmount * feePercent)
         };
@@ -189,14 +184,10 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <Tabs value={paymentMethod} onValueChange={setPaymentMethod}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="paystack" className="flex items-center gap-1">
-                  <CreditCard className="h-4 w-4" />
-                  Paystack
-                </TabsTrigger>
-                <TabsTrigger value="flutterwave" className="flex items-center gap-1">
-                  <CreditCard className="h-4 w-4" />
-                  Flutterwave
+                  <Building className="h-4 w-4" />
+                  Bank Transfer
                 </TabsTrigger>
                 <TabsTrigger value="yield_wallet" className="flex items-center gap-1">
                   <Wallet className="h-4 w-4" />
@@ -224,30 +215,6 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
                 </div>
               </TabsContent>
 
-              <TabsContent value="flutterwave">
-                <FlutterwavePayment
-                  onDetailsChange={setPayoutDetails}
-                  details={payoutDetails}
-                  userPoints={userPoints}
-                  amount={amount}
-                />
-                {paymentMethod === 'flutterwave' && (
-                  <div className="space-y-2 mt-4">
-                    <Label htmlFor="flutterwave-amount">Withdrawal Amount (Points)</Label>
-                    <input
-                      id="flutterwave-amount"
-                      type="number"
-                      placeholder={`Min: ${minWithdrawal.toLocaleString()}`}
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      min={minWithdrawal}
-                      max={maxWithdrawal}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                    />
-                  </div>
-                )}
-              </TabsContent>
-
               <TabsContent value="yield_wallet">
                 <YieldWalletPayment 
                   onDetailsChange={(details) => setPayoutDetails({...details, userPoints})} 
@@ -262,8 +229,8 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
               processingFee={Math.ceil(withdrawalAmount * (processingFee / 100))}
             />
 
-            {/* Notes for withdrawal methods */}
-            {(paymentMethod === 'paystack' || paymentMethod === 'flutterwave') && (
+            {/* Notes for bank transfer */}
+            {paymentMethod === 'paystack' && (
               <div className="space-y-2">
                 <Label htmlFor="notes">Additional Notes (Optional)</Label>
                 <Textarea

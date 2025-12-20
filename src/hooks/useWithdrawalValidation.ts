@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 
 export const useWithdrawalValidation = (
@@ -19,27 +18,12 @@ export const useWithdrawalValidation = (
         return amount >= 100; // Minimum 100 points for yield wallet
       
       case 'paystack':
-      case 'flutterwave':
         if (amount < minWithdrawal) return false;
         return !!(
           payoutDetails.accountNumber &&
           payoutDetails.bankCode &&
           payoutDetails.accountName &&
           payoutDetails.accountNumber.length === 10
-        );
-      
-      case 'crypto':
-        return !!(
-          amount >= minWithdrawal &&
-          payoutDetails.walletAddress &&
-          payoutDetails.cryptoType
-        );
-      
-      case 'gift_card':
-        return !!(
-          amount >= minWithdrawal &&
-          payoutDetails.giftCardProvider &&
-          payoutDetails.denomination
         );
       
       default:
