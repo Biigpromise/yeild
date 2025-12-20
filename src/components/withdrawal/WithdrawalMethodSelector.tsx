@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CreditCard, Wallet, Bitcoin, Gift, Building, Check } from 'lucide-react';
+import { Wallet, Building, Check, Sparkles } from 'lucide-react';
 
 interface PaymentMethod {
   id: string;
@@ -11,53 +10,28 @@ interface PaymentMethod {
   fee: string;
   processingTime: string;
   available: boolean;
+  recommended?: boolean;
 }
 
 const paymentMethods: PaymentMethod[] = [
   {
     id: 'paystack',
-    name: 'Paystack Transfer',
-    description: 'Fast bank transfer with lower fees - Recommended',
+    name: 'Bank Transfer (Paystack)',
+    description: 'Direct transfer to any Nigerian bank account including OPay, Moniepoint, Kuda & more',
     icon: Building,
-    fee: '2% processing fee',
-    processingTime: '2-10 minutes',
-    available: true
-  },
-  {
-    id: 'flutterwave',
-    name: 'Bank Transfer',
-    description: 'Transfer directly to your Nigerian bank account',
-    icon: Building,
-    fee: '5% processing fee',
-    processingTime: '1-24 hours',
-    available: true
+    fee: '2% fee',
+    processingTime: '2-10 mins',
+    available: true,
+    recommended: true
   },
   {
     id: 'yield_wallet',
     name: 'Yield Wallet',
-    description: 'Transfer to your yield wallet for compound earnings',
+    description: 'Transfer to your yield wallet and earn daily interest on your balance',
     icon: Wallet,
     fee: 'No fees',
     processingTime: 'Instant',
     available: true
-  },
-  {
-    id: 'crypto',
-    name: 'Crypto Wallet',
-    description: 'Withdraw to your cryptocurrency wallet',
-    icon: Bitcoin,
-    fee: 'Network fees apply',
-    processingTime: '5-30 minutes',
-    available: false
-  },
-  {
-    id: 'gift_card',
-    name: 'Gift Cards',
-    description: 'Redeem points for popular gift cards',
-    icon: Gift,
-    fee: 'No additional fees',
-    processingTime: 'Instant delivery',
-    available: false
   }
 ];
 
@@ -113,13 +87,15 @@ export const WithdrawalMethodSelector: React.FC<WithdrawalMethodSelectorProps> =
                   
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-lg">{method.name}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-lg">{method.name}</h4>
+                        {(method as any).recommended && (
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                            Recommended
+                          </span>
+                        )}
+                      </div>
                       {isSelected && <Check className="w-5 h-5 text-primary" />}
-                      {!method.available && (
-                        <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
-                          Coming Soon
-                        </span>
-                      )}
                     </div>
                     
                     <p className="text-muted-foreground text-sm">{method.description}</p>
@@ -144,17 +120,17 @@ export const WithdrawalMethodSelector: React.FC<WithdrawalMethodSelectorProps> =
         })}
       </div>
 
-      {/* Additional Info */}
-      <Card className="bg-muted/20 border-border/50">
+      {/* Supported Banks Info */}
+      <Card className="bg-primary/5 border-primary/20">
         <CardContent className="p-4">
           <div className="flex items-start space-x-3">
             <div className="p-2 bg-primary/10 rounded-lg">
-              <Building className="w-4 h-4 text-primary" />
+              <Sparkles className="w-4 h-4 text-primary" />
             </div>
             <div className="space-y-1">
-              <h5 className="font-medium text-sm">Recommended: Paystack Transfer</h5>
+              <h5 className="font-medium text-sm">All Nigerian Banks Supported</h5>
               <p className="text-xs text-muted-foreground">
-                Most affordable option with only 2% fees. Fast processing (2-10 minutes) with direct deposit to any Nigerian bank account.
+                Withdraw to OPay, Moniepoint, PalmPay, Kuda, GTBank, Zenith, Access Bank, UBA, First Bank and 30+ more banks.
               </p>
             </div>
           </div>
