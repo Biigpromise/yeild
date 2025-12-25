@@ -274,7 +274,11 @@ const ModernOnboarding: React.FC<ModernOnboardingProps> = ({ onComplete }) => {
     }
   ];
 
-  const handleNext = () => {
+  const handleNext = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     console.log('ModernOnboarding: handleNext called, currentStep =', currentStep, 'steps.length =', steps.length);
     if (currentStep < steps.length - 1) {
       const nextStep = currentStep + 1;
@@ -282,20 +286,36 @@ const ModernOnboarding: React.FC<ModernOnboardingProps> = ({ onComplete }) => {
       setCurrentStep(nextStep);
     } else {
       console.log('ModernOnboarding: Completing onboarding');
-      onComplete();
+      try {
+        onComplete();
+      } catch (error) {
+        console.error('Error completing onboarding:', error);
+      }
     }
   };
 
-  const handlePrevious = () => {
+  const handlePrevious = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     console.log('ModernOnboarding: handlePrevious called');
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     console.log('ModernOnboarding: handleSkip called');
-    onComplete();
+    try {
+      onComplete();
+    } catch (error) {
+      console.error('Error skipping onboarding:', error);
+    }
   };
 
   const currentStepData = steps[currentStep];
@@ -309,9 +329,10 @@ const ModernOnboarding: React.FC<ModernOnboardingProps> = ({ onComplete }) => {
           <div className="flex items-center justify-between mb-6">
             <div className="text-2xl font-bold text-primary">YEILD</div>
             <Button 
+              type="button"
               variant="ghost" 
               size="sm" 
-              onClick={handleSkip}
+              onClick={(e) => handleSkip(e)}
               className="text-muted-foreground hover:text-foreground"
             >
               <X className="w-4 h-4 mr-2" />
@@ -356,8 +377,9 @@ const ModernOnboarding: React.FC<ModernOnboardingProps> = ({ onComplete }) => {
         <div className="p-6 border-t border-border flex-shrink-0 bg-card">
           <div className="flex items-center justify-between">
             <Button
+              type="button"
               variant="outline"
-              onClick={handlePrevious}
+              onClick={(e) => handlePrevious(e)}
               disabled={currentStep === 0}
               className="flex items-center gap-2"
               data-testid="previous-button"
@@ -382,7 +404,8 @@ const ModernOnboarding: React.FC<ModernOnboardingProps> = ({ onComplete }) => {
             </div>
 
             <Button
-              onClick={handleNext}
+              type="button"
+              onClick={(e) => handleNext(e)}
               className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
               data-testid="next-button"
             >

@@ -114,17 +114,33 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
   }, [user, brandStatus]);
 
   const completeOnboarding = () => {
-    console.log('OnboardingProvider: Completing onboarding');
-    if (user) {
-      localStorage.setItem(`onboarding_${user.id}`, 'completed');
+    console.log('OnboardingProvider: Completing onboarding for user:', user?.id);
+    try {
+      if (user) {
+        localStorage.setItem(`onboarding_${user.id}`, 'completed');
+        console.log('OnboardingProvider: Saved onboarding completion to localStorage');
+      }
+      setShowOnboarding(false);
+      console.log('OnboardingProvider: Onboarding hidden');
+    } catch (error) {
+      console.error('OnboardingProvider: Error completing onboarding:', error);
+      // Still hide onboarding even if localStorage fails
       setShowOnboarding(false);
     }
   };
 
   const skipOnboarding = () => {
-    console.log('OnboardingProvider: Skipping onboarding');
-    if (user) {
-      localStorage.setItem(`onboarding_${user.id}`, 'completed');
+    console.log('OnboardingProvider: Skipping onboarding for user:', user?.id);
+    try {
+      if (user) {
+        localStorage.setItem(`onboarding_${user.id}`, 'completed');
+        console.log('OnboardingProvider: Saved onboarding skip to localStorage');
+      }
+      setShowOnboarding(false);
+      console.log('OnboardingProvider: Onboarding hidden (skipped)');
+    } catch (error) {
+      console.error('OnboardingProvider: Error skipping onboarding:', error);
+      // Still hide onboarding even if localStorage fails
       setShowOnboarding(false);
     }
   };
