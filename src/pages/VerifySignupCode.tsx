@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,6 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useOnboarding } from '@/contexts/OnboardingContext';
 
 export default function VerifySignupCode() {
   const [code, setCode] = useState('');
@@ -14,14 +13,19 @@ export default function VerifySignupCode() {
   const [resending, setResending] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { startOnboarding, setUserType } = useOnboarding();
   
   const email = searchParams.get('email');
   const name = searchParams.get('name');
   const userType = searchParams.get('userType') || 'user';
 
+  // Redirect if no email provided
+  useEffect(() => {
+    if (!email) {
+      navigate('/auth');
+    }
+  }, [email, navigate]);
+
   if (!email) {
-    navigate('/auth');
     return null;
   }
 
