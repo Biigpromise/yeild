@@ -110,7 +110,7 @@ export const useSignUp = () => {
         metadata.brand_application_data = data.brandData;
       }
 
-      // Send verification code first
+      // Send verification code first - this must succeed before creating the account
       const { data: codeData, error: codeError } = await supabase.functions.invoke('send-verification-code', {
         body: { 
           email: data.email, 
@@ -122,7 +122,9 @@ export const useSignUp = () => {
         throw new Error(codeData?.message || 'Failed to send verification code');
       }
 
-      // Create user account but DON'T sign them in automatically - they need to verify email first
+      console.log('Verification code sent, creating user account...');
+
+      // Create user account - Supabase will auto-sign them in, we'll sign them out right after
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -140,10 +142,17 @@ export const useSignUp = () => {
         throw new Error('User creation failed');
       }
 
-      // Important: Sign out the user immediately so they can't access the app until email is verified
-      if (authData.session) {
-        console.log('Signing out user until email verification is complete');
-        await supabase.auth.signOut();
+      console.log('User created, checking for session to sign out...');
+
+      // CRITICAL: Sign out the user IMMEDIATELY so they can't access the app until email is verified
+      // We need to do this regardless of whether there's an active session
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+        console.log('User signed out successfully - they must verify email to sign in');
+      } catch (signOutError) {
+        console.warn('Sign out after signup may have failed:', signOutError);
+        // Try again with local scope
+        await supabase.auth.signOut({ scope: 'local' });
       }
 
       // Handle referral signup if referral code is provided

@@ -66,17 +66,41 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
     goals: ''
   });
 
-  const handleNext = () => {
+  const handleNext = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     } else {
-      onComplete();
+      try {
+        onComplete();
+      } catch (error) {
+        console.error('Error completing brand onboarding:', error);
+      }
     }
   };
 
-  const handlePrevious = () => {
+  const handlePrevious = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleSkipAll = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    try {
+      onComplete();
+    } catch (error) {
+      console.error('Error skipping brand onboarding:', error);
     }
   };
 
@@ -340,16 +364,18 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
           <div className="flex justify-between mt-8">
             <div className="flex gap-2">
               <Button
+                type="button"
                 variant="outline"
-                onClick={handlePrevious}
+                onClick={(e) => handlePrevious(e)}
                 disabled={currentStep === 1}
                 className="border-white/20 text-white hover:bg-white/10 disabled:opacity-30"
               >
                 Previous
               </Button>
               <Button
+                type="button"
                 variant="outline"
-                onClick={onComplete}
+                onClick={(e) => handleSkipAll(e)}
                 className="border-white/20 text-white hover:bg-white/10"
               >
                 Skip All
@@ -357,7 +383,8 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
             </div>
             
             <Button
-              onClick={handleNext}
+              type="button"
+              onClick={(e) => handleNext(e)}
               className="bg-yeild-yellow hover:bg-yeild-yellow/90 text-black"
             >
               {currentStep === steps.length ? 'Complete Setup' : 'Next'}
