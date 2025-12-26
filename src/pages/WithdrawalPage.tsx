@@ -65,8 +65,8 @@ const WithdrawalPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-bg">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-bg overflow-x-hidden">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Modern Header */}
         <ModernWithdrawalHeader 
           userBalance={userBalance}
@@ -75,18 +75,18 @@ const WithdrawalPage = () => {
         />
 
         {/* Main Content */}
-        <div className="px-4 pb-8">
+        <div className="pb-8">
           {showWizard ? (
-            <div className="max-w-4xl mx-auto">
+            <div className="w-full max-w-4xl mx-auto">
               <WithdrawalWizard
                 userBalance={userBalance}
                 onWithdrawalSubmitted={handleWithdrawalSubmitted}
               />
             </div>
           ) : (
-            <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full max-w-6xl mx-auto">
               {/* Quick Actions Sidebar */}
-              <div className="lg:col-span-1">
+              <div className="lg:col-span-1 order-2 lg:order-1">
                 <QuickActionPanel
                   userBalance={userBalance}
                   pendingWithdrawals={pendingWithdrawals}
@@ -95,7 +95,7 @@ const WithdrawalPage = () => {
               </div>
 
               {/* Main Withdrawal Area */}
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2 order-1 lg:order-2">
                 <WithdrawalWizard
                   userBalance={userBalance}
                   onWithdrawalSubmitted={handleWithdrawalSubmitted}

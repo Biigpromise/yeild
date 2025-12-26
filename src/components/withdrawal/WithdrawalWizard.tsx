@@ -74,25 +74,25 @@ export const WithdrawalWizard: React.FC<WithdrawalWizardProps> = ({
           <Progress value={progress} className="h-2" />
           
           {/* Step Indicators */}
-          <div className="flex justify-between">
+          <div className="flex justify-between gap-2">
             {steps.map((step) => (
-              <div key={step.id} className="flex flex-col items-center space-y-2">
+              <div key={step.id} className="flex flex-col items-center space-y-1 sm:space-y-2 flex-1 min-w-0">
                 <div className="flex items-center">
                   {currentStep > step.id ? (
-                    <CheckCircle className="w-6 h-6 text-primary" />
+                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                   ) : currentStep === step.id ? (
-                    <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs sm:text-sm font-bold">
                       {step.id}
                     </div>
                   ) : (
-                    <Circle className="w-6 h-6 text-muted-foreground" />
+                    <Circle className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
                   )}
                 </div>
                 <div className="text-center">
-                  <div className={`text-sm font-medium ${currentStep >= step.id ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  <div className={`text-xs sm:text-sm font-medium truncate ${currentStep >= step.id ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {step.title}
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
                     {step.description}
                   </div>
                 </div>

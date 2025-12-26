@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Upload, Image as ImageIcon } from "lucide-react";
+import { X, Upload, Image as ImageIcon, Loader2, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ImageGalleryUploadProps {
   images: string[];
@@ -12,8 +14,10 @@ interface ImageGalleryUploadProps {
 
 export function ImageGalleryUpload({ images, onChange, maxImages = 5 }: ImageGalleryUploadProps) {
   const [newImageUrl, setNewImageUrl] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleAddImage = () => {
+  const handleAddUrl = () => {
     if (!newImageUrl.trim()) {
       toast.error("Please enter an image URL");
       return;
@@ -35,6 +39,71 @@ export function ImageGalleryUpload({ images, onChange, maxImages = 5 }: ImageGal
     setNewImageUrl("");
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const remainingSlots = maxImages - images.length;
+    if (remainingSlots <= 0) {
+      toast.error(`Maximum ${maxImages} images allowed`);
+      return;
+    }
+
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+    setIsUploading(true);
+
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (const file of filesToUpload) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          toast.error(`${file.name} is not an image file`);
+          continue;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`${file.name} is too large. Max 5MB allowed`);
+          continue;
+        }
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `listings/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('marketplace-images')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          toast.error(`Failed to upload ${file.name}`);
+          continue;
+        }
+
+        const { data } = supabase.storage
+          .from('marketplace-images')
+          .getPublicUrl(filePath);
+
+        uploadedUrls.push(data.publicUrl);
+      }
+
+      if (uploadedUrls.length > 0) {
+        onChange([...images, ...uploadedUrls]);
+        toast.success(`${uploadedUrls.length} image(s) uploaded successfully`);
+      }
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      toast.error("Failed to upload images");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   const handleRemoveImage = (index: number) => {
     onChange(images.filter((_, i) => i !== index));
   };
@@ -51,22 +120,72 @@ export function ImageGalleryUpload({ images, onChange, maxImages = 5 }: ImageGal
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
-        <Input
-          placeholder="Enter image URL"
-          value={newImageUrl}
-          onChange={(e) => setNewImageUrl(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddImage())}
-        />
-        <Button
-          type="button"
-          onClick={handleAddImage}
-          disabled={images.length >= maxImages}
-        >
-          <Upload className="h-4 w-4 mr-2" />
-          Add
-        </Button>
-      </div>
+      <Tabs defaultValue="upload" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="upload" className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Upload from Device
+          </TabsTrigger>
+          <TabsTrigger value="url" className="flex items-center gap-2">
+            <LinkIcon className="h-4 w-4" />
+            Enter URL
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="upload" className="mt-4">
+          <div className="space-y-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+              disabled={isUploading || images.length >= maxImages}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading || images.length >= maxImages}
+              className="w-full h-20 border-dashed"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-5 w-5 mr-2" />
+                  Click to select images from your device
+                </>
+              )}
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              Max 5MB per image. Supports JPG, PNG, WebP
+            </p>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="url" className="mt-4">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Enter image URL (https://...)"
+              value={newImageUrl}
+              onChange={(e) => setNewImageUrl(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddUrl())}
+            />
+            <Button
+              type="button"
+              onClick={handleAddUrl}
+              disabled={images.length >= maxImages}
+            >
+              Add
+            </Button>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <p className="text-sm text-muted-foreground">
         {images.length}/{maxImages} images {images.length === 0 && "(First image will be the main image)"}
@@ -133,7 +252,7 @@ export function ImageGalleryUpload({ images, onChange, maxImages = 5 }: ImageGal
         <div className="border-2 border-dashed rounded-lg p-8 text-center">
           <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
           <p className="text-sm text-muted-foreground">
-            No images added yet. Add image URLs above.
+            No images added yet. Upload from your device or add image URLs above.
           </p>
         </div>
       )}

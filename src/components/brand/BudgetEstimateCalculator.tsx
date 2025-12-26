@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calculator, Users, TrendingUp, DollarSign } from 'lucide-react';
+import { Calculator, Users, TrendingUp, DollarSign, Info, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface BudgetEstimate {
   totalBudget: number;
@@ -10,7 +11,19 @@ interface BudgetEstimate {
   guaranteedCompletions: number;
   estimatedReach: number;
   costPerCompletion: number;
+  minRecommendedBudget: number;
 }
+
+// Bird level bonus percentages (platform covers these)
+const BIRD_LEVEL_BONUSES = {
+  sparrow: { name: 'Sparrow', bonus: 0, color: 'text-amber-600' },
+  robin: { name: 'Robin', bonus: 0.10, color: 'text-orange-500' },
+  eagle: { name: 'Eagle', bonus: 0.20, color: 'text-blue-500' },
+  phoenix: { name: 'Phoenix', bonus: 0.30, color: 'text-red-500' },
+};
+
+const MIN_POINTS_PER_TASK = 300;
+const MIN_RECOMMENDED_COMPLETIONS = 3;
 
 export const BudgetEstimateCalculator = () => {
   const [budget, setBudget] = useState<string>('15000');
@@ -25,9 +38,9 @@ export const BudgetEstimateCalculator = () => {
 
   const calculateEstimate = () => {
     const budgetValue = parseFloat(budget) || 0;
-    const pointsValue = parseFloat(pointsPerTask) || 300;
+    const pointsValue = parseFloat(pointsPerTask) || MIN_POINTS_PER_TASK;
 
-    if (budgetValue <= 0 || pointsValue < 300) {
+    if (budgetValue <= 0 || pointsValue < MIN_POINTS_PER_TASK) {
       setEstimate(null);
       return;
     }
@@ -44,12 +57,16 @@ export const BudgetEstimateCalculator = () => {
     // Cost per completion in Naira
     const costPerCompletion = pointsValue / NAIRA_TO_POINTS;
 
+    // Minimum recommended budget for at least 3 completions
+    const minRecommendedBudget = MIN_RECOMMENDED_COMPLETIONS * pointsValue;
+
     setEstimate({
       totalBudget: budgetValue,
       pointsPerTask: pointsValue,
       guaranteedCompletions,
       estimatedReach,
       costPerCompletion,
+      minRecommendedBudget,
     });
   };
 
@@ -75,11 +92,11 @@ export const BudgetEstimateCalculator = () => {
               value={budget}
               onChange={(e) => setBudget(e.target.value)}
               placeholder="15000"
-              min="300"
+              min={MIN_POINTS_PER_TASK}
               className="border-border bg-background text-foreground"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              1 Naira = 1 Point
+              Minimum: ₦{MIN_POINTS_PER_TASK} (1 Naira = 1 Point)
             </p>
           </div>
 
@@ -91,17 +108,28 @@ export const BudgetEstimateCalculator = () => {
               value={pointsPerTask}
               onChange={(e) => setPointsPerTask(e.target.value)}
               placeholder="300"
-              min="300"
+              min={MIN_POINTS_PER_TASK}
               className="border-border bg-background text-foreground"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Minimum 300 points required
+              Minimum {MIN_POINTS_PER_TASK} points required per task
             </p>
           </div>
         </div>
 
+        {/* Minimum Budget Warning */}
+        {estimate && estimate.guaranteedCompletions < MIN_RECOMMENDED_COMPLETIONS && (
+          <Alert className="border-destructive/50 bg-destructive/5">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Budget too low:</strong> With ₦{estimate.totalBudget.toLocaleString()}, you'll only get {estimate.guaranteedCompletions} completion(s). 
+              We recommend at least ₦{estimate.minRecommendedBudget.toLocaleString()} for {MIN_RECOMMENDED_COMPLETIONS}+ completions.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Results Section */}
-        {estimate && (
+        {estimate && estimate.guaranteedCompletions >= 1 && (
           <div className="space-y-4 pt-4 border-t border-border">
             <h3 className="font-semibold text-foreground flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-primary" />
@@ -144,7 +172,7 @@ export const BudgetEstimateCalculator = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Cost per Completion</p>
                     <p className="text-2xl font-bold text-accent mt-1">
-                      ₦{estimate.costPerCompletion}
+                      ₦{estimate.costPerCompletion.toLocaleString()}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       What you pay per completed task
@@ -172,27 +200,55 @@ export const BudgetEstimateCalculator = () => {
 
             {/* Bird Level Info */}
             <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-              <h4 className="font-medium text-blue-900 dark:text-blue-100 flex items-center gap-2 mb-2">
-                <TrendingUp className="w-4 h-4" />
+              <h4 className="font-medium text-blue-900 dark:text-blue-100 flex items-center gap-2 mb-3">
+                <Info className="w-4 h-4" />
                 How Bird Levels Work
               </h4>
-              <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                <li>• You pay the <strong>base points per task</strong> ({estimate.pointsPerTask} points)</li>
-                <li>• Users with higher bird levels earn <strong>bonus points from platform pool</strong></li>
-                <li>• Your budget is predictable - exactly {estimate.guaranteedCompletions} completions</li>
-                <li>• Example: Phoenix user gets {estimate.pointsPerTask} (from you) + platform bonus</li>
-              </ul>
+              <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
+                You pay a fixed <strong>{estimate.pointsPerTask} points</strong> per task completion. 
+                Users with higher bird levels earn bonus points from our platform pool—<strong>your budget stays predictable!</strong>
+              </p>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {Object.entries(BIRD_LEVEL_BONUSES).map(([key, level]) => (
+                  <div key={key} className="bg-white/50 dark:bg-white/5 rounded-md p-2 text-center">
+                    <div className={`font-semibold text-sm ${level.color}`}>{level.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {level.bonus === 0 ? 'Base rate' : `+${level.bonus * 100}% bonus`}
+                    </div>
+                    <div className="text-xs font-medium mt-1">
+                      Gets {Math.round(estimate.pointsPerTask * (1 + level.bonus))} pts
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-3">
+                * Bird level bonuses are paid by the platform, not deducted from your budget
+              </p>
             </div>
 
-            {/* Budget Recommendation */}
-            {estimate.guaranteedCompletions < 30 && (
-              <div className="bg-yellow-50 dark:bg-yellow-950/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
-                <p className="text-sm text-yellow-900 dark:text-yellow-100">
-                  <strong>Tip:</strong> Consider increasing your budget to at least ₦{(30 * estimate.pointsPerTask).toLocaleString()} 
-                  for better campaign reach (30+ completions recommended)
-                </p>
+            {/* Budget Recommendations */}
+            <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+              <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">Recommended Budget Tiers</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                <div className="bg-white/50 dark:bg-white/5 rounded-md p-3">
+                  <div className="font-semibold text-green-800 dark:text-green-200">Starter</div>
+                  <div className="text-2xl font-bold text-green-700 dark:text-green-300">₦{(5 * estimate.pointsPerTask).toLocaleString()}</div>
+                  <div className="text-xs text-green-600 dark:text-green-400">~5 completions</div>
+                </div>
+                <div className="bg-white/50 dark:bg-white/5 rounded-md p-3 ring-2 ring-green-500">
+                  <div className="font-semibold text-green-800 dark:text-green-200">Growth ⭐</div>
+                  <div className="text-2xl font-bold text-green-700 dark:text-green-300">₦{(20 * estimate.pointsPerTask).toLocaleString()}</div>
+                  <div className="text-xs text-green-600 dark:text-green-400">~20 completions</div>
+                </div>
+                <div className="bg-white/50 dark:bg-white/5 rounded-md p-3">
+                  <div className="font-semibold text-green-800 dark:text-green-200">Scale</div>
+                  <div className="text-2xl font-bold text-green-700 dark:text-green-300">₦{(50 * estimate.pointsPerTask).toLocaleString()}</div>
+                  <div className="text-xs text-green-600 dark:text-green-400">~50 completions</div>
+                </div>
               </div>
-            )}
+            </div>
           </div>
         )}
       </CardContent>

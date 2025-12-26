@@ -111,7 +111,7 @@ export const ModernDashboardSidebar: React.FC<ModernDashboardSidebarProps> = ({
 
   return (
     <div className={cn(
-      "relative flex flex-col h-full bg-gradient-to-b from-card via-card to-muted/20 border-r border-border/60 transition-all duration-300 ease-in-out",
+      "relative flex flex-col h-full bg-gradient-to-b from-card via-card to-muted/20 border-r border-border/60 transition-all duration-300 ease-in-out overflow-y-auto overflow-x-hidden",
       isCollapsed ? "w-16" : "w-64"
     )}>
       {/* Header */}
