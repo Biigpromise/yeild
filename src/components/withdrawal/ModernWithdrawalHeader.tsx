@@ -25,30 +25,31 @@ export const ModernWithdrawalHeader: React.FC<ModernWithdrawalHeaderProps> = ({
       <div className="absolute top-4 right-4 w-32 h-32 bg-primary/5 rounded-full blur-xl animate-float" />
       <div className="absolute bottom-4 left-4 w-24 h-24 bg-accent/10 rounded-full blur-lg animate-float" style={{ animationDelay: '2s' }} />
       
-      <div className="relative z-10 p-8">
+      <div className="relative z-10 p-4 sm:p-6 lg:p-8">
         {/* Navigation */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-4 sm:mb-8">
           <Button
             variant="outline"
             onClick={() => navigate('/dashboard')}
             className="bg-card/80 backdrop-blur-sm border-border/50 hover:bg-accent/50 transition-all duration-300"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
+            <span className="hidden sm:inline">Back to Dashboard</span>
+            <span className="sm:hidden">Back</span>
           </Button>
         </div>
 
         {/* Hero Content */}
-        <div className="grid md:grid-cols-2 gap-8 items-center">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <p className="text-muted-foreground text-sm font-medium">Welcome back,</p>
-              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 items-center">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-1 sm:space-y-2">
+              <p className="text-muted-foreground text-xs sm:text-sm font-medium">Welcome back,</p>
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent break-words">
                 {userName}
               </h1>
             </div>
             
-            <p className="text-muted-foreground text-lg max-w-md">
+            <p className="text-muted-foreground text-sm sm:text-lg max-w-md">
               Withdraw your earnings or transfer points to your yield wallet with just a few clicks.
             </p>
           </div>

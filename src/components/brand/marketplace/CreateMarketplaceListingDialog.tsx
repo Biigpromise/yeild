@@ -10,11 +10,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Wallet, AlertCircle } from "lucide-react";
 import { marketplaceService } from "@/services/marketplaceService";
 import { ImageGalleryUpload } from "./ImageGalleryUpload";
 import { ListingTierSelector } from "./ListingTierSelector";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -31,9 +35,17 @@ interface CreateMarketplaceListingDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const PRICING = {
+  standard: 10000,
+  featured: 20000,
+  premium: 35000
+};
+
 export function CreateMarketplaceListingDialog({ open, onOpenChange }: CreateMarketplaceListingDialogProps) {
   const [images, setImages] = useState<string[]>([]);
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -46,6 +58,23 @@ export function CreateMarketplaceListingDialog({ open, onOpenChange }: CreateMar
       days_paid: 7,
       listing_tier: 'standard'
     }
+  });
+
+  // Fetch wallet balance
+  const { data: wallet, isLoading: walletLoading } = useQuery({
+    queryKey: ['brand-wallet'],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from('brand_wallets')
+        .select('*')
+        .eq('brand_id', user.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+    enabled: !!user && open
   });
 
   const { data: categories = [] } = useQuery({
@@ -77,24 +106,30 @@ export function CreateMarketplaceListingDialog({ open, onOpenChange }: CreateMar
     }
   });
 
+  const tier = form.watch("listing_tier");
+  const days = form.watch("days_paid");
+  const totalCost = PRICING[tier] * days;
+  const walletBalance = wallet?.balance || 0;
+  const hasInsufficientFunds = walletBalance < totalCost;
+
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     if (images.length === 0) {
       toast.error("Please add at least one image");
       return;
     }
+    
+    if (hasInsufficientFunds) {
+      toast.error("Insufficient wallet balance. Please fund your wallet first.");
+      return;
+    }
+    
     createMutation.mutate({ ...data, image_urls: images });
   };
 
-  const tier = form.watch("listing_tier");
-  const days = form.watch("days_paid");
-
-  const PRICING = {
-    standard: 10000,
-    featured: 20000,
-    premium: 35000
+  const handleFundWallet = () => {
+    onOpenChange(false);
+    navigate('/brand-dashboard/finance');
   };
-
-  const totalCost = PRICING[tier] * days;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -105,6 +140,35 @@ export function CreateMarketplaceListingDialog({ open, onOpenChange }: CreateMar
             Advertise your products or services to all Yield users. Choose your listing tier for maximum visibility.
           </DialogDescription>
         </DialogHeader>
+
+        {/* Wallet Balance Display */}
+        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
+          <div className="flex items-center gap-2">
+            <Wallet className="h-5 w-5 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Wallet Balance:</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className={`font-semibold ${hasInsufficientFunds ? 'text-destructive' : 'text-green-600'}`}>
+              ₦{walletLoading ? '...' : walletBalance.toLocaleString()}
+            </span>
+            {hasInsufficientFunds && (
+              <Button size="sm" variant="outline" onClick={handleFundWallet}>
+                Fund Wallet
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Insufficient Funds Warning */}
+        {hasInsufficientFunds && (
+          <Alert className="border-destructive/50 bg-destructive/5">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Insufficient funds:</strong> You need ₦{totalCost.toLocaleString()} but only have ₦{walletBalance.toLocaleString()}. 
+              Please fund your wallet with at least ₦{(totalCost - walletBalance).toLocaleString()} more to create this listing.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -242,11 +306,11 @@ export function CreateMarketplaceListingDialog({ open, onOpenChange }: CreateMar
               </Button>
               <Button
                 type="submit"
-                disabled={createMutation.isPending}
+                disabled={createMutation.isPending || hasInsufficientFunds}
                 className="flex-1"
               >
                 {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Listing (₦{totalCost.toLocaleString()})
+                {hasInsufficientFunds ? 'Insufficient Funds' : `Create Listing (₦${totalCost.toLocaleString()})`}
               </Button>
             </div>
           </form>
