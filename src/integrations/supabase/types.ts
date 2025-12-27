@@ -4547,6 +4547,17 @@ export type Database = {
           recorded_at: string
         }[]
       }
+      get_public_profile_info: {
+        Args: { profile_id: string }
+        Returns: {
+          id: string
+          level: number
+          name: string
+          points: number
+          profile_picture_url: string
+          tasks_completed: number
+        }[]
+      }
       get_unread_message_count: {
         Args: { chat_id_param: string; user_id_param: string }
         Returns: number
