@@ -52,16 +52,17 @@ export const ModernBrandLayout: React.FC<ModernBrandLayoutProps> = ({
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex flex-col w-full bg-background">
         {/* Navigation Header with Mobile Menu */}
-        <div className="flex items-center justify-between px-4 py-2 border-b border-border lg:hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-primary/10 to-primary/5 lg:hidden">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
+              <Button variant="default" size="sm" className="gap-2 shadow-md">
+                <Menu className="h-5 w-5" />
+                <span className="font-medium">Menu</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-72 p-0">
               <div className="flex flex-col h-full">
-                <div className="p-4 border-b border-border">
+                <div className="p-4 border-b border-border bg-primary/5">
                   <h2 className="text-lg font-semibold">YIELD Brand</h2>
                   <p className="text-sm text-muted-foreground">{profile?.company_name || 'Brand Dashboard'}</p>
                 </div>

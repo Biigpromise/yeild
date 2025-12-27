@@ -55,7 +55,7 @@ export function CreateMarketplaceListingDialog({ open, onOpenChange }: CreateMar
       category: "",
       image_urls: [],
       external_link: "",
-      days_paid: 7,
+      days_paid: 1,
       listing_tier: 'standard'
     }
   });

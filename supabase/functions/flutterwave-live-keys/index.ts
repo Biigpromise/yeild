@@ -11,13 +11,17 @@ serve(async (req) => {
   }
 
   try {
-    // Get the Flutterwave secret key from environment variables with fallback to live key
-    const flutterwaveSecretKey = Deno.env.get("FLUTTERWAVE_SECRET_KEY") || "FLWSECK-1d369aa883be0c12c994a2023c5fbc4b-198833e8625vt-X";
+    // Get the Flutterwave secret key from environment variables - NO FALLBACK for security
+    const flutterwaveSecretKey = Deno.env.get("FLUTTERWAVE_SECRET_KEY");
     
     if (!flutterwaveSecretKey) {
       return new Response(
-        JSON.stringify({ error: "Flutterwave secret key not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ 
+          error: "Flutterwave secret key not configured",
+          configured: false,
+          mode: "UNCONFIGURED"
+        }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

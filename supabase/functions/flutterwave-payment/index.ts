@@ -88,14 +88,14 @@ serve(async (req) => {
       },
     };
 
-    // Get the Flutterwave secret key from environment variables
-    const flutterwaveSecretKey = Deno.env.get("FLUTTERWAVE_SECRET_KEY") || "FLWSECK-1d369aa883be0c12c994a2023c5fbc4b-198833e8625vt-X";
+    // Get the Flutterwave secret key from environment variables - NO FALLBACK for security
+    const flutterwaveSecretKey = Deno.env.get("FLUTTERWAVE_SECRET_KEY");
     
     if (!flutterwaveSecretKey) {
-      console.error("Flutterwave secret key not found");
+      console.error("FLUTTERWAVE_SECRET_KEY not configured in environment");
       return new Response(
-        JSON.stringify({ error: "Payment service configuration error" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Payment service unavailable. Please contact support." }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
