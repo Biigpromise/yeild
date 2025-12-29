@@ -68,23 +68,23 @@ const Wallet: React.FC = () => {
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/20 via-green-500/20 to-blue-500/20 border-b">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        <div className="relative max-w-7xl mx-auto px-4 py-12 bg-neutral-950">
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <WalletIcon className="h-8 w-8 text-primary" />
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-green-500 bg-clip-text text-transparent">
+        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-12 bg-neutral-950">
+          <div className="text-center space-y-3 sm:space-y-4">
+            <div className="flex items-center justify-center gap-2 mb-2 sm:mb-4">
+              <WalletIcon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-green-500 bg-clip-text text-transparent">
                 Your Wallet
               </h1>
             </div>
-            <p className="text-lg max-w-2xl mx-auto text-slate-50">
-              Manage your earnings, track transactions, and withdraw your rewards
+            <p className="text-sm sm:text-lg max-w-2xl mx-auto text-slate-50 px-2">
+              Manage your earnings, withdrawals, and transactions
             </p>
-            <div className="flex items-center justify-center gap-4 pt-4">
-              <Badge variant="secondary" className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 pt-2 sm:pt-4">
+              <Badge variant="secondary" className="flex items-center gap-1 text-xs sm:text-sm">
                 <DollarSign className="h-3 w-3" />
                 {userPoints.toLocaleString()} Points
               </Badge>
-              <Badge variant="outline" className="flex items-center gap-1">
+              <Badge variant="outline" className="flex items-center gap-1 text-xs sm:text-sm">
                 <TrendingUp className="h-3 w-3" />
                 Growing Balance
               </Badge>
@@ -93,69 +93,69 @@ const Wallet: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6 space-y-6 bg-zinc-950">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 bg-zinc-950">
         {/* Balance Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-primary/10 to-primary/5">
-            <CardContent className="p-6 bg-neutral-950">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Available Balance</p>
-                  <div className="flex items-center gap-2">
-                    {showBalance ? <p className="text-3xl font-bold">{userPoints.toLocaleString()}</p> : <p className="text-3xl font-bold">••••••</p>}
-                    <Button variant="ghost" size="sm" onClick={() => setShowBalance(!showBalance)}>
-                      {showBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+          <Card className="hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-primary/10 to-primary/5">
+            <CardContent className="p-3 sm:p-6 bg-neutral-950">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1 truncate">Available Balance</p>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    {showBalance ? <p className="text-xl sm:text-3xl font-bold truncate">{userPoints.toLocaleString()}</p> : <p className="text-xl sm:text-3xl font-bold">••••</p>}
+                    <Button variant="ghost" size="sm" onClick={() => setShowBalance(!showBalance)} className="h-6 w-6 sm:h-8 sm:w-8 p-0">
+                      {showBalance ? <EyeOff className="h-3 w-3 sm:h-4 sm:w-4" /> : <Eye className="h-3 w-3 sm:h-4 sm:w-4" />}
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">Points</p>
                 </div>
-                <div className="p-3 bg-primary/20 rounded-full">
-                  <WalletIcon className="h-6 w-6 text-primary" />
+                <div className="p-2 sm:p-3 bg-primary/20 rounded-full shrink-0">
+                  <WalletIcon className="h-4 w-4 sm:h-6 sm:w-6 text-primary" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-green-500/10 to-green-500/5">
-            <CardContent className="p-6 bg-zinc-950">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total Earned</p>
-                  <p className="text-3xl font-bold text-green-600">{totalEarned.toLocaleString()}</p>
+          <Card className="hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-green-500/10 to-green-500/5">
+            <CardContent className="p-3 sm:p-6 bg-zinc-950">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1 truncate">Total Earned</p>
+                  <p className="text-xl sm:text-3xl font-bold text-green-600 truncate">{totalEarned.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">All time</p>
                 </div>
-                <div className="p-3 bg-green-500/20 rounded-full">
-                  <ArrowUpRight className="h-6 w-6 text-green-500" />
+                <div className="p-2 sm:p-3 bg-green-500/20 rounded-full shrink-0">
+                  <ArrowUpRight className="h-4 w-4 sm:h-6 sm:w-6 text-green-500" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-orange-500/10 to-orange-500/5">
-            <CardContent className="p-6 bg-neutral-950">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Pending Withdrawals</p>
-                  <p className="text-3xl font-bold text-orange-600">{pendingWithdrawals}</p>
+          <Card className="hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-orange-500/10 to-orange-500/5">
+            <CardContent className="p-3 sm:p-6 bg-neutral-950">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1 truncate">Pending</p>
+                  <p className="text-xl sm:text-3xl font-bold text-orange-600">{pendingWithdrawals}</p>
                   <p className="text-xs text-muted-foreground">In progress</p>
                 </div>
-                <div className="p-3 bg-orange-500/20 rounded-full">
-                  <Download className="h-6 w-6 text-orange-500" />
+                <div className="p-2 sm:p-3 bg-orange-500/20 rounded-full shrink-0">
+                  <Download className="h-4 w-4 sm:h-6 sm:w-6 text-orange-500" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
-            <CardContent className="p-6 bg-neutral-950">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Completed</p>
-                  <p className="text-3xl font-bold text-blue-600">{completedWithdrawals}</p>
+          <Card className="hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
+            <CardContent className="p-3 sm:p-6 bg-neutral-950">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1 truncate">Completed</p>
+                  <p className="text-xl sm:text-3xl font-bold text-blue-600">{completedWithdrawals}</p>
                   <p className="text-xs text-muted-foreground">Withdrawals</p>
                 </div>
-                <div className="p-3 bg-blue-500/20 rounded-full">
-                  <ArrowDownRight className="h-6 w-6 text-blue-500" />
+                <div className="p-2 sm:p-3 bg-blue-500/20 rounded-full shrink-0">
+                  <ArrowDownRight className="h-4 w-4 sm:h-6 sm:w-6 text-blue-500" />
                 </div>
               </div>
             </CardContent>
@@ -163,47 +163,47 @@ const Wallet: React.FC = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer group">
-            <CardContent className="p-6 text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
-                <Download className="h-8 w-8 text-primary" />
+            <CardContent className="p-4 sm:p-6 text-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-primary/20 transition-colors">
+                <Download className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2">Withdraw Funds</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Cash out your earnings to your preferred payment method
+              <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">Withdraw Funds</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
+                Cash out your earnings
               </p>
-              <Button className="w-full">
+              <Button className="w-full text-sm" size="sm">
                 Start Withdrawal
               </Button>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer group">
-            <CardContent className="p-6 text-center">
-              <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-500/20 transition-colors">
-                <PiggyBank className="h-8 w-8 text-green-500" />
+            <CardContent className="p-4 sm:p-6 text-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-green-500/20 transition-colors">
+                <PiggyBank className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
               </div>
-              <h3 className="font-semibold mb-2">Savings Goal</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Set and track your earning goals
+              <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">Yield Wallet</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
+                Save points before withdrawing
               </p>
-              <Button variant="outline" className="w-full">
-                Set Goal
+              <Button variant="outline" className="w-full text-sm" size="sm">
+                Transfer
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer group">
-            <CardContent className="p-6 text-center">
-              <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-500/20 transition-colors">
-                <CreditCard className="h-8 w-8 text-blue-500" />
+          <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer group sm:col-span-2 lg:col-span-1">
+            <CardContent className="p-4 sm:p-6 text-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:bg-blue-500/20 transition-colors">
+                <CreditCard className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
               </div>
-              <h3 className="font-semibold mb-2">Payment Methods</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Manage your withdrawal accounts
+              <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">Payment Methods</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
+                Manage bank accounts
               </p>
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full text-sm" size="sm">
                 Manage
               </Button>
             </CardContent>
