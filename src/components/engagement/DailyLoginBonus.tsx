@@ -64,7 +64,7 @@ export const DailyLoginBonus: React.FC = () => {
             .from('point_transactions')
             .select('created_at')
             .eq('user_id', user.id)
-            .eq('type', 'daily_bonus')
+            .eq('transaction_type', 'daily_bonus')
             .order('created_at', { ascending: false })
             .limit(7);
 
