@@ -6,6 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { BirdStatusDisplay } from '@/components/bird/BirdStatusDisplay';
 import { DashboardProgress } from '@/components/dashboard/DashboardProgress';
+import { GettingStartedChecklist } from '@/components/engagement/GettingStartedChecklist';
+import { DailyLoginBonus } from '@/components/engagement/DailyLoginBonus';
+import { DailySpinWheel } from '@/components/engagement/DailySpinWheel';
+import { PayoutProof } from '@/components/engagement/PayoutProof';
 import { 
   Trophy, 
   Zap, 
@@ -95,7 +99,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExpl
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Welcome Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -110,6 +114,24 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExpl
             You're on level {currentLevel}. Keep completing tasks to level up!
           </p>
         </div>
+      </motion.div>
+
+      {/* Daily Login Bonus */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+      >
+        <DailyLoginBonus />
+      </motion.div>
+
+      {/* Getting Started Checklist */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.18 }}
+      >
+        <GettingStartedChecklist />
       </motion.div>
 
       {/* Bird Progress & Level */}
@@ -231,11 +253,29 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExpl
         </motion.div>
       )}
 
-      {/* Recent Activity */}
+      {/* Daily Spin Wheel */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
+      >
+        <DailySpinWheel />
+      </motion.div>
+
+      {/* Payout Proof - Social Proof */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.55 }}
+      >
+        <PayoutProof />
+      </motion.div>
+
+      {/* Recent Activity */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
       >
         <Card>
           <CardHeader>

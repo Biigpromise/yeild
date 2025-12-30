@@ -492,8 +492,9 @@ export const ModernLanding: React.FC = () => {
             </div>
             
             <div className="flex gap-6 text-sm text-muted-foreground">
-              <button onClick={() => navigate('/privacy')}>Privacy Policy</button>
-              <button onClick={() => navigate('/terms')}>Terms of Service</button>
+              <button onClick={() => navigate('/faq')} className="hover:text-foreground transition-colors">FAQ</button>
+              <button onClick={() => navigate('/privacy')} className="hover:text-foreground transition-colors">Privacy Policy</button>
+              <button onClick={() => navigate('/terms')} className="hover:text-foreground transition-colors">Terms of Service</button>
             </div>
           </div>
         </div>
