@@ -32,6 +32,7 @@ import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Onboarding from "./pages/Onboarding";
 import BrandOnboarding from "./pages/BrandOnboarding";
+import FAQ from "./pages/FAQ";
 
 import Wallet from "./pages/Wallet";
 import Referrals from "./pages/Referrals";
@@ -92,6 +93,7 @@ const AppContent = () => {
         <Route path="/custom-reset-password" element={<CustomResetPassword />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/faq" element={<FAQ />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/brand-onboarding" element={<BrandOnboarding />} />
         <Route
