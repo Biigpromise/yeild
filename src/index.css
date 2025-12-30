@@ -1,4 +1,4 @@
-
+@import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -63,7 +63,7 @@
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
     --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(var(--muted) / 0.5));
     --gradient-bg: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted) / 0.2));
-    
+
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 hsl(var(--foreground) / 0.05);
     --shadow-md: 0 4px 6px -1px hsl(var(--foreground) / 0.1), 0 2px 4px -1px hsl(var(--foreground) / 0.06);
@@ -71,6 +71,8 @@
     --shadow-xl: 0 20px 25px -5px hsl(var(--foreground) / 0.1), 0 10px 10px -5px hsl(var(--foreground) / 0.04);
 
     --radius: 0.75rem;
+
+    --font-sans: Roboto, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   }
 
   .dark {
@@ -109,12 +111,13 @@
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.6));
     --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(var(--muted) / 0.3));
     --gradient-bg: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted) / 0.1));
-    
+
     /* Dark mode shadows */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.2);
     --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -1px hsl(0 0% 0% / 0.2);
     --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -2px hsl(0 0% 0% / 0.2);
     --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.4), 0 10px 10px -5px hsl(0 0% 0% / 0.2);
+    --font-sans: Roboto, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   }
 
   .light {
@@ -150,16 +153,16 @@
   * {
     @apply border-border;
   }
-  
+
   html {
     scroll-behavior: smooth;
     color-scheme: dark;
   }
-  
+
   html.dark {
     color-scheme: dark;
   }
-  
+
   html.light {
     color-scheme: light;
   }
@@ -174,7 +177,7 @@
   .action-button-primary {
     @apply bg-primary text-primary-foreground font-bold py-3 px-6 rounded-lg hover:bg-primary/90 transition-all duration-300 shadow-glow-white hover:shadow-glow-white-lg;
   }
-  
+
   .action-button-secondary {
     @apply bg-transparent text-foreground border-2 border-border font-bold py-3 px-6 rounded-lg hover:bg-secondary/10 transition-all duration-300 hover:border-primary/50;
   }
@@ -194,31 +197,31 @@
   .yeild-input {
     @apply bg-input rounded-lg p-3 border border-border focus:border-primary focus:ring-1 focus:ring-primary text-foreground;
   }
-  
+
   .gradient-text {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-foreground via-muted-foreground to-foreground;
   }
-  
+
   .yellow-text {
     @apply text-yeild-yellow;
   }
-  
+
   .yellow-gradient-text {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-yeild-yellow via-yeild-yellow-dark to-yeild-yellow;
   }
-  
+
   .nav-link {
     @apply text-foreground hover:text-muted-foreground transition-colors duration-300 font-medium relative after:content-[''] after:absolute after:w-0 after:h-0.5 after:bg-primary after:left-0 after:bottom-0 hover:after:w-full after:transition-all after:duration-300;
   }
-  
+
   .footer-link {
     @apply text-muted-foreground hover:text-foreground transition-colors block;
   }
-  
+
   .hover-lift {
     @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
   }
-  
+
   .hover-scale {
     @apply transition-all duration-300 hover:scale-105;
   }
@@ -228,7 +231,7 @@
   .shadow-glow-white {
     box-shadow: 0 0 15px 0 rgba(255, 255, 255, 0.3);
   }
-  
+
   .shadow-glow-white-lg {
     box-shadow: 0 0 25px 0 rgba(255, 255, 255, 0.4);
   }
@@ -236,15 +239,15 @@
   .shadow-glow-yellow {
     box-shadow: 0 0 20px 0 hsl(48 100% 67% / 0.4);
   }
-  
+
   .shadow-glow-yellow-lg {
     box-shadow: 0 0 30px 0 hsl(48 100% 67% / 0.6);
   }
-  
+
   .animate-pulse-subtle {
     animation: pulse-subtle 2s ease-in-out infinite;
   }
-  
+
   .animate-float {
     animation: float 4s ease-in-out infinite;
   }
@@ -258,12 +261,12 @@
                  0 0 20px hsl(48 100% 67% / 0.3), 
                  0 0 30px hsl(48 100% 67% / 0.2);
   }
-  
+
   @keyframes pulse-subtle {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.8; }
   }
-  
+
   @keyframes float {
     0% { transform: translateY(0px); }
     50% { transform: translateY(-10px); }
