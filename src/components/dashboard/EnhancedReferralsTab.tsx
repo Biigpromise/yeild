@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Users, Gift, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { RefreshCw, Users, Gift, TrendingUp, AlertCircle, CheckCircle, Copy, Share2, QrCode } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useReferralMonitoring } from '@/hooks/useReferralMonitoring';
 import { useErrorRecovery } from '@/hooks/useErrorRecovery';
@@ -14,6 +15,7 @@ import { referralCommissionService } from '@/services/referralCommissionService'
 import { toast } from 'sonner';
 import { generateReferralLink, APP_CONFIG } from "@/config/app";
 import { BirdProgressTracker } from "@/components/referral/BirdProgressTracker";
+import { ReferralLeaderboard } from "@/components/referral/ReferralLeaderboard";
 
 export const EnhancedReferralsTab: React.FC = () => {
   const { user } = useAuth();
@@ -235,6 +237,9 @@ export const EnhancedReferralsTab: React.FC = () => {
             className="transition-all duration-300 hover:shadow-md" 
           />
         )}
+
+        {/* Referral Leaderboard */}
+        <ReferralLeaderboard />
 
         {/* Commission Earnings */}
         {commissionEarnings.length > 0 && (
