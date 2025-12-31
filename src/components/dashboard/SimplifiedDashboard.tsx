@@ -201,7 +201,7 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
           "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border/60 transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}>
-          <div className="flex flex-col h-screen max-h-screen overflow-hidden">
+          <div className="flex flex-col h-[100dvh] lg:h-screen overflow-hidden">
             {/* Sidebar Header - Fixed */}
             <div className="flex-shrink-0 p-6 border-b border-border/60">
               <div className="flex items-center justify-between">
@@ -223,7 +223,7 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
             </div>
 
             {/* Scrollable Content Area */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto min-h-0">
               {/* User Info */}
               <div className="p-6 border-b border-border/60">
                 <div className="flex items-center gap-3 mb-4">
@@ -301,13 +301,13 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
               </div>
             </div>
 
-            {/* Sidebar Footer - Fixed at bottom */}
-            <div className="flex-shrink-0 p-4 border-t border-border/60 bg-card">
+            {/* Sidebar Footer - Fixed at bottom with safe area */}
+            <div className="flex-shrink-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t border-border/60 bg-card">
               <Button
                 onClick={handleSignOut}
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive"
+                variant="destructive"
+                size="default"
+                className="w-full justify-center gap-2 font-medium"
               >
                 <LogOut className="h-4 w-4" />
                 Sign Out
