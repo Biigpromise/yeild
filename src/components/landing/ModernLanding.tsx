@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { YieldLogo } from '@/components/ui/YieldLogo';
-import { ArrowRight, Zap, Trophy, Users, Star, CheckCircle, TrendingUp, Building2, Megaphone, Coins, DollarSign, Target } from 'lucide-react';
+import { ArrowRight, Zap, Trophy, Users, Star, CheckCircle, TrendingUp, Building2, Megaphone, Coins, DollarSign, Target, HelpCircle, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { PayoutProof } from '@/components/engagement/PayoutProof';
+
 export const ModernLanding: React.FC = () => {
   const navigate = useNavigate();
   const [animated, setAnimated] = useState(false);
@@ -416,6 +418,102 @@ All In One Platform.<br />
                 </Card>
               </motion.div>
             </div>
+          </div>
+        </section>
+
+        {/* Payout Proof Section */}
+        <section className="py-16 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="max-w-lg mx-auto"
+            >
+              <h2 className="text-2xl lg:text-3xl font-bold mb-6 text-center">
+                Real Payouts, Real Users
+              </h2>
+              <PayoutProof />
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Compact FAQ Section */}
+        <section className="py-16 lg:py-24">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+                Frequently Asked Questions
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Got questions? We've got answers.
+              </p>
+            </motion.div>
+
+            <div className="max-w-3xl mx-auto space-y-4">
+              {[
+                {
+                  question: 'How do I earn points on YEILD?',
+                  answer: 'Complete simple tasks like following social accounts, engaging with content, or referring friends. Each completed task rewards you with points that can be withdrawn as cash.'
+                },
+                {
+                  question: 'How do I withdraw my earnings?',
+                  answer: 'Once you reach the minimum withdrawal threshold, you can request a payout directly to your bank account. Withdrawals are typically processed within 24-48 hours.'
+                },
+                {
+                  question: 'Is YEILD free to use?',
+                  answer: 'Yes! YEILD is completely free for users. You earn real points by completing tasks without any upfront cost.'
+                },
+                {
+                  question: 'How do brands create campaigns?',
+                  answer: 'Brands can sign up, fund their wallet, and create campaigns with targeted requirements. Our platform matches campaigns with suitable users for maximum engagement.'
+                }
+              ].map((faq, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                >
+                  <Card className="border-border/60">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-3">
+                        <HelpCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                        <div>
+                          <h3 className="font-semibold mb-2">{faq.question}</h3>
+                          <p className="text-sm text-muted-foreground">{faq.answer}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-center mt-8"
+            >
+              <Button
+                variant="outline"
+                onClick={() => navigate('/faq')}
+                className="gap-2"
+              >
+                View All FAQs
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </motion.div>
           </div>
         </section>
 

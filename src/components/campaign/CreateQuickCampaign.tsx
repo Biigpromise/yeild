@@ -132,12 +132,35 @@ export const CreateQuickCampaign = () => {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.description || !formData.budget) {
       toast.error('Please fill in all required fields');
       return;
     }
+
+    // Check wallet balance before allowing submission
+    if (!user) {
+      toast.error('Not authenticated');
+      return;
+    }
+
+    const { data: wallet, error: walletError } = await supabase
+      .from('brand_wallets')
+      .select('balance')
+      .eq('brand_id', user.id)
+      .single();
+
+    if (walletError || !wallet) {
+      toast.error('Please fund your wallet before creating a campaign');
+      return;
+    }
+
+    if (wallet.balance < formData.budget) {
+      toast.error(`Insufficient wallet balance. Required: ₦${formData.budget.toLocaleString()}, Available: ₦${wallet.balance.toLocaleString()}. Please fund your wallet first.`);
+      return;
+    }
+
     createCampaignMutation.mutate(formData);
   };
 

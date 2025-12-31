@@ -106,7 +106,6 @@ export const taskService = {
           )
         `)
         .eq('status', 'active')
-        .gt('budget_allocated', 0)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

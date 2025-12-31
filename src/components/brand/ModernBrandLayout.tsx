@@ -132,8 +132,8 @@ export const ModernBrandLayout: React.FC<ModernBrandLayoutProps> = ({
             <BrandSidebar profile={profile} wallet={wallet} />
           </div>
           
-          <main className="flex-1 overflow-auto bg-muted/30">
-            <div className="w-full px-4 py-4 sm:px-6 sm:py-6 lg:container lg:mx-auto lg:max-w-7xl">
+          <main className="flex-1 overflow-y-auto bg-muted/30 pb-20 lg:pb-6">
+            <div className="w-full px-3 py-4 sm:px-6 sm:py-6 lg:container lg:mx-auto lg:max-w-7xl">
               {children}
             </div>
           </main>
