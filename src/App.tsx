@@ -50,6 +50,7 @@ import { useMaintenanceMode } from "@/hooks/useMaintenanceMode";
 import MaintenanceMode from "@/components/maintenance/MaintenanceMode";
 import { useAuth } from "@/contexts/AuthContext";
 import { ErrorBoundaryWrapper } from "@/components/ErrorBoundaryWrapper";
+import CrispChatWidget from "@/components/CrispChatWidget";
 import "./App.css";
 
 const AppContent = () => {
@@ -235,6 +236,7 @@ function App() {
             <OnboardingProvider>
               <TooltipProvider>
                 <Toaster />
+                <CrispChatWidget />
                 <AppContent />
               </TooltipProvider>
             </OnboardingProvider>

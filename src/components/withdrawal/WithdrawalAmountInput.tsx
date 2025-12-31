@@ -3,23 +3,38 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Calculator, TrendingUp, AlertCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Calculator, TrendingUp, AlertCircle, Shield, Star, Info } from 'lucide-react';
 
 interface WithdrawalAmountInputProps {
   amount: string;
   onAmountChange: (amount: string) => void;
   userBalance: number;
   selectedMethod: string;
+  tasksCompleted?: number;
 }
+
+// Trust tier system based on completed tasks
+const getTrustTier = (tasksCompleted: number) => {
+  if (tasksCompleted >= 10) {
+    return { level: 'trusted', name: 'Trusted User', minWithdrawal: 1000, color: 'text-green-600', bgColor: 'bg-green-500/10' };
+  } else if (tasksCompleted >= 3) {
+    return { level: 'active', name: 'Active User', minWithdrawal: 750, color: 'text-blue-600', bgColor: 'bg-blue-500/10' };
+  }
+  return { level: 'new', name: 'New User', minWithdrawal: 500, color: 'text-amber-600', bgColor: 'bg-amber-500/10' };
+};
 
 export const WithdrawalAmountInput: React.FC<WithdrawalAmountInputProps> = ({
   amount,
   onAmountChange,
   userBalance,
-  selectedMethod
+  selectedMethod,
+  tasksCompleted = 0
 }) => {
   const [showBreakdown, setShowBreakdown] = useState(false);
   
+  const trustTier = getTrustTier(tasksCompleted);
   const withdrawalAmount = parseFloat(amount) || 0;
   
   // Dynamic fee calculation based on method
@@ -32,7 +47,8 @@ export const WithdrawalAmountInput: React.FC<WithdrawalAmountInputProps> = ({
   const processingFee = Math.ceil(withdrawalAmount * getFeePercentage());
   const netAmount = withdrawalAmount - processingFee;
   
-  const minWithdrawal = selectedMethod === 'yield_wallet' ? 100 : 1000;
+  // Tiered minimum based on trust level (yield wallet always 100)
+  const minWithdrawal = selectedMethod === 'yield_wallet' ? 100 : trustTier.minWithdrawal;
   const maxWithdrawal = userBalance;
   
   const quickAmounts = [
@@ -44,12 +60,68 @@ export const WithdrawalAmountInput: React.FC<WithdrawalAmountInputProps> = ({
 
   const isValidAmount = withdrawalAmount >= minWithdrawal && withdrawalAmount <= maxWithdrawal;
 
+  // Progress to next tier
+  const getNextTierProgress = () => {
+    if (tasksCompleted >= 10) return { progress: 100, nextTier: null, tasksNeeded: 0 };
+    if (tasksCompleted >= 3) return { progress: Math.round((tasksCompleted / 10) * 100), nextTier: 'Trusted', tasksNeeded: 10 - tasksCompleted };
+    return { progress: Math.round((tasksCompleted / 3) * 100), nextTier: 'Active', tasksNeeded: 3 - tasksCompleted };
+  };
+
+  const tierProgress = getNextTierProgress();
+
   useEffect(() => {
     setShowBreakdown(withdrawalAmount > 0);
   }, [withdrawalAmount]);
 
   return (
     <div className="space-y-6">
+      {/* Trust Tier Display */}
+      {selectedMethod !== 'yield_wallet' && (
+        <Card className={`${trustTier.bgColor} border-current/20`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Shield className={`h-5 w-5 ${trustTier.color}`} />
+                <span className={`font-semibold ${trustTier.color}`}>{trustTier.name}</span>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-sm">Your trust tier is based on completed tasks. Higher tiers unlock lower withdrawal minimums and more benefits.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <Badge variant="secondary" className={trustTier.color}>
+                Min: ₦{trustTier.minWithdrawal}
+              </Badge>
+            </div>
+            
+            {tierProgress.nextTier && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Progress to {tierProgress.nextTier} tier</span>
+                  <span>{tierProgress.tasksNeeded} more task{tierProgress.tasksNeeded !== 1 ? 's' : ''} needed</span>
+                </div>
+                <div className="h-2 bg-background rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full ${trustTier.color.replace('text-', 'bg-')} transition-all duration-500`}
+                    style={{ width: `${tierProgress.progress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {tasksCompleted >= 10 && (
+              <div className="flex items-center gap-2 text-sm text-green-600">
+                <Star className="h-4 w-4" />
+                <span>You've unlocked the best withdrawal terms!</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <div className="text-center space-y-2">
         <h3 className="text-xl font-semibold">Enter Withdrawal Amount</h3>
         <p className="text-muted-foreground">How much would you like to withdraw?</p>

@@ -1,22 +1,24 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { User, Bell, Shield, LogOut, Palette, Monitor, Moon, Sun } from 'lucide-react';
+import { User, Bell, Shield, LogOut, Palette, Monitor, Moon, Sun, BellRing, BellOff } from 'lucide-react';
 
 export const SettingsTab: React.FC = () => {
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { isSupported, isEnabled, permission, requestPermission, disableNotifications } = usePushNotifications();
   const [loading, setLoading] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [emailUpdates, setEmailUpdates] = useState(true);
 
   const getThemeIcon = () => {
@@ -94,14 +96,44 @@ export const SettingsTab: React.FC = () => {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Push Notifications</Label>
+              <div className="flex items-center gap-2">
+                <Label>Push Notifications</Label>
+                {isEnabled ? (
+                  <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600">
+                    <BellRing className="h-3 w-3 mr-1" />
+                    Enabled
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
+                    <BellOff className="h-3 w-3 mr-1" />
+                    Disabled
+                  </Badge>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">
-                Receive notifications about new tasks and updates
+                Get notified when new tasks are available
               </p>
+              {!isSupported && (
+                <p className="text-xs text-amber-600">
+                  Push notifications are not supported in this browser
+                </p>
+              )}
+              {permission === 'denied' && (
+                <p className="text-xs text-destructive">
+                  Notifications blocked. Enable in browser settings.
+                </p>
+              )}
             </div>
             <Switch
-              checked={notificationsEnabled}
-              onCheckedChange={setNotificationsEnabled}
+              checked={isEnabled}
+              onCheckedChange={async (checked) => {
+                if (checked) {
+                  await requestPermission();
+                } else {
+                  disableNotifications();
+                }
+              }}
+              disabled={!isSupported || permission === 'denied'}
             />
           </div>
           <Separator />
