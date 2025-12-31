@@ -10,6 +10,7 @@ export interface BirdLevel {
   emoji: string;
   min_referrals: number;
   min_points: number;
+  min_tasks: number;
   description: string;
   color: string;
   benefits: string[];
@@ -21,19 +22,21 @@ export interface BirdLevel {
 export interface NextBirdLevel extends BirdLevel {
   referrals_needed: number;
   points_needed: number;
+  tasks_needed: number;
 }
 
-// Default bird levels as fallback
+// Task-based bird levels (referrals provide bonus, not required)
 const DEFAULT_BIRD_LEVELS: BirdLevel[] = [
   {
     id: 1,
-    name: 'Sparrow',
-    icon: '🐦',
-    emoji: '🐦',
+    name: 'Dove',
+    icon: '🕊️',
+    emoji: '🕊️',
     min_referrals: 0,
     min_points: 0,
+    min_tasks: 0,
     description: 'Starting your journey',
-    color: '#10b981',
+    color: '#64748b',
     benefits: ['Basic community access'],
     animation_type: 'static',
     glow_effect: false,
@@ -41,42 +44,60 @@ const DEFAULT_BIRD_LEVELS: BirdLevel[] = [
   },
   {
     id: 2,
-    name: 'Robin',
+    name: 'Sparrow',
     icon: '🐦',
     emoji: '🐦',
-    min_referrals: 5,
+    min_referrals: 0,
     min_points: 100,
-    description: 'Growing your network',
-    color: '#3b82f6',
-    benefits: ['Enhanced task visibility', '+5% referral bonus'],
+    min_tasks: 5,
+    description: 'Building momentum',
+    color: '#22c55e',
+    benefits: ['Enhanced task visibility', '+5% bonus'],
     animation_type: 'static',
     glow_effect: false,
     earningRate: 1.05
   },
   {
     id: 3,
-    name: 'Eagle',
+    name: 'Hawk',
     icon: '🦅',
     emoji: '🦅',
-    min_referrals: 15,
+    min_referrals: 0,
     min_points: 500,
-    description: 'Soaring high',
-    color: '#8b5cf6',
-    benefits: ['Exclusive task access', '+10% referral bonus'],
+    min_tasks: 20,
+    description: 'Mastering tasks',
+    color: '#eab308',
+    benefits: ['Exclusive task access', '+10% bonus'],
     animation_type: 'static',
     glow_effect: true,
     earningRate: 1.1
   },
   {
     id: 4,
+    name: 'Eagle',
+    icon: '🦅',
+    emoji: '🦅',
+    min_referrals: 0,
+    min_points: 1500,
+    min_tasks: 50,
+    description: 'Soaring high',
+    color: '#ef4444',
+    benefits: ['Custom badge', 'Early access'],
+    animation_type: 'static',
+    glow_effect: true,
+    earningRate: 1.12
+  },
+  {
+    id: 5,
     name: 'Phoenix',
     icon: '🔥',
     emoji: '🔥',
-    min_referrals: 50,
-    min_points: 2000,
+    min_referrals: 0,
+    min_points: 5000,
+    min_tasks: 100,
     description: 'Legendary status',
-    color: '#f59e0b',
-    benefits: ['VIP access', '+15% referral bonus', 'Priority support'],
+    color: '#a855f7',
+    benefits: ['VIP access', '+15% bonus', 'Priority support'],
     animation_type: 'glow',
     glow_effect: true,
     earningRate: 1.15
@@ -95,11 +116,11 @@ export const useBirdLevel = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const getCurrentBirdLevel = (stats: { referrals: number; points: number }) => {
-    // Find the highest level the user qualifies for
+  // Task-based level calculation (referrals are bonus only)
+  const getCurrentBirdLevel = (stats: { referrals: number; points: number; tasksCompleted: number }) => {
     let currentLevel = DEFAULT_BIRD_LEVELS[0];
     for (const level of DEFAULT_BIRD_LEVELS) {
-      if (stats.referrals >= level.min_referrals && stats.points >= level.min_points) {
+      if (stats.tasksCompleted >= level.min_tasks && stats.points >= level.min_points) {
         currentLevel = level;
       } else {
         break;
@@ -108,18 +129,18 @@ export const useBirdLevel = () => {
     return currentLevel;
   };
 
-  const getNextBirdLevel = (stats: { referrals: number; points: number }): NextBirdLevel | null => {
-    // Find the next level the user can achieve
+  const getNextBirdLevel = (stats: { referrals: number; points: number; tasksCompleted: number }): NextBirdLevel | null => {
     for (const level of DEFAULT_BIRD_LEVELS) {
-      if (stats.referrals < level.min_referrals || stats.points < level.min_points) {
+      if (stats.tasksCompleted < level.min_tasks || stats.points < level.min_points) {
         return {
           ...level,
-          referrals_needed: Math.max(0, level.min_referrals - stats.referrals),
-          points_needed: Math.max(0, level.min_points - stats.points)
+          referrals_needed: 0,
+          points_needed: Math.max(0, level.min_points - stats.points),
+          tasks_needed: Math.max(0, level.min_tasks - stats.tasksCompleted)
         };
       }
     }
-    return null; // User has reached the highest level
+    return null;
   };
 
   useEffect(() => {
@@ -172,14 +193,15 @@ export const useBirdLevel = () => {
             .rpc('get_user_bird_level', { user_id_param: user.id });
 
           if (!currentError && currentBirdData && currentBirdData.length > 0) {
-            const rawBird = currentBirdData[0];
+            const rawBird = currentBirdData[0] as any;
             const enhancedBird: BirdLevel = {
               id: rawBird.id,
               name: rawBird.name,
               icon: rawBird.icon,
               emoji: rawBird.emoji,
-              min_referrals: rawBird.min_referrals,
-              min_points: rawBird.min_points,
+              min_referrals: rawBird.min_referrals || 0,
+              min_points: rawBird.min_points || 0,
+              min_tasks: rawBird.min_tasks || current.min_tasks || 0,
               description: rawBird.description,
               color: rawBird.color,
               benefits: rawBird.benefits || current.benefits,
@@ -205,12 +227,14 @@ export const useBirdLevel = () => {
               name: rawNextBird.name,
               icon: rawNextBird.icon,
               emoji: rawNextBird.emoji,
-              min_referrals: rawNextBird.min_referrals,
-              min_points: rawNextBird.min_points,
+              min_referrals: rawNextBird.min_referrals || 0,
+              min_points: rawNextBird.min_points || 0,
+              min_tasks: rawNextBird.min_tasks || 0,
               description: rawNextBird.description,
               color: rawNextBird.color,
-              referrals_needed: rawNextBird.referrals_needed,
-              points_needed: rawNextBird.points_needed,
+              referrals_needed: rawNextBird.referrals_needed || 0,
+              points_needed: rawNextBird.points_needed || 0,
+              tasks_needed: rawNextBird.tasks_needed || 0,
               benefits: next?.benefits || ['Enhanced rewards'],
               animation_type: next?.animation_type || 'static',
               glow_effect: next?.glow_effect || false,

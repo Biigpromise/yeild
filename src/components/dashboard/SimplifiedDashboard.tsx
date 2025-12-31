@@ -295,21 +295,21 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
                 </div>
               </nav>
 
-              {/* Desktop Notifications */}
+            {/* Desktop Notifications */}
               <div className="hidden lg:block p-4 border-t border-border/60">
                 <LiveNotifications unreadCount={unreadCount} onUnreadCountChange={setUnreadCount} />
               </div>
             </div>
 
-            {/* Sidebar Footer - Fixed at bottom with safe area */}
-            <div className="flex-shrink-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t border-border/60 bg-card">
+            {/* Sidebar Footer - Always visible at bottom */}
+            <div className="flex-shrink-0 p-4 border-t border-border/60 bg-card safe-area-bottom">
               <Button
                 onClick={handleSignOut}
                 variant="destructive"
-                size="default"
-                className="w-full justify-center gap-2 font-medium"
+                size="lg"
+                className="w-full justify-center gap-2 font-semibold text-base shadow-lg"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-5 w-5" />
                 Sign Out
               </Button>
             </div>

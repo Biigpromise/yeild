@@ -96,31 +96,56 @@ export const EnhancedReferralSystem = () => {
     }
   };
 
-  const referralLink = referralCode ? generateReferralLink(referralCode) : '';
-
-  const copyReferralLink = () => {
-    if (!referralLink) {
-      toast.error("Referral code not available");
-      return;
+  // Safe referral link generation with error handling
+  const referralLink = React.useMemo(() => {
+    try {
+      if (!referralCode || referralCode.trim() === '') {
+        return '';
+      }
+      return generateReferralLink(referralCode);
+    } catch (error) {
+      console.error('Error generating referral link:', error);
+      return '';
     }
-    navigator.clipboard.writeText(referralLink);
-    toast.success("Professional referral link copied!");
+  }, [referralCode]);
+
+  const copyReferralLink = async () => {
+    try {
+      if (!referralLink) {
+        toast.error("Referral code not available yet. Please wait...");
+        return;
+      }
+      await navigator.clipboard.writeText(referralLink);
+      toast.success("Professional referral link copied!");
+    } catch (error) {
+      console.error('Error copying link:', error);
+      toast.error("Failed to copy link. Please try again.");
+    }
   };
 
-  const shareReferralLink = () => {
-    if (!referralLink) {
-      toast.error("Referral code not available");
-      return;
-    }
-    
-    if (navigator.share) {
-      navigator.share({
-        title: "Join YIELD and help me earn my next bird badge!",
-        text: "Sign up for YIELD using my referral link and help me climb the referral leaderboard!",
-        url: referralLink,
-      });
-    } else {
-      copyReferralLink();
+  const shareReferralLink = async () => {
+    try {
+      if (!referralLink) {
+        toast.error("Referral code not available yet. Please wait...");
+        return;
+      }
+      
+      if (navigator.share) {
+        await navigator.share({
+          title: "Join YIELD and help me earn my next bird badge!",
+          text: "Sign up for YIELD using my referral link and help me climb the referral leaderboard!",
+          url: referralLink,
+        });
+      } else {
+        await copyReferralLink();
+      }
+    } catch (error) {
+      // User cancelled share or error occurred
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Error sharing link:', error);
+        toast.error("Failed to share. Link copied instead.");
+        await copyReferralLink();
+      }
     }
   };
 
