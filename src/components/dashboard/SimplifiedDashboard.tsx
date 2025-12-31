@@ -176,9 +176,9 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
           "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border/60 transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}>
-          <div className="flex flex-col h-full">
-            {/* Sidebar Header */}
-            <div className="p-6 border-b border-border/60">
+          <div className="flex flex-col h-screen max-h-screen overflow-hidden">
+            {/* Sidebar Header - Fixed */}
+            <div className="flex-shrink-0 p-6 border-b border-border/60">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <YieldLogo size={32} />
@@ -197,84 +197,87 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
               </div>
             </div>
 
-            {/* User Info */}
-            <div className="p-6 border-b border-border/60">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                  <User className="h-5 w-5 text-primary" />
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto">
+              {/* User Info */}
+              <div className="p-6 border-b border-border/60">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">
+                      {userProfile?.name || user?.email?.split('@')[0] || 'User'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Level {userStats.level}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">
-                    {userProfile?.name || user?.email?.split('@')[0] || 'User'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Level {userStats.level}
-                  </p>
+                
+                {/* Quick Stats */}
+                <div className="grid grid-cols-2 gap-3 text-center">
+                  <div className="bg-primary/5 rounded-lg p-3">
+                    <div className="text-lg font-bold text-primary">{userStats.points}</div>
+                    <div className="text-xs text-muted-foreground">Points</div>
+                  </div>
+                  <div className="bg-accent/10 rounded-lg p-3">
+                    <div className="text-lg font-bold text-accent-foreground">{userStats.tasksCompleted}</div>
+                    <div className="text-xs text-muted-foreground">Tasks</div>
+                  </div>
                 </div>
               </div>
-              
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 gap-3 text-center">
-                <div className="bg-primary/5 rounded-lg p-3">
-                  <div className="text-lg font-bold text-primary">{userStats.points}</div>
-                  <div className="text-xs text-muted-foreground">Points</div>
+
+              {/* Navigation */}
+              <nav className="p-4">
+                <div className="space-y-2">
+                  {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => {
+                          setActiveTab(tab.id);
+                          setSidebarOpen(false);
+                        }}
+                        className={cn(
+                          "w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 group",
+                          isActive 
+                            ? "bg-primary text-primary-foreground shadow-md" 
+                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                        )}
+                      >
+                        <Icon className={cn(
+                          "h-4 w-4 transition-transform duration-200",
+                          isActive && "scale-110"
+                        )} />
+                        <div className="text-left">
+                          <div className={cn("font-medium", isActive && "text-primary-foreground")}>
+                            {tab.name}
+                          </div>
+                          <div className={cn(
+                            "text-xs", 
+                            isActive ? "text-primary-foreground/80" : "text-muted-foreground"
+                          )}>
+                            {tab.description}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="bg-accent/10 rounded-lg p-3">
-                  <div className="text-lg font-bold text-accent-foreground">{userStats.tasksCompleted}</div>
-                  <div className="text-xs text-muted-foreground">Tasks</div>
-                </div>
+              </nav>
+
+              {/* Desktop Notifications */}
+              <div className="hidden lg:block p-4 border-t border-border/60">
+                <LiveNotifications unreadCount={unreadCount} onUnreadCountChange={setUnreadCount} />
               </div>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 p-4">
-              <div className="space-y-2">
-                {tabs.map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = activeTab === tab.id;
-                  
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => {
-                        setActiveTab(tab.id);
-                        setSidebarOpen(false);
-                      }}
-                      className={cn(
-                        "w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 group",
-                        isActive 
-                          ? "bg-primary text-primary-foreground shadow-md" 
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                      )}
-                    >
-                      <Icon className={cn(
-                        "h-4 w-4 transition-transform duration-200",
-                        isActive && "scale-110"
-                      )} />
-                      <div className="text-left">
-                        <div className={cn("font-medium", isActive && "text-primary-foreground")}>
-                          {tab.name}
-                        </div>
-                        <div className={cn(
-                          "text-xs", 
-                          isActive ? "text-primary-foreground/80" : "text-muted-foreground"
-                        )}>
-                          {tab.description}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </nav>
-
-            {/* Desktop Notifications */}
-            <div className="hidden lg:block p-4 border-t border-border/60">
-              <LiveNotifications unreadCount={unreadCount} onUnreadCountChange={setUnreadCount} />
-            </div>
-
-            {/* Sidebar Footer */}
-            <div className="p-4 border-t border-border/60">
+            {/* Sidebar Footer - Fixed at bottom */}
+            <div className="flex-shrink-0 p-4 border-t border-border/60 bg-card">
               <Button
                 onClick={handleSignOut}
                 variant="ghost"
@@ -297,8 +300,8 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
         )}
 
         {/* Main Content */}
-        <main className="flex-1 lg:ml-0 pb-20 lg:pb-0">
-          <div className="max-w-6xl mx-auto p-4 lg:p-8">
+        <main className="flex-1 lg:ml-0 pb-24 lg:pb-0 overflow-y-auto">
+          <div className="max-w-6xl mx-auto p-3 sm:p-4 lg:p-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}

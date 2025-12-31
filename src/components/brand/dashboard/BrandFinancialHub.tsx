@@ -6,6 +6,7 @@ import { useBrandCampaigns } from '@/hooks/useBrandCampaigns';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { DollarSign, TrendingUp, CreditCard, Download, Calendar } from 'lucide-react';
+import { BudgetEstimateCalculator } from '@/components/brand/BudgetEstimateCalculator';
 
 export const BrandFinancialHub = () => {
   const { campaigns } = useBrandCampaigns();
@@ -139,6 +140,9 @@ export const BrandFinancialHub = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Budget Calculator for Brands */}
+      <BudgetEstimateCalculator />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
