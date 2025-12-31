@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Crown, Target, TrendingUp } from 'lucide-react';
+import { Crown, Target, TrendingUp, Zap, Users } from 'lucide-react';
 
 interface BirdLevel {
   id: number;
@@ -11,6 +11,7 @@ interface BirdLevel {
   color: string;
   min_referrals: number;
   min_points: number;
+  min_tasks?: number; // New: task-based requirement
   description: string;
   benefits: string[];
 }
@@ -18,40 +19,62 @@ interface BirdLevel {
 interface BirdProgressionProps {
   userPoints: number;
   activeReferrals: number;
+  tasksCompleted?: number; // New: tasks completed count
   currentBirdLevel: BirdLevel | null;
   nextBirdLevel?: BirdLevel | null;
 }
 
+// Task-based thresholds for each level
+const TASK_THRESHOLDS: Record<string, number> = {
+  'Dove': 0,
+  'Sparrow': 5,
+  'Hawk': 20,
+  'Eagle': 50,
+  'Falcon': 100,
+  'Phoenix': 500
+};
+
 export const BirdProgression: React.FC<BirdProgressionProps> = ({
   userPoints,
   activeReferrals,
+  tasksCompleted = 0,
   currentBirdLevel,
   nextBirdLevel
 }) => {
+  // New: Calculate progress based on tasks (primary) and points (secondary)
+  // Referrals now provide a bonus but aren't required
   const getProgressPercentage = () => {
     if (!nextBirdLevel) return 100;
     
-    const referralProgress = Math.min(
-      (activeReferrals / nextBirdLevel.min_referrals) * 100,
-      100
-    );
-    const pointsProgress = Math.min(
-      (userPoints / nextBirdLevel.min_points) * 100,
-      100
-    );
+    const nextTaskThreshold = TASK_THRESHOLDS[nextBirdLevel.name] || nextBirdLevel.min_referrals * 5;
     
-    return Math.min(referralProgress, pointsProgress);
+    // Tasks are 60% of progress, Points are 40%
+    const taskProgress = Math.min((tasksCompleted / nextTaskThreshold) * 100, 100);
+    const pointsProgress = Math.min((userPoints / nextBirdLevel.min_points) * 100, 100);
+    
+    // Weighted average: 60% tasks, 40% points
+    return (taskProgress * 0.6) + (pointsProgress * 0.4);
   };
 
-  const getReferralsNeeded = () => {
+  const getTasksNeeded = () => {
     if (!nextBirdLevel) return 0;
-    return Math.max(0, nextBirdLevel.min_referrals - activeReferrals);
+    const nextTaskThreshold = TASK_THRESHOLDS[nextBirdLevel.name] || nextBirdLevel.min_referrals * 5;
+    return Math.max(0, nextTaskThreshold - tasksCompleted);
   };
 
   const getPointsNeeded = () => {
     if (!nextBirdLevel) return 0;
     return Math.max(0, nextBirdLevel.min_points - userPoints);
   };
+
+  // Referrals provide bonus speed but aren't required
+  const getReferralBonus = () => {
+    if (activeReferrals === 0) return null;
+    const bonusPercent = Math.min(activeReferrals * 5, 50); // Up to 50% bonus
+    return bonusPercent;
+  };
+
+  const referralBonus = getReferralBonus();
 
   return (
     <Card className="overflow-hidden">
@@ -95,18 +118,28 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
                 <Progress value={getProgressPercentage()} className="h-2" />
               </div>
 
+              {/* Referral Bonus Indicator */}
+              {referralBonus && (
+                <div className="flex items-center justify-center gap-2 text-sm text-green-600 bg-green-500/10 rounded-lg p-2">
+                  <Users className="h-4 w-4" />
+                  <span>+{referralBonus}% speed bonus from {activeReferrals} referrals!</span>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-muted/50 rounded-lg">
+                {/* Tasks - Primary metric */}
+                <div className="text-center p-3 bg-primary/5 rounded-lg border border-primary/20">
                   <div className="flex items-center justify-center gap-1 mb-1">
-                    <Target className="h-4 w-4" />
-                    <span className="text-sm font-medium">Referrals</span>
+                    <Zap className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">Tasks</span>
                   </div>
-                  <div className="text-lg font-bold">{activeReferrals}</div>
+                  <div className="text-lg font-bold text-primary">{tasksCompleted}</div>
                   <div className="text-xs text-muted-foreground">
-                    {getReferralsNeeded() > 0 ? `${getReferralsNeeded()} more needed` : 'Complete!'}
+                    {getTasksNeeded() > 0 ? `${getTasksNeeded()} more needed` : 'Complete!'}
                   </div>
                 </div>
 
+                {/* Points - Secondary metric */}
                 <div className="text-center p-3 bg-muted/50 rounded-lg">
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <TrendingUp className="h-4 w-4" />
@@ -118,6 +151,11 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
                   </div>
                 </div>
               </div>
+
+              {/* How progression works */}
+              <div className="text-xs text-muted-foreground text-center bg-muted/30 rounded-lg p-2">
+                <span className="font-medium">How it works:</span> Complete tasks (60%) + Earn points (40%). Referrals give bonus speed!
+              </div>
             </div>
 
             {/* Next Level Preview */}
@@ -127,7 +165,7 @@ export const BirdProgression: React.FC<BirdProgressionProps> = ({
                 {nextBirdLevel.name}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                Unlock at {nextBirdLevel.min_referrals} referrals & {nextBirdLevel.min_points} points
+                Unlock at {TASK_THRESHOLDS[nextBirdLevel.name] || nextBirdLevel.min_referrals * 5} tasks & {nextBirdLevel.min_points} points
               </div>
             </div>
           </div>
