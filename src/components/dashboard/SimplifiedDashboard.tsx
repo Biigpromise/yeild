@@ -52,10 +52,35 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
     loadUserData 
   } = useDashboard();
 
-  // Live data updates every 30 seconds
+  // Live data updates - with visibility check to prevent memory leaks
   useEffect(() => {
-    const interval = setInterval(loadUserData, 30000);
-    return () => clearInterval(interval);
+    let interval: NodeJS.Timeout | null = null;
+    
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Clear interval when tab is hidden
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
+      } else {
+        // Resume when tab is visible
+        if (!interval) {
+          interval = setInterval(loadUserData, 30000);
+        }
+      }
+    };
+    
+    // Start polling
+    interval = setInterval(loadUserData, 30000);
+    
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      if (interval) clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [loadUserData]);
 
   const handleSignOut = async () => {

@@ -33,8 +33,9 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Onboarding from "./pages/Onboarding";
 import BrandOnboarding from "./pages/BrandOnboarding";
 import FAQ from "./pages/FAQ";
+import Support from "./pages/Support";
+import { SupportChatWidget } from "@/components/support/SupportChatWidget";
 
-import Wallet from "./pages/Wallet";
 import Referrals from "./pages/Referrals";
 import Birds from "./pages/Birds";
 import WithdrawalPage from "./pages/WithdrawalPage";

@@ -64,7 +64,7 @@ export const ModernLanding: React.FC = () => {
       </header>
 
       <main>
-        {/* Hero Section */}
+        {/* Hero Section - BRAND FIRST */}
         <section className="container mx-auto px-4 py-16 lg:py-24">
           <div className="text-center max-w-4xl mx-auto">
             <motion.div initial={{
@@ -77,14 +77,13 @@ export const ModernLanding: React.FC = () => {
             duration: 0.6
           }} className="mb-8">
               <YieldLogo size={80} className="mx-auto mb-6" />
-              <h1 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight">Earn Rewards As a User.
-Grow Your Brand With Targeted Campaigns.
-All In One Platform.<br />
-                Grow your brand with targeted campaigns.<br />
-                All in one platform.
+              <h1 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight">
+                Reach Thousands of<br />
+                Engaged Users.<br />
+                <span className="text-primary">Grow Your Brand.</span>
               </h1>
               <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                YEILD connects users who want to earn with brands who want targeted engagement, on a simple and powerful platform.
+                Launch targeted campaigns that connect your brand with reward-motivated users. Track real-time performance and maximize your ROI.
               </p>
             </motion.div>
 
@@ -97,19 +96,19 @@ All In One Platform.<br />
           }} transition={{
             duration: 0.6,
             delay: 0.2
-          }} className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button size="lg" onClick={() => navigate('/auth?mode=signup&type=user')} className="h-14 px-8 text-lg font-semibold bg-primary hover:bg-primary/90 group">
-                <Coins className="mr-2 h-5 w-5" />
-                Start Earning Today
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button variant="brand" size="lg" onClick={() => navigate('/auth?mode=signup&type=brand')} className="h-14 px-8 text-lg font-semibold">
+          }} className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+              <Button variant="brand" size="lg" onClick={() => navigate('/auth?mode=signup&type=brand')} className="h-14 px-8 text-lg font-semibold group">
                 <Building2 className="mr-2 h-5 w-5" />
                 Start Advertising Today
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <Button size="lg" variant="outline" onClick={() => navigate('/auth?mode=signup&type=user')} className="h-14 px-8 text-lg font-semibold">
+                <Coins className="mr-2 h-5 w-5" />
+                Or Start Earning
               </Button>
             </motion.div>
 
-            {/* Stats */}
+            {/* Stats - Brand focused */}
             <motion.div initial={{
             opacity: 0,
             y: 20
@@ -120,35 +119,148 @@ All In One Platform.<br />
             duration: 0.6,
             delay: 0.4
           }} className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
-              {stats.map((stat, index) => <div key={index} className="text-center">
-                  <div className="text-2xl lg:text-3xl font-bold text-primary mb-1">
-                    {stat.number}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {stat.label}
-                  </div>
-                </div>)}
+              <div className="text-center">
+                <div className="text-2xl lg:text-3xl font-bold text-primary mb-1">500+</div>
+                <div className="text-sm text-muted-foreground">Brands</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl lg:text-3xl font-bold text-primary mb-1">10K+</div>
+                <div className="text-sm text-muted-foreground">Active Users</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl lg:text-3xl font-bold text-primary mb-1">95%</div>
+                <div className="text-sm text-muted-foreground">Task Completion</div>
+              </div>
             </motion.div>
           </div>
          </section>
 
-         {/* Audience Section */}
-         <section className="container mx-auto px-4 pb-16">
+         {/* For Brands Section - MOVED UP */}
+         <section className="py-16 lg:py-24 bg-muted/30">
+           <div className="container mx-auto px-4">
+             <motion.div initial={{
+             opacity: 0,
+             y: 20
+           }} whileInView={{
+             opacity: 1,
+             y: 0
+           }} viewport={{
+             once: true
+           }} transition={{
+             duration: 0.6
+           }} className="text-center mb-16">
+               <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+                 Why Brands Choose YEILD
+               </h2>
+               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                 Drive awareness, engagement, and real actions from verified users. Launch and manage campaigns in minutes.
+               </p>
+             </motion.div>
+
+             <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto mb-12">
+               {[{
+               icon: Target,
+               title: 'Reach Targeted Users',
+               description: 'Connect with engaged users who are ready to interact with your brand and complete your campaigns',
+               color: 'text-blue-600 bg-blue-500/10'
+             }, {
+               icon: TrendingUp,
+               title: 'Track Performance',
+               description: 'Get real-time analytics and detailed insights on your campaign performance and ROI',
+               color: 'text-purple-600 bg-purple-500/10'
+             }, {
+               icon: DollarSign,
+               title: 'Flexible Campaigns',
+               description: 'Set your own budget, choose your target audience, and customize campaign goals to match your needs',
+               color: 'text-green-600 bg-green-500/10'
+             }].map((feature, index) => {
+               const Icon = feature.icon;
+               return <motion.div key={index} initial={{
+                 opacity: 0,
+                 y: 20
+               }} whileInView={{
+                 opacity: 1,
+                 y: 0
+               }} viewport={{
+                 once: true
+               }} transition={{
+                 duration: 0.6,
+                 delay: index * 0.1
+               }}>
+                     <Card className="text-center p-6 h-full border-border/60 hover:shadow-lg transition-shadow">
+                       <CardContent className="p-6">
+                         <div className={`w-16 h-16 rounded-2xl ${feature.color} mx-auto mb-6 flex items-center justify-center`}>
+                           <Icon className="h-8 w-8" />
+                         </div>
+                         <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
+                         <p className="text-muted-foreground leading-relaxed">
+                           {feature.description}
+                         </p>
+                       </CardContent>
+                     </Card>
+                   </motion.div>;
+             })}
+             </div>
+
+             <motion.div initial={{
+             opacity: 0,
+             y: 20
+           }} whileInView={{
+             opacity: 1,
+             y: 0
+           }} viewport={{
+             once: true
+           }} transition={{
+             duration: 0.6,
+             delay: 0.4
+           }} className="text-center">
+               <Button size="lg" onClick={() => navigate('/auth?mode=signup&type=brand')} className="h-14 px-8 text-lg font-semibold bg-primary hover:bg-primary/90 group">
+                 <Megaphone className="mr-2 h-5 w-5" />
+                 Start Your Campaign
+                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+               </Button>
+             </motion.div>
+           </div>
+         </section>
+
+         {/* Audience Section - Who is YEILD for */}
+         <section className="container mx-auto px-4 py-16">
            <motion.div initial={{
-          opacity: 0,
-          y: 20
-        }} whileInView={{
-          opacity: 1,
-          y: 0
-        }} viewport={{
-          once: true
-        }} transition={{
-          duration: 0.6
-        }} className="max-w-5xl mx-auto">
+           opacity: 0,
+           y: 20
+         }} whileInView={{
+           opacity: 1,
+           y: 0
+         }} viewport={{
+           once: true
+         }} transition={{
+           duration: 0.6
+         }} className="max-w-5xl mx-auto">
              <h2 className="text-2xl lg:text-3xl font-bold mb-6 text-center">
                Who is YEILD for?
              </h2>
              <div className="grid gap-6 md:grid-cols-2">
+               <Card className="border-border/60 hover:shadow-lg transition-shadow border-2 border-primary/20">
+                 <CardContent className="p-6 flex flex-col h-full">
+                   <div className="flex items-center gap-3 mb-4">
+                     <Building2 className="h-6 w-6 text-primary" />
+                     <span className="text-lg font-semibold">I&apos;m here to advertise</span>
+                   </div>
+                   <p className="text-sm text-muted-foreground mb-4">
+                     Launch campaigns that put your brand in front of verified, reward-motivated users.
+                   </p>
+                   <ul className="text-sm text-muted-foreground space-y-2 mb-6">
+                     <li>• Create and fund campaigns in minutes</li>
+                     <li>• Reach targeted users at scale</li>
+                     <li>• Monitor performance with real-time insights</li>
+                   </ul>
+                   <Button variant="brand" size="sm" className="mt-auto self-start" onClick={() => navigate('/auth?mode=signup&type=brand')}>
+                     Start advertising
+                     <ArrowRight className="ml-2 h-4 w-4" />
+                   </Button>
+                 </CardContent>
+               </Card>
+
                <Card className="border-border/60 hover:shadow-lg transition-shadow">
                  <CardContent className="p-6 flex flex-col h-full">
                    <div className="flex items-center gap-3 mb-4">
@@ -165,27 +277,6 @@ All In One Platform.<br />
                    </ul>
                    <Button size="sm" className="mt-auto self-start" onClick={() => navigate('/auth?mode=signup&type=user')}>
                      Start earning
-                     <ArrowRight className="ml-2 h-4 w-4" />
-                   </Button>
-                 </CardContent>
-               </Card>
-
-               <Card className="border-border/60 hover:shadow-lg transition-shadow">
-                 <CardContent className="p-6 flex flex-col h-full">
-                   <div className="flex items-center gap-3 mb-4">
-                     <Building2 className="h-6 w-6 text-primary" />
-                     <span className="text-lg font-semibold">I&apos;m here to advertise</span>
-                   </div>
-                   <p className="text-sm text-muted-foreground mb-4">
-                     Launch campaigns that put your brand in front of verified, reward-motivated users.
-                   </p>
-                   <ul className="text-sm text-muted-foreground space-y-2 mb-6">
-                     <li>• Create and fund campaigns in minutes</li>
-                     <li>• Reach targeted users at scale</li>
-                     <li>• Monitor performance with real-time insights</li>
-                   </ul>
-                   <Button variant="brand" size="sm" className="mt-auto self-start" onClick={() => navigate('/auth?mode=signup&type=brand')}>
-                     Start advertising
                      <ArrowRight className="ml-2 h-4 w-4" />
                    </Button>
                  </CardContent>
