@@ -38,19 +38,20 @@ export const LiveNotifications: React.FC<LiveNotificationsProps> = ({
     }
   }, [user, open]);
 
-  // Real-time updates
+  // Load initial unread count from stored notifications
   useEffect(() => {
     if (user) {
-      // Set up real-time subscription for new notifications
-      const interval = setInterval(() => {
-        // Simulate real-time updates
-        const newCount = Math.floor(Math.random() * 5);
-        onUnreadCountChange(newCount);
-      }, 30000); // Update every 30 seconds
-
-      return () => clearInterval(interval);
+      // Get stored read status
+      const readIds = JSON.parse(localStorage.getItem('read_notifications') || '[]');
+      const storedCount = localStorage.getItem('notification_count');
+      
+      // Only set initial count, don't randomly update
+      if (storedCount === null) {
+        // First time - set to 2 as initial demo notifications
+        onUnreadCountChange(2);
+      }
     }
-  }, [user, onUnreadCountChange]);
+  }, [user]);
 
   const loadNotifications = async () => {
     if (!user) return;
@@ -102,12 +103,25 @@ export const LiveNotifications: React.FC<LiveNotificationsProps> = ({
       )
     );
     
+    // Store read status in localStorage
+    const readIds = JSON.parse(localStorage.getItem('read_notifications') || '[]');
+    if (!readIds.includes(notificationId)) {
+      readIds.push(notificationId);
+      localStorage.setItem('read_notifications', JSON.stringify(readIds));
+    }
+    
     const newUnreadCount = notifications.filter(n => !n.read && n.id !== notificationId).length;
     onUnreadCountChange(newUnreadCount);
+    localStorage.setItem('notification_count', String(newUnreadCount));
   };
 
   const markAllAsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    
+    // Store all as read
+    const allIds = notifications.map(n => n.id);
+    localStorage.setItem('read_notifications', JSON.stringify(allIds));
+    localStorage.setItem('notification_count', '0');
     onUnreadCountChange(0);
   };
 

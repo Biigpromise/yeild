@@ -99,7 +99,7 @@ export const GettingStartedChecklist: React.FC = () => {
           completed: false, // Will be checked via referrals
           reward: 200,
           action: 'Get Referral Link',
-          route: '/referrals'
+          route: '/dashboard?tab=profile'
         },
         {
           id: 'withdrawal',
