@@ -51,7 +51,6 @@ import { useMaintenanceMode } from "@/hooks/useMaintenanceMode";
 import MaintenanceMode from "@/components/maintenance/MaintenanceMode";
 import { useAuth } from "@/contexts/AuthContext";
 import { ErrorBoundaryWrapper } from "@/components/ErrorBoundaryWrapper";
-import CrispChatWidget from "@/components/CrispChatWidget";
 import "./App.css";
 
 const AppContent = () => {
@@ -96,6 +95,7 @@ const AppContent = () => {
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/faq" element={<FAQ />} />
+        <Route path="/support" element={<Support />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/brand-onboarding" element={<BrandOnboarding />} />
         <Route
@@ -237,7 +237,7 @@ function App() {
             <OnboardingProvider>
               <TooltipProvider>
                 <Toaster />
-                <CrispChatWidget />
+                <SupportChatWidget />
                 <AppContent />
               </TooltipProvider>
             </OnboardingProvider>
