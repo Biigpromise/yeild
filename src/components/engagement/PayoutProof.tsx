@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,9 +24,15 @@ export const PayoutProof: React.FC = () => {
   const [totalPaid, setTotalPaid] = useState(0);
   const [totalPayouts, setTotalPayouts] = useState(0);
   const [loading, setLoading] = useState(true);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     loadPayoutData();
+
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   const loadPayoutData = async () => {
@@ -43,6 +49,8 @@ export const PayoutProof: React.FC = () => {
         .eq('status', 'completed')
         .order('created_at', { ascending: false })
         .limit(10);
+
+      if (!mountedRef.current) return;
 
       if (error) throw error;
 
@@ -62,6 +70,8 @@ export const PayoutProof: React.FC = () => {
         .select('*', { count: 'exact', head: true })
         .eq('status', 'completed');
 
+      if (!mountedRef.current) return;
+
       setTotalPayouts(count || 0);
 
       // Calculate total paid
@@ -70,7 +80,9 @@ export const PayoutProof: React.FC = () => {
     } catch (error) {
       console.error('Error loading payout data:', error);
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
