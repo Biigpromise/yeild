@@ -14,11 +14,14 @@ import {
   Wallet,
   ArrowRight,
   Gift,
-  X
+  X,
+  Copy,
+  Check
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface ChecklistItem {
   id: string;
@@ -37,6 +40,8 @@ export const GettingStartedChecklist: React.FC = () => {
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [dismissed, setDismissed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [copiedReferral, setCopiedReferral] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -48,12 +53,16 @@ export const GettingStartedChecklist: React.FC = () => {
     if (!user) return;
     
     try {
-      // Check profile completion
+      // Check profile completion and get referral code
       const { data: profile } = await supabase
         .from('profiles')
-        .select('name')
+        .select('name, referral_code, active_referrals_count')
         .eq('id', user.id)
         .single();
+
+      if (profile?.referral_code) {
+        setReferralCode(profile.referral_code);
+      }
 
       // Check if user has completed any tasks
       const { count: tasksCompleted } = await supabase
@@ -69,6 +78,7 @@ export const GettingStartedChecklist: React.FC = () => {
         .eq('user_id', user.id);
 
       const profileComplete = !!(profile?.name);
+      const hasReferrals = (profile?.active_referrals_count || 0) > 0;
 
       setItems([
         {
@@ -96,10 +106,9 @@ export const GettingStartedChecklist: React.FC = () => {
           title: 'Invite a Friend',
           description: 'Share your referral link with friends',
           icon: Users,
-          completed: false, // Will be checked via referrals
+          completed: hasReferrals,
           reward: 200,
-          action: 'Get Referral Link',
-          route: '/dashboard?tab=profile'
+          action: 'Copy Referral Link'
         },
         {
           id: 'withdrawal',
@@ -116,6 +125,31 @@ export const GettingStartedChecklist: React.FC = () => {
       console.error('Error checking checklist progress:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const copyReferralLink = async () => {
+    if (!referralCode) {
+      toast.error('Referral code not available. Please try again.');
+      return;
+    }
+    
+    try {
+      const referralLink = `${window.location.origin}/signup?ref=${referralCode}`;
+      await navigator.clipboard.writeText(referralLink);
+      setCopiedReferral(true);
+      toast.success('Referral link copied to clipboard!');
+      setTimeout(() => setCopiedReferral(false), 2000);
+    } catch (error) {
+      toast.error('Failed to copy referral link');
+    }
+  };
+
+  const handleItemAction = (item: ChecklistItem) => {
+    if (item.id === 'referral') {
+      copyReferralLink();
+    } else if (item.route) {
+      navigate(item.route);
     }
   };
 
@@ -221,15 +255,31 @@ export const GettingStartedChecklist: React.FC = () => {
                       {item.description}
                     </p>
                   </div>
-                  {!item.completed && item.route && (
+                  {!item.completed && item.action && (
                     <Button
                       variant="ghost"
                       size="sm"
                       className="flex-shrink-0 h-8 text-xs"
-                      onClick={() => navigate(item.route!)}
+                      onClick={() => handleItemAction(item)}
                     >
-                      {item.action}
-                      <ArrowRight className="ml-1 h-3 w-3" />
+                      {item.id === 'referral' ? (
+                        copiedReferral ? (
+                          <>
+                            <Check className="mr-1 h-3 w-3" />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="mr-1 h-3 w-3" />
+                            {item.action}
+                          </>
+                        )
+                      ) : (
+                        <>
+                          {item.action}
+                          <ArrowRight className="ml-1 h-3 w-3" />
+                        </>
+                      )}
                     </Button>
                   )}
                 </motion.div>
