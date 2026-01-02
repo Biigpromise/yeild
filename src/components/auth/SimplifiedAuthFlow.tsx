@@ -341,9 +341,13 @@ export const SimplifiedAuthFlow = () => {
           <Button
             type="button"
             variant="outline"
-            onClick={handleGoogleAuth}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleGoogleAuth();
+            }}
             disabled={isLoading}
-            className="w-full h-12 mt-4 border-border/60 hover:border-primary/40"
+            className="w-full h-12 mt-4 border-border/60 hover:border-primary/40 cursor-pointer relative z-10"
           >
             <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
               <path
