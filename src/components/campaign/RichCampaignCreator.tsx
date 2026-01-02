@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Calculator, AlertTriangle, Wallet, CheckCircle } from 'lucide-react';
 import { CampaignBasicDetails } from '@/components/campaign/CampaignBasicDetails';
 import { CampaignBriefSection } from '@/components/campaign/CampaignBriefSection';
 import { MediaUploadSection } from '@/components/campaign/MediaUploadSection';
 import { SocialLinksSection } from '@/components/campaign/SocialLinksSection';
 import { CampaignTargetingSection } from '@/components/campaign/CampaignTargetingSection';
-import { CampaignBudgetSection } from '@/components/campaign/CampaignBudgetSection';
 import { CampaignReviewSection } from '@/components/campaign/CampaignReviewSection';
+import { BudgetEstimateCalculator } from '@/components/brand/BudgetEstimateCalculator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { MediaAsset } from '@/components/campaign/MediaUploadSection';
@@ -57,7 +59,7 @@ const STEPS = [
   { id: 3, name: 'Media Assets', description: 'Upload brand assets and materials' },
   { id: 4, name: 'Social Links', description: 'Social media and engagement details' },
   { id: 5, name: 'Targeting', description: 'Define your target audience' },
-  { id: 6, name: 'Budget & Timeline', description: 'Set budget and campaign dates' },
+  { id: 6, name: 'Budget Planning', description: 'Plan and confirm your budget' },
   { id: 7, name: 'Review & Submit', description: 'Review and submit your campaign' }
 ];
 
@@ -66,6 +68,7 @@ export const RichCampaignCreator = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [budgetConfirmed, setBudgetConfirmed] = useState(false);
   const [formData, setFormData] = useState<CampaignFormData>({
     title: '',
     description: '',
@@ -100,6 +103,22 @@ export const RichCampaignCreator = () => {
     funding_source: 'wallet'
   });
 
+  // Fetch wallet balance
+  const { data: wallet } = useQuery({
+    queryKey: ['brand-wallet', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('brand_wallets')
+        .select('balance')
+        .eq('brand_id', user.id)
+        .single();
+      if (error) return null;
+      return data;
+    },
+    enabled: !!user?.id
+  });
+
   const updateFormData = (section: keyof CampaignFormData, data: any) => {
     setFormData(prev => ({
       ...prev,
@@ -107,8 +126,18 @@ export const RichCampaignCreator = () => {
     }));
   };
 
+  const handleBudgetConfirmed = (budget: number, pointsPerTask: number) => {
+    setFormData(prev => ({ ...prev, budget }));
+    setBudgetConfirmed(true);
+  };
+
   const nextStep = () => {
     if (currentStep < STEPS.length) {
+      // Special validation for budget step
+      if (currentStep === 6 && !budgetConfirmed) {
+        toast.error('Please confirm your budget using the calculator before proceeding');
+        return;
+      }
       setCurrentStep(currentStep + 1);
     }
   };
@@ -132,7 +161,7 @@ export const RichCampaignCreator = () => {
       case 5:
         return formData.target_demographics.ageRange && formData.target_demographics.gender;
       case 6:
-        return formData.budget > 0;
+        return budgetConfirmed && formData.budget > 0;
       default:
         return true;
     }
@@ -141,48 +170,26 @@ export const RichCampaignCreator = () => {
   const submitCampaign = async () => {
     if (!user) return;
     
+    // Final wallet check
+    if (!wallet || wallet.balance < formData.budget) {
+      toast.error(`Insufficient wallet balance. Required: ₦${formData.budget.toLocaleString()}, Available: ₦${wallet?.balance?.toLocaleString() || 0}. Please fund your wallet first.`);
+      return;
+    }
+    
     setLoading(true);
     try {
-      // Check wallet balance if wallet funding is selected
-      let fundedAmount = 0;
-      let paymentStatus = 'unpaid';
-      let walletTransactionId = null;
+      // Process wallet transaction
+      const { data: transaction, error: transactionError } = await supabase
+        .rpc('process_wallet_transaction', {
+          p_brand_id: user.id,
+          p_transaction_type: 'campaign_charge',
+          p_amount: formData.budget,
+          p_description: `Campaign funding: ${formData.title}`
+        });
 
-      if (formData.funding_source === 'wallet') {
-        // Get wallet balance
-        const { data: wallet, error: walletError } = await supabase
-          .from('brand_wallets')
-          .select('balance')
-          .eq('brand_id', user.id)
-          .single();
-
-        if (walletError) {
-          toast.error('Failed to check wallet balance');
-          return;
-        }
-
-        if (!wallet || wallet.balance < formData.budget) {
-          toast.error(`Insufficient wallet balance. Required: ₦${formData.budget}, Available: ₦${wallet?.balance || 0}`);
-          return;
-        }
-
-        // Process wallet transaction
-        const { data: transaction, error: transactionError } = await supabase
-          .rpc('process_wallet_transaction', {
-            p_brand_id: user.id,
-            p_transaction_type: 'campaign_charge',
-            p_amount: formData.budget,
-            p_description: `Campaign funding: ${formData.title}`
-          });
-
-        if (transactionError) {
-          toast.error('Failed to process wallet transaction');
-          return;
-        }
-
-        fundedAmount = formData.budget;
-        paymentStatus = 'paid';
-        walletTransactionId = transaction;
+      if (transactionError) {
+        toast.error('Failed to process wallet transaction');
+        return;
       }
 
       const campaignData = {
@@ -190,12 +197,12 @@ export const RichCampaignCreator = () => {
         title: formData.title,
         description: formData.description,
         budget: formData.budget,
-        funded_amount: fundedAmount,
+        funded_amount: formData.budget,
         logo_url: formData.logo_url,
         status: 'draft',
         admin_approval_status: 'pending',
-        payment_status: paymentStatus,
-        wallet_transaction_id: walletTransactionId,
+        payment_status: 'paid',
+        wallet_transaction_id: transaction,
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
         target_audience: JSON.parse(JSON.stringify(formData.target_demographics)),
@@ -223,9 +230,7 @@ export const RichCampaignCreator = () => {
       
       if (error) throw error;
       
-      toast.success(paymentStatus === 'paid' 
-        ? 'Campaign created and funded successfully!' 
-        : 'Campaign created successfully!');
+      toast.success('Campaign created and funded successfully!');
       navigate('/brand-dashboard/campaigns');
     } catch (error: any) {
       console.error('Error creating campaign:', error);
@@ -284,22 +289,50 @@ export const RichCampaignCreator = () => {
         );
       case 6:
         return (
-          <CampaignBudgetSection
-            budgetData={{
-              budget: formData.budget,
-              currency: formData.currency,
-              start_date: formData.start_date,
-              end_date: formData.end_date,
-              funding_source: formData.funding_source
-            }}
-            onBudgetDataChange={(data) => {
-              updateFormData('budget', data.budget);
-              updateFormData('currency', data.currency);
-              updateFormData('start_date', data.start_date);
-              updateFormData('end_date', data.end_date);
-              updateFormData('funding_source', data.funding_source);
-            }}
-          />
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <Calculator className="w-16 h-16 text-primary mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Plan Your Campaign Budget</h3>
+              <p className="text-muted-foreground">
+                Use the calculator to understand your campaign's reach. You must confirm your budget before proceeding.
+              </p>
+            </div>
+
+            {/* Wallet Balance Warning */}
+            {wallet && wallet.balance < 1000 && (
+              <Alert className="border-destructive/50 bg-destructive/5">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="flex items-center justify-between">
+                  <span>Your wallet balance is low (₦{wallet.balance.toLocaleString()}). Fund your wallet to create campaigns.</span>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => navigate('/brand-dashboard/wallet')}
+                    className="ml-4"
+                  >
+                    Fund Wallet
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Budget Calculator - MANDATORY */}
+            <BudgetEstimateCalculator 
+              onBudgetConfirmed={handleBudgetConfirmed}
+              walletBalance={wallet?.balance}
+              isRequired={true}
+              initialBudget={formData.budget}
+            />
+
+            {budgetConfirmed && (
+              <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800 text-center">
+                <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <p className="font-medium text-green-700 dark:text-green-300">
+                  Budget confirmed! You can now proceed to review your campaign.
+                </p>
+              </div>
+            )}
+          </div>
         );
       case 7:
         return (
@@ -423,7 +456,7 @@ export const RichCampaignCreator = () => {
               ) : (
                 <Button
                   onClick={submitCampaign}
-                  disabled={loading || !validateCurrentStep()}
+                  disabled={loading || !validateCurrentStep() || !wallet || wallet.balance < formData.budget}
                 >
                   {loading ? 'Creating Campaign...' : 'Create Campaign'}
                 </Button>
