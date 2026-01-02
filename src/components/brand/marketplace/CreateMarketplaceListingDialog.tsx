@@ -36,9 +36,9 @@ interface CreateMarketplaceListingDialogProps {
 }
 
 const PRICING = {
-  standard: 10000,
-  featured: 20000,
-  premium: 35000
+  standard: 2500,
+  featured: 5000,
+  premium: 10000
 };
 
 export function CreateMarketplaceListingDialog({ open, onOpenChange }: CreateMarketplaceListingDialogProps) {

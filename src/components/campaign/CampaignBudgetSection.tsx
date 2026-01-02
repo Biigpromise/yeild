@@ -6,10 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DollarSign, Wallet, CreditCard, Calendar, AlertCircle, TrendingUp } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { DollarSign, Wallet, CreditCard, Calendar, AlertCircle, TrendingUp, Calculator, ChevronDown, ChevronUp } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { BudgetEstimateCalculator } from '@/components/brand/BudgetEstimateCalculator';
 
 interface BudgetData {
   budget: number;
@@ -30,6 +32,7 @@ export const CampaignBudgetSection: React.FC<CampaignBudgetSectionProps> = ({
 }) => {
   const { user } = useAuth();
   const [conversionRate, setConversionRate] = useState(1500); // USD to NGN
+  const [showCalculator, setShowCalculator] = useState(true);
 
   const { data: wallet } = useQuery({
     queryKey: ['brand-wallet'],
@@ -76,6 +79,35 @@ export const CampaignBudgetSection: React.FC<CampaignBudgetSectionProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Budget Estimate Calculator - Collapsible */}
+      <Collapsible open={showCalculator} onOpenChange={setShowCalculator}>
+        <Card className="border-primary/20 bg-primary/5">
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-primary/10 transition-colors rounded-t-lg">
+              <CardTitle className="text-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calculator className="h-5 w-5 text-primary" />
+                  Estimate Your Campaign Results
+                </div>
+                {showCalculator ? (
+                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                )}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Calculate how many completions your budget will achieve before setting your campaign budget
+              </p>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <BudgetEstimateCalculator />
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <Label className="text-base font-medium">Currency</Label>

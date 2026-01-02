@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Loader2, User, Building2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -15,6 +15,9 @@ interface FormData {
   name: string;
   userType: 'user' | 'brand';
 }
+
+// Store user type before OAuth redirect
+const OAUTH_USER_TYPE_KEY = 'oauth_pending_user_type';
 
 export const SimplifiedAuthFlow = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -31,13 +34,18 @@ export const SimplifiedAuthFlow = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Auto-set user type from URL params
+  // Auto-set user type from URL params or localStorage (for OAuth callback)
   useEffect(() => {
     const typeParam = searchParams.get('type');
     const modeParam = searchParams.get('mode');
     
+    // Check localStorage for pending OAuth user type
+    const pendingUserType = localStorage.getItem(OAUTH_USER_TYPE_KEY);
+    
     if (typeParam === 'brand' || typeParam === 'user') {
       setFormData(prev => ({ ...prev, userType: typeParam as 'user' | 'brand' }));
+    } else if (pendingUserType === 'brand' || pendingUserType === 'user') {
+      setFormData(prev => ({ ...prev, userType: pendingUserType as 'user' | 'brand' }));
     }
     
     if (modeParam === 'signup') {
@@ -48,6 +56,9 @@ export const SimplifiedAuthFlow = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (!loading && user) {
+      // Clear the pending OAuth user type
+      localStorage.removeItem(OAUTH_USER_TYPE_KEY);
+      
       const userType = user.user_metadata?.user_type;
       navigate(userType === 'brand' ? '/brand-dashboard' : '/dashboard');
     }
@@ -121,13 +132,18 @@ export const SimplifiedAuthFlow = () => {
   };
 
   const handleGoogleAuth = async () => {
+    // Store user type in localStorage before OAuth redirect
+    localStorage.setItem(OAUTH_USER_TYPE_KEY, formData.userType);
+    
     setIsLoading(true);
     try {
       const { error } = await signInWithProvider('google', formData.userType);
       if (error) {
+        localStorage.removeItem(OAUTH_USER_TYPE_KEY);
         toast.error('Failed to sign in with Google');
       }
     } catch (error) {
+      localStorage.removeItem(OAUTH_USER_TYPE_KEY);
       toast.error('Something went wrong');
     } finally {
       setIsLoading(false);
@@ -142,6 +158,8 @@ export const SimplifiedAuthFlow = () => {
     );
   }
 
+  const isBrand = formData.userType === 'brand';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
       <motion.div
@@ -154,47 +172,78 @@ export const SimplifiedAuthFlow = () => {
         <div className="text-center mb-8">
           <YieldLogo size={64} className="mx-auto mb-4" />
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            {isLogin ? 'Welcome back' : 'Join YEILD'}
+            {isLogin 
+              ? (isBrand ? 'Welcome back, Brand!' : 'Welcome back') 
+              : (isBrand ? 'Register as a Brand' : 'Join YEILD')
+            }
           </h1>
           <p className="text-muted-foreground mt-2">
-            {isLogin ? 'Sign in to your account' : 'Create your account and start earning'}
+            {isLogin 
+              ? (isBrand ? 'Sign in to your Brand Dashboard' : 'Sign in to start earning')
+              : (isBrand ? 'Create campaigns and reach thousands of users' : 'Complete tasks and earn rewards')
+            }
           </p>
         </div>
 
-        {/* User Type Selection for Signup */}
-        {!isLogin && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mb-6"
-          >
-            <div className="flex gap-2 p-1 bg-muted rounded-lg">
-              <button
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, userType: 'user' }))}
-                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                  formData.userType === 'user'
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Complete Tasks
-              </button>
-              <button
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, userType: 'brand' }))}
-                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                  formData.userType === 'brand'
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Create Campaigns
-              </button>
-            </div>
-          </motion.div>
-        )}
+        {/* User Type Selection - Always visible */}
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="mb-6"
+        >
+          <p className="text-sm text-center text-muted-foreground mb-3">
+            {isLogin ? "I'm signing in as:" : "I want to:"}
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, userType: 'user' }))}
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                formData.userType === 'user'
+                  ? 'border-primary bg-primary/10 shadow-md'
+                  : 'border-border hover:border-primary/50 hover:bg-muted/50'
+              }`}
+            >
+              <div className={`p-3 rounded-full ${
+                formData.userType === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
+              }`}>
+                <User className="h-5 w-5" />
+              </div>
+              <div className="text-center">
+                <p className={`font-semibold ${formData.userType === 'user' ? 'text-primary' : ''}`}>
+                  I'm a User
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Earn by completing tasks
+                </p>
+              </div>
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, userType: 'brand' }))}
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                formData.userType === 'brand'
+                  ? 'border-primary bg-primary/10 shadow-md'
+                  : 'border-border hover:border-primary/50 hover:bg-muted/50'
+              }`}
+            >
+              <div className={`p-3 rounded-full ${
+                formData.userType === 'brand' ? 'bg-primary text-primary-foreground' : 'bg-muted'
+              }`}>
+                <Building2 className="h-5 w-5" />
+              </div>
+              <div className="text-center">
+                <p className={`font-semibold ${formData.userType === 'brand' ? 'text-primary' : ''}`}>
+                  I'm a Brand
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Create & run campaigns
+                </p>
+              </div>
+            </button>
+          </div>
+        </motion.div>
 
         {/* Auth Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -208,7 +257,7 @@ export const SimplifiedAuthFlow = () => {
               >
                 <Input
                   type="text"
-                  placeholder="Full Name"
+                  placeholder={isBrand ? "Company / Brand Name" : "Full Name"}
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   className="h-12 bg-background border-border/60 focus:border-primary"
@@ -220,7 +269,7 @@ export const SimplifiedAuthFlow = () => {
           {/* Email field */}
           <Input
             type="email"
-            placeholder="Email"
+            placeholder={isBrand ? "Business Email" : "Email"}
             value={formData.email}
             onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
             className="h-12 bg-background border-border/60 focus:border-primary"
@@ -262,7 +311,10 @@ export const SimplifiedAuthFlow = () => {
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <div className="flex items-center justify-center gap-2">
-                {isLogin ? 'Sign In' : 'Create Account'}
+                {isLogin 
+                  ? (isBrand ? 'Sign In to Brand Dashboard' : 'Sign In') 
+                  : (isBrand ? 'Create Brand Account' : 'Create Account')
+                }
                 <ArrowRight className="h-4 w-4" />
               </div>
             )}
@@ -311,8 +363,14 @@ export const SimplifiedAuthFlow = () => {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Google
+            Continue with Google {isBrand ? '(as Brand)' : ''}
           </Button>
+          
+          {isBrand && (
+            <p className="text-xs text-center text-muted-foreground mt-2">
+              Make sure "I'm a Brand" is selected above before signing in with Google
+            </p>
+          )}
         </div>
 
         {/* Switch Mode */}
