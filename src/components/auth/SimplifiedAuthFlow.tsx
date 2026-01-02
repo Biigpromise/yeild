@@ -131,23 +131,22 @@ export const SimplifiedAuthFlow = () => {
     }
   };
 
-  const handleGoogleAuth = async () => {
+  const handleGoogleAuth = () => {
     // Store user type in localStorage before OAuth redirect
     localStorage.setItem(OAUTH_USER_TYPE_KEY, formData.userType);
     
-    setIsLoading(true);
-    try {
-      const { error } = await signInWithProvider('google', formData.userType);
-      if (error) {
+    // Don't set loading state - OAuth redirects immediately
+    signInWithProvider('google', formData.userType)
+      .then(({ error }) => {
+        if (error) {
+          localStorage.removeItem(OAUTH_USER_TYPE_KEY);
+          toast.error('Failed to sign in with Google');
+        }
+      })
+      .catch(() => {
         localStorage.removeItem(OAUTH_USER_TYPE_KEY);
-        toast.error('Failed to sign in with Google');
-      }
-    } catch (error) {
-      localStorage.removeItem(OAUTH_USER_TYPE_KEY);
-      toast.error('Something went wrong');
-    } finally {
-      setIsLoading(false);
-    }
+        toast.error('Something went wrong');
+      });
   };
 
   if (loading) {
@@ -341,13 +340,8 @@ export const SimplifiedAuthFlow = () => {
           <Button
             type="button"
             variant="outline"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleGoogleAuth();
-            }}
-            disabled={isLoading}
-            className="w-full h-12 mt-4 border-border/60 hover:border-primary/40 cursor-pointer relative z-10"
+            onClick={() => handleGoogleAuth()}
+            className="w-full h-12 mt-4 border-border/60 hover:border-primary/40 cursor-pointer"
           >
             <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
               <path
