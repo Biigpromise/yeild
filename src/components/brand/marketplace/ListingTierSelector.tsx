@@ -13,7 +13,7 @@ export function ListingTierSelector({ value, onChange, daysSelected }: ListingTi
     {
       id: 'standard',
       name: 'Standard',
-      price: 10000,
+      price: 2500,
       icon: '📋',
       features: [
         'Basic listing',
@@ -24,7 +24,7 @@ export function ListingTierSelector({ value, onChange, daysSelected }: ListingTi
     {
       id: 'featured',
       name: 'Featured',
-      price: 20000,
+      price: 5000,
       icon: '🌟',
       badge: 'Popular',
       features: [
@@ -37,7 +37,7 @@ export function ListingTierSelector({ value, onChange, daysSelected }: ListingTi
     {
       id: 'premium',
       name: 'Premium',
-      price: 35000,
+      price: 10000,
       icon: '👑',
       badge: 'Best Value',
       features: [

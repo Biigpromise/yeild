@@ -31,7 +31,7 @@ export function ExtendListingDialog({ open, onOpenChange, listingId }: ExtendLis
     }
   });
 
-  const totalCost = additionalDays * 10000;
+  const totalCost = additionalDays * 2500;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -59,7 +59,7 @@ export function ExtendListingDialog({ open, onOpenChange, listingId }: ExtendLis
           <div className="bg-muted p-4 rounded-lg">
             <div className="flex justify-between items-center mb-2">
               <span className="font-medium">Price per day:</span>
-              <span>₦10,000</span>
+              <span>₦2,500</span>
             </div>
             <div className="flex justify-between items-center mb-2">
               <span className="font-medium">Additional days:</span>
