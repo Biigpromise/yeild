@@ -4420,6 +4420,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_user_role_if_not_exists: {
+        Args: { p_role: string; p_user_id: string }
+        Returns: boolean
+      }
       auto_convert_campaign_to_tasks: {
         Args: { p_admin_id: string; p_campaign_id: string; p_task_data?: Json }
         Returns: {
