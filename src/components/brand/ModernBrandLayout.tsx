@@ -9,6 +9,7 @@ import { Menu, LayoutDashboard, Target, Store, Users, Palette, Wallet, BarChart3
 import { NavLink, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { UserBrandModeToggle } from '@/components/common/UserBrandModeToggle';
 
 interface ModernBrandLayoutProps {
   children: React.ReactNode;
@@ -94,6 +95,11 @@ export const ModernBrandLayout: React.FC<ModernBrandLayoutProps> = ({
                     </NavLink>
                   ))}
                 </nav>
+
+                {/* Mode Toggle */}
+                <div className="p-4 border-t border-border">
+                  <UserBrandModeToggle />
+                </div>
                 
                 <div className="p-4 border-t border-border">
                   <Button 

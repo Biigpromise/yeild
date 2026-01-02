@@ -30,7 +30,7 @@ import { LiveNotifications } from './LiveNotifications';
 import EarnPage from '@/components/EarnPage';
 import { MarketplaceBrowser } from '@/components/marketplace/MarketplaceBrowser';
 import { MobileBottomNav } from './MobileBottomNav';
-
+import { UserBrandModeToggle } from '@/components/common/UserBrandModeToggle';
 type TabType = 'home' | 'earn' | 'marketplace' | 'wallet' | 'profile';
 
 interface SimplifiedDashboardProps {
@@ -298,6 +298,11 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
               {/* Desktop Notifications */}
               <div className="hidden lg:block p-4 border-t border-border/60">
                 <LiveNotifications unreadCount={unreadCount} onUnreadCountChange={setUnreadCount} />
+              </div>
+
+              {/* Mode Toggle */}
+              <div className="p-4 border-t border-border/60">
+                <UserBrandModeToggle />
               </div>
 
               {/* Sign Out Button - Now inside scrollable area */}

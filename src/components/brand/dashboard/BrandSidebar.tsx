@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { UserBrandModeToggle } from "@/components/common/UserBrandModeToggle";
 
 interface NavigationItem {
   title: string;
@@ -203,6 +204,13 @@ export function BrandSidebar({ profile, wallet }: BrandSidebarProps) {
                 ₦{wallet.balance?.toLocaleString() || "0.00"}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Mode Toggle */}
+        {!collapsed && (
+          <div className="px-3 py-4 border-t border-sidebar-border">
+            <UserBrandModeToggle />
           </div>
         )}
 
