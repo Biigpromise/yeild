@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -11,10 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { ArrowLeft, ArrowRight, CheckCircle, Upload, Image as ImageIcon, X, Calculator, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Upload, Image as ImageIcon, X, Calculator, Wallet, AlertTriangle } from 'lucide-react';
 import { useSimpleFormPersistence } from '@/hooks/useSimpleFormPersistence';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { BudgetEstimateCalculator } from '@/components/brand/BudgetEstimateCalculator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface MediaAsset {
   id: string;
@@ -91,7 +91,23 @@ export const SimplifiedCampaignCreator = () => {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [showCalculator, setShowCalculator] = useState(true);
+  const [budgetConfirmed, setBudgetConfirmed] = useState(false);
+
+  // Fetch wallet balance
+  const { data: wallet } = useQuery({
+    queryKey: ['brand-wallet', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('brand_wallets')
+        .select('balance')
+        .eq('brand_id', user.id)
+        .single();
+      if (error) return null;
+      return data;
+    },
+    enabled: !!user?.id
+  });
 
   // Auto-save form data
   useSimpleFormPersistence({
@@ -102,11 +118,13 @@ export const SimplifiedCampaignCreator = () => {
     excludeKeys: ['logo_url']
   });
 
+  // 5 steps now: Essentials, Media & Links, Targeting, Budget Planning, Review
   const steps = [
     { id: 1, title: 'Essentials', description: 'Basic campaign details' },
     { id: 2, title: 'Media & Links', description: 'Upload assets & social links' },
-    { id: 3, title: 'Requirements', description: 'Target audience & specs' },
-    { id: 4, title: 'Review & Submit', description: 'Final review' }
+    { id: 3, title: 'Targeting', description: 'Target audience & specs' },
+    { id: 4, title: 'Budget Planning', description: 'Plan & confirm your budget' },
+    { id: 5, title: 'Review & Submit', description: 'Final review' }
   ];
 
   const createCampaignMutation = useMutation({
@@ -122,7 +140,6 @@ export const SimplifiedCampaignCreator = () => {
       const hasBrandRole = roles?.some(r => r.role === 'brand');
       
       if (!hasBrandRole) {
-        // Auto-assign brand role for testing
         const { error: roleError } = await supabase
           .from('user_roles')
           .insert({ user_id: user.id, role: 'brand' });
@@ -133,38 +150,32 @@ export const SimplifiedCampaignCreator = () => {
         }
       }
 
-      // Check wallet balance and fund campaign
-      const { data: wallet, error: walletError } = await supabase
+      // CRITICAL: Check wallet balance before creating campaign
+      const { data: walletData, error: walletError } = await supabase
         .from('brand_wallets')
         .select('balance')
         .eq('brand_id', user.id)
         .single();
 
-      if (walletError) {
-        throw new Error('Failed to check wallet balance');
+      if (walletError || !walletData) {
+        throw new Error('Failed to check wallet balance. Please ensure you have a wallet.');
       }
 
-      let fundedAmount = 0;
-      let paymentStatus = 'unpaid';
-      let walletTransactionId = null;
+      if (walletData.balance < campaignData.budget) {
+        throw new Error(`Insufficient wallet balance. Required: ₦${campaignData.budget.toLocaleString()}, Available: ₦${walletData.balance.toLocaleString()}. Please fund your wallet first.`);
+      }
 
-      if (wallet && wallet.balance >= campaignData.budget) {
-        // Process wallet transaction
-        const { data: transaction, error: transactionError } = await supabase
-          .rpc('process_wallet_transaction', {
-            p_brand_id: user.id,
-            p_transaction_type: 'campaign_charge',
-            p_amount: campaignData.budget,
-            p_description: `Campaign funding: ${campaignData.title}`
-          });
+      // Process wallet transaction
+      const { data: transaction, error: transactionError } = await supabase
+        .rpc('process_wallet_transaction', {
+          p_brand_id: user.id,
+          p_transaction_type: 'campaign_charge',
+          p_amount: campaignData.budget,
+          p_description: `Campaign funding: ${campaignData.title}`
+        });
 
-        if (transactionError) {
-          throw new Error('Failed to process wallet transaction');
-        }
-
-        fundedAmount = campaignData.budget;
-        paymentStatus = 'paid';
-        walletTransactionId = transaction;
+      if (transactionError) {
+        throw new Error('Failed to process wallet transaction');
       }
 
       const endDate = new Date();
@@ -176,9 +187,9 @@ export const SimplifiedCampaignCreator = () => {
         description: campaignData.description,
         logo_url: campaignData.logo_url,
         budget: campaignData.budget,
-        funded_amount: fundedAmount,
-        payment_status: paymentStatus,
-        wallet_transaction_id: walletTransactionId,
+        funded_amount: campaignData.budget,
+        payment_status: 'paid',
+        wallet_transaction_id: transaction,
         target_audience: { description: campaignData.target_audience },
         requirements: { 
           description: campaignData.requirements,
@@ -216,8 +227,9 @@ export const SimplifiedCampaignCreator = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['brand-campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['brand-wallet'] });
       localStorage.removeItem('simplified-campaign-draft');
-      toast.success('Campaign created successfully!');
+      toast.success('Campaign created and funded successfully!');
       navigate('/brand-dashboard/campaigns');
     },
     onError: (error: any) => {
@@ -282,8 +294,10 @@ export const SimplifiedCampaignCreator = () => {
       case 2:
         return true; // Media and links are optional
       case 3:
-        return !!(formData.budget && formData.target_audience);
+        return !!(formData.target_audience);
       case 4:
+        return budgetConfirmed && formData.budget >= 300;
+      case 5:
         return true;
       default:
         return false;
@@ -291,10 +305,14 @@ export const SimplifiedCampaignCreator = () => {
   };
 
   const nextStep = () => {
-    if (validateStep(currentStep) && currentStep < 4) {
+    if (validateStep(currentStep) && currentStep < 5) {
       setCurrentStep(currentStep + 1);
     } else if (!validateStep(currentStep)) {
-      toast.error('Please fill in all required fields');
+      if (currentStep === 4 && !budgetConfirmed) {
+        toast.error('Please confirm your budget using the calculator before proceeding');
+      } else {
+        toast.error('Please fill in all required fields');
+      }
     }
   };
 
@@ -304,11 +322,23 @@ export const SimplifiedCampaignCreator = () => {
     }
   };
 
+  const handleBudgetConfirmed = (budget: number, pointsPerTask: number) => {
+    setFormData(prev => ({ ...prev, budget }));
+    setBudgetConfirmed(true);
+  };
+
   const handleSubmit = () => {
-    if (!validateStep(1) || !validateStep(3)) {
-      toast.error('Please complete all required fields');
+    if (!validateStep(1) || !validateStep(3) || !validateStep(4)) {
+      toast.error('Please complete all required fields and confirm your budget');
       return;
     }
+    
+    // Final wallet check
+    if (!wallet || wallet.balance < formData.budget) {
+      toast.error(`Insufficient wallet balance. Required: ₦${formData.budget.toLocaleString()}, Available: ₦${wallet?.balance?.toLocaleString() || 0}. Please fund your wallet first.`);
+      return;
+    }
+    
     createCampaignMutation.mutate(formData);
   };
 
@@ -385,24 +415,6 @@ export const SimplifiedCampaignCreator = () => {
   const removeSocialProfile = (index: number) => {
     updateSocialLinks({
       socialProfiles: formData.socialLinks.socialProfiles.filter((_, i) => i !== index)
-    });
-  };
-
-  const addEngagementPost = () => {
-    updateSocialLinks({
-      engagementPosts: [...formData.socialLinks.engagementPosts, '']
-    });
-  };
-
-  const updateEngagementPost = (index: number, value: string) => {
-    const updatedPosts = [...formData.socialLinks.engagementPosts];
-    updatedPosts[index] = value;
-    updateSocialLinks({ engagementPosts: updatedPosts });
-  };
-
-  const removeEngagementPost = (index: number) => {
-    updateSocialLinks({
-      engagementPosts: formData.socialLinks.engagementPosts.filter((_, i) => i !== index)
     });
   };
 
@@ -682,51 +694,6 @@ export const SimplifiedCampaignCreator = () => {
       case 3:
         return (
           <div className="space-y-6">
-            {/* Budget Estimate Calculator */}
-            <Collapsible open={showCalculator} onOpenChange={setShowCalculator}>
-              <Card className="border-primary/20 bg-primary/5">
-                <CollapsibleTrigger asChild>
-                  <CardHeader className="cursor-pointer hover:bg-primary/10 transition-colors rounded-t-lg">
-                    <CardTitle className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Calculator className="w-5 h-5 text-primary" />
-                        <span>Budget Estimate Calculator</span>
-                      </div>
-                      {showCalculator ? (
-                        <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                      )}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Plan your budget and see estimated campaign results
-                    </p>
-                  </CardHeader>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <CardContent className="pt-0">
-                    <BudgetEstimateCalculator />
-                  </CardContent>
-                </CollapsibleContent>
-              </Card>
-            </Collapsible>
-
-            <div>
-              <Label htmlFor="budget" className="text-base font-medium">Campaign Budget (₦) *</Label>
-              <Input
-                id="budget"
-                type="number"
-                value={formData.budget}
-                onChange={(e) => updateFormData('budget', Number(e.target.value))}
-                placeholder="Enter your budget"
-                min="1000"
-                className="mt-2"
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Minimum budget: ₦1,000
-              </p>
-            </div>
-
             <div>
               <Label htmlFor="target-audience" className="text-base font-medium">Target Audience *</Label>
               <Input
@@ -771,6 +738,54 @@ export const SimplifiedCampaignCreator = () => {
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
+              <Calculator className="w-16 h-16 text-primary mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Plan Your Campaign Budget</h3>
+              <p className="text-muted-foreground">
+                Use the calculator below to understand your campaign's reach. You must confirm your budget before proceeding.
+              </p>
+            </div>
+
+            {/* Wallet Balance Warning */}
+            {wallet && wallet.balance < 1000 && (
+              <Alert className="border-destructive/50 bg-destructive/5">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="flex items-center justify-between">
+                  <span>Your wallet balance is low (₦{wallet.balance.toLocaleString()}). Fund your wallet to create campaigns.</span>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => navigate('/brand-dashboard/wallet')}
+                    className="ml-4"
+                  >
+                    Fund Wallet
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Budget Calculator - MANDATORY */}
+            <BudgetEstimateCalculator 
+              onBudgetConfirmed={handleBudgetConfirmed}
+              walletBalance={wallet?.balance}
+              isRequired={true}
+              initialBudget={formData.budget}
+            />
+
+            {budgetConfirmed && (
+              <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800 text-center">
+                <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <p className="font-medium text-green-700 dark:text-green-300">
+                  Budget confirmed! You can now proceed to review your campaign.
+                </p>
+              </div>
+            )}
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">Review Your Campaign</h3>
               <p className="text-muted-foreground">
@@ -789,7 +804,7 @@ export const SimplifiedCampaignCreator = () => {
               </div>
               <div className="flex justify-between py-2 border-b">
                 <span className="font-medium">Budget:</span>
-                <span>₦{formData.budget.toLocaleString()}</span>
+                <span className="text-primary font-bold">₦{formData.budget.toLocaleString()}</span>
               </div>
               <div className="flex justify-between py-2 border-b">
                 <span className="font-medium">Duration:</span>
@@ -813,13 +828,45 @@ export const SimplifiedCampaignCreator = () => {
               </div>
             </div>
 
+            {/* Wallet Balance Check */}
+            <div className={`p-4 rounded-lg border ${wallet && wallet.balance >= formData.budget ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : 'bg-destructive/10 border-destructive/30'}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Wallet className={`w-5 h-5 ${wallet && wallet.balance >= formData.budget ? 'text-green-600' : 'text-destructive'}`} />
+                  <span className="font-medium">Wallet Balance</span>
+                </div>
+                <span className={`text-lg font-bold ${wallet && wallet.balance >= formData.budget ? 'text-green-600' : 'text-destructive'}`}>
+                  ₦{wallet?.balance?.toLocaleString() || 0}
+                </span>
+              </div>
+              {wallet && wallet.balance >= formData.budget ? (
+                <p className="text-sm text-green-600 mt-2">
+                  ✓ Sufficient funds for this campaign
+                </p>
+              ) : (
+                <div className="mt-2">
+                  <p className="text-sm text-destructive">
+                    ✗ Insufficient funds. You need ₦{((formData.budget) - (wallet?.balance || 0)).toLocaleString()} more.
+                  </p>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => navigate('/brand-dashboard/wallet')}
+                    className="mt-2 text-destructive border-destructive/30"
+                  >
+                    Fund Wallet
+                  </Button>
+                </div>
+              )}
+            </div>
+
             <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
               <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">What happens next?</h4>
               <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
                 <li>• Your campaign will be submitted for admin review</li>
+                <li>• Budget will be deducted from your wallet immediately</li>
                 <li>• You'll receive approval notification within 24 hours</li>
                 <li>• Once approved, your campaign goes live automatically</li>
-                <li>• You can track progress in your dashboard</li>
               </ul>
             </div>
           </div>
@@ -849,7 +896,7 @@ export const SimplifiedCampaignCreator = () => {
               Create Campaign
             </h1>
             <p className="text-muted-foreground">
-              Create your campaign in just 3 simple steps
+              Create your campaign in 5 simple steps
             </p>
           </div>
         </div>
@@ -877,7 +924,7 @@ export const SimplifiedCampaignCreator = () => {
                   </div>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={`h-px w-8 sm:w-16 ml-4 ${
+                  <div className={`h-px w-4 sm:w-12 ml-2 sm:ml-4 ${
                     currentStep > step.id ? 'bg-primary' : 'bg-muted'
                   }`} />
                 )}
@@ -896,31 +943,28 @@ export const SimplifiedCampaignCreator = () => {
             {renderStepContent()}
 
             {/* Navigation */}
-            <div className="flex justify-between pt-6 border-t">
+            <div className="flex justify-between pt-6 border-t mt-6">
               <Button
                 variant="outline"
                 onClick={prevStep}
                 disabled={currentStep === 1}
               >
+                <ArrowLeft className="h-4 w-4 mr-2" />
                 Previous
               </Button>
               
-              {currentStep < 4 ? (
+              {currentStep < 5 ? (
                 <Button onClick={nextStep} disabled={!validateStep(currentStep)}>
                   Next
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               ) : (
-                <Button 
+                <Button
                   onClick={handleSubmit}
-                  disabled={createCampaignMutation.isPending}
+                  disabled={createCampaignMutation.isPending || !wallet || wallet.balance < formData.budget}
                   className="bg-gradient-to-r from-primary to-primary/90"
                 >
-                  {createCampaignMutation.isPending ? (
-                    'Creating Campaign...'
-                  ) : (
-                    'Create Campaign'
-                  )}
+                  {createCampaignMutation.isPending ? 'Creating Campaign...' : 'Create Campaign'}
                 </Button>
               )}
             </div>
