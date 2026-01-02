@@ -11,8 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { ArrowLeft, ArrowRight, CheckCircle, Upload, Image as ImageIcon, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Upload, Image as ImageIcon, X, Calculator, ChevronDown, ChevronUp } from 'lucide-react';
 import { useSimpleFormPersistence } from '@/hooks/useSimpleFormPersistence';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { BudgetEstimateCalculator } from '@/components/brand/BudgetEstimateCalculator';
 
 interface MediaAsset {
   id: string;
@@ -89,6 +91,7 @@ export const SimplifiedCampaignCreator = () => {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showCalculator, setShowCalculator] = useState(true);
 
   // Auto-save form data
   useSimpleFormPersistence({
@@ -679,6 +682,35 @@ export const SimplifiedCampaignCreator = () => {
       case 3:
         return (
           <div className="space-y-6">
+            {/* Budget Estimate Calculator */}
+            <Collapsible open={showCalculator} onOpenChange={setShowCalculator}>
+              <Card className="border-primary/20 bg-primary/5">
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="cursor-pointer hover:bg-primary/10 transition-colors rounded-t-lg">
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Calculator className="w-5 h-5 text-primary" />
+                        <span>Budget Estimate Calculator</span>
+                      </div>
+                      {showCalculator ? (
+                        <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                      )}
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Plan your budget and see estimated campaign results
+                    </p>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent className="pt-0">
+                    <BudgetEstimateCalculator />
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
+
             <div>
               <Label htmlFor="budget" className="text-base font-medium">Campaign Budget (₦) *</Label>
               <Input
