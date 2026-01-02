@@ -201,7 +201,7 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
           "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border/60 transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}>
-          <div className="flex flex-col h-[100dvh] lg:h-screen overflow-hidden">
+          <div className="flex flex-col h-[100dvh] lg:h-screen">
             {/* Sidebar Header - Fixed */}
             <div className="flex-shrink-0 p-6 border-b border-border/60">
               <div className="flex items-center justify-between">
@@ -222,7 +222,7 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
               </div>
             </div>
 
-            {/* Scrollable Content Area */}
+            {/* Scrollable Content Area - includes sign out */}
             <div className="flex-1 overflow-y-auto min-h-0">
               {/* User Info */}
               <div className="p-6 border-b border-border/60">
@@ -295,23 +295,23 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
                 </div>
               </nav>
 
-            {/* Desktop Notifications */}
+              {/* Desktop Notifications */}
               <div className="hidden lg:block p-4 border-t border-border/60">
                 <LiveNotifications unreadCount={unreadCount} onUnreadCountChange={setUnreadCount} />
               </div>
-            </div>
 
-            {/* Sidebar Footer - Always visible at bottom */}
-            <div className="flex-shrink-0 p-4 border-t border-border/60 bg-card safe-area-bottom">
-              <Button
-                onClick={handleSignOut}
-                variant="destructive"
-                size="lg"
-                className="w-full justify-center gap-2 font-semibold text-base shadow-lg"
-              >
-                <LogOut className="h-5 w-5" />
-                Sign Out
-              </Button>
+              {/* Sign Out Button - Now inside scrollable area */}
+              <div className="p-4 border-t border-border/60 mt-auto">
+                <Button
+                  onClick={handleSignOut}
+                  variant="destructive"
+                  size="lg"
+                  className="w-full justify-center gap-2 font-semibold text-base shadow-lg"
+                >
+                  <LogOut className="h-5 w-5" />
+                  Sign Out
+                </Button>
+              </div>
             </div>
           </div>
         </aside>
