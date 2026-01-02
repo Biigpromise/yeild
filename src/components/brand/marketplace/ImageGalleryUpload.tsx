@@ -163,7 +163,7 @@ export function ImageGalleryUpload({ images, onChange, maxImages = 5 }: ImageGal
               )}
             </Button>
             <p className="text-xs text-muted-foreground text-center">
-              Max 5MB per image. Supports JPG, PNG, WebP
+              Max 5MB per image. Supports JPG, PNG, WebP. Use 16:9 aspect ratio (YouTube thumbnail size) for best results.
             </p>
           </div>
         </TabsContent>
@@ -192,10 +192,10 @@ export function ImageGalleryUpload({ images, onChange, maxImages = 5 }: ImageGal
       </p>
 
       {images.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {images.map((url, index) => (
             <div key={index} className="relative group">
-              <div className="aspect-square rounded-lg overflow-hidden border bg-muted">
+              <div className="aspect-[16/9] rounded-lg overflow-hidden border bg-muted shadow-md">
                 <img
                   src={url}
                   alt={`Upload ${index + 1}`}

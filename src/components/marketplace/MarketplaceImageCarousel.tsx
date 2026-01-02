@@ -10,9 +10,10 @@ interface MarketplaceImageCarouselProps {
 export function MarketplaceImageCarousel({ images, alt }: MarketplaceImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // YouTube thumbnail aspect ratio is 16:9 - using aspect-[16/9] for exact match
   if (!images || images.length === 0) {
     return (
-      <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+      <div className="aspect-[16/9] bg-muted rounded-lg flex items-center justify-center">
         <p className="text-muted-foreground">No image available</p>
       </div>
     );
@@ -20,7 +21,7 @@ export function MarketplaceImageCarousel({ images, alt }: MarketplaceImageCarous
 
   if (images.length === 1) {
     return (
-      <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+      <div className="aspect-[16/9] bg-muted rounded-lg overflow-hidden shadow-md">
         <img
           src={images[0]}
           alt={alt}
@@ -43,7 +44,7 @@ export function MarketplaceImageCarousel({ images, alt }: MarketplaceImageCarous
 
   return (
     <div className="space-y-4">
-      <div className="relative aspect-video bg-muted rounded-lg overflow-hidden group">
+      <div className="relative aspect-[16/9] bg-muted rounded-lg overflow-hidden group shadow-md">
         <img
           src={images[currentIndex]}
           alt={`${alt} ${currentIndex + 1}`}

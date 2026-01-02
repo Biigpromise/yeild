@@ -70,11 +70,16 @@ export default function VerifySignupCode() {
         return;
       }
 
-      // Otherwise show success and navigate to auth for signin
-      toast.success('Email verified successfully! You can now sign in.');
+      // Otherwise show success and redirect based on user type
+      toast.success('Email verified successfully! Signing you in...');
       
+      // Redirect to appropriate dashboard based on user type
       setTimeout(() => {
-        navigate('/auth');
+        if (userType === 'brand') {
+          navigate('/brand-dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }, 2000);
 
     } catch (error: any) {

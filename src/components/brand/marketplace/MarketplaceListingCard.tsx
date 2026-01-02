@@ -51,11 +51,13 @@ export function MarketplaceListingCard({ listing, onRemove, onExtend, onEdit }: 
       </CardHeader>
       <CardContent>
         {listing.image_url && (
-          <img 
-            src={listing.image_url} 
-            alt={listing.title}
-            className="w-full h-48 object-cover rounded-lg mb-4"
-          />
+          <div className="aspect-[16/9] w-full rounded-lg overflow-hidden mb-4 shadow-md">
+            <img 
+              src={listing.image_url} 
+              alt={listing.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
         )}
         
         <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
