@@ -300,22 +300,9 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
                 <LiveNotifications unreadCount={unreadCount} onUnreadCountChange={setUnreadCount} />
               </div>
 
-              {/* Mode Toggle */}
+              {/* Mode Toggle - Only item in hamburger for switching */}
               <div className="p-4 border-t border-border/60">
                 <UserBrandModeToggle />
-              </div>
-
-              {/* Sign Out Button - Now inside scrollable area */}
-              <div className="p-4 border-t border-border/60 mt-auto">
-                <Button
-                  onClick={handleSignOut}
-                  variant="destructive"
-                  size="lg"
-                  className="w-full justify-center gap-2 font-semibold text-base shadow-lg"
-                >
-                  <LogOut className="h-5 w-5" />
-                  Sign Out
-                </Button>
               </div>
             </div>
           </div>

@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Loader2, Wallet, AlertCircle } from "lucide-react";
 import { marketplaceService } from "@/services/marketplaceService";
 import { ImageGalleryUpload } from "./ImageGalleryUpload";
+import { MediaGalleryUpload } from "./MediaGalleryUpload";
 import { ListingTierSelector } from "./ListingTierSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,6 +44,8 @@ const PRICING = {
 
 export function CreateMarketplaceListingDialog({ open, onOpenChange }: CreateMarketplaceListingDialogProps) {
   const [images, setImages] = useState<string[]>([]);
+  const [media, setMedia] = useState<Array<{ url: string; type: 'image' | 'video' }>>([]);
+  const [useNewMediaUpload, setUseNewMediaUpload] = useState(true);
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -83,16 +86,26 @@ export function CreateMarketplaceListingDialog({ open, onOpenChange }: CreateMar
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: z.infer<typeof formSchema>) =>
-      marketplaceService.createListing({
+    mutationFn: (data: z.infer<typeof formSchema>) => {
+      // If using new media upload, extract URLs and types
+      const imageUrls = useNewMediaUpload 
+        ? media.map(m => m.url)
+        : images;
+      const mediaTypes = useNewMediaUpload
+        ? media.map(m => ({ url: m.url, type: m.type }))
+        : images.map(url => ({ url, type: 'image' as const }));
+
+      return marketplaceService.createListing({
         title: data.title,
         description: data.description,
         category: data.category,
-        image_urls: images,
+        image_urls: imageUrls,
         external_link: data.external_link || undefined,
         days_paid: data.days_paid,
-        listing_tier: data.listing_tier
-      }),
+        listing_tier: data.listing_tier,
+        media_types: mediaTypes
+      });
+    },
     onSuccess: () => {
       toast.success("Marketplace listing created successfully!");
       queryClient.invalidateQueries({ queryKey: ['brand-marketplace-listings'] });
@@ -100,6 +113,7 @@ export function CreateMarketplaceListingDialog({ open, onOpenChange }: CreateMar
       onOpenChange(false);
       form.reset();
       setImages([]);
+      setMedia([]);
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to create listing");
@@ -113,8 +127,9 @@ export function CreateMarketplaceListingDialog({ open, onOpenChange }: CreateMar
   const hasInsufficientFunds = walletBalance < totalCost;
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    if (images.length === 0) {
-      toast.error("Please add at least one image");
+    const hasMedia = useNewMediaUpload ? media.length > 0 : images.length > 0;
+    if (!hasMedia) {
+      toast.error("Please add at least one image or video");
       return;
     }
     
@@ -123,7 +138,9 @@ export function CreateMarketplaceListingDialog({ open, onOpenChange }: CreateMar
       return;
     }
     
-    createMutation.mutate({ ...data, image_urls: images });
+    // Update form with media URLs for validation
+    const mediaUrls = useNewMediaUpload ? media.map(m => m.url) : images;
+    createMutation.mutate({ ...data, image_urls: mediaUrls });
   };
 
   const handleFundWallet = () => {
@@ -230,13 +247,17 @@ export function CreateMarketplaceListingDialog({ open, onOpenChange }: CreateMar
             />
 
             <div>
-              <FormLabel>Images * (Max 5)</FormLabel>
+              <FormLabel>Media * (Images & Videos - Max 5)</FormLabel>
               <p className="text-sm text-muted-foreground mb-2">
-                First image will be the main image shown in listings
+                Upload images or videos. First item will be the main media shown in listings.
               </p>
-              <ImageGalleryUpload images={images} onChange={setImages} />
-              {images.length === 0 && (
-                <p className="text-sm text-destructive mt-2">At least one image is required</p>
+              <MediaGalleryUpload 
+                media={media} 
+                onChange={setMedia} 
+                maxItems={5}
+              />
+              {media.length === 0 && (
+                <p className="text-sm text-destructive mt-2">At least one image or video is required</p>
               )}
             </div>
 

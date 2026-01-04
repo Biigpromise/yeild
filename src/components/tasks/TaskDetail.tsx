@@ -8,6 +8,7 @@ import { taskService } from '@/services/taskService';
 import { simplifiedTaskSubmissionService as taskSubmissionService } from "@/services/tasks/simplifiedTaskSubmissionService";
 import { TaskSocialMediaDisplay } from '@/components/tasks/TaskSocialMediaDisplay';
 import { TaskSubmissionModal } from '@/components/TaskSubmissionModal';
+import { TaskComments } from '@/components/tasks/TaskComments';
 import { toast } from 'sonner';
 import { 
   Clock, 
@@ -18,7 +19,9 @@ import {
   Target,
   Briefcase,
   Users,
-  Calendar
+  Calendar,
+  MapPin,
+  Globe
 } from 'lucide-react';
 
 const TaskDetail: React.FC = () => {
@@ -236,6 +239,28 @@ const TaskDetail: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Location Info */}
+        {task.location_type && task.location_type !== 'global' && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Location Targeting
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">
+                  {task.allowed_countries?.join(', ') || 'Specific regions'}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Task Comments */}
+        {id && <TaskComments taskId={id} />}
 
         {/* Action Button */}
         <Card>

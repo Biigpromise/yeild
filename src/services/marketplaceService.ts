@@ -14,6 +14,7 @@ export interface CreateListingData {
   external_link?: string;
   days_paid: number;
   listing_tier?: 'standard' | 'featured' | 'premium';
+  media_types?: Array<{ url: string; type: 'image' | 'video' }>;
 }
 
 export interface UpdateListingData {
@@ -98,7 +99,8 @@ export const marketplaceService = {
         status: 'active',
         listing_tier: tier,
         is_featured: tier === 'featured' || tier === 'premium',
-        featured_until: (tier === 'featured' || tier === 'premium') ? endDate.toISOString() : null
+        featured_until: (tier === 'featured' || tier === 'premium') ? endDate.toISOString() : null,
+        media_types: listingData.media_types || []
       })
       .select()
       .single();

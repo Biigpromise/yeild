@@ -17,7 +17,8 @@ import {
   Eye,
   Edit3,
   Copy,
-  Check
+  Check,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -42,7 +43,17 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ userProfile, userStats }
     bio: userProfile?.bio || '',
   });
   const [copiedReferral, setCopiedReferral] = useState(false);
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success('Signed out successfully');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast.error('Error signing out');
+    }
+  };
 
   const handleSaveProfile = () => {
     // TODO: Implement profile update
@@ -336,6 +347,17 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ userProfile, userStats }
                 <Button variant="ghost" size="sm" className="w-full justify-start text-destructive">
                   Delete Account
                 </Button>
+                <div className="pt-2 border-t mt-2">
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    className="w-full justify-start"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
