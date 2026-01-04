@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calculator, Users, TrendingUp, DollarSign, Info, AlertTriangle, CheckCircle, Wallet } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNavigate } from 'react-router-dom';
+import { DIFFICULTY_OPTIONS, getMinPointsForDifficulty } from '@/constants/taskDifficulty';
 
 interface BudgetEstimate {
   totalBudget: number;
@@ -22,6 +24,8 @@ interface BudgetEstimateCalculatorProps {
   isRequired?: boolean;
   initialBudget?: number;
   initialPointsPerTask?: number;
+  difficulty?: string;
+  onDifficultyChange?: (difficulty: string) => void;
 }
 
 // Bird level bonus percentages (platform covers these)
@@ -32,7 +36,6 @@ const BIRD_LEVEL_BONUSES = {
   phoenix: { name: 'Phoenix', bonus: 0.30, color: 'text-red-500' },
 };
 
-const MIN_POINTS_PER_TASK = 300;
 const MIN_RECOMMENDED_COMPLETIONS = 3;
 
 export const BudgetEstimateCalculator: React.FC<BudgetEstimateCalculatorProps> = ({
@@ -40,15 +43,36 @@ export const BudgetEstimateCalculator: React.FC<BudgetEstimateCalculatorProps> =
   walletBalance,
   isRequired = false,
   initialBudget,
-  initialPointsPerTask
+  initialPointsPerTask,
+  difficulty = 'easy',
+  onDifficultyChange
 }) => {
   const navigate = useNavigate();
+  const minPointsPerTask = getMinPointsForDifficulty(difficulty);
   const [budget, setBudget] = useState<string>(initialBudget?.toString() || '15000');
-  const [pointsPerTask, setPointsPerTask] = useState<string>(initialPointsPerTask?.toString() || '300');
+  const [pointsPerTask, setPointsPerTask] = useState<string>(initialPointsPerTask?.toString() || minPointsPerTask.toString());
+  const [selectedDifficulty, setSelectedDifficulty] = useState(difficulty);
   const [estimate, setEstimate] = useState<BudgetEstimate | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
   const NAIRA_TO_POINTS = 1; // 1 Naira = 1 Point
+
+  // Update min points when difficulty changes
+  useEffect(() => {
+    const newMin = getMinPointsForDifficulty(selectedDifficulty);
+    if (parseInt(pointsPerTask) < newMin) {
+      setPointsPerTask(newMin.toString());
+    }
+  }, [selectedDifficulty]);
+
+  const handleDifficultyChange = (newDifficulty: string) => {
+    setSelectedDifficulty(newDifficulty);
+    onDifficultyChange?.(newDifficulty);
+    const newMin = getMinPointsForDifficulty(newDifficulty);
+    if (parseInt(pointsPerTask) < newMin) {
+      setPointsPerTask(newMin.toString());
+    }
+  };
 
   useEffect(() => {
     calculateEstimate();
@@ -61,9 +85,9 @@ export const BudgetEstimateCalculator: React.FC<BudgetEstimateCalculatorProps> =
 
   const calculateEstimate = () => {
     const budgetValue = parseFloat(budget) || 0;
-    const pointsValue = parseFloat(pointsPerTask) || MIN_POINTS_PER_TASK;
+    const pointsValue = parseFloat(pointsPerTask) || minPointsPerTask;
 
-    if (budgetValue <= 0 || pointsValue < MIN_POINTS_PER_TASK) {
+    if (budgetValue <= 0 || pointsValue < minPointsPerTask) {
       setEstimate(null);
       return;
     }
@@ -160,6 +184,29 @@ export const BudgetEstimateCalculator: React.FC<BudgetEstimateCalculatorProps> =
           </div>
         )}
 
+        {/* Difficulty Selector */}
+        <div className="mb-4">
+          <Label>Task Difficulty</Label>
+          <Select value={selectedDifficulty} onValueChange={handleDifficultyChange} disabled={isConfirmed}>
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Select difficulty" />
+            </SelectTrigger>
+            <SelectContent>
+              {DIFFICULTY_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  <div className="flex items-center justify-between gap-4">
+                    <span>{opt.label}</span>
+                    <span className="text-xs text-muted-foreground">Min: {opt.minPoints} pts</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground mt-1">
+            {DIFFICULTY_OPTIONS.find(o => o.value === selectedDifficulty)?.description}
+          </p>
+        </div>
+
         {/* Input Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -170,12 +217,12 @@ export const BudgetEstimateCalculator: React.FC<BudgetEstimateCalculatorProps> =
               value={budget}
               onChange={(e) => setBudget(e.target.value)}
               placeholder="15000"
-              min={MIN_POINTS_PER_TASK}
+              min={minPointsPerTask}
               className="border-border bg-background text-foreground"
               disabled={isConfirmed}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Minimum: ₦{MIN_POINTS_PER_TASK} (1 Naira = 1 Point)
+              Minimum: ₦{minPointsPerTask} (1 Naira = 1 Point)
             </p>
           </div>
 
@@ -186,13 +233,13 @@ export const BudgetEstimateCalculator: React.FC<BudgetEstimateCalculatorProps> =
               type="number"
               value={pointsPerTask}
               onChange={(e) => setPointsPerTask(e.target.value)}
-              placeholder="300"
-              min={MIN_POINTS_PER_TASK}
+              placeholder={minPointsPerTask.toString()}
+              min={minPointsPerTask}
               className="border-border bg-background text-foreground"
               disabled={isConfirmed}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Minimum {MIN_POINTS_PER_TASK} points required per task
+              Minimum {minPointsPerTask} points required for {selectedDifficulty} tasks
             </p>
           </div>
         </div>

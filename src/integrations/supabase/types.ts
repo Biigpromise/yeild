@@ -1881,6 +1881,7 @@ export type Database = {
           image_urls: Json | null
           is_featured: boolean | null
           listing_tier: string | null
+          media_types: Json | null
           price_per_day: number | null
           start_date: string | null
           status: string | null
@@ -1905,6 +1906,7 @@ export type Database = {
           image_urls?: Json | null
           is_featured?: boolean | null
           listing_tier?: string | null
+          media_types?: Json | null
           price_per_day?: number | null
           start_date?: string | null
           status?: string | null
@@ -1929,6 +1931,7 @@ export type Database = {
           image_urls?: Json | null
           is_featured?: boolean | null
           listing_tier?: string | null
+          media_types?: Json | null
           price_per_day?: number | null
           start_date?: string | null
           status?: string | null
@@ -3438,6 +3441,51 @@ export type Database = {
         }
         Relationships: []
       }
+      task_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          parent_comment_id: string | null
+          task_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          parent_comment_id?: string | null
+          task_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          parent_comment_id?: string | null
+          task_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "task_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_source_analytics: {
         Row: {
           active_tasks: number | null
@@ -3597,6 +3645,7 @@ export type Database = {
       }
       tasks: {
         Row: {
+          allowed_countries: string[] | null
           approved_by_admin: string | null
           brand_logo_url: string | null
           brand_name: string | null
@@ -3611,17 +3660,23 @@ export type Database = {
           expires_at: string | null
           funded_by: string | null
           id: string
+          last_boosted_at: string | null
+          location_type: string | null
           original_budget: number | null
+          original_points: number | null
           point_adjustment_reason: string | null
+          point_boost_history: Json | null
           points: number
           social_media_links: Json | null
           source_campaign_id: string | null
           status: string | null
+          target_location: Json | null
           task_source: string | null
           task_type: string | null
           title: string
         }
         Insert: {
+          allowed_countries?: string[] | null
           approved_by_admin?: string | null
           brand_logo_url?: string | null
           brand_name?: string | null
@@ -3636,17 +3691,23 @@ export type Database = {
           expires_at?: string | null
           funded_by?: string | null
           id?: string
+          last_boosted_at?: string | null
+          location_type?: string | null
           original_budget?: number | null
+          original_points?: number | null
           point_adjustment_reason?: string | null
+          point_boost_history?: Json | null
           points?: number
           social_media_links?: Json | null
           source_campaign_id?: string | null
           status?: string | null
+          target_location?: Json | null
           task_source?: string | null
           task_type?: string | null
           title: string
         }
         Update: {
+          allowed_countries?: string[] | null
           approved_by_admin?: string | null
           brand_logo_url?: string | null
           brand_name?: string | null
@@ -3661,12 +3722,17 @@ export type Database = {
           expires_at?: string | null
           funded_by?: string | null
           id?: string
+          last_boosted_at?: string | null
+          location_type?: string | null
           original_budget?: number | null
+          original_points?: number | null
           point_adjustment_reason?: string | null
+          point_boost_history?: Json | null
           points?: number
           social_media_links?: Json | null
           source_campaign_id?: string | null
           status?: string | null
+          target_location?: Json | null
           task_source?: string | null
           task_type?: string | null
           title?: string

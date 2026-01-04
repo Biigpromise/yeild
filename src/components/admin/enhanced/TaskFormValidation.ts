@@ -1,5 +1,5 @@
-
 import { toast } from "sonner";
+import { getMinPointsForDifficulty } from "@/constants/taskDifficulty";
 
 export interface TaskFormData {
   title: string;
@@ -13,6 +13,8 @@ export interface TaskFormData {
   expires_at: string;
   status: string;
   task_type: string;
+  location_type?: string;
+  allowed_countries?: string[];
   social_media_links: {
     facebook: string;
     twitter: string;
@@ -34,9 +36,12 @@ export const validateTaskForm = (formData: TaskFormData): boolean => {
     return false;
   }
 
+  // Get minimum points based on difficulty
+  const minPoints = getMinPointsForDifficulty(formData.difficulty);
   const pointsValue = Number(formData.points);
-  if (!formData.points || isNaN(pointsValue) || pointsValue < 300) {
-    toast.error("Minimum task value is 300 points");
+  
+  if (!formData.points || isNaN(pointsValue) || pointsValue < minPoints) {
+    toast.error(`Minimum ${minPoints} points required for ${formData.difficulty} difficulty tasks`);
     return false;
   }
 
@@ -46,6 +51,12 @@ export const validateTaskForm = (formData: TaskFormData): boolean => {
       toast.error("At least one social media link is required for social media tasks");
       return false;
     }
+  }
+
+  // Validate location targeting
+  if (formData.location_type === 'specific' && (!formData.allowed_countries || formData.allowed_countries.length === 0)) {
+    toast.error("Please select at least one country for location targeting");
+    return false;
   }
 
   return true;
@@ -61,6 +72,7 @@ export const prepareTaskData = (formData: TaskFormData) => {
     estimated_time: formData.estimated_time,
     status: formData.status,
     task_type: formData.task_type,
+    location_type: formData.location_type || 'global',
   };
 
   // Add category_id if provided
@@ -76,6 +88,11 @@ export const prepareTaskData = (formData: TaskFormData) => {
   // Add expires_at if provided
   if (formData.expires_at) {
     taskData.expires_at = new Date(formData.expires_at).toISOString();
+  }
+
+  // Add location targeting
+  if (formData.location_type === 'specific' && formData.allowed_countries && formData.allowed_countries.length > 0) {
+    taskData.allowed_countries = formData.allowed_countries;
   }
 
   // Add social media links if task type is social_media
