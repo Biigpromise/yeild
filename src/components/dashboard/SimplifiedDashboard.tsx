@@ -253,48 +253,6 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
                 </div>
               </div>
 
-              {/* Navigation */}
-              <nav className="p-4">
-                <div className="space-y-2">
-                  {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = activeTab === tab.id;
-                    
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => {
-                          setActiveTab(tab.id);
-                          setSidebarOpen(false);
-                        }}
-                        className={cn(
-                          "w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 group",
-                          isActive 
-                            ? "bg-primary text-primary-foreground shadow-md" 
-                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                        )}
-                      >
-                        <Icon className={cn(
-                          "h-4 w-4 transition-transform duration-200",
-                          isActive && "scale-110"
-                        )} />
-                        <div className="text-left">
-                          <div className={cn("font-medium", isActive && "text-primary-foreground")}>
-                            {tab.name}
-                          </div>
-                          <div className={cn(
-                            "text-xs", 
-                            isActive ? "text-primary-foreground/80" : "text-muted-foreground"
-                          )}>
-                            {tab.description}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </nav>
-
               {/* Desktop Notifications */}
               <div className="hidden lg:block p-4 border-t border-border/60">
                 <LiveNotifications unreadCount={unreadCount} onUnreadCountChange={setUnreadCount} />

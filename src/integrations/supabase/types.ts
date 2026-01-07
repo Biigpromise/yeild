@@ -2960,6 +2960,7 @@ export type Database = {
           can_post_in_chat: boolean | null
           created_at: string | null
           email: string | null
+          first_task_completed: boolean | null
           followers_count: number
           following_count: number
           id: string
@@ -2971,6 +2972,8 @@ export type Database = {
           name: string | null
           points: number | null
           profile_picture_url: string | null
+          referral_bonus_deducted_from_task_id: string | null
+          referral_bonus_pending: boolean | null
           referral_code: string | null
           social_media_links: string[] | null
           task_completion_rate: number | null
@@ -2986,6 +2989,7 @@ export type Database = {
           can_post_in_chat?: boolean | null
           created_at?: string | null
           email?: string | null
+          first_task_completed?: boolean | null
           followers_count?: number
           following_count?: number
           id: string
@@ -2997,6 +3001,8 @@ export type Database = {
           name?: string | null
           points?: number | null
           profile_picture_url?: string | null
+          referral_bonus_deducted_from_task_id?: string | null
+          referral_bonus_pending?: boolean | null
           referral_code?: string | null
           social_media_links?: string[] | null
           task_completion_rate?: number | null
@@ -3012,6 +3018,7 @@ export type Database = {
           can_post_in_chat?: boolean | null
           created_at?: string | null
           email?: string | null
+          first_task_completed?: boolean | null
           followers_count?: number
           following_count?: number
           id?: string
@@ -3023,6 +3030,8 @@ export type Database = {
           name?: string | null
           points?: number | null
           profile_picture_url?: string | null
+          referral_bonus_deducted_from_task_id?: string | null
+          referral_bonus_pending?: boolean | null
           referral_code?: string | null
           social_media_links?: string[] | null
           task_completion_rate?: number | null
@@ -3031,7 +3040,15 @@ export type Database = {
           total_session_time?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referral_bonus_deducted_from_task_id_fkey"
+            columns: ["referral_bonus_deducted_from_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referral_levels: {
         Row: {

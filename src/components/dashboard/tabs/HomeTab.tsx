@@ -22,6 +22,7 @@ import {
   Store
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface HomeTabProps {
   userStats?: {
@@ -49,21 +50,24 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExpl
       description: 'Explore available opportunities',
       icon: Zap,
       color: 'bg-primary/10 text-primary border-primary/20',
-      onClick: () => navigate('/tasks')
+      onClick: () => navigate('/tasks'),
+      comingSoon: false
     },
     {
       title: 'View Birds',
       description: 'Check your bird progress',
       icon: Target,
       color: 'bg-green-500/10 text-green-600 border-green-500/20',
-      onClick: () => navigate('/birds')
+      onClick: () => navigate('/birds'),
+      comingSoon: false
     },
     {
       title: 'Social Hub',
-      description: 'Connect with community',
+      description: 'Coming Soon',
       icon: Users,
-      color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-      onClick: () => navigate('/social')
+      color: 'bg-blue-500/10 text-blue-600 border-blue-500/20 opacity-60',
+      onClick: () => toast.info('Social Hub is coming soon! Stay tuned.'),
+      comingSoon: true
     }
   ];
 
@@ -210,7 +214,12 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExpl
                   >
                     <Icon className="h-5 w-5 mr-3" />
                     <div className="flex-1 text-left">
-                      <div className="font-medium">{action.title}</div>
+                      <div className="font-medium flex items-center gap-2">
+                        {action.title}
+                        {action.comingSoon && (
+                          <Badge variant="secondary" className="text-xs">Soon</Badge>
+                        )}
+                      </div>
                       <div className="text-xs opacity-70">{action.description}</div>
                     </div>
                     <ArrowUpRight className="h-4 w-4 opacity-50" />
