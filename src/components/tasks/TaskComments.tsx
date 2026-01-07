@@ -78,16 +78,26 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({ taskId }) => {
 
   const addCommentMutation = useMutation({
     mutationFn: async ({ content, parentId }: { content: string; parentId?: string }) => {
-      const { error } = await supabase
+      if (!user?.id) {
+        throw new Error('You must be logged in to comment');
+      }
+      
+      const { data, error } = await supabase
         .from('task_comments')
         .insert({
           task_id: taskId,
-          user_id: user!.id,
+          user_id: user.id,
           content,
           parent_comment_id: parentId || null
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Comment insert error:', error);
+        throw error;
+      }
+      
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['task-comments', taskId] });
@@ -96,8 +106,9 @@ export const TaskComments: React.FC<TaskCommentsProps> = ({ taskId }) => {
       setReplyingTo(null);
       toast.success('Comment added!');
     },
-    onError: () => {
-      toast.error('Failed to add comment');
+    onError: (error: any) => {
+      console.error('Comment mutation error:', error);
+      toast.error(error.message || 'Failed to add comment. Please try again.');
     }
   });
 

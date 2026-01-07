@@ -177,7 +177,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({ userProfile, userStats }) 
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span>Yield Wallet: No fees, Instant</span>
+                      <span>Bank Account: No fees, Instant</span>
                     </div>
                   </div>
                 </div>
