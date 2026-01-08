@@ -450,6 +450,57 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_qualification: {
+        Row: {
+          accepted_execution_rules: boolean
+          accepted_no_direct_contact: boolean
+          accepted_verification_delays: boolean
+          accepted_yeild_authority: boolean
+          brand_id: string
+          category: string
+          company_name: string
+          country: string
+          created_at: string
+          id: string
+          qualification_status: string
+          qualified_at: string | null
+          updated_at: string
+          website_url: string
+        }
+        Insert: {
+          accepted_execution_rules?: boolean
+          accepted_no_direct_contact?: boolean
+          accepted_verification_delays?: boolean
+          accepted_yeild_authority?: boolean
+          brand_id: string
+          category: string
+          company_name: string
+          country: string
+          created_at?: string
+          id?: string
+          qualification_status?: string
+          qualified_at?: string | null
+          updated_at?: string
+          website_url: string
+        }
+        Update: {
+          accepted_execution_rules?: boolean
+          accepted_no_direct_contact?: boolean
+          accepted_verification_delays?: boolean
+          accepted_yeild_authority?: boolean
+          brand_id?: string
+          category?: string
+          company_name?: string
+          country?: string
+          created_at?: string
+          id?: string
+          qualification_status?: string
+          qualified_at?: string | null
+          updated_at?: string
+          website_url?: string
+        }
+        Relationships: []
+      }
       brand_task_announcements: {
         Row: {
           announcement_type: string | null
@@ -1433,6 +1484,282 @@ export type Database = {
         }
         Relationships: []
       }
+      execution_order_templates: {
+        Row: {
+          action_definition: string
+          auto_reject_criteria: Json | null
+          base_credit_value: number
+          category: string | null
+          code: string
+          created_at: string
+          description: string
+          difficulty_level: string
+          failure_penalty_rules: Json | null
+          icon: string | null
+          id: string
+          is_enabled: boolean
+          min_rank_level: number
+          name: string
+          required_proof_types: string[]
+          requires_manual_verification: boolean
+          updated_at: string
+          verification_window_hours: number
+        }
+        Insert: {
+          action_definition: string
+          auto_reject_criteria?: Json | null
+          base_credit_value?: number
+          category?: string | null
+          code: string
+          created_at?: string
+          description: string
+          difficulty_level?: string
+          failure_penalty_rules?: Json | null
+          icon?: string | null
+          id?: string
+          is_enabled?: boolean
+          min_rank_level?: number
+          name: string
+          required_proof_types: string[]
+          requires_manual_verification?: boolean
+          updated_at?: string
+          verification_window_hours?: number
+        }
+        Update: {
+          action_definition?: string
+          auto_reject_criteria?: Json | null
+          base_credit_value?: number
+          category?: string | null
+          code?: string
+          created_at?: string
+          description?: string
+          difficulty_level?: string
+          failure_penalty_rules?: Json | null
+          icon?: string | null
+          id?: string
+          is_enabled?: boolean
+          min_rank_level?: number
+          name?: string
+          required_proof_types?: string[]
+          requires_manual_verification?: boolean
+          updated_at?: string
+          verification_window_hours?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "execution_order_templates_min_rank_level_fkey"
+            columns: ["min_rank_level"]
+            isOneToOne: false
+            referencedRelation: "operator_ranks"
+            referencedColumns: ["rank_level"]
+          },
+        ]
+      }
+      execution_orders: {
+        Row: {
+          admin_approval_status: string | null
+          brand_id: string
+          brand_total_cost: number
+          campaign_id: string | null
+          completed_quantity: number
+          created_at: string
+          custom_instructions: string | null
+          expires_at: string | null
+          id: string
+          operator_payout: number
+          platform_fee: number
+          rejection_reason: string | null
+          required_caption: string | null
+          required_media_urls: string[] | null
+          required_platform: string | null
+          status: string
+          target_quantity: number
+          template_id: string
+          title: string
+          updated_at: string
+          verification_window_hours: number
+        }
+        Insert: {
+          admin_approval_status?: string | null
+          brand_id: string
+          brand_total_cost: number
+          campaign_id?: string | null
+          completed_quantity?: number
+          created_at?: string
+          custom_instructions?: string | null
+          expires_at?: string | null
+          id?: string
+          operator_payout: number
+          platform_fee: number
+          rejection_reason?: string | null
+          required_caption?: string | null
+          required_media_urls?: string[] | null
+          required_platform?: string | null
+          status?: string
+          target_quantity?: number
+          template_id: string
+          title: string
+          updated_at?: string
+          verification_window_hours?: number
+        }
+        Update: {
+          admin_approval_status?: string | null
+          brand_id?: string
+          brand_total_cost?: number
+          campaign_id?: string | null
+          completed_quantity?: number
+          created_at?: string
+          custom_instructions?: string | null
+          expires_at?: string | null
+          id?: string
+          operator_payout?: number
+          platform_fee?: number
+          rejection_reason?: string | null
+          required_caption?: string | null
+          required_media_urls?: string[] | null
+          required_platform?: string | null
+          status?: string
+          target_quantity?: number
+          template_id?: string
+          title?: string
+          updated_at?: string
+          verification_window_hours?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "execution_orders_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "brand_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execution_orders_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "execution_order_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      execution_proofs: {
+        Row: {
+          auto_validation_notes: string | null
+          auto_validation_status: string | null
+          created_at: string
+          external_url: string | null
+          file_hash: string | null
+          file_url: string | null
+          id: string
+          metadata: Json | null
+          proof_type: string
+          submission_id: string
+        }
+        Insert: {
+          auto_validation_notes?: string | null
+          auto_validation_status?: string | null
+          created_at?: string
+          external_url?: string | null
+          file_hash?: string | null
+          file_url?: string | null
+          id?: string
+          metadata?: Json | null
+          proof_type: string
+          submission_id: string
+        }
+        Update: {
+          auto_validation_notes?: string | null
+          auto_validation_status?: string | null
+          created_at?: string
+          external_url?: string | null
+          file_hash?: string | null
+          file_url?: string | null
+          id?: string
+          metadata?: Json | null
+          proof_type?: string
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "execution_proofs_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "execution_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      execution_submissions: {
+        Row: {
+          created_at: string
+          credits_earned: number | null
+          credits_released_at: string | null
+          device_fingerprint: string | null
+          id: string
+          ip_address: unknown
+          is_first_execution: boolean
+          is_random_sample: boolean
+          operator_id: string
+          order_id: string
+          rejection_category: string | null
+          rejection_reason: string | null
+          status: string
+          submitted_at: string
+          updated_at: string
+          verification_started_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          credits_earned?: number | null
+          credits_released_at?: string | null
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: unknown
+          is_first_execution?: boolean
+          is_random_sample?: boolean
+          operator_id: string
+          order_id: string
+          rejection_category?: string | null
+          rejection_reason?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          verification_started_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          credits_earned?: number | null
+          credits_released_at?: string | null
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: unknown
+          is_first_execution?: boolean
+          is_random_sample?: boolean
+          operator_id?: string
+          order_id?: string
+          rejection_category?: string | null
+          rejection_reason?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          verification_started_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "execution_submissions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "execution_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       faqs: {
         Row: {
           answer: string
@@ -1466,6 +1793,30 @@ export type Database = {
           order_index?: number | null
           question?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      forbidden_task_keywords: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          keyword: string
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          keyword: string
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          keyword?: string
+          reason?: string
         }
         Relationships: []
       }
@@ -2338,6 +2689,105 @@ export type Database = {
           },
         ]
       }
+      operator_rank_history: {
+        Row: {
+          change_reason: string
+          created_at: string
+          id: string
+          new_rank_level: number
+          notes: string | null
+          operator_id: string
+          previous_rank_level: number | null
+        }
+        Insert: {
+          change_reason: string
+          created_at?: string
+          id?: string
+          new_rank_level: number
+          notes?: string | null
+          operator_id: string
+          previous_rank_level?: number | null
+        }
+        Update: {
+          change_reason?: string
+          created_at?: string
+          id?: string
+          new_rank_level?: number
+          notes?: string | null
+          operator_id?: string
+          previous_rank_level?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_rank_history_new_rank_level_fkey"
+            columns: ["new_rank_level"]
+            isOneToOne: false
+            referencedRelation: "operator_ranks"
+            referencedColumns: ["rank_level"]
+          },
+          {
+            foreignKeyName: "operator_rank_history_previous_rank_level_fkey"
+            columns: ["previous_rank_level"]
+            isOneToOne: false
+            referencedRelation: "operator_ranks"
+            referencedColumns: ["rank_level"]
+          },
+        ]
+      }
+      operator_ranks: {
+        Row: {
+          allowed_template_codes: string[]
+          benefits: string[] | null
+          color: string
+          created_at: string | null
+          decay_rate_percent: number
+          description: string
+          emoji: string
+          icon: string
+          id: number
+          min_success_rate: number
+          min_verified_executions: number
+          name: string
+          penalty_multiplier: number
+          rank_level: number
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_template_codes?: string[]
+          benefits?: string[] | null
+          color: string
+          created_at?: string | null
+          decay_rate_percent?: number
+          description: string
+          emoji: string
+          icon: string
+          id?: number
+          min_success_rate?: number
+          min_verified_executions?: number
+          name: string
+          penalty_multiplier?: number
+          rank_level: number
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_template_codes?: string[]
+          benefits?: string[] | null
+          color?: string
+          created_at?: string | null
+          decay_rate_percent?: number
+          description?: string
+          emoji?: string
+          icon?: string
+          id?: number
+          min_success_rate?: number
+          min_verified_executions?: number
+          name?: string
+          penalty_multiplier?: number
+          rank_level?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       password_reset_tokens: {
         Row: {
           attempt_count: number | null
@@ -2569,6 +3019,33 @@ export type Database = {
           metric_name?: string
           metric_value?: number
           user_id?: string
+        }
+        Relationships: []
+      }
+      platform_constants: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: number
         }
         Relationships: []
       }
@@ -2960,18 +3437,26 @@ export type Database = {
           can_post_in_chat: boolean | null
           created_at: string | null
           email: string | null
+          execution_credits_balance: number | null
+          execution_credits_lifetime: number | null
+          execution_credits_pending: number | null
+          execution_success_rate: number | null
+          failed_executions: number | null
           first_task_completed: boolean | null
           followers_count: number
           following_count: number
           id: string
           is_anonymous: boolean
           last_active_at: string | null
+          last_execution_at: string | null
           last_login_at: string | null
           level: number | null
           login_count: number | null
           name: string | null
+          operator_rank_level: number | null
           points: number | null
           profile_picture_url: string | null
+          rank_decay_paused_until: string | null
           referral_bonus_deducted_from_task_id: string | null
           referral_bonus_pending: boolean | null
           referral_code: string | null
@@ -2981,6 +3466,7 @@ export type Database = {
           total_referrals_count: number | null
           total_session_time: number | null
           updated_at: string | null
+          verified_executions: number | null
         }
         Insert: {
           active_referrals_count?: number | null
@@ -2989,18 +3475,26 @@ export type Database = {
           can_post_in_chat?: boolean | null
           created_at?: string | null
           email?: string | null
+          execution_credits_balance?: number | null
+          execution_credits_lifetime?: number | null
+          execution_credits_pending?: number | null
+          execution_success_rate?: number | null
+          failed_executions?: number | null
           first_task_completed?: boolean | null
           followers_count?: number
           following_count?: number
           id: string
           is_anonymous?: boolean
           last_active_at?: string | null
+          last_execution_at?: string | null
           last_login_at?: string | null
           level?: number | null
           login_count?: number | null
           name?: string | null
+          operator_rank_level?: number | null
           points?: number | null
           profile_picture_url?: string | null
+          rank_decay_paused_until?: string | null
           referral_bonus_deducted_from_task_id?: string | null
           referral_bonus_pending?: boolean | null
           referral_code?: string | null
@@ -3010,6 +3504,7 @@ export type Database = {
           total_referrals_count?: number | null
           total_session_time?: number | null
           updated_at?: string | null
+          verified_executions?: number | null
         }
         Update: {
           active_referrals_count?: number | null
@@ -3018,18 +3513,26 @@ export type Database = {
           can_post_in_chat?: boolean | null
           created_at?: string | null
           email?: string | null
+          execution_credits_balance?: number | null
+          execution_credits_lifetime?: number | null
+          execution_credits_pending?: number | null
+          execution_success_rate?: number | null
+          failed_executions?: number | null
           first_task_completed?: boolean | null
           followers_count?: number
           following_count?: number
           id?: string
           is_anonymous?: boolean
           last_active_at?: string | null
+          last_execution_at?: string | null
           last_login_at?: string | null
           level?: number | null
           login_count?: number | null
           name?: string | null
+          operator_rank_level?: number | null
           points?: number | null
           profile_picture_url?: string | null
+          rank_decay_paused_until?: string | null
           referral_bonus_deducted_from_task_id?: string | null
           referral_bonus_pending?: boolean | null
           referral_code?: string | null
@@ -3039,8 +3542,16 @@ export type Database = {
           total_referrals_count?: number | null
           total_session_time?: number | null
           updated_at?: string | null
+          verified_executions?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_operator_rank_level_fkey"
+            columns: ["operator_rank_level"]
+            isOneToOne: false
+            referencedRelation: "operator_ranks"
+            referencedColumns: ["rank_level"]
+          },
           {
             foreignKeyName: "profiles_referral_bonus_deducted_from_task_id_fkey"
             columns: ["referral_bonus_deducted_from_task_id"]
@@ -4334,6 +4845,97 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      verification_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          new_status: string | null
+          notes: string | null
+          performed_by: string | null
+          performed_by_type: string
+          previous_status: string | null
+          submission_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          new_status?: string | null
+          notes?: string | null
+          performed_by?: string | null
+          performed_by_type: string
+          previous_status?: string | null
+          submission_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          new_status?: string | null
+          notes?: string | null
+          performed_by?: string | null
+          performed_by_type?: string
+          previous_status?: string | null
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_logs_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "execution_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      verification_queue: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          priority: number
+          queue_type: string
+          status: string
+          submission_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          priority?: number
+          queue_type: string
+          status?: string
+          submission_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          priority?: number
+          queue_type?: string
+          status?: string
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_queue_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "execution_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       withdrawal_requests: {
         Row: {
