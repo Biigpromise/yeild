@@ -1,122 +1,154 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
-import { Building2, Globe, Users, Target, DollarSign, CheckCircle, ArrowRight, ChevronLeft } from 'lucide-react';
+import { 
+  Shield, Globe, Target, DollarSign, CheckCircle, ArrowRight, 
+  AlertTriangle, Clock, Ban, Eye, Smartphone, ClipboardList, Share2
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+import { PLATFORM_FEE_PERCENT } from '@/types/execution';
 
 interface BrandOnboardingExperienceProps {
   onComplete: () => void;
 }
 
 const steps = [
-  {
-    id: 1,
-    title: "Welcome to YIELD",
-    subtitle: "Let's get your brand set up for success",
-    icon: Building2,
-    color: "text-yeild-yellow"
-  },
-  {
-    id: 2,
-    title: "Company Information",
-    subtitle: "Tell us about your business",
-    icon: Globe,
-    color: "text-yeild-yellow"
-  },
-  {
-    id: 3,
-    title: "Campaign Preferences",
-    subtitle: "What type of campaigns do you want to run?",
-    icon: Target,
-    color: "text-yeild-yellow"
-  },
-  {
-    id: 4,
-    title: "Budget & Goals",
-    subtitle: "Set your campaign parameters",
-    icon: DollarSign,
-    color: "text-yeild-yellow"
-  },
-  {
-    id: 5,
-    title: "All Set!",
-    subtitle: "Your brand account is ready",
-    icon: CheckCircle,
-    color: "text-yeild-yellow"
-  }
+  { id: 1, title: "Platform Introduction", icon: Shield },
+  { id: 2, title: "Execution Rules", icon: AlertTriangle },
+  { id: 3, title: "Brand Qualification", icon: Globe },
+  { id: 4, title: "Goal Selection", icon: Target },
+  { id: 5, title: "Financial Commitment", icon: DollarSign },
+  { id: 6, title: "Complete", icon: CheckCircle }
+];
+
+const BRAND_CATEGORIES = [
+  { value: 'startup', label: 'Startup' },
+  { value: 'sme', label: 'SME (Small/Medium Enterprise)' },
+  { value: 'digital_product', label: 'Digital Product' },
+  { value: 'fintech', label: 'Fintech' },
+  { value: 'ecommerce', label: 'E-commerce' },
+  { value: 'saas', label: 'SaaS' },
+  { value: 'local_service', label: 'Local Service' },
+  { value: 'utility', label: 'Utility / Infrastructure' }
+];
+
+const EXECUTION_GOALS = [
+  { id: 'app_activation', label: 'App Activations', description: 'Get users to install and activate your app', icon: Smartphone },
+  { id: 'website_signup', label: 'Website Signups', description: 'Drive user registrations on your website', icon: Globe },
+  { id: 'social_placement', label: 'Social Content Placement', description: 'Get your content posted on social media', icon: Share2 },
+  { id: 'survey_completion', label: 'Survey Completions', description: 'Collect user feedback and data', icon: ClipboardList }
+];
+
+const FORBIDDEN_ACTIONS = [
+  'Likes, follows, or subscribers',
+  'Views or watch time',
+  'Engagement or impressions',
+  'Reach or exposure guarantees',
+  'Viral or trending promises'
 ];
 
 const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ onComplete }) => {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Form state
   const [formData, setFormData] = useState({
     companyName: '',
-    website: '',
-    industry: '',
-    companySize: '',
-    description: '',
-    taskTypes: [] as string[],
-    budget: '',
-    goals: ''
+    websiteUrl: '',
+    country: '',
+    category: '',
+    selectedGoals: [] as string[],
+    // Acceptance checkboxes
+    acceptedExecutionRules: false,
+    acceptedVerificationDelays: false,
+    acceptedNoDirectContact: false,
+    acceptedYeildAuthority: false,
+    acceptedPlatformFee: false
   });
 
-  const handleNext = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  const canProceed = (): boolean => {
+    switch (currentStep) {
+      case 1:
+        return true;
+      case 2:
+        return formData.acceptedExecutionRules && 
+               formData.acceptedVerificationDelays && 
+               formData.acceptedNoDirectContact && 
+               formData.acceptedYeildAuthority;
+      case 3:
+        return formData.companyName.trim() !== '' && 
+               formData.websiteUrl.trim() !== '' && 
+               formData.country.trim() !== '' && 
+               formData.category !== '';
+      case 4:
+        return formData.selectedGoals.length > 0;
+      case 5:
+        return formData.acceptedPlatformFee;
+      default:
+        return true;
     }
+  };
+
+  const handleNext = async () => {
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     } else {
-      try {
-        onComplete();
-      } catch (error) {
-        console.error('Error completing brand onboarding:', error);
-      }
+      await handleComplete();
     }
   };
 
-  const handlePrevious = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  const handleComplete = async () => {
+    if (!user) {
+      toast.error('You must be logged in');
+      return;
     }
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
 
-  const handleSkipAll = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+    setIsSubmitting(true);
     try {
+      // Save brand qualification to database
+      const { error } = await supabase
+        .from('brand_qualification')
+        .upsert({
+          brand_id: user.id,
+          company_name: formData.companyName,
+          website_url: formData.websiteUrl,
+          country: formData.country,
+          category: formData.category,
+          accepted_execution_rules: formData.acceptedExecutionRules,
+          accepted_verification_delays: formData.acceptedVerificationDelays,
+          accepted_no_direct_contact: formData.acceptedNoDirectContact,
+          accepted_yeild_authority: formData.acceptedYeildAuthority,
+          qualification_status: 'qualified',
+          qualified_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      toast.success('Brand qualification complete!');
       onComplete();
     } catch (error) {
-      console.error('Error skipping brand onboarding:', error);
+      console.error('Error saving brand qualification:', error);
+      toast.error('Failed to complete qualification. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleInputChange = (field: string, value: string | string[]) => {
+  const handleGoalToggle = (goalId: string) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleTaskTypeChange = (taskType: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      taskTypes: checked
-        ? [...prev.taskTypes, taskType]
-        : prev.taskTypes.filter(t => t !== taskType)
+      selectedGoals: prev.selectedGoals.includes(goalId)
+        ? prev.selectedGoals.filter(g => g !== goalId)
+        : [...prev.selectedGoals, goalId]
     }));
   };
 
@@ -124,33 +156,58 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
     switch (currentStep) {
       case 1:
         return (
-          <div className="text-center space-y-6">
-            <div className="w-24 h-24 bg-yeild-yellow/20 rounded-full flex items-center justify-center mx-auto">
-              <Building2 className="h-12 w-12 text-yeild-yellow" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-yeild-yellow mb-2">Welcome to YIELD</h2>
-              <p className="text-white/80">
-                Join thousands of brands leveraging user-generated content to grow their business.
-              </p>
-            </div>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                <Users className="h-8 w-8 text-yeild-yellow mx-auto mb-2" />
-                <p className="text-sm font-medium text-white">10,000+</p>
-                <p className="text-xs text-white/60">Active Users</p>
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-yeild-yellow/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-10 w-10 text-yeild-yellow" />
               </div>
-              <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                <Target className="h-8 w-8 text-yeild-yellow mx-auto mb-2" />
-                <p className="text-sm font-medium text-white">95%</p>
-                <p className="text-xs text-white/60">Task Success Rate</p>
-              </div>
-              <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                <Building2 className="h-8 w-8 text-yeild-yellow mx-auto mb-2" />
-                <p className="text-sm font-medium text-white">500+</p>
-                <p className="text-xs text-white/60">Partner Brands</p>
-              </div>
+              <h2 className="text-2xl font-bold text-yeild-yellow mb-2">Welcome to YEILD</h2>
+              <p className="text-white/80 text-lg">Managed Human Execution Platform</p>
             </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
+              <h3 className="text-lg font-semibold text-white">YEILD is NOT:</h3>
+              <ul className="space-y-2 text-white/70">
+                <li className="flex items-center gap-2">
+                  <Ban className="h-4 w-4 text-red-400" />
+                  An engagement platform
+                </li>
+                <li className="flex items-center gap-2">
+                  <Ban className="h-4 w-4 text-red-400" />
+                  A social network
+                </li>
+                <li className="flex items-center gap-2">
+                  <Ban className="h-4 w-4 text-red-400" />
+                  A referral or attention farm
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-yeild-yellow/10 border border-yeild-yellow/30 rounded-lg p-6 space-y-4">
+              <h3 className="text-lg font-semibold text-yeild-yellow">YEILD exists to:</h3>
+              <ul className="space-y-2 text-white/90">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-yeild-yellow" />
+                  Manage human execution for brands
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-yeild-yellow" />
+                  Verify task completion
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-yeild-yellow" />
+                  Deliver provable outcomes
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-yeild-yellow" />
+                  Protect brand trust above growth
+                </li>
+              </ul>
+            </div>
+
+            <p className="text-center text-white/60 text-sm italic">
+              "YEILD would rather be small than corrupt."
+            </p>
           </div>
         );
 
@@ -158,65 +215,82 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <Globe className="h-12 w-12 text-yeild-yellow mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-white">Company Information</h2>
+              <AlertTriangle className="h-12 w-12 text-yeild-yellow mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-white">Execution Rules</h2>
+              <p className="text-white/60">You must accept these terms to proceed</p>
             </div>
-            
+
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
+              <h3 className="text-red-400 font-semibold mb-2 flex items-center gap-2">
+                <Ban className="h-4 w-4" /> Forbidden Actions
+              </h3>
+              <ul className="text-white/70 text-sm space-y-1">
+                {FORBIDDEN_ACTIONS.map((action, i) => (
+                  <li key={i}>• {action}</li>
+                ))}
+              </ul>
+            </div>
+
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="companyName" className="text-white">Company Name *</Label>
-                <Input
-                  id="companyName"
-                  value={formData.companyName}
-                  onChange={(e) => handleInputChange('companyName', e.target.value)}
-                  placeholder="Enter your company name"
-                  className="bg-white/5 border-white/20 text-white placeholder:text-white/60 focus:border-yeild-yellow"
+              <div className="flex items-start gap-3 p-4 bg-white/5 rounded-lg border border-white/10">
+                <Checkbox
+                  id="executionRules"
+                  checked={formData.acceptedExecutionRules}
+                  onCheckedChange={(checked) => 
+                    setFormData(prev => ({ ...prev, acceptedExecutionRules: checked as boolean }))
+                  }
+                  className="mt-1 border-white/30 data-[state=checked]:bg-yeild-yellow data-[state=checked]:border-yeild-yellow"
                 />
+                <Label htmlFor="executionRules" className="text-white/90 cursor-pointer">
+                  I understand that all brand activity must occur through <strong>Execution Orders</strong>. 
+                  Free-form tasks are forbidden.
+                </Label>
               </div>
-              
-              <div>
-                <Label htmlFor="website" className="text-white">Website</Label>
-                <Input
-                  id="website"
-                  value={formData.website}
-                  onChange={(e) => handleInputChange('website', e.target.value)}
-                  placeholder="https://yourcompany.com"
-                  className="bg-white/5 border-white/20 text-white placeholder:text-white/60 focus:border-yeild-yellow"
+
+              <div className="flex items-start gap-3 p-4 bg-white/5 rounded-lg border border-white/10">
+                <Checkbox
+                  id="verificationDelays"
+                  checked={formData.acceptedVerificationDelays}
+                  onCheckedChange={(checked) => 
+                    setFormData(prev => ({ ...prev, acceptedVerificationDelays: checked as boolean }))
+                  }
+                  className="mt-1 border-white/30 data-[state=checked]:bg-yeild-yellow data-[state=checked]:border-yeild-yellow"
                 />
+                <Label htmlFor="verificationDelays" className="text-white/90 cursor-pointer flex items-start gap-2">
+                  <Clock className="h-4 w-4 mt-0.5 text-yeild-yellow shrink-0" />
+                  I accept that verification takes <strong>24-72 hours</strong>. Instant approval is not available.
+                </Label>
               </div>
-              
-              <div>
-                <Label htmlFor="industry" className="text-white">Industry</Label>
-                <Select value={formData.industry} onValueChange={(value) => handleInputChange('industry', value)}>
-                  <SelectTrigger className="bg-white/5 border-white/20 text-white focus:border-yeild-yellow">
-                    <SelectValue placeholder="Select your industry" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-black border-white/20">
-                    <SelectItem value="technology">Technology</SelectItem>
-                    <SelectItem value="retail">Retail</SelectItem>
-                    <SelectItem value="healthcare">Healthcare</SelectItem>
-                    <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="education">Education</SelectItem>
-                    <SelectItem value="entertainment">Entertainment</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+
+              <div className="flex items-start gap-3 p-4 bg-white/5 rounded-lg border border-white/10">
+                <Checkbox
+                  id="noDirectContact"
+                  checked={formData.acceptedNoDirectContact}
+                  onCheckedChange={(checked) => 
+                    setFormData(prev => ({ ...prev, acceptedNoDirectContact: checked as boolean }))
+                  }
+                  className="mt-1 border-white/30 data-[state=checked]:bg-yeild-yellow data-[state=checked]:border-yeild-yellow"
+                />
+                <Label htmlFor="noDirectContact" className="text-white/90 cursor-pointer">
+                  I understand that <strong>brands and operators never contact each other</strong>. 
+                  All disputes are resolved internally by YEILD.
+                </Label>
               </div>
-              
-              <div>
-                <Label htmlFor="companySize" className="text-white">Company Size</Label>
-                <Select value={formData.companySize} onValueChange={(value) => handleInputChange('companySize', value)}>
-                  <SelectTrigger className="bg-white/5 border-white/20 text-white focus:border-yeild-yellow">
-                    <SelectValue placeholder="Select company size" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-black border-white/20">
-                    <SelectItem value="1-10">1-10 employees</SelectItem>
-                    <SelectItem value="11-50">11-50 employees</SelectItem>
-                    <SelectItem value="51-200">51-200 employees</SelectItem>
-                    <SelectItem value="201-1000">201-1000 employees</SelectItem>
-                    <SelectItem value="1000+">1000+ employees</SelectItem>
-                  </SelectContent>
-                </Select>
+
+              <div className="flex items-start gap-3 p-4 bg-white/5 rounded-lg border border-white/10">
+                <Checkbox
+                  id="yeildAuthority"
+                  checked={formData.acceptedYeildAuthority}
+                  onCheckedChange={(checked) => 
+                    setFormData(prev => ({ ...prev, acceptedYeildAuthority: checked as boolean }))
+                  }
+                  className="mt-1 border-white/30 data-[state=checked]:bg-yeild-yellow data-[state=checked]:border-yeild-yellow"
+                />
+                <Label htmlFor="yeildAuthority" className="text-white/90 cursor-pointer flex items-start gap-2">
+                  <Eye className="h-4 w-4 mt-0.5 text-yeild-yellow shrink-0" />
+                  I accept that <strong>YEILD alone verifies executions</strong>. 
+                  Brands cannot approve or reject proofs.
+                </Label>
               </div>
             </div>
           </div>
@@ -226,36 +300,60 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <Target className="h-12 w-12 text-yeild-yellow mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-white">Campaign Preferences</h2>
+              <Globe className="h-12 w-12 text-yeild-yellow mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-white">Brand Qualification</h2>
+              <p className="text-white/60">Tell us about your business</p>
             </div>
-            
-            <div>
-              <Label className="text-base font-medium mb-4 block text-white">
-                What type of campaigns do you want to run? (Select all that apply)
-              </Label>
-              
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  'Product Reviews',
-                  'Social Media Posts',
-                  'Video Testimonials',
-                  'App Testing',
-                  'Website Feedback',
-                  'Content Creation',
-                  'Survey Participation',
-                  'Beta Testing'
-                ].map((taskType) => (
-                  <div key={taskType} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={taskType}
-                      checked={formData.taskTypes.includes(taskType)}
-                      onCheckedChange={(checked) => handleTaskTypeChange(taskType, checked as boolean)}
-                      className="border-white/20 data-[state=checked]:bg-yeild-yellow data-[state=checked]:border-yeild-yellow"
-                    />
-                    <Label htmlFor={taskType} className="text-sm text-white">{taskType}</Label>
-                  </div>
-                ))}
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="companyName" className="text-white">Company Name *</Label>
+                <Input
+                  id="companyName"
+                  value={formData.companyName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
+                  placeholder="Enter your company name"
+                  className="bg-white/5 border-white/20 text-white placeholder:text-white/40 focus:border-yeild-yellow"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="websiteUrl" className="text-white">Product/Website URL *</Label>
+                <Input
+                  id="websiteUrl"
+                  value={formData.websiteUrl}
+                  onChange={(e) => setFormData(prev => ({ ...prev, websiteUrl: e.target.value }))}
+                  placeholder="https://yourproduct.com"
+                  className="bg-white/5 border-white/20 text-white placeholder:text-white/40 focus:border-yeild-yellow"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="country" className="text-white">Country *</Label>
+                <Input
+                  id="country"
+                  value={formData.country}
+                  onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                  placeholder="e.g., Nigeria, United States, Kenya"
+                  className="bg-white/5 border-white/20 text-white placeholder:text-white/40 focus:border-yeild-yellow"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="category" className="text-white">Business Category *</Label>
+                <Select 
+                  value={formData.category} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                >
+                  <SelectTrigger className="bg-white/5 border-white/20 text-white focus:border-yeild-yellow">
+                    <SelectValue placeholder="Select your category" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black border-white/20">
+                    {BRAND_CATEGORIES.map(cat => (
+                      <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -265,56 +363,152 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <DollarSign className="h-12 w-12 text-yeild-yellow mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-white">Budget & Goals</h2>
+              <Target className="h-12 w-12 text-yeild-yellow mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-white">Goal Selection</h2>
+              <p className="text-white/60">What outcomes do you need? (Select all that apply)</p>
             </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="budget" className="text-white">Monthly Budget Range</Label>
-                <Select value={formData.budget} onValueChange={(value) => handleInputChange('budget', value)}>
-                  <SelectTrigger className="bg-white/5 border-white/20 text-white focus:border-yeild-yellow">
-                    <SelectValue placeholder="Select your budget range" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-black border-white/20">
-                    <SelectItem value="under-1000">Under $1,000</SelectItem>
-                    <SelectItem value="1000-5000">$1,000 - $5,000</SelectItem>
-                    <SelectItem value="5000-10000">$5,000 - $10,000</SelectItem>
-                    <SelectItem value="10000-25000">$10,000 - $25,000</SelectItem>
-                    <SelectItem value="25000+">$25,000+</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="goals" className="text-white">Campaign Goals</Label>
-                <Textarea
-                  id="goals"
-                  value={formData.goals}
-                  onChange={(e) => handleInputChange('goals', e.target.value)}
-                  placeholder="What do you hope to achieve with your campaigns?"
-                  className="bg-white/5 border-white/20 text-white placeholder:text-white/60 focus:border-yeild-yellow min-h-[100px]"
-                />
-              </div>
+
+            <div className="grid gap-3">
+              {EXECUTION_GOALS.map(goal => (
+                <div
+                  key={goal.id}
+                  onClick={() => handleGoalToggle(goal.id)}
+                  className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                    formData.selectedGoals.includes(goal.id)
+                      ? 'bg-yeild-yellow/10 border-yeild-yellow'
+                      : 'bg-white/5 border-white/10 hover:border-white/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      formData.selectedGoals.includes(goal.id) ? 'bg-yeild-yellow/20' : 'bg-white/10'
+                    }`}>
+                      <goal.icon className={`h-5 w-5 ${
+                        formData.selectedGoals.includes(goal.id) ? 'text-yeild-yellow' : 'text-white/60'
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className={`font-medium ${
+                        formData.selectedGoals.includes(goal.id) ? 'text-yeild-yellow' : 'text-white'
+                      }`}>{goal.label}</h3>
+                      <p className="text-sm text-white/60">{goal.description}</p>
+                    </div>
+                    <Checkbox
+                      checked={formData.selectedGoals.includes(goal.id)}
+                      className="border-white/30 data-[state=checked]:bg-yeild-yellow data-[state=checked]:border-yeild-yellow"
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
+
+            <p className="text-white/50 text-sm text-center">
+              Note: Free-form goals are not allowed. All executions must use approved templates.
+            </p>
           </div>
         );
 
       case 5:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <DollarSign className="h-12 w-12 text-yeild-yellow mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-white">Financial Commitment</h2>
+              <p className="text-white/60">YEILD prices execution, not attention</p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
+              <h3 className="text-lg font-semibold text-white">Pricing Model</h3>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-white/10">
+                  <span className="text-white/70">Operator Payout</span>
+                  <span className="text-white font-medium">65%</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/10">
+                  <span className="text-white/70">YEILD Management Fee</span>
+                  <span className="text-yeild-yellow font-medium">{PLATFORM_FEE_PERCENT}%</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-white font-semibold">Your Total Cost</span>
+                  <span className="text-white font-semibold">100%</span>
+                </div>
+              </div>
+
+              <div className="text-sm text-white/60 space-y-1 pt-2">
+                <p>• Minimum payout floors enforced</p>
+                <p>• No bidding or negotiation</p>
+                <p>• Brands pay only for verified executions</p>
+                <p>• YEILD fees increase with execution risk</p>
+              </div>
+            </div>
+
+            <div className="bg-yeild-yellow/10 border border-yeild-yellow/30 rounded-lg p-4">
+              <h4 className="text-yeild-yellow font-medium mb-2">Payout Rules</h4>
+              <ul className="text-white/80 text-sm space-y-1">
+                <li>• Operator payouts are delayed by default (7 days)</li>
+                <li>• Delay increases with execution risk</li>
+                <li>• Disputes pause payouts</li>
+                <li>• Rejected executions are not paid</li>
+              </ul>
+            </div>
+
+            <div className="flex items-start gap-3 p-4 bg-white/5 rounded-lg border border-white/10">
+              <Checkbox
+                id="platformFee"
+                checked={formData.acceptedPlatformFee}
+                onCheckedChange={(checked) => 
+                  setFormData(prev => ({ ...prev, acceptedPlatformFee: checked as boolean }))
+                }
+                className="mt-1 border-white/30 data-[state=checked]:bg-yeild-yellow data-[state=checked]:border-yeild-yellow"
+              />
+              <Label htmlFor="platformFee" className="text-white/90 cursor-pointer">
+                I understand and accept the {PLATFORM_FEE_PERCENT}% platform management fee and 
+                the payout rules described above.
+              </Label>
+            </div>
+          </div>
+        );
+
+      case 6:
         return (
           <div className="text-center space-y-6">
             <div className="w-24 h-24 bg-yeild-yellow/20 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle className="h-12 w-12 text-yeild-yellow" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-yeild-yellow mb-2">All Set!</h2>
+              <h2 className="text-2xl font-bold text-yeild-yellow mb-2">Qualification Complete</h2>
               <p className="text-white/80">
-                Your brand account is ready. You can now start creating campaigns and connecting with users.
+                Your brand account is qualified. You can now create Execution Orders.
               </p>
             </div>
-            <div className="bg-white/5 p-4 rounded-lg border border-white/10">
+
+            <div className="bg-white/5 border border-white/10 rounded-lg p-6 text-left space-y-3">
+              <h3 className="text-white font-semibold">Summary</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-white/60">Company</span>
+                  <span className="text-white">{formData.companyName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/60">Category</span>
+                  <span className="text-white capitalize">{formData.category.replace('_', ' ')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/60">Goals</span>
+                  <span className="text-white">{formData.selectedGoals.length} selected</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/60">Platform Fee</span>
+                  <span className="text-yeild-yellow">{PLATFORM_FEE_PERCENT}%</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-yeild-yellow/10 border border-yeild-yellow/30 rounded-lg p-4">
               <p className="text-sm text-white/80">
-                <strong className="text-yeild-yellow">Next Steps:</strong> Explore the dashboard, create your first campaign, and start engaging with our community of users.
+                <strong className="text-yeild-yellow">Next Steps:</strong> Fund your wallet and 
+                create your first Execution Order from the approved templates.
               </p>
             </div>
           </div>
@@ -330,7 +524,7 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
       <Card className="w-full max-w-2xl bg-black border border-white/20">
         <CardHeader className="text-center pb-2">
           <div className="flex justify-center mb-4">
-            <div className="text-3xl font-bold text-yeild-yellow">YIELD</div>
+            <div className="text-3xl font-bold text-yeild-yellow">YEILD</div>
           </div>
           <Progress 
             value={(currentStep / steps.length) * 100} 
@@ -340,14 +534,17 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
             {steps.map((step, index) => (
               <div
                 key={step.id}
-                className={`w-3 h-3 rounded-full ${
+                className={`w-3 h-3 rounded-full transition-colors ${
                   index + 1 <= currentStep ? 'bg-yeild-yellow' : 'bg-white/20'
                 }`}
               />
             ))}
           </div>
+          <p className="text-white/60 text-sm">
+            Step {currentStep} of {steps.length}: {steps[currentStep - 1].title}
+          </p>
         </CardHeader>
-        
+
         <CardContent className="px-8 pb-8">
           <AnimatePresence mode="wait">
             <motion.div
@@ -360,34 +557,25 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
               {renderStepContent()}
             </motion.div>
           </AnimatePresence>
-          
+
           <div className="flex justify-between mt-8">
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={(e) => handlePrevious(e)}
-                disabled={currentStep === 1}
-                className="border-white/20 text-white hover:bg-white/10 disabled:opacity-30"
-              >
-                Previous
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={(e) => handleSkipAll(e)}
-                className="border-white/20 text-white hover:bg-white/10"
-              >
-                Skip All
-              </Button>
-            </div>
-            
             <Button
               type="button"
-              onClick={(e) => handleNext(e)}
-              className="bg-yeild-yellow hover:bg-yeild-yellow/90 text-black"
+              variant="outline"
+              onClick={() => currentStep > 1 && setCurrentStep(currentStep - 1)}
+              disabled={currentStep === 1}
+              className="border-white/20 text-white hover:bg-white/10 disabled:opacity-30"
             >
-              {currentStep === steps.length ? 'Complete Setup' : 'Next'}
+              Previous
+            </Button>
+
+            <Button
+              type="button"
+              onClick={handleNext}
+              disabled={!canProceed() || isSubmitting}
+              className="bg-yeild-yellow hover:bg-yeild-yellow/90 text-black disabled:opacity-50"
+            >
+              {isSubmitting ? 'Saving...' : currentStep === steps.length ? 'Complete Setup' : 'Next'}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
