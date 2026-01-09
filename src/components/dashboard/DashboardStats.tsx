@@ -17,13 +17,17 @@ import {
 interface DashboardStatsProps {
   userStats: {
     points: number;
+    credits?: number;
     level: number;
+    rankLevel?: number;
     tasksCompleted: number;
+    executionsCompleted?: number;
     currentStreak: number;
     rank: number;
     referrals: number;
     followers: number;
     following: number;
+    successRate?: number;
   };
   totalPointsEarned?: number;
   withdrawalStats?: {
@@ -39,36 +43,36 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
 }) => {
   const statCards = [
     {
-      title: 'Total Points',
-      value: userStats.points?.toLocaleString() || '0',
+      title: 'Credits Balance',
+      value: (userStats.credits ?? userStats.points)?.toLocaleString() || '0',
       icon: Zap,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-50',
-      badge: userStats.points > 1000 ? 'High Earner' : 'Getting Started'
+      badge: (userStats.credits ?? userStats.points) > 1000 ? 'High Earner' : 'Getting Started'
     },
     {
-      title: 'Level',
-      value: userStats.level || 1,
+      title: 'Operator Rank',
+      value: userStats.rankLevel || userStats.level || 1,
       icon: Trophy,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
-      badge: `Level ${userStats.level || 1}`
+      badge: `Rank ${userStats.rankLevel || userStats.level || 1}`
     },
     {
-      title: 'Tasks Completed',
-      value: userStats.tasksCompleted || 0,
+      title: 'Executions Completed',
+      value: userStats.executionsCompleted ?? userStats.tasksCompleted ?? 0,
       icon: Target,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
-      badge: userStats.tasksCompleted > 10 ? 'Active' : 'Beginner'
+      badge: (userStats.executionsCompleted ?? userStats.tasksCompleted) > 10 ? 'Active Operator' : 'New Operator'
     },
     {
-      title: 'Current Streak',
-      value: userStats.currentStreak || 0,
+      title: 'Success Rate',
+      value: userStats.successRate ? `${userStats.successRate.toFixed(0)}%` : (userStats.currentStreak || 0),
       icon: Flame,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
-      badge: userStats.currentStreak > 7 ? 'On Fire!' : 'Building'
+      badge: (userStats.successRate ?? 0) > 90 ? 'Excellent' : 'Building'
     },
     {
       title: 'Referrals',
@@ -79,7 +83,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
       badge: userStats.referrals > 5 ? 'Networker' : 'Growing'
     },
     {
-      title: 'Rank',
+      title: 'Leaderboard',
       value: userStats.rank || 'Unranked',
       icon: Award,
       color: 'text-red-600',

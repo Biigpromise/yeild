@@ -53,11 +53,11 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
       route: '/dashboard'
     },
     {
-      id: 'tasks',
-      label: 'Tasks',
+      id: 'executions',
+      label: 'Executions',
       icon: Target,
-      description: 'Available Tasks',
-      route: '/tasks'
+      description: 'Available Orders',
+      route: '/execution-orders'
     },
     {
       id: 'social',
@@ -78,7 +78,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
       id: 'wallet',
       label: 'Wallet',
       icon: Wallet,
-      description: 'Points & Earnings',
+      description: 'Credits & Earnings',
       route: '/wallet'
     },
     {
@@ -89,11 +89,11 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
       route: '/referrals'
     },
     {
-      id: 'birds',
-      label: 'Birds',
+      id: 'ranks',
+      label: 'Operator Rank',
       icon: Crown,
-      description: 'Badge System',
-      route: '/birds'
+      description: 'Rank System',
+      route: '/operator-ranks'
     }
   ];
 
@@ -171,16 +171,16 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
         {!isCollapsed && (
           <div className="grid grid-cols-3 gap-2 mt-4">
             <div className="text-center p-2 rounded-lg bg-muted/50">
-              <div className="text-lg font-bold text-primary">{userStats?.points || 0}</div>
-              <div className="text-xs text-muted-foreground">Points</div>
+              <div className="text-lg font-bold text-primary">{userStats?.credits || userStats?.points || 0}</div>
+              <div className="text-xs text-muted-foreground">Credits</div>
             </div>
             <div className="text-center p-2 rounded-lg bg-muted/50">
-              <div className="text-lg font-bold text-green-500">{userStats?.tasksCompleted || 0}</div>
-              <div className="text-xs text-muted-foreground">Tasks</div>
+              <div className="text-lg font-bold text-green-500">{userStats?.executionsCompleted || userStats?.tasksCompleted || 0}</div>
+              <div className="text-xs text-muted-foreground">Executions</div>
             </div>
             <div className="text-center p-2 rounded-lg bg-muted/50">
-              <div className="text-lg font-bold text-blue-500">{userStats?.level || 1}</div>
-              <div className="text-xs text-muted-foreground">Level</div>
+              <div className="text-lg font-bold text-blue-500">{userStats?.rankLevel || userStats?.level || 1}</div>
+              <div className="text-xs text-muted-foreground">Rank</div>
             </div>
           </div>
         )}
