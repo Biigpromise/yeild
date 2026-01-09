@@ -244,11 +244,11 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
                 <div className="grid grid-cols-2 gap-3 text-center">
                   <div className="bg-primary/5 rounded-lg p-3">
                     <div className="text-lg font-bold text-primary">{userStats.points}</div>
-                    <div className="text-xs text-muted-foreground">Points</div>
+                    <div className="text-xs text-muted-foreground">Credits</div>
                   </div>
                   <div className="bg-accent/10 rounded-lg p-3">
                     <div className="text-lg font-bold text-accent-foreground">{userStats.tasksCompleted}</div>
-                    <div className="text-xs text-muted-foreground">Tasks</div>
+                    <div className="text-xs text-muted-foreground">Orders</div>
                   </div>
                 </div>
               </div>

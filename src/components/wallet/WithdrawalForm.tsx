@@ -59,21 +59,54 @@ export const WithdrawalForm = ({ userPoints, onWithdrawalSubmitted }: Withdrawal
 
       // Handle yield wallet transfers differently
       if (paymentMethod === 'yield_wallet') {
-        // Create/update yield wallet
-        const { data: wallet, error: walletError } = await supabase
+        // First check if wallet exists
+        let wallet: any = null;
+        const { data: existingWallet, error: fetchError } = await supabase
           .from('yield_wallets')
-          .upsert({
-            user_id: user.id,
-            balance: 0,
-            total_earned: 0,
-            total_spent: 0
-          }, { onConflict: 'user_id' })
-          .select()
-          .single();
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-        if (walletError) {
-          console.error('Wallet error:', walletError);
-          throw new Error('Failed to create yield wallet');
+        if (fetchError && fetchError.code !== 'PGRST116') {
+          console.error('Wallet fetch error:', fetchError);
+          throw new Error('Failed to check yield wallet');
+        }
+
+        if (existingWallet) {
+          wallet = existingWallet;
+        } else {
+          // Create new wallet
+          const { data: newWallet, error: createError } = await supabase
+            .from('yield_wallets')
+            .insert({
+              user_id: user.id,
+              balance: 0,
+              total_earned: 0,
+              total_spent: 0
+            })
+            .select()
+            .single();
+
+          if (createError) {
+            // If duplicate key error, try to fetch again
+            if (createError.code === '23505') {
+              const { data: refetchedWallet } = await supabase
+                .from('yield_wallets')
+                .select('*')
+                .eq('user_id', user.id)
+                .maybeSingle();
+              wallet = refetchedWallet;
+            } else {
+              console.error('Wallet creation error:', createError);
+              throw new Error('Failed to create yield wallet');
+            }
+          } else {
+            wallet = newWallet;
+          }
+        }
+
+        if (!wallet) {
+          throw new Error('Failed to create or find yield wallet');
         }
 
         // Update wallet balance

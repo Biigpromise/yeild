@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { BirdStatusDisplay } from '@/components/bird/BirdStatusDisplay';
+import { OperatorRankDisplay } from '@/components/operator/OperatorRankDisplay';
 import { DashboardProgress } from '@/components/dashboard/DashboardProgress';
 import { GettingStartedChecklist } from '@/components/engagement/GettingStartedChecklist';
 import { DailyLoginBonus } from '@/components/engagement/DailyLoginBonus';
@@ -46,41 +46,41 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExpl
 
   const quickActions = [
     {
-      title: 'Find Tasks',
-      description: 'Explore available opportunities',
+      title: 'Find Execution Orders',
+      description: 'Browse available opportunities',
       icon: Zap,
       color: 'bg-primary/10 text-primary border-primary/20',
-      onClick: () => navigate('/tasks'),
+      onClick: () => navigate('/execution-orders'),
       comingSoon: false
     },
     {
-      title: 'View Birds',
-      description: 'Check your bird progress',
+      title: 'Operator Rank',
+      description: 'Check your rank progress',
       icon: Target,
       color: 'bg-green-500/10 text-green-600 border-green-500/20',
-      onClick: () => navigate('/birds'),
+      onClick: () => navigate('/operator-ranks'),
       comingSoon: false
     },
     {
-      title: 'Social Hub',
-      description: 'Coming Soon',
-      icon: Users,
-      color: 'bg-blue-500/10 text-blue-600 border-blue-500/20 opacity-60',
-      onClick: () => toast.info('Social Hub is coming soon! Stay tuned.'),
-      comingSoon: true
+      title: 'Discovery',
+      description: 'Explore marketplace listings',
+      icon: Store,
+      color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+      onClick: onExploreMarket,
+      comingSoon: false
     }
   ];
 
   const stats = [
     {
-      title: 'Total Points',
+      title: 'Total Credits',
       value: userStats?.points || 0,
       icon: Star,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-500/10'
     },
     {
-      title: 'Tasks Completed',
+      title: 'Orders Completed',
       value: userStats?.tasksCompleted || 0,
       icon: Trophy,
       color: 'text-green-600',
@@ -94,7 +94,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExpl
       bgColor: 'bg-blue-500/10'
     },
     {
-      title: 'Referrals',
+      title: 'Network',
       value: userStats?.referrals || 0,
       icon: Users,
       color: 'text-purple-600',
@@ -115,7 +115,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExpl
             Welcome back, {userProfile?.name || 'User'}!
           </h1>
           <p className="text-muted-foreground mt-2">
-            You're on level {currentLevel}. Keep completing tasks to level up!
+            You're at level {currentLevel}. Complete execution orders to advance!
           </p>
         </div>
       </motion.div>
@@ -145,7 +145,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExpl
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <BirdStatusDisplay />
+          <OperatorRankDisplay />
         </motion.div>
         
         <motion.div
