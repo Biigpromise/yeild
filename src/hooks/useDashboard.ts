@@ -9,8 +9,10 @@ export const useDashboard = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userStats, setUserStats] = useState({
     points: 0,
+    credits: 0,
     level: 1,
     tasksCompleted: 0,
+    executionOrdersCompleted: 0,
     currentStreak: 0,
     rank: 0,
     referrals: 0,
@@ -71,12 +73,14 @@ export const useDashboard = () => {
       // Handle profile data
       if (profileResult.status === 'fulfilled' && !profileResult.value.error) {
         const profile = profileResult.value.data;
-        setUserProfile(profile);
         if (profile) {
+          setUserProfile(profile);
           setUserStats({
             points: profile.points || 0,
+            credits: profile.points || 0,
             level: profile.level || 1,
             tasksCompleted: profile.tasks_completed || 0,
+            executionOrdersCompleted: profile.tasks_completed || 0,
             currentStreak: 0,
             rank: 0,
             referrals: profile.active_referrals_count || 0,
@@ -84,75 +88,15 @@ export const useDashboard = () => {
             following: profile.following_count || 0,
           });
           setTotalPointsEarned(profile.points || 0);
+        } else {
+          // Profile doesn't exist, create one
+          console.log('No profile found, creating default profile...');
+          await createDefaultProfile();
         }
       } else if (profileResult.status === 'fulfilled' && !profileResult.value.data) {
-        // Profile doesn't exist, create one automatically using upsert to avoid duplicates
+        // No profile found, create one
         console.log('No profile found, creating default profile...');
-        try {
-          const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
-            .upsert({
-              id: user.id,
-              name: user.email?.split('@')[0] || 'User',
-              email: user.email,
-              points: 0,
-              level: 1,
-              tasks_completed: 0,
-              active_referrals_count: 0,
-              total_referrals_count: 0,
-              followers_count: 0,
-              following_count: 0,
-              can_post_in_chat: false,
-              task_completion_rate: 0.0
-            }, { onConflict: 'id', ignoreDuplicates: true })
-            .select()
-            .single();
-
-          if (!createError && newProfile) {
-            console.log('Profile created/found successfully:', newProfile);
-            setUserProfile(newProfile);
-            setUserStats({
-              points: newProfile.points || 0,
-              level: newProfile.level || 1,
-              tasksCompleted: newProfile.tasks_completed || 0,
-              currentStreak: 0,
-              rank: 0,
-              referrals: newProfile.active_referrals_count || 0,
-              followers: newProfile.followers_count || 0,
-              following: newProfile.following_count || 0,
-            });
-            setTotalPointsEarned(newProfile.points || 0);
-            setError(null);
-          } else if (createError?.code === '23505') {
-            // Profile already exists, just refetch it
-            console.log('Profile already exists, refetching...');
-            const { data: existingProfile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', user.id)
-              .single();
-            
-            if (existingProfile) {
-              setUserProfile(existingProfile);
-              setUserStats({
-                points: existingProfile.points || 0,
-                level: existingProfile.level || 1,
-                tasksCompleted: existingProfile.tasks_completed || 0,
-                currentStreak: 0,
-                rank: 0,
-                referrals: existingProfile.active_referrals_count || 0,
-                followers: existingProfile.followers_count || 0,
-                following: existingProfile.following_count || 0,
-              });
-              setTotalPointsEarned(existingProfile.points || 0);
-              setError(null);
-            }
-          } else if (createError) {
-            console.error('Failed to create profile:', createError);
-          }
-        } catch (createError) {
-          console.error('Exception creating profile:', createError);
-        }
+        await createDefaultProfile();
       } else if (profileResult.status === 'rejected' || (profileResult.status === 'fulfilled' && profileResult.value.error)) {
         const errorMsg = profileResult.status === 'rejected' ? 
           profileResult.reason?.message || 'Network error' : 
@@ -198,6 +142,62 @@ export const useDashboard = () => {
       setLoading(false);
     }
   }, [user]);
+
+  const createDefaultProfile = async () => {
+    if (!user) return;
+    
+    try {
+      // First try to insert the profile
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          name: user.email?.split('@')[0] || 'User',
+          email: user.email,
+          points: 0,
+          level: 1,
+          tasks_completed: 0,
+          active_referrals_count: 0,
+          total_referrals_count: 0,
+          followers_count: 0,
+          following_count: 0,
+          can_post_in_chat: false,
+          task_completion_rate: 0.0
+        });
+
+      // If insert succeeded or failed with duplicate, fetch the profile
+      if (!insertError || insertError.code === '23505') {
+        const { data: existingProfile, error: fetchError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (existingProfile && !fetchError) {
+          console.log('Profile created/found successfully:', existingProfile);
+          setUserProfile(existingProfile);
+          setUserStats({
+            points: existingProfile.points || 0,
+            credits: existingProfile.points || 0,
+            level: existingProfile.level || 1,
+            tasksCompleted: existingProfile.tasks_completed || 0,
+            executionOrdersCompleted: existingProfile.tasks_completed || 0,
+            currentStreak: 0,
+            rank: 0,
+            referrals: existingProfile.active_referrals_count || 0,
+            followers: existingProfile.followers_count || 0,
+            following: existingProfile.following_count || 0,
+          });
+          setTotalPointsEarned(existingProfile.points || 0);
+          setError(null);
+        }
+      } else {
+        console.error('Failed to create profile:', insertError);
+      }
+    } catch (createError) {
+      console.error('Exception creating profile:', createError);
+    }
+  };
 
   useEffect(() => {
     loadUserData();

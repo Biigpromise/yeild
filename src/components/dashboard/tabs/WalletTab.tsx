@@ -31,7 +31,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({ userProfile, userStats }) 
 
   const walletStats = [
     {
-      title: 'Available Points',
+      title: 'Available Credits',
       value: userStats?.points || 0,
       icon: Wallet,
       color: 'text-primary',
