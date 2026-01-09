@@ -38,6 +38,8 @@ import { SupportChatWidget } from "@/components/support/SupportChatWidget";
 
 import Referrals from "./pages/Referrals";
 import Birds from "./pages/Birds";
+import OperatorRanks from "./pages/OperatorRanks";
+import ExecutionOrders from "./pages/ExecutionOrders";
 import WithdrawalPage from "./pages/WithdrawalPage";
 import { EnhancedCampaignCreation } from "@/components/campaign/EnhancedCampaignCreation";
 import { AppLayout } from "./components/AppLayout";
@@ -201,17 +203,32 @@ const AppContent = () => {
         <Route path="/wallet" element={<Navigate to="/dashboard" replace />} />
         <Route path="/referrals" element={<Navigate to="/dashboard" replace />} />
         
-        {/* Birds Route - Show actual birds page */}
+        {/* Operator Ranks Route */}
         <Route
-          path="/birds"
+          path="/operator-ranks"
           element={
             <ProtectedRoute>
               <ErrorBoundaryWrapper>
-                <Birds />
+                <OperatorRanks />
               </ErrorBoundaryWrapper>
             </ProtectedRoute>
           }
         />
+        
+        {/* Execution Orders Route */}
+        <Route
+          path="/execution-orders"
+          element={
+            <ProtectedRoute>
+              <ErrorBoundaryWrapper>
+                <ExecutionOrders />
+              </ErrorBoundaryWrapper>
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Legacy Birds Route - redirect to operator ranks */}
+        <Route path="/birds" element={<Navigate to="/operator-ranks" replace />} />
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
