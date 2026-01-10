@@ -80,21 +80,21 @@ export const OperatorRankDisplay: React.FC = () => {
         {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-3">
           <div className="text-center p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-            <Users className="h-4 w-4 mx-auto mb-1 text-blue-500" />
-            <div className="text-lg font-bold">{operatorStats.total_referrals}</div>
-            <div className="text-xs text-muted-foreground">Network</div>
+            <Zap className="h-4 w-4 mx-auto mb-1 text-blue-500" />
+            <div className="text-lg font-bold">{operatorStats.execution_credits_balance}</div>
+            <div className="text-xs text-muted-foreground">Balance</div>
           </div>
           
           <div className="text-center p-3 bg-green-500/10 rounded-lg border border-green-500/20">
             <Target className="h-4 w-4 mx-auto mb-1 text-green-500" />
             <div className="text-lg font-bold">{operatorStats.verified_executions}</div>
-            <div className="text-xs text-muted-foreground">Orders</div>
+            <div className="text-xs text-muted-foreground">Verified</div>
           </div>
           
           <div className="text-center p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
-            <Zap className="h-4 w-4 mx-auto mb-1 text-yellow-500" />
-            <div className="text-lg font-bold">{operatorStats.total_credits_earned}</div>
-            <div className="text-xs text-muted-foreground">Credits</div>
+            <Trophy className="h-4 w-4 mx-auto mb-1 text-yellow-500" />
+            <div className="text-lg font-bold">{operatorStats.execution_credits_lifetime}</div>
+            <div className="text-xs text-muted-foreground">Lifetime</div>
           </div>
         </div>
 
