@@ -1484,6 +1484,48 @@ export type Database = {
         }
         Relationships: []
       }
+      execution_modes: {
+        Row: {
+          created_at: string | null
+          description: string
+          eligible_rank_levels: number[]
+          id: string
+          is_active: boolean | null
+          name: string
+          platform_fee_max: number | null
+          platform_fee_min: number | null
+          updated_at: string | null
+          use_cases: string[]
+          verification_types: string[]
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          eligible_rank_levels: number[]
+          id: string
+          is_active?: boolean | null
+          name: string
+          platform_fee_max?: number | null
+          platform_fee_min?: number | null
+          updated_at?: string | null
+          use_cases: string[]
+          verification_types: string[]
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          eligible_rank_levels?: number[]
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          platform_fee_max?: number | null
+          platform_fee_min?: number | null
+          updated_at?: string | null
+          use_cases?: string[]
+          verification_types?: string[]
+        }
+        Relationships: []
+      }
       execution_order_templates: {
         Row: {
           action_definition: string
