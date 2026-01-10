@@ -732,6 +732,66 @@ export type Database = {
           },
         ]
       }
+      campaign_fees: {
+        Row: {
+          brand_id: string
+          campaign_id: string | null
+          created_at: string | null
+          currency: string | null
+          execution_order_id: string | null
+          fee_amount: number
+          fee_type: string
+          id: string
+          paid_at: string | null
+          payment_status: string | null
+          transaction_reference: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          brand_id: string
+          campaign_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          execution_order_id?: string | null
+          fee_amount: number
+          fee_type: string
+          id?: string
+          paid_at?: string | null
+          payment_status?: string | null
+          transaction_reference?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          brand_id?: string
+          campaign_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          execution_order_id?: string | null
+          fee_amount?: number
+          fee_type?: string
+          id?: string
+          paid_at?: string | null
+          payment_status?: string | null
+          transaction_reference?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_fees_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "brand_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_fees_execution_order_id_fkey"
+            columns: ["execution_order_id"]
+            isOneToOne: false
+            referencedRelation: "execution_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_task_conversions: {
         Row: {
           adjustment_reason: string | null
@@ -1361,6 +1421,68 @@ export type Database = {
           },
         ]
       }
+      dispute_resolutions: {
+        Row: {
+          admin_decision: string | null
+          admin_notes: string | null
+          appeal_deadline: string | null
+          created_at: string | null
+          dispute_category: string | null
+          dispute_reason: string
+          id: string
+          operator_response: string | null
+          raised_by: string
+          raised_by_type: string
+          rank_impact: number | null
+          resolved_at: string | null
+          resolved_by: string | null
+          submission_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          admin_decision?: string | null
+          admin_notes?: string | null
+          appeal_deadline?: string | null
+          created_at?: string | null
+          dispute_category?: string | null
+          dispute_reason: string
+          id?: string
+          operator_response?: string | null
+          raised_by: string
+          raised_by_type: string
+          rank_impact?: number | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          submission_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          admin_decision?: string | null
+          admin_notes?: string | null
+          appeal_deadline?: string | null
+          created_at?: string | null
+          dispute_category?: string | null
+          dispute_reason?: string
+          id?: string
+          operator_response?: string | null
+          raised_by?: string
+          raised_by_type?: string
+          rank_impact?: number | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          submission_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_resolutions_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "execution_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       duplicate_image_flags: {
         Row: {
           admin_notes: string | null
@@ -1536,6 +1658,7 @@ export type Database = {
           created_at: string
           description: string
           difficulty_level: string
+          execution_mode: string | null
           failure_penalty_rules: Json | null
           icon: string | null
           id: string
@@ -1544,6 +1667,7 @@ export type Database = {
           name: string
           required_proof_types: string[]
           requires_manual_verification: boolean
+          reward_type: string | null
           updated_at: string
           verification_window_hours: number
         }
@@ -1556,6 +1680,7 @@ export type Database = {
           created_at?: string
           description: string
           difficulty_level?: string
+          execution_mode?: string | null
           failure_penalty_rules?: Json | null
           icon?: string | null
           id?: string
@@ -1564,6 +1689,7 @@ export type Database = {
           name: string
           required_proof_types: string[]
           requires_manual_verification?: boolean
+          reward_type?: string | null
           updated_at?: string
           verification_window_hours?: number
         }
@@ -1576,6 +1702,7 @@ export type Database = {
           created_at?: string
           description?: string
           difficulty_level?: string
+          execution_mode?: string | null
           failure_penalty_rules?: Json | null
           icon?: string | null
           id?: string
@@ -1584,6 +1711,7 @@ export type Database = {
           name?: string
           required_proof_types?: string[]
           requires_manual_verification?: boolean
+          reward_type?: string | null
           updated_at?: string
           verification_window_hours?: number
         }
@@ -1606,6 +1734,7 @@ export type Database = {
           completed_quantity: number
           created_at: string
           custom_instructions: string | null
+          execution_mode: string | null
           expires_at: string | null
           id: string
           operator_payout: number
@@ -1629,6 +1758,7 @@ export type Database = {
           completed_quantity?: number
           created_at?: string
           custom_instructions?: string | null
+          execution_mode?: string | null
           expires_at?: string | null
           id?: string
           operator_payout: number
@@ -1652,6 +1782,7 @@ export type Database = {
           completed_quantity?: number
           created_at?: string
           custom_instructions?: string | null
+          execution_mode?: string | null
           expires_at?: string | null
           id?: string
           operator_payout?: number
@@ -1861,6 +1992,59 @@ export type Database = {
           reason?: string
         }
         Relationships: []
+      }
+      fraud_detection_logs: {
+        Row: {
+          admin_notes: string | null
+          admin_reviewed: boolean | null
+          created_at: string | null
+          detection_type: string
+          device_fingerprint: string | null
+          id: string
+          ip_address: unknown
+          is_blocked: boolean | null
+          location_data: Json | null
+          risk_score: number | null
+          submission_id: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          admin_reviewed?: boolean | null
+          created_at?: string | null
+          detection_type: string
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: unknown
+          is_blocked?: boolean | null
+          location_data?: Json | null
+          risk_score?: number | null
+          submission_id?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          admin_reviewed?: boolean | null
+          created_at?: string | null
+          detection_type?: string
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: unknown
+          is_blocked?: boolean | null
+          location_data?: Json | null
+          risk_score?: number | null
+          submission_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fraud_detection_logs_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "execution_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fraud_flags: {
         Row: {
@@ -2778,6 +2962,7 @@ export type Database = {
       }
       operator_ranks: {
         Row: {
+          allowed_execution_modes: string[] | null
           allowed_template_codes: string[]
           benefits: string[] | null
           color: string
@@ -2795,6 +2980,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          allowed_execution_modes?: string[] | null
           allowed_template_codes?: string[]
           benefits?: string[] | null
           color: string
@@ -2812,6 +2998,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          allowed_execution_modes?: string[] | null
           allowed_template_codes?: string[]
           benefits?: string[] | null
           color?: string

@@ -1,7 +1,8 @@
 // Re-export from useOperatorRank for backward compatibility
 // This file is deprecated - use useOperatorRank instead
 
-import { useOperatorRank, DEFAULT_OPERATOR_RANKS, NextOperatorRank } from './useOperatorRank';
+import { useOperatorRank, NextOperatorRank } from './useOperatorRank';
+import { OperatorRank } from '@/types/execution';
 
 export interface BirdLevel {
   id: number;
@@ -26,7 +27,7 @@ export interface NextBirdLevel extends BirdLevel {
 }
 
 // Map operator ranks to bird levels for backward compatibility
-const mapOperatorRankToBirdLevel = (rank: typeof DEFAULT_OPERATOR_RANKS[0]): BirdLevel => ({
+const mapOperatorRankToBirdLevel = (rank: OperatorRank): BirdLevel => ({
   id: rank.rank_level,
   name: rank.name,
   icon: rank.emoji,

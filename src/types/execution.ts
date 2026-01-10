@@ -122,10 +122,56 @@ export interface OperatorStats {
   execution_credits_lifetime: number;
 }
 
-// Platform constants
-export const PLATFORM_FEE_PERCENT = 35;
+// Platform constants - Updated per YEILD spec (10-20% range, performance-based)
+export const PLATFORM_FEE_PERCENT = 15; // Default middle of 10-20% range
+export const PLATFORM_FEE_MIN = 10;
+export const PLATFORM_FEE_MAX = 20;
 export const MIN_PAYOUT_THRESHOLD = 1000;
 export const PAYOUT_HOLD_DAYS = 7;
+
+// Campaign creation fees (NGN)
+export const CAMPAIGN_CREATION_FEE_DIGITAL = 10000;
+export const CAMPAIGN_CREATION_FEE_FIELD = 50000;
+
+// Execution Modes
+export type ExecutionMode = 'digital' | 'field';
+
+export interface ExecutionModeConfig {
+  id: ExecutionMode;
+  name: string;
+  description: string;
+  eligibleRankLevels: number[];
+  useCases: string[];
+  verificationTypes: string[];
+  platformFeeMin: number;
+  platformFeeMax: number;
+}
+
+export const EXECUTION_MODES: ExecutionModeConfig[] = [
+  {
+    id: 'digital',
+    name: 'Digital Execution Mode',
+    description: 'Online execution for digital products, fintech, SaaS, e-commerce, and digital referrals',
+    eligibleRankLevels: [1, 2, 3], // Dove, Hawk, Eagle
+    useCases: ['Online real estate platforms', 'Fintech products', 'SaaS', 'Subscriptions', 'E-commerce', 'Digital referrals'],
+    verificationTypes: ['referral_tracking', 'conversion_id', 'payment_confirmation', 'brand_approval', 'webhook'],
+    platformFeeMin: 10,
+    platformFeeMax: 15
+  },
+  {
+    id: 'field',
+    name: 'Field Execution Mode',
+    description: 'Offline/hybrid execution for physical inspections, asset sales, events, and ground activations',
+    eligibleRankLevels: [3, 4, 5], // Eagle, Falcon, Phoenix
+    useCases: ['Property inspections', 'Physical asset sales', 'Events', 'Ground activations'],
+    verificationTypes: ['gps_location', 'timestamped_media', 'client_confirmation', 'brand_validation'],
+    platformFeeMin: 15,
+    platformFeeMax: 20
+  }
+];
+
+// Reward types
+export type RewardType = 'fixed' | 'percentage';
 
 // Forbidden keywords for execution order validation
 export const FORBIDDEN_KEYWORDS = [
@@ -145,12 +191,26 @@ export function validateExecutionOrderContent(text: string): { valid: boolean; b
   return { valid: true };
 }
 
-export function calculatePlatformFee(operatorPayout: number): number {
-  // Platform fee is 35% of total, so if operator gets X, brand pays X / (1 - 0.35) = X / 0.65
-  // Platform fee = total - operator = X / 0.65 - X = X * 0.35 / 0.65
-  return Math.ceil(operatorPayout * (PLATFORM_FEE_PERCENT / (100 - PLATFORM_FEE_PERCENT)));
+export function calculatePlatformFee(operatorPayout: number, feePercent: number = PLATFORM_FEE_PERCENT): number {
+  // Platform fee is X% of total, so if operator gets Y, brand pays Y / (1 - X/100)
+  // Platform fee = total - operator = Y * (X / (100 - X))
+  return Math.ceil(operatorPayout * (feePercent / (100 - feePercent)));
 }
 
-export function calculateBrandTotalCost(operatorPayout: number): number {
-  return operatorPayout + calculatePlatformFee(operatorPayout);
+export function calculateBrandTotalCost(operatorPayout: number, feePercent: number = PLATFORM_FEE_PERCENT): number {
+  return operatorPayout + calculatePlatformFee(operatorPayout, feePercent);
+}
+
+export function getCampaignCreationFee(mode: ExecutionMode): number {
+  return mode === 'field' ? CAMPAIGN_CREATION_FEE_FIELD : CAMPAIGN_CREATION_FEE_DIGITAL;
+}
+
+export function getExecutionModeForRank(rankLevel: number): ExecutionMode[] {
+  const modes: ExecutionMode[] = [];
+  for (const mode of EXECUTION_MODES) {
+    if (mode.eligibleRankLevels.includes(rankLevel)) {
+      modes.push(mode.id);
+    }
+  }
+  return modes;
 }
