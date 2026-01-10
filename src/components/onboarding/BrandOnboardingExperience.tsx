@@ -8,13 +8,20 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { 
   Shield, Globe, Target, DollarSign, CheckCircle, ArrowRight, 
-  AlertTriangle, Clock, Ban, Eye, Smartphone, ClipboardList, Share2
+  AlertTriangle, Clock, Ban, Eye, Smartphone, ClipboardList, Share2,
+  MapPin, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { PLATFORM_FEE_PERCENT } from '@/types/execution';
+import { 
+  PLATFORM_FEE_MIN, 
+  PLATFORM_FEE_MAX,
+  CAMPAIGN_CREATION_FEE_DIGITAL,
+  CAMPAIGN_CREATION_FEE_FIELD,
+  EXECUTION_MODES
+} from '@/types/execution';
 
 interface BrandOnboardingExperienceProps {
   onComplete: () => void;
@@ -23,10 +30,11 @@ interface BrandOnboardingExperienceProps {
 const steps = [
   { id: 1, title: "Platform Introduction", icon: Shield },
   { id: 2, title: "Execution Rules", icon: AlertTriangle },
-  { id: 3, title: "Brand Qualification", icon: Globe },
-  { id: 4, title: "Goal Selection", icon: Target },
-  { id: 5, title: "Financial Commitment", icon: DollarSign },
-  { id: 6, title: "Complete", icon: CheckCircle }
+  { id: 3, title: "Execution Mode", icon: Zap },
+  { id: 4, title: "Brand Qualification", icon: Globe },
+  { id: 5, title: "Goal Selection", icon: Target },
+  { id: 6, title: "Financial Commitment", icon: DollarSign },
+  { id: 7, title: "Complete", icon: CheckCircle }
 ];
 
 const BRAND_CATEGORIES = [
@@ -41,10 +49,12 @@ const BRAND_CATEGORIES = [
 ];
 
 const EXECUTION_GOALS = [
-  { id: 'app_activation', label: 'App Activations', description: 'Get users to install and activate your app', icon: Smartphone },
-  { id: 'website_signup', label: 'Website Signups', description: 'Drive user registrations on your website', icon: Globe },
-  { id: 'social_placement', label: 'Social Content Placement', description: 'Get your content posted on social media', icon: Share2 },
-  { id: 'survey_completion', label: 'Survey Completions', description: 'Collect user feedback and data', icon: ClipboardList }
+  { id: 'app_activation', label: 'App Activations', description: 'Get users to install and activate your app', icon: Smartphone, mode: 'digital' },
+  { id: 'website_signup', label: 'Website Signups', description: 'Drive user registrations on your website', icon: Globe, mode: 'digital' },
+  { id: 'social_placement', label: 'Social Content Placement', description: 'Get your content posted on social media', icon: Share2, mode: 'digital' },
+  { id: 'survey_completion', label: 'Survey Completions', description: 'Collect user feedback and data', icon: ClipboardList, mode: 'digital' },
+  { id: 'property_inspection', label: 'Property Inspections', description: 'Physical asset verification and documentation', icon: MapPin, mode: 'field' },
+  { id: 'field_sales', label: 'Field Sales Support', description: 'On-ground sales and client meetings', icon: Target, mode: 'field' }
 ];
 
 const FORBIDDEN_ACTIONS = [
@@ -67,6 +77,7 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
     country: '',
     category: '',
     selectedGoals: [] as string[],
+    executionMode: '' as 'digital' | 'field' | '',
     // Acceptance checkboxes
     acceptedExecutionRules: false,
     acceptedVerificationDelays: false,
@@ -85,13 +96,15 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
                formData.acceptedNoDirectContact && 
                formData.acceptedYeildAuthority;
       case 3:
+        return formData.executionMode !== '';
+      case 4:
         return formData.companyName.trim() !== '' && 
                formData.websiteUrl.trim() !== '' && 
                formData.country.trim() !== '' && 
                formData.category !== '';
-      case 4:
-        return formData.selectedGoals.length > 0;
       case 5:
+        return formData.selectedGoals.length > 0;
+      case 6:
         return formData.acceptedPlatformFee;
       default:
         return true;
@@ -300,6 +313,73 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
+              <Zap className="h-12 w-12 text-yeild-yellow mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-white">Choose Execution Mode</h2>
+              <p className="text-white/60">Select how you want operators to execute for your brand</p>
+            </div>
+
+            <div className="grid gap-4">
+              {EXECUTION_MODES.map(mode => (
+                <div
+                  key={mode.id}
+                  onClick={() => setFormData(prev => ({ ...prev, executionMode: mode.id }))}
+                  className={`p-6 rounded-lg border cursor-pointer transition-all ${
+                    formData.executionMode === mode.id
+                      ? 'bg-yeild-yellow/10 border-yeild-yellow'
+                      : 'bg-white/5 border-white/10 hover:border-white/30'
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                      formData.executionMode === mode.id ? 'bg-yeild-yellow/20' : 'bg-white/10'
+                    }`}>
+                      {mode.id === 'digital' ? (
+                        <Globe className={`h-6 w-6 ${formData.executionMode === mode.id ? 'text-yeild-yellow' : 'text-white/60'}`} />
+                      ) : (
+                        <MapPin className={`h-6 w-6 ${formData.executionMode === mode.id ? 'text-yeild-yellow' : 'text-white/60'}`} />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className={`font-semibold text-lg ${
+                        formData.executionMode === mode.id ? 'text-yeild-yellow' : 'text-white'
+                      }`}>{mode.name}</h3>
+                      <p className="text-sm text-white/60 mt-1">{mode.description}</p>
+                      
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {mode.useCases.slice(0, 3).map((useCase, i) => (
+                          <span key={i} className="text-xs px-2 py-1 bg-white/5 rounded text-white/70">
+                            {useCase}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between">
+                        <span className="text-xs text-white/50">
+                          Platform Fee: {mode.platformFeeMin}-{mode.platformFeeMax}%
+                        </span>
+                        <span className="text-xs text-white/50">
+                          Creation Fee: ₦{mode.id === 'field' ? CAMPAIGN_CREATION_FEE_FIELD.toLocaleString() : CAMPAIGN_CREATION_FEE_DIGITAL.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+              <p className="text-sm text-white/80">
+                <strong className="text-blue-400">Tip:</strong> Start with Digital mode for online campaigns. 
+                Field mode requires operators with Eagle rank or higher.
+              </p>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
               <Globe className="h-12 w-12 text-yeild-yellow mx-auto mb-4" />
               <h2 className="text-xl font-bold text-white">Brand Qualification</h2>
               <p className="text-white/60">Tell us about your business</p>
@@ -359,7 +439,12 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
           </div>
         );
 
-      case 4:
+      case 5:
+        // Filter goals based on selected execution mode
+        const relevantGoals = formData.executionMode 
+          ? EXECUTION_GOALS.filter(g => g.mode === formData.executionMode || !formData.executionMode)
+          : EXECUTION_GOALS;
+
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
@@ -369,7 +454,7 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
             </div>
 
             <div className="grid gap-3">
-              {EXECUTION_GOALS.map(goal => (
+              {relevantGoals.map(goal => (
                 <div
                   key={goal.id}
                   onClick={() => handleGoalToggle(goal.id)}
@@ -388,9 +473,16 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
                       }`} />
                     </div>
                     <div className="flex-1">
-                      <h3 className={`font-medium ${
-                        formData.selectedGoals.includes(goal.id) ? 'text-yeild-yellow' : 'text-white'
-                      }`}>{goal.label}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className={`font-medium ${
+                          formData.selectedGoals.includes(goal.id) ? 'text-yeild-yellow' : 'text-white'
+                        }`}>{goal.label}</h3>
+                        <span className={`text-xs px-2 py-0.5 rounded ${
+                          goal.mode === 'digital' ? 'bg-blue-500/20 text-blue-400' : 'bg-orange-500/20 text-orange-400'
+                        }`}>
+                          {goal.mode === 'digital' ? 'Digital' : 'Field'}
+                        </span>
+                      </div>
                       <p className="text-sm text-white/60">{goal.description}</p>
                     </div>
                     <Checkbox
@@ -408,7 +500,12 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
           </div>
         );
 
-      case 5:
+      case 6:
+        const selectedMode = EXECUTION_MODES.find(m => m.id === formData.executionMode);
+        const feeMin = selectedMode?.platformFeeMin || PLATFORM_FEE_MIN;
+        const feeMax = selectedMode?.platformFeeMax || PLATFORM_FEE_MAX;
+        const creationFee = formData.executionMode === 'field' ? CAMPAIGN_CREATION_FEE_FIELD : CAMPAIGN_CREATION_FEE_DIGITAL;
+
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
@@ -422,24 +519,28 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
               
               <div className="space-y-3">
                 <div className="flex justify-between items-center py-2 border-b border-white/10">
-                  <span className="text-white/70">Operator Payout</span>
-                  <span className="text-white font-medium">65%</span>
+                  <span className="text-white/70">Operator Receives</span>
+                  <span className="text-white font-medium">{100 - feeMax}% - {100 - feeMin}%</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-white/10">
-                  <span className="text-white/70">YEILD Management Fee</span>
-                  <span className="text-yeild-yellow font-medium">{PLATFORM_FEE_PERCENT}%</span>
+                  <span className="text-white/70">YEILD Platform Fee</span>
+                  <span className="text-yeild-yellow font-medium">{feeMin}% - {feeMax}%</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/10">
+                  <span className="text-white/70">Campaign Creation Fee</span>
+                  <span className="text-white font-medium">₦{creationFee.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
                   <span className="text-white font-semibold">Your Total Cost</span>
-                  <span className="text-white font-semibold">100%</span>
+                  <span className="text-white font-semibold">Execution + Fee + ₦{creationFee.toLocaleString()}</span>
                 </div>
               </div>
 
               <div className="text-sm text-white/60 space-y-1 pt-2">
+                <p>• <strong className="text-green-400">No success = No platform fee</strong></p>
                 <p>• Minimum payout floors enforced</p>
                 <p>• No bidding or negotiation</p>
                 <p>• Brands pay only for verified executions</p>
-                <p>• YEILD fees increase with execution risk</p>
               </div>
             </div>
 
@@ -463,14 +564,18 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
                 className="mt-1 border-white/30 data-[state=checked]:bg-yeild-yellow data-[state=checked]:border-yeild-yellow"
               />
               <Label htmlFor="platformFee" className="text-white/90 cursor-pointer">
-                I understand and accept the {PLATFORM_FEE_PERCENT}% platform management fee and 
-                the payout rules described above.
+                I understand and accept the {feeMin}-{feeMax}% platform management fee, 
+                the ₦{creationFee.toLocaleString()} campaign creation fee, and the payout rules described above.
               </Label>
             </div>
           </div>
         );
 
-      case 6:
+      case 7:
+        const finalMode = EXECUTION_MODES.find(m => m.id === formData.executionMode);
+        const finalFeeMin = finalMode?.platformFeeMin || PLATFORM_FEE_MIN;
+        const finalFeeMax = finalMode?.platformFeeMax || PLATFORM_FEE_MAX;
+
         return (
           <div className="text-center space-y-6">
             <div className="w-24 h-24 bg-yeild-yellow/20 rounded-full flex items-center justify-center mx-auto">
@@ -495,12 +600,18 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
                   <span className="text-white capitalize">{formData.category.replace('_', ' ')}</span>
                 </div>
                 <div className="flex justify-between">
+                  <span className="text-white/60">Execution Mode</span>
+                  <span className={`capitalize ${formData.executionMode === 'digital' ? 'text-blue-400' : 'text-orange-400'}`}>
+                    {formData.executionMode}
+                  </span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-white/60">Goals</span>
                   <span className="text-white">{formData.selectedGoals.length} selected</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-white/60">Platform Fee</span>
-                  <span className="text-yeild-yellow">{PLATFORM_FEE_PERCENT}%</span>
+                  <span className="text-yeild-yellow">{finalFeeMin}-{finalFeeMax}%</span>
                 </div>
               </div>
             </div>

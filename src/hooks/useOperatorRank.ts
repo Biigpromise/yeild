@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { OperatorRank, OperatorStats } from '@/types/execution';
+import { OperatorRank, OperatorStats, ExecutionMode } from '@/types/execution';
 
-// Default operator ranks aligned with YEILD spec
-const DEFAULT_OPERATOR_RANKS: OperatorRank[] = [
+// Default operator ranks aligned with YEILD spec - with execution mode access
+const DEFAULT_OPERATOR_RANKS: (OperatorRank & { allowed_execution_modes: ExecutionMode[] })[] = [
   {
     id: 1,
     rank_level: 1,
@@ -12,13 +12,14 @@ const DEFAULT_OPERATOR_RANKS: OperatorRank[] = [
     emoji: '🕊️',
     icon: 'Bird',
     color: '#9CA3AF',
-    description: 'Entry-level operator. Access to basic social executions only.',
+    description: 'Entry-level operator. Digital execution access only.',
     min_verified_executions: 0,
     min_success_rate: 0,
     allowed_template_codes: ['EO-001'],
+    allowed_execution_modes: ['digital'],
     decay_rate_percent: 15,
     penalty_multiplier: 1.0,
-    benefits: ['Access to EO-001 (Social Placement)', 'Standard verification times']
+    benefits: ['Digital execution access', 'EO-001 (Digital Referral)', 'Standard verification times']
   },
   {
     id: 2,
@@ -27,13 +28,14 @@ const DEFAULT_OPERATOR_RANKS: OperatorRank[] = [
     emoji: '🦅',
     icon: 'Bird',
     color: '#3B82F6',
-    description: 'Proven operator. Expanded execution access.',
+    description: 'Proven operator. Expanded digital execution access.',
     min_verified_executions: 10,
     min_success_rate: 80,
-    allowed_template_codes: ['EO-001', 'EO-003'],
+    allowed_template_codes: ['EO-001', 'EO-003', 'EO-004'],
+    allowed_execution_modes: ['digital'],
     decay_rate_percent: 12,
     penalty_multiplier: 1.5,
-    benefits: ['Access to EO-001, EO-003', 'Priority support']
+    benefits: ['Digital execution access', 'EO-001, EO-003, EO-004', 'Priority support']
   },
   {
     id: 3,
@@ -42,13 +44,14 @@ const DEFAULT_OPERATOR_RANKS: OperatorRank[] = [
     emoji: '🦅',
     icon: 'Bird',
     color: '#8B5CF6',
-    description: 'Trusted operator. Full digital execution access.',
+    description: 'Trusted operator. Digital + Field execution access.',
     min_verified_executions: 50,
     min_success_rate: 85,
-    allowed_template_codes: ['EO-001', 'EO-003', 'EO-004', 'EO-006'],
+    allowed_template_codes: ['EO-001', 'EO-002', 'EO-003', 'EO-004', 'EO-005', 'EO-006'],
+    allowed_execution_modes: ['digital', 'field'],
     decay_rate_percent: 10,
     penalty_multiplier: 2.0,
-    benefits: ['Access to all digital EOs', 'Faster verification', 'Higher value orders']
+    benefits: ['Digital + Field execution access', 'All standard templates', 'Faster verification', 'Higher value orders']
   },
   {
     id: 4,
@@ -57,13 +60,14 @@ const DEFAULT_OPERATOR_RANKS: OperatorRank[] = [
     emoji: '🦅',
     icon: 'Bird',
     color: '#F59E0B',
-    description: 'Elite operator. Offline execution cleared.',
+    description: 'Elite operator. Full execution access with field priority.',
     min_verified_executions: 150,
     min_success_rate: 90,
-    allowed_template_codes: ['EO-001', 'EO-002', 'EO-003', 'EO-004', 'EO-006'],
+    allowed_template_codes: ['EO-001', 'EO-002', 'EO-003', 'EO-004', 'EO-005', 'EO-006'],
+    allowed_execution_modes: ['digital', 'field'],
     decay_rate_percent: 8,
     penalty_multiplier: 2.5,
-    benefits: ['Offline execution access', 'Premium order priority', 'Dedicated support']
+    benefits: ['Full execution access', 'Field priority', 'Premium order access', 'Dedicated support']
   },
   {
     id: 5,
@@ -75,10 +79,11 @@ const DEFAULT_OPERATOR_RANKS: OperatorRank[] = [
     description: 'Audit-level operator. Highest trust clearance.',
     min_verified_executions: 500,
     min_success_rate: 95,
-    allowed_template_codes: ['EO-001', 'EO-002', 'EO-003', 'EO-004', 'EO-006', 'AUDIT'],
+    allowed_template_codes: ['EO-001', 'EO-002', 'EO-003', 'EO-004', 'EO-005', 'EO-006', 'AUDIT'],
+    allowed_execution_modes: ['digital', 'field'],
     decay_rate_percent: 5,
     penalty_multiplier: 3.0,
-    benefits: ['All execution types', 'Audit & pilot access', 'VIP treatment']
+    benefits: ['All execution types', 'Audit & pilot access', 'VIP treatment', 'Highest payout priority']
   }
 ];
 
@@ -140,6 +145,20 @@ export const useOperatorRank = () => {
   const canAccessTemplate = (templateCode: string): boolean => {
     if (!currentRank) return false;
     return currentRank.allowed_template_codes.includes(templateCode);
+  };
+
+  // Check if operator can access a specific execution mode
+  const canAccessExecutionMode = (mode: ExecutionMode): boolean => {
+    if (!currentRank) return false;
+    const rankWithModes = DEFAULT_OPERATOR_RANKS.find(r => r.rank_level === currentRank.rank_level);
+    return rankWithModes?.allowed_execution_modes.includes(mode) ?? false;
+  };
+
+  // Get accessible execution modes for current operator
+  const getAccessibleModes = (): ExecutionMode[] => {
+    if (!currentRank) return [];
+    const rankWithModes = DEFAULT_OPERATOR_RANKS.find(r => r.rank_level === currentRank.rank_level);
+    return rankWithModes?.allowed_execution_modes ?? [];
   };
 
   useEffect(() => {
@@ -281,6 +300,8 @@ export const useOperatorRank = () => {
     loading,
     error,
     canAccessTemplate,
+    canAccessExecutionMode,
+    getAccessibleModes,
     allRanks: DEFAULT_OPERATOR_RANKS
   };
 };
