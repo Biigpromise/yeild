@@ -7,56 +7,42 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOperatorRank } from '@/hooks/useOperatorRank';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  Search, 
-  Target, 
-  Trophy, 
-  ArrowLeft, 
-  Sparkles, 
-  Clock, 
-  CheckCircle, 
-  Zap,
-  Shield,
-  AlertTriangle,
-  FileCheck,
-  Lock
-} from 'lucide-react';
+import { Search, Target, Trophy, ArrowLeft, Sparkles, Clock, CheckCircle, Zap, Shield, AlertTriangle, FileCheck, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import type { ExecutionOrder, ExecutionOrderTemplate } from '@/types/execution';
-
 interface ExecutionOrderWithTemplate extends ExecutionOrder {
   template: ExecutionOrderTemplate;
 }
-
 const ExecutionOrders: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { currentRank, operatorStats } = useOperatorRank();
-  
+  const {
+    user
+  } = useAuth();
+  const {
+    currentRank,
+    operatorStats
+  } = useOperatorRank();
   const [orders, setOrders] = useState<ExecutionOrderWithTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('available');
   const [userSubmissions, setUserSubmissions] = useState<Set<string>>(new Set());
-
   useEffect(() => {
     loadOrders();
     loadUserSubmissions();
   }, []);
-
   const loadOrders = async () => {
     try {
-      const { data, error } = await supabase
-        .from('execution_orders')
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from('execution_orders').select(`
           *,
           template:execution_order_templates(*)
-        `)
-        .eq('status', 'active')
-        .eq('admin_approval_status', 'approved')
-        .order('created_at', { ascending: false });
-
+        `).eq('status', 'active').eq('admin_approval_status', 'approved').order('created_at', {
+        ascending: false
+      });
       if (error) throw error;
       setOrders((data || []) as ExecutionOrderWithTemplate[]);
     } catch (error) {
@@ -66,27 +52,23 @@ const ExecutionOrders: React.FC = () => {
       setLoading(false);
     }
   };
-
   const loadUserSubmissions = async () => {
     if (!user) return;
     try {
-      const { data, error } = await supabase
-        .from('execution_submissions')
-        .select('order_id')
-        .eq('operator_id', user.id);
-
+      const {
+        data,
+        error
+      } = await supabase.from('execution_submissions').select('order_id').eq('operator_id', user.id);
       if (error) throw error;
       setUserSubmissions(new Set(data?.map(s => s.order_id) || []));
     } catch (error) {
       console.error('Error loading submissions:', error);
     }
   };
-
   const canAccessOrder = (order: ExecutionOrderWithTemplate): boolean => {
     if (!currentRank) return false;
     return currentRank.rank_level >= (order.template?.min_rank_level || 1);
   };
-
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty?.toLowerCase()) {
       case 'basic':
@@ -103,11 +85,9 @@ const ExecutionOrders: React.FC = () => {
         return 'bg-muted text-muted-foreground';
     }
   };
-
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.title.toLowerCase().includes(searchTerm.toLowerCase());
     const isSubmitted = userSubmissions.has(order.id);
-    
     if (activeTab === 'available') {
       return matchesSearch && !isSubmitted && order.completed_quantity < order.target_quantity;
     } else if (activeTab === 'submitted') {
@@ -115,7 +95,6 @@ const ExecutionOrders: React.FC = () => {
     }
     return matchesSearch;
   });
-
   const handleOrderClick = (order: ExecutionOrderWithTemplate) => {
     if (!canAccessOrder(order)) {
       toast.error(`You need ${order.template?.name || 'higher'} rank to access this order`);
@@ -123,30 +102,21 @@ const ExecutionOrders: React.FC = () => {
     }
     navigate(`/execution-orders/${order.id}`);
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center">
+    return <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center">
         <div className="text-center space-y-4">
           <Sparkles className="h-8 w-8 animate-spin mx-auto text-primary" />
           <p className="text-muted-foreground">Loading execution orders...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/20 via-blue-500/20 to-purple-500/20 border-b">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        <div className="relative w-full mx-auto px-4 py-8 sm:py-12">
+        <div className="relative w-full mx-auto px-4 py-8 sm:py-12 border-secondary bg-primary-foreground">
           <div className="flex items-center justify-between mb-4">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/dashboard')} 
-              className="flex items-center gap-2 text-muted-foreground hover:text-primary"
-            >
+            <Button variant="ghost" onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-muted-foreground hover:text-primary">
               <ArrowLeft className="h-4 w-4" />
               Back to Dashboard
             </Button>
@@ -154,7 +124,7 @@ const ExecutionOrders: React.FC = () => {
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Target className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent bg-primary">
                 Execution Orders
               </h1>
             </div>
@@ -187,12 +157,7 @@ const ExecutionOrders: React.FC = () => {
           <CardContent className="p-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search execution orders..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+              <Input placeholder="Search execution orders..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
             </div>
           </CardContent>
         </Card>
@@ -211,8 +176,7 @@ const ExecutionOrders: React.FC = () => {
           </TabsList>
 
           <TabsContent value="available" className="space-y-4 mt-6">
-            {filteredOrders.length === 0 ? (
-              <Card>
+            {filteredOrders.length === 0 ? <Card>
                 <CardContent className="p-12 text-center">
                   <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">No Available Execution Orders</h3>
@@ -223,34 +187,20 @@ const ExecutionOrders: React.FC = () => {
                     Brands create execution orders for verified operators. Keep improving your rank to unlock more opportunities.
                   </p>
                 </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              </Card> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredOrders.map(order => {
-                  const canAccess = canAccessOrder(order);
-                  const spotsLeft = order.target_quantity - order.completed_quantity;
-                  
-                  return (
-                    <Card 
-                      key={order.id} 
-                      className={`group cursor-pointer transition-all duration-300 hover:shadow-lg ${
-                        canAccess 
-                          ? 'hover:scale-105 hover:border-primary/50' 
-                          : 'opacity-60'
-                      }`}
-                      onClick={() => handleOrderClick(order)}
-                    >
+              const canAccess = canAccessOrder(order);
+              const spotsLeft = order.target_quantity - order.completed_quantity;
+              return <Card key={order.id} className={`group cursor-pointer transition-all duration-300 hover:shadow-lg ${canAccess ? 'hover:scale-105 hover:border-primary/50' : 'opacity-60'}`} onClick={() => handleOrderClick(order)}>
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between mb-2">
                           <Badge className={getDifficultyColor(order.template?.difficulty_level || '')}>
                             {order.template?.difficulty_level}
                           </Badge>
-                          {!canAccess && (
-                            <Badge variant="outline" className="flex items-center gap-1">
+                          {!canAccess && <Badge variant="outline" className="flex items-center gap-1">
                               <Lock className="h-3 w-3" />
                               Locked
-                            </Badge>
-                          )}
+                            </Badge>}
                         </div>
                         <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors">
                           {order.title}
@@ -285,46 +235,31 @@ const ExecutionOrders: React.FC = () => {
                         </div>
 
                         {/* Required Proofs */}
-                        {order.template?.required_proof_types && (
-                          <div className="pt-2 border-t">
+                        {order.template?.required_proof_types && <div className="pt-2 border-t">
                             <p className="text-xs text-muted-foreground mb-2">Required Proofs:</p>
                             <div className="flex flex-wrap gap-1">
-                              {order.template.required_proof_types.slice(0, 3).map((proof, idx) => (
-                                <Badge key={idx} variant="secondary" className="text-xs">
+                              {order.template.required_proof_types.slice(0, 3).map((proof, idx) => <Badge key={idx} variant="secondary" className="text-xs">
                                   {proof.replace('_', ' ')}
-                                </Badge>
-                              ))}
-                              {order.template.required_proof_types.length > 3 && (
-                                <Badge variant="secondary" className="text-xs">
+                                </Badge>)}
+                              {order.template.required_proof_types.length > 3 && <Badge variant="secondary" className="text-xs">
                                   +{order.template.required_proof_types.length - 3}
-                                </Badge>
-                              )}
+                                </Badge>}
                             </div>
-                          </div>
-                        )}
+                          </div>}
 
-                        <Button 
-                          className="w-full" 
-                          disabled={!canAccess}
-                        >
-                          {canAccess ? (
-                            <>
+                        <Button className="w-full" disabled={!canAccess}>
+                          {canAccess ? <>
                               <Sparkles className="h-4 w-4 mr-2" />
                               Start Execution
-                            </>
-                          ) : (
-                            <>
+                            </> : <>
                               <Lock className="h-4 w-4 mr-2" />
                               Rank Required: Level {order.template?.min_rank_level}
-                            </>
-                          )}
+                            </>}
                         </Button>
                       </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
+                    </Card>;
+            })}
+              </div>}
           </TabsContent>
 
           <TabsContent value="submitted" className="space-y-4 mt-6">
@@ -358,8 +293,6 @@ const ExecutionOrders: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default ExecutionOrders;
