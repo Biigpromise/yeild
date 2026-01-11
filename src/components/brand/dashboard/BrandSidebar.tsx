@@ -54,7 +54,7 @@ const navigationItems: NavigationItem[] = [
     badge: "3",
   },
   {
-    title: "Marketplace",
+    title: "Discovery",
     url: "/brand-dashboard/marketplace",
     icon: Store,
   },

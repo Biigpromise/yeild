@@ -138,10 +138,10 @@ const EarnPage = () => {
           </Button>
           <div className="text-center">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-yellow-500 bg-clip-text text-transparent">
-              Earn Points
+              Execution Orders
             </h1>
             <p className="text-sm text-muted-foreground">
-              Complete tasks and earn points to level up your account
+              Complete execution orders to earn credits
             </p>
           </div>
           <div className="w-20"></div> {/* Spacer for balance */}
@@ -159,7 +159,7 @@ const EarnPage = () => {
                 </div>
                 <div>
                   <p className="text-xl font-bold text-yellow-400">{userStats?.points || 0}</p>
-                  <p className="text-xs text-muted-foreground">Total Points</p>
+                  <p className="text-xs text-muted-foreground">Total Credits</p>
                 </div>
               </div>
             </CardContent>
@@ -173,7 +173,7 @@ const EarnPage = () => {
                 </div>
                 <div>
                   <p className="text-xl font-bold text-green-400">{userSubmissions.size}</p>
-                  <p className="text-xs text-muted-foreground">Tasks Completed</p>
+                  <p className="text-xs text-muted-foreground">Orders Completed</p>
                 </div>
               </div>
             </CardContent>
@@ -240,11 +240,11 @@ const EarnPage = () => {
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium">
-              {filteredTasks.length} Available Tasks
+              {filteredTasks.length} Available Execution Orders
             </span>
           </div>
           <Badge variant="secondary" className="text-xs">
-            +{filteredTasks.reduce((sum, task) => sum + task.points, 0)} points
+            +{filteredTasks.reduce((sum, task) => sum + task.points, 0)} credits
           </Badge>
         </div>
 
@@ -254,11 +254,11 @@ const EarnPage = () => {
             <Card className="animate-fade-in" style={{animationDelay: '0.6s'}}>
               <CardContent className="p-8 text-center">
                 <Gift className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="font-semibold mb-2">No tasks available</h3>
+                <h3 className="font-semibold mb-2">No execution orders available</h3>
                 <p className="text-sm text-muted-foreground">
                   {searchTerm || selectedCategory !== "all" 
                     ? "Try adjusting your search or filters" 
-                    : "Check back later for new tasks!"}
+                    : "Check back later for new execution orders!"}
                 </p>
               </CardContent>
             </Card>

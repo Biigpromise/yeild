@@ -20,7 +20,7 @@ interface ModernBrandLayoutProps {
 const mobileNavItems = [
   { title: "Dashboard", url: "/brand-dashboard", icon: LayoutDashboard },
   { title: "Campaigns", url: "/brand-dashboard/campaigns", icon: Target },
-  { title: "Marketplace", url: "/brand-dashboard/marketplace", icon: Store },
+  { title: "Discovery", url: "/brand-dashboard/marketplace", icon: Store },
   { title: "Audience", url: "/brand-dashboard/audience", icon: Users },
   { title: "Creative Studio", url: "/brand-dashboard/creative", icon: Palette },
   { title: "Financial Hub", url: "/brand-dashboard/finance", icon: Wallet },

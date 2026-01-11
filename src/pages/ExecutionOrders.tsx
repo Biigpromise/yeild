@@ -215,9 +215,12 @@ const ExecutionOrders: React.FC = () => {
               <Card>
                 <CardContent className="p-12 text-center">
                   <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">No Available Orders</h3>
-                  <p className="text-muted-foreground">
-                    Check back later for new execution orders.
+                  <h3 className="text-lg font-semibold mb-2">No Available Execution Orders</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {searchTerm ? 'No orders match your search.' : 'New execution orders will be available soon. Check back later!'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Brands create execution orders for verified operators. Keep improving your rank to unlock more opportunities.
                   </p>
                 </CardContent>
               </Card>

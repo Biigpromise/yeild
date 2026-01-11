@@ -15,8 +15,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 }) => {
   const tabs = [
     { id: 'home' as TabType, name: 'Home', icon: Home },
-    { id: 'earn' as TabType, name: 'Earn', icon: Zap },
-    { id: 'marketplace' as TabType, name: 'Market', icon: Store },
+    { id: 'earn' as TabType, name: 'Execute', icon: Zap },
+    { id: 'marketplace' as TabType, name: 'Discovery', icon: Store },
     { id: 'wallet' as TabType, name: 'Wallet', icon: Wallet },
     { id: 'profile' as TabType, name: 'Profile', icon: User }
   ];
