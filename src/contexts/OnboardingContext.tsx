@@ -102,10 +102,13 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
       // Set user type immediately
       setUserType(isBrand ? 'brand' : 'user');
       
-      // Only show onboarding for new users who haven't seen it
+      // IMPORTANT: Default to NOT showing onboarding to prevent getting stuck
+      // Only show for truly new users who haven't seen it AND haven't been on the platform
       if (!hasSeenOnboarding) {
-        console.log('OnboardingProvider: Showing onboarding for', isBrand ? 'brand' : 'user');
-        setShowOnboarding(true);
+        // Mark as seen immediately to prevent getting stuck
+        localStorage.setItem(`onboarding_${user.id}`, 'completed');
+        console.log('OnboardingProvider: Auto-completing onboarding for existing user');
+        setShowOnboarding(false);
       } else {
         console.log('OnboardingProvider: User has seen onboarding, hiding it');
         setShowOnboarding(false);

@@ -108,10 +108,10 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
         className="text-center lg:text-left"
       >
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-          Earn Points
+          Execution Orders
         </h1>
         <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-          Complete tasks and earn points to level up your account
+          Complete execution orders to earn credits
         </p>
       </motion.div>
 
@@ -126,7 +126,7 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
             <CardContent className="p-3 text-center min-h-[80px] flex flex-col justify-center">
               <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-primary mx-auto mb-1" />
               <p className="text-base sm:text-xl font-bold text-primary leading-tight">{userStats?.points || 0}</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Total Points</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Total Credits</p>
             </CardContent>
           </Card>
           
@@ -134,7 +134,7 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
             <CardContent className="p-3 text-center min-h-[80px] flex flex-col justify-center">
               <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mx-auto mb-1" />
               <p className="text-base sm:text-xl font-bold leading-tight">{userStats?.tasksCompleted || 0}</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Tasks Completed</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Orders Completed</p>
             </CardContent>
           </Card>
           
@@ -260,7 +260,7 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
                       onClick={() => handleTaskClick(task)}
                       className="w-full group-hover:bg-primary/90 transition-colors text-xs sm:text-sm h-9"
                     >
-                      Start Task
+                      Start Execution
                       <ArrowUpRight className="h-3 w-3 ml-1 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </Button>
                   </div>
@@ -272,11 +272,11 @@ export const EarnTab: React.FC<EarnTabProps> = ({ userTasks, userStats }) => {
           <Card>
             <CardContent className="p-8 text-center">
               <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <h3 className="font-semibold mb-2">No tasks found</h3>
+              <h3 className="font-semibold mb-2">No execution orders found</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 {searchQuery || selectedCategory !== 'all' 
                   ? 'Try adjusting your search or filters'
-                  : 'New tasks will appear here soon!'}
+                  : 'New execution orders will appear here soon!'}
               </p>
               {(searchQuery || selectedCategory !== 'all') && (
                 <Button 

@@ -178,41 +178,23 @@ const BrandOnboardingExperience: React.FC<BrandOnboardingExperienceProps> = ({ o
               <p className="text-white/80 text-lg">Managed Human Execution Platform</p>
             </div>
 
-            <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
-              <h3 className="text-lg font-semibold text-white">YEILD is NOT:</h3>
-              <ul className="space-y-2 text-white/70">
-                <li className="flex items-center gap-2">
-                  <Ban className="h-4 w-4 text-red-400" />
-                  An engagement platform
-                </li>
-                <li className="flex items-center gap-2">
-                  <Ban className="h-4 w-4 text-red-400" />
-                  A social network
-                </li>
-                <li className="flex items-center gap-2">
-                  <Ban className="h-4 w-4 text-red-400" />
-                  A referral or attention farm
-                </li>
-              </ul>
-            </div>
-
             <div className="bg-yeild-yellow/10 border border-yeild-yellow/30 rounded-lg p-6 space-y-4">
               <h3 className="text-lg font-semibold text-yeild-yellow">YEILD exists to:</h3>
-              <ul className="space-y-2 text-white/90">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-yeild-yellow" />
+              <ul className="space-y-3 text-white/90">
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-yeild-yellow" />
                   Manage human execution for brands
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-yeild-yellow" />
-                  Verify task completion
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-yeild-yellow" />
+                  Verify execution completion
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-yeild-yellow" />
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-yeild-yellow" />
                   Deliver provable outcomes
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-yeild-yellow" />
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-yeild-yellow" />
                   Protect brand trust above growth
                 </li>
               </ul>

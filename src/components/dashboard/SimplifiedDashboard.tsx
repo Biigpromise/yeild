@@ -102,13 +102,13 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
     },
     {
       id: 'earn' as TabType,
-      name: 'Earn',
+      name: 'Execute',
       icon: Zap,
-      description: 'Tasks & opportunities'
+      description: 'Execution orders'
     },
     {
       id: 'marketplace' as TabType,
-      name: 'Market',
+      name: 'Discovery',
       icon: Store,
       description: 'Browse listings'
     },
@@ -122,7 +122,7 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
       id: 'profile' as TabType,
       name: 'Profile',
       icon: User,
-      description: 'Settings & birds'
+      description: 'Settings & ranks'
     }
   ];
 
