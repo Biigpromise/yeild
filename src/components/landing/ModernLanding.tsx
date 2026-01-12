@@ -16,31 +16,31 @@ export const ModernLanding: React.FC = () => {
   }, []);
   const features = [{
     icon: Zap,
-    title: 'Earn Points',
-    description: 'Complete simple tasks and earn points instantly',
+    title: 'Earn Credits',
+    description: 'Complete execution orders and earn credits instantly',
     color: 'text-yellow-600 bg-yellow-500/10'
   }, {
     icon: Trophy,
-    title: 'Level Up',
-    description: 'Progress through levels and unlock new opportunities',
+    title: 'Rank Up',
+    description: 'Progress through operator ranks and unlock premium orders',
     color: 'text-green-600 bg-green-500/10'
   }, {
     icon: Users,
-    title: 'Refer Friends',
-    description: 'Invite friends and earn bonus points together',
+    title: 'Build Your Network',
+    description: 'Invite operators and earn bonus credits together',
     color: 'text-blue-600 bg-blue-500/10'
   }];
   const stats = [{
     number: '10K+',
-    label: 'Active Users'
+    label: 'Verified Operators'
   }, {
     number: '500+',
     label: 'Brands'
   }, {
     number: '₦2M+',
-    label: 'Rewards Paid'
+    label: 'Credits Paid'
   }];
-  const benefits = ['Simple tasks that take just minutes', 'Instant point rewards', 'Multiple withdrawal options', 'Referral bonus program', 'Level-based perks', 'Real-time progress tracking'];
+  const benefits = ['Quick execution orders that take minutes', 'Instant credit rewards', 'Multiple withdrawal options', 'Referral bonus program', 'Rank-based premium access', 'Real-time verification tracking'];
   return <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border/60">
@@ -83,7 +83,7 @@ export const ModernLanding: React.FC = () => {
                 <span className="text-primary">Grow Your Brand.</span>
               </h1>
               <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Launch targeted campaigns that connect your brand with reward-motivated users. Track real-time performance and maximize your ROI.
+                Launch execution order campaigns that connect your brand with verified operators. Track real-time performance and maximize your ROI.
               </p>
             </motion.div>
 
@@ -125,11 +125,11 @@ export const ModernLanding: React.FC = () => {
               </div>
               <div className="text-center">
                 <div className="text-2xl lg:text-3xl font-bold text-primary mb-1">10K+</div>
-                <div className="text-sm text-muted-foreground">Active Users</div>
+                <div className="text-sm text-muted-foreground">Verified Operators</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl lg:text-3xl font-bold text-primary mb-1">95%</div>
-                <div className="text-sm text-muted-foreground">Task Completion</div>
+                <div className="text-sm text-muted-foreground">Execution Success</div>
               </div>
             </motion.div>
           </div>
@@ -152,27 +152,27 @@ export const ModernLanding: React.FC = () => {
                <h2 className="text-3xl lg:text-4xl font-bold mb-4">
                  Why Brands Choose YEILD
                </h2>
-               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                 Drive awareness, engagement, and real actions from verified users. Launch and manage campaigns in minutes.
-               </p>
-             </motion.div>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Drive awareness, engagement, and real actions from verified operators. Launch and manage execution order campaigns in minutes.
+                </p>
+              </motion.div>
 
              <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto mb-12">
                {[{
                icon: Target,
-               title: 'Reach Targeted Users',
-               description: 'Connect with engaged users who are ready to interact with your brand and complete your campaigns',
-               color: 'text-blue-600 bg-blue-500/10'
+              title: 'Reach Verified Operators',
+                description: 'Connect with verified operators who are ready to execute your brand campaigns',
+                color: 'text-blue-600 bg-blue-500/10'
              }, {
                icon: TrendingUp,
-               title: 'Track Performance',
-               description: 'Get real-time analytics and detailed insights on your campaign performance and ROI',
-               color: 'text-purple-600 bg-purple-500/10'
+              title: 'Track Executions',
+                description: 'Get real-time analytics and detailed insights on execution order performance and ROI',
+                color: 'text-purple-600 bg-purple-500/10'
              }, {
                icon: DollarSign,
-               title: 'Flexible Campaigns',
-               description: 'Set your own budget, choose your target audience, and customize campaign goals to match your needs',
-               color: 'text-green-600 bg-green-500/10'
+              title: 'Flexible Execution Orders',
+                description: 'Set your own budget, choose execution modes, and customize order requirements to match your needs',
+                color: 'text-green-600 bg-green-500/10'
              }].map((feature, index) => {
                const Icon = feature.icon;
                return <motion.div key={index} initial={{
@@ -242,18 +242,18 @@ export const ModernLanding: React.FC = () => {
              <div className="grid gap-6 md:grid-cols-2">
                <Card className="border-border/60 hover:shadow-lg transition-shadow border-2 border-primary/20">
                  <CardContent className="p-6 flex flex-col h-full">
-                   <div className="flex items-center gap-3 mb-4">
-                     <Building2 className="h-6 w-6 text-primary" />
-                     <span className="text-lg font-semibold">I&apos;m here to advertise</span>
-                   </div>
-                   <p className="text-sm text-muted-foreground mb-4">
-                     Launch campaigns that put your brand in front of verified, reward-motivated users.
-                   </p>
-                   <ul className="text-sm text-muted-foreground space-y-2 mb-6">
-                     <li>• Create and fund campaigns in minutes</li>
-                     <li>• Reach targeted users at scale</li>
-                     <li>• Monitor performance with real-time insights</li>
-                   </ul>
+                    <div className="flex items-center gap-3 mb-4">
+                      <Building2 className="h-6 w-6 text-primary" />
+                      <span className="text-lg font-semibold">I&apos;m here to advertise</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Launch execution orders that put your brand in front of verified operators.
+                    </p>
+                    <ul className="text-sm text-muted-foreground space-y-2 mb-6">
+                      <li>• Create and fund execution orders in minutes</li>
+                      <li>• Reach verified operators at scale</li>
+                      <li>• Monitor execution with real-time insights</li>
+                    </ul>
                    <Button variant="brand" size="sm" className="mt-auto self-start" onClick={() => navigate('/auth?mode=signup&type=brand')}>
                      Start advertising
                      <ArrowRight className="ml-2 h-4 w-4" />
@@ -263,18 +263,18 @@ export const ModernLanding: React.FC = () => {
 
                <Card className="border-border/60 hover:shadow-lg transition-shadow">
                  <CardContent className="p-6 flex flex-col h-full">
-                   <div className="flex items-center gap-3 mb-4">
-                     <Coins className="h-6 w-6 text-primary" />
-                     <span className="text-lg font-semibold">I&apos;m here to earn</span>
-                   </div>
-                   <p className="text-sm text-muted-foreground mb-4">
-                     Complete simple tasks, earn points, unlock bird levels, and withdraw your rewards securely.
-                   </p>
-                   <ul className="text-sm text-muted-foreground space-y-2 mb-6">
-                     <li>• Short, mobile-friendly tasks</li>
-                     <li>• Transparent points and rewards</li>
-                     <li>• Referral bonuses for inviting friends</li>
-                   </ul>
+                    <div className="flex items-center gap-3 mb-4">
+                      <Coins className="h-6 w-6 text-primary" />
+                      <span className="text-lg font-semibold">I&apos;m here to execute</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Complete execution orders, earn credits, rank up as an operator, and withdraw your rewards securely.
+                    </p>
+                    <ul className="text-sm text-muted-foreground space-y-2 mb-6">
+                      <li>• Quick, verified execution orders</li>
+                      <li>• Transparent credits and payouts</li>
+                      <li>• Referral bonuses for inviting operators</li>
+                    </ul>
                    <Button size="sm" className="mt-auto self-start" onClick={() => navigate('/auth?mode=signup&type=user')}>
                      Start earning
                      <ArrowRight className="ml-2 h-4 w-4" />
@@ -303,7 +303,7 @@ export const ModernLanding: React.FC = () => {
                 How It Works
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Getting started with YEILD is simple. Follow these easy steps to start earning.
+                Getting started with YEILD is simple. Follow these easy steps to start executing.
               </p>
             </motion.div>
 
@@ -446,7 +446,7 @@ export const ModernLanding: React.FC = () => {
                   Why Choose YEILD?
                 </h2>
                 <p className="text-lg text-muted-foreground mb-8">
-                  We've designed YEILD to be the most user-friendly and rewarding platform for completing tasks and earning points.
+                  We've designed YEILD to be the most user-friendly and rewarding platform for completing execution orders and earning credits.
                 </p>
                 
                 <div className="space-y-4">
@@ -492,7 +492,7 @@ export const ModernLanding: React.FC = () => {
                       <TrendingUp className="h-16 w-16 text-primary mx-auto mb-6" />
                       <h3 className="text-2xl font-bold mb-4">Ready to Start?</h3>
                       <p className="text-muted-foreground mb-6">
-                        Join our community and start earning points today. It only takes 2 minutes to get started.
+                        Join our community and start executing orders today. It only takes 2 minutes to get started.
                       </p>
                       <div className="grid grid-cols-2 gap-4 text-center">
                         <div className="bg-background rounded-lg p-4">
@@ -551,8 +551,8 @@ export const ModernLanding: React.FC = () => {
             <div className="max-w-3xl mx-auto space-y-4">
               {[
                 {
-                  question: 'How do I earn points on YEILD?',
-                  answer: 'Complete simple tasks like following social accounts, engaging with content, or referring friends. Each completed task rewards you with points that can be withdrawn as cash.'
+                  question: 'How do I earn credits on YEILD?',
+                  answer: 'Complete execution orders from brands like engaging with content, following social accounts, or providing feedback. Each completed order rewards you with credits that can be withdrawn as cash.'
                 },
                 {
                   question: 'How do I withdraw my earnings?',
@@ -560,11 +560,11 @@ export const ModernLanding: React.FC = () => {
                 },
                 {
                   question: 'Is YEILD free to use?',
-                  answer: 'Yes! YEILD is completely free for users. You earn real points by completing tasks without any upfront cost.'
+                  answer: 'Yes! YEILD is completely free for operators. You earn real credits by completing execution orders without any upfront cost.'
                 },
                 {
-                  question: 'How do brands create campaigns?',
-                  answer: 'Brands can sign up, fund their wallet, and create campaigns with targeted requirements. Our platform matches campaigns with suitable users for maximum engagement.'
+                  question: 'How do brands create execution orders?',
+                  answer: 'Brands can sign up, fund their wallet, and create execution orders with specific requirements. Our platform matches orders with verified operators for maximum engagement.'
                 }
               ].map((faq, index) => (
                 <motion.div
@@ -623,17 +623,17 @@ export const ModernLanding: React.FC = () => {
             duration: 0.6
           }}>
               <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-                Ready to Start Earning?
+                Ready to Start Executing?
               </h2>
               <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-                Join thousands of satisfied users who are already earning with YEILD. 
+                Join thousands of verified operators who are already earning with YEILD. 
                 Sign up now and get started in minutes.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" variant="secondary" onClick={() => navigate('/auth?mode=signup&type=user')} className="h-14 px-8 text-lg font-semibold">
                   <DollarSign className="mr-2 h-5 w-5" />
-                  Start Earning Today
+                  Start Executing Today
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
                 <Button size="lg" variant="brand" onClick={() => navigate('/auth?mode=signup&type=brand')} className="h-14 px-8 text-lg font-semibold">

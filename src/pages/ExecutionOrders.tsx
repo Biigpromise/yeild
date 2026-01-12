@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOperatorRank } from '@/hooks/useOperatorRank';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Target, Trophy, ArrowLeft, Sparkles, Clock, CheckCircle, Zap, Shield, AlertTriangle, FileCheck, Lock } from 'lucide-react';
+import { Search, Target, Trophy, Sparkles, Clock, CheckCircle, Zap, Shield, AlertTriangle, FileCheck, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import type { ExecutionOrder, ExecutionOrderTemplate } from '@/types/execution';
@@ -114,36 +114,30 @@ const ExecutionOrders: React.FC = () => {
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/20 via-blue-500/20 to-purple-500/20 border-b">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        <div className="relative w-full mx-auto px-4 py-8 sm:py-12 border-secondary bg-primary-foreground">
-          <div className="flex items-center justify-between mb-4">
-            <Button variant="ghost" onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-muted-foreground hover:text-primary">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </Button>
-          </div>
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Target className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent bg-primary">
+        <div className="relative w-full mx-auto px-4 py-6 sm:py-8 border-secondary bg-primary-foreground">
+          <div className="text-center space-y-3">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <Target className="h-6 w-6 text-primary" />
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent bg-primary">
                 Execution Orders
               </h1>
             </div>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-sm max-w-xl mx-auto">
               Complete verified executions to earn credits. Higher ranks unlock more valuable orders.
             </p>
             
             {/* Operator Stats Summary */}
-            <div className="flex items-center justify-center gap-4 pt-4">
+            <div className="flex items-center justify-center gap-3 pt-2 flex-wrap">
               <Badge variant="secondary" className="flex items-center gap-2 px-3 py-1.5">
-                <Shield className="h-4 w-4" />
+                <Shield className="h-3 w-3" />
                 {currentRank?.name || 'Unranked'}
               </Badge>
               <Badge variant="outline" className="flex items-center gap-2 px-3 py-1.5">
-                <Zap className="h-4 w-4" />
+                <Zap className="h-3 w-3" />
                 {operatorStats?.execution_credits_balance || 0} Credits
               </Badge>
               <Badge variant="outline" className="flex items-center gap-2 px-3 py-1.5">
-                <CheckCircle className="h-4 w-4" />
+                <CheckCircle className="h-3 w-3" />
                 {operatorStats?.verified_executions || 0} Verified
               </Badge>
             </div>
