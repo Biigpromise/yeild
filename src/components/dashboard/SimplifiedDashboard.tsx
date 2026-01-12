@@ -27,7 +27,7 @@ import { EarnTab } from './tabs/EarnTab';
 import { ProfileTab } from './tabs/ProfileTab';
 import { WalletTab } from './tabs/WalletTab';
 import { LiveNotifications } from './LiveNotifications';
-import EarnPage from '@/components/EarnPage';
+import ExecutionOrders from '@/pages/ExecutionOrders';
 import { MarketplaceBrowser } from '@/components/marketplace/MarketplaceBrowser';
 import { MobileBottomNav } from './MobileBottomNav';
 import { UserBrandModeToggle } from '@/components/common/UserBrandModeToggle';
@@ -155,9 +155,9 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
   const renderTabContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab userStats={userStats} userProfile={userProfile} onExploreMarket={() => setActiveTab('marketplace')} />;
+        return <HomeTab userStats={userStats} userProfile={userProfile} onExploreMarket={() => setActiveTab('marketplace')} onTabChange={(tab) => setActiveTab(tab as TabType)} />;
       case 'earn':
-        return <EarnPage />;
+        return <ExecutionOrders />;
       case 'marketplace':
         return <MarketplaceBrowser />;
       case 'wallet':

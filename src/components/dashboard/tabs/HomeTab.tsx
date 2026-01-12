@@ -34,9 +34,10 @@ interface HomeTabProps {
   };
   userProfile?: any;
   onExploreMarket?: () => void;
+  onTabChange?: (tab: string) => void;
 }
 
-export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExploreMarket }) => {
+export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExploreMarket, onTabChange }) => {
   const navigate = useNavigate();
   
   const currentLevel = userStats?.level || 1;
@@ -50,7 +51,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExpl
       description: 'Browse available opportunities',
       icon: Zap,
       color: 'bg-primary/10 text-primary border-primary/20',
-      onClick: () => navigate('/execution-orders'),
+      onClick: () => onTabChange ? onTabChange('earn') : navigate('/execution-orders'),
       comingSoon: false
     },
     {

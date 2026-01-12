@@ -7,6 +7,7 @@ import { WithdrawalHistory } from "./WithdrawalHistory";
 import { EnhancedWalletOverview } from "./EnhancedWalletOverview";
 import { EnhancedBankAccountSelector } from "./EnhancedBankAccountSelector";
 import { QuickWithdrawalActions } from "./QuickWithdrawalActions";
+import { YieldWalletCard } from "./YieldWalletCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { 
@@ -16,7 +17,8 @@ import {
   RefreshCw,
   Trophy,
   Target,
-  Settings
+  Settings,
+  PiggyBank
 } from "lucide-react";
 import { userService } from "@/services/userService";
 import { useAuth } from "@/contexts/AuthContext";
@@ -83,13 +85,19 @@ export const WalletOverview: React.FC<WalletOverviewProps> = ({
           onRefresh={handleRefresh}
         />
 
-        {/* Quick Actions Grid */}
+        {/* Wallets Grid - Main + Yield Wallet */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <EnhancedBankAccountSelector />
-          <QuickWithdrawalActions 
-            userPoints={userPoints}
-            onStartWithdrawal={handleStartWithdrawal}
-          />
+          {/* Quick Actions */}
+          <div className="space-y-6">
+            <EnhancedBankAccountSelector />
+            <QuickWithdrawalActions 
+              userPoints={userPoints}
+              onStartWithdrawal={handleStartWithdrawal}
+            />
+          </div>
+          
+          {/* Yield Wallet */}
+          <YieldWalletCard />
         </div>
 
         {/* Legacy Stats Cards */}
