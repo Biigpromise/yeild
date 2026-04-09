@@ -68,16 +68,24 @@ Deno.serve(async (req) => {
 
     // Verify webhook signature
     const signature = req.headers.get('verif-hash');
-    console.log('Received signature:', signature);
-    console.log('Expected webhook secret hash:', webhookSecretHash);
     
-    // Temporarily skip signature verification for testing
-    if (signature && signature !== webhookSecretHash) {
-      console.warn('Webhook signature mismatch but processing anyway for testing. Received:', signature, 'Expected:', webhookSecretHash);
+    if (!signature) {
+      console.error('Missing webhook signature');
+      return new Response(
+        JSON.stringify({ error: 'Missing webhook signature' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
     
-    // Log all headers for debugging
-    console.log('All webhook headers:', Object.fromEntries(req.headers.entries()));
+    if (signature !== webhookSecretHash) {
+      console.error('Invalid webhook signature');
+      return new Response(
+        JSON.stringify({ error: 'Invalid webhook signature' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    console.log('Webhook signature verified successfully');
 
     const event: FlutterwaveWebhookEvent = await req.json();
     console.log('=== WEBHOOK EVENT DETAILS ===');
