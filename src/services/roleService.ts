@@ -25,11 +25,6 @@ export const roleService = {
         return roleData;
       }
 
-      // Fallback: check if user is the admin email
-      if (user.email === 'yeildsocials@gmail.com') {
-        return [{ role: 'admin' }];
-      }
-
       // Default user role for authenticated users
       return [{ role: 'user' }];
     } catch (error) {
