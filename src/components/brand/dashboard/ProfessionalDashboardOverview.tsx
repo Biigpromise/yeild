@@ -187,7 +187,7 @@ export function ProfessionalDashboardOverview({
   
   const metrics = [
     {
-      title: "Total Spend",
+      title: "Total Funded",
       value: `₦${totalSpent.toLocaleString()}`,
       change: "+12.5%",
       changeType: "increase" as const,
@@ -203,7 +203,7 @@ export function ProfessionalDashboardOverview({
       color: "green" as const,
     },
     {
-      title: "Total Campaigns",
+      title: "Execution Orders",
       value: campaigns.length.toString(),
       change: "+0.5%",
       changeType: "increase" as const,
@@ -211,7 +211,7 @@ export function ProfessionalDashboardOverview({
       color: "yellow" as const,
     },
     {
-      title: "Active Campaigns",
+      title: "Active Orders",
       value: activeCampaigns.toString(),
       change: activeCampaigns > 0 ? `+${activeCampaigns}` : "0",
       changeType: activeCampaigns > 0 ? "increase" as const : "decrease" as const,
