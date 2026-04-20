@@ -237,8 +237,8 @@ export function ProfessionalDashboardOverview({
   if (draftCampaigns > 0) {
     alerts.push({
       type: "info",
-      message: `You have ${draftCampaigns} draft campaign${draftCampaigns > 1 ? 's' : ''} ready to activate.`,
-      action: "View Campaigns",
+      message: `You have ${draftCampaigns} draft execution order${draftCampaigns > 1 ? 's' : ''} ready to launch.`,
+      action: "View Orders",
     });
   }
 
@@ -246,7 +246,7 @@ export function ProfessionalDashboardOverview({
   if (activeCampaigns > 0) {
     alerts.push({
       type: "success",
-      message: `You have ${activeCampaigns} active campaign${activeCampaigns > 1 ? 's' : ''} running smoothly.`,
+      message: `${activeCampaigns} execution order${activeCampaigns > 1 ? 's are' : ' is'} live with operators on the ground.`,
       action: "View Performance",
     });
   }
@@ -255,7 +255,7 @@ export function ProfessionalDashboardOverview({
   if (alerts.length === 0) {
     alerts.push({
       type: "info",
-      message: "All systems running smoothly. Ready to create your first campaign?",
+      message: "Ready to deploy your first execution? Operators are standing by for app tests, field visits, audits and more.",
       action: "Get Started",
     });
   }
