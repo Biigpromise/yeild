@@ -53,16 +53,17 @@ interface CampaignFormData {
 }
 
 const campaignCategories = [
-  'Social Media Marketing',
-  'Content Creation',
-  'Influencer Marketing',
-  'Product Launch',
-  'Brand Awareness',
+  'App Testing & QA',
+  'Property / Real Estate Visit',
+  'Field Verification & Audit',
+  'Mystery Shopping',
+  'Product Trial & Review',
+  'Survey & Research',
   'Lead Generation',
-  'Community Building',
-  'User Generated Content',
-  'Reviews & Testimonials',
-  'Event Promotion'
+  'Content Creation',
+  'Social Media Engagement',
+  'Event Activation',
+  'Other'
 ];
 
 export const SimplifiedCampaignCreator = () => {
