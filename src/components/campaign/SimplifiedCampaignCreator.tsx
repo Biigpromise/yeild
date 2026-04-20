@@ -53,16 +53,17 @@ interface CampaignFormData {
 }
 
 const campaignCategories = [
-  'Social Media Marketing',
-  'Content Creation',
-  'Influencer Marketing',
-  'Product Launch',
-  'Brand Awareness',
+  'App Testing & QA',
+  'Property / Real Estate Visit',
+  'Field Verification & Audit',
+  'Mystery Shopping',
+  'Product Trial & Review',
+  'Survey & Research',
   'Lead Generation',
-  'Community Building',
-  'User Generated Content',
-  'Reviews & Testimonials',
-  'Event Promotion'
+  'Content Creation',
+  'Social Media Engagement',
+  'Event Activation',
+  'Other'
 ];
 
 export const SimplifiedCampaignCreator = () => {
@@ -434,33 +435,33 @@ export const SimplifiedCampaignCreator = () => {
         return (
           <div className="space-y-6">
             <div>
-              <Label htmlFor="title" className="text-base font-medium">Campaign Title *</Label>
+              <Label htmlFor="title" className="text-base font-medium">Execution Order Title *</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => updateFormData('title', e.target.value)}
-                placeholder="Enter a compelling campaign title"
+                placeholder="e.g. Test our new app, Visit & verify property, Mystery shop our store"
                 className="mt-2"
               />
             </div>
 
             <div>
-              <Label htmlFor="description" className="text-base font-medium">Campaign Description *</Label>
+              <Label htmlFor="description" className="text-base font-medium">What do you want operators to do? *</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => updateFormData('description', e.target.value)}
-                placeholder="Describe your campaign goals and objectives..."
+                placeholder="Describe the task in detail — what operators must do, what proof they should submit, and any specific instructions (e.g. 'Visit this property, take 5 photos and confirm the address')..."
                 rows={4}
                 className="mt-2"
               />
             </div>
 
             <div>
-              <Label className="text-base font-medium">Campaign Category *</Label>
+              <Label className="text-base font-medium">Execution Type *</Label>
               <Select value={formData.category} onValueChange={(value) => updateFormData('category', value)}>
                 <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Select campaign category" />
+                  <SelectValue placeholder="Select execution type" />
                 </SelectTrigger>
                 <SelectContent>
                   {campaignCategories.map((category) => (
