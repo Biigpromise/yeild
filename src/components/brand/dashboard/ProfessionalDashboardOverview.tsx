@@ -298,7 +298,7 @@ export function ProfessionalDashboardOverview({
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold">Active Campaigns</CardTitle>
+                <CardTitle className="text-lg font-semibold">Active Execution Orders</CardTitle>
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -337,9 +337,9 @@ export function ProfessionalDashboardOverview({
               ) : (
                 <div className="text-center py-8">
                   <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">No campaigns yet</p>
+                  <p className="text-muted-foreground">No execution orders yet</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Create your first campaign to get started
+                    Whether you need app testers, property visits, mystery shoppers or product trials — deploy your first order to put verified operators to work.
                   </p>
                 </div>
               )}
