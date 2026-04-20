@@ -269,7 +269,7 @@ export function ProfessionalDashboardOverview({
             Welcome back, {profile?.company_name || "Brand"}
           </h1>
           <p className="text-muted-foreground">
-            Here's what's happening with your campaigns today.
+            Deploy real-world execution orders — app testing, property visits, retail audits, product trials and more — and get verified proof from trusted operators.
           </p>
         </div>
         <div className="flex gap-3">
@@ -279,7 +279,7 @@ export function ProfessionalDashboardOverview({
           </Button>
           <Button onClick={onCreateCampaign} className="gap-2">
             <Plus className="w-4 h-4" />
-            New Campaign
+            New Execution Order
           </Button>
         </div>
       </div>
