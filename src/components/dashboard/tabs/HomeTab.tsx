@@ -252,15 +252,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExpl
         </motion.div>
       )}
 
-      {/* Daily Spin Wheel */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        <DailySpinWheel />
-      </motion.div>
-
       {/* Payout Proof - Social Proof */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
