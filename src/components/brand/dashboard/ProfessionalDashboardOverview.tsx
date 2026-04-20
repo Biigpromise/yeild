@@ -187,7 +187,7 @@ export function ProfessionalDashboardOverview({
   
   const metrics = [
     {
-      title: "Total Spend",
+      title: "Total Funded",
       value: `₦${totalSpent.toLocaleString()}`,
       change: "+12.5%",
       changeType: "increase" as const,
@@ -203,7 +203,7 @@ export function ProfessionalDashboardOverview({
       color: "green" as const,
     },
     {
-      title: "Total Campaigns",
+      title: "Execution Orders",
       value: campaigns.length.toString(),
       change: "+0.5%",
       changeType: "increase" as const,
@@ -211,7 +211,7 @@ export function ProfessionalDashboardOverview({
       color: "yellow" as const,
     },
     {
-      title: "Active Campaigns",
+      title: "Active Orders",
       value: activeCampaigns.toString(),
       change: activeCampaigns > 0 ? `+${activeCampaigns}` : "0",
       changeType: activeCampaigns > 0 ? "increase" as const : "decrease" as const,
@@ -237,8 +237,8 @@ export function ProfessionalDashboardOverview({
   if (draftCampaigns > 0) {
     alerts.push({
       type: "info",
-      message: `You have ${draftCampaigns} draft campaign${draftCampaigns > 1 ? 's' : ''} ready to activate.`,
-      action: "View Campaigns",
+      message: `You have ${draftCampaigns} draft execution order${draftCampaigns > 1 ? 's' : ''} ready to launch.`,
+      action: "View Orders",
     });
   }
 
@@ -246,7 +246,7 @@ export function ProfessionalDashboardOverview({
   if (activeCampaigns > 0) {
     alerts.push({
       type: "success",
-      message: `You have ${activeCampaigns} active campaign${activeCampaigns > 1 ? 's' : ''} running smoothly.`,
+      message: `${activeCampaigns} execution order${activeCampaigns > 1 ? 's are' : ' is'} live with operators on the ground.`,
       action: "View Performance",
     });
   }
@@ -255,7 +255,7 @@ export function ProfessionalDashboardOverview({
   if (alerts.length === 0) {
     alerts.push({
       type: "info",
-      message: "All systems running smoothly. Ready to create your first campaign?",
+      message: "Ready to deploy your first execution? Operators are standing by for app tests, field visits, audits and more.",
       action: "Get Started",
     });
   }
@@ -269,7 +269,7 @@ export function ProfessionalDashboardOverview({
             Welcome back, {profile?.company_name || "Brand"}
           </h1>
           <p className="text-muted-foreground">
-            Here's what's happening with your campaigns today.
+            Deploy real-world execution orders — app testing, property visits, retail audits, product trials and more — and get verified proof from trusted operators.
           </p>
         </div>
         <div className="flex gap-3">
@@ -279,7 +279,7 @@ export function ProfessionalDashboardOverview({
           </Button>
           <Button onClick={onCreateCampaign} className="gap-2">
             <Plus className="w-4 h-4" />
-            New Campaign
+            New Execution Order
           </Button>
         </div>
       </div>
@@ -298,7 +298,7 @@ export function ProfessionalDashboardOverview({
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold">Active Campaigns</CardTitle>
+                <CardTitle className="text-lg font-semibold">Active Execution Orders</CardTitle>
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -337,9 +337,9 @@ export function ProfessionalDashboardOverview({
               ) : (
                 <div className="text-center py-8">
                   <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">No campaigns yet</p>
+                  <p className="text-muted-foreground">No execution orders yet</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Create your first campaign to get started
+                    Whether you need app testers, property visits, mystery shoppers or product trials — deploy your first order to put verified operators to work.
                   </p>
                 </div>
               )}
