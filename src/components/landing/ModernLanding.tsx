@@ -15,19 +15,19 @@ export const ModernLanding: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
   const features = [{
-    icon: Zap,
-    title: 'Earn Credits',
-    description: 'Complete execution orders and earn credits instantly',
+    icon: CheckCircle,
+    title: 'Verified Execution',
+    description: 'Every action is reviewed and verified before rewards are released',
     color: 'text-yellow-600 bg-yellow-500/10'
   }, {
     icon: Trophy,
-    title: 'Rank Up',
-    description: 'Progress through operator ranks and unlock premium orders',
+    title: 'Operator Ranks',
+    description: 'Build a trusted track record and unlock higher-value assignments',
     color: 'text-green-600 bg-green-500/10'
   }, {
     icon: Users,
-    title: 'Build Your Network',
-    description: 'Invite operators and earn bonus credits together',
+    title: 'Real People, Real Results',
+    description: 'A vetted operator network delivering measurable outcomes for brands',
     color: 'text-blue-600 bg-blue-500/10'
   }];
   const stats = [{
@@ -78,12 +78,12 @@ export const ModernLanding: React.FC = () => {
           }} className="mb-8">
               <YieldLogo size={80} className="mx-auto mb-6" />
               <h1 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight">
-                Reach Thousands of<br />
-                Engaged Users.<br />
-                <span className="text-primary">Grow Your Brand.</span>
+                Real Tasks.<br />
+                Verified Execution.<br />
+                <span className="text-primary">Trusted Results.</span>
               </h1>
               <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Launch execution order campaigns that connect your brand with verified operators. Track real-time performance and maximize your ROI.
+                YEILD is a managed network of verified Operators who carry out real-world actions for brands — from app testing to property visits — with proof at every step.
               </p>
             </motion.div>
 
@@ -99,12 +99,12 @@ export const ModernLanding: React.FC = () => {
           }} className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Button variant="brand" size="lg" onClick={() => navigate('/auth?mode=signup&type=brand')} className="h-14 px-8 text-lg font-semibold group">
                 <Building2 className="mr-2 h-5 w-5" />
-                Start Advertising Today
+                Deploy a Campaign
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button size="lg" variant="outline" onClick={() => navigate('/auth?mode=signup&type=user')} className="h-14 px-8 text-lg font-semibold">
                 <Coins className="mr-2 h-5 w-5" />
-                Or Start Earning
+                Become an Operator
               </Button>
             </motion.div>
 
@@ -153,7 +153,7 @@ export const ModernLanding: React.FC = () => {
                  Why Brands Choose YEILD
                </h2>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Drive awareness, engagement, and real actions from verified operators. Launch and manage execution order campaigns in minutes.
+                  Get measurable, real-world outcomes from a vetted Operator network — whether you need 10,000 app testers, on-the-ground product visits, or verified user actions.
                 </p>
               </motion.div>
 
@@ -242,43 +242,43 @@ export const ModernLanding: React.FC = () => {
              <div className="grid gap-6 md:grid-cols-2">
                <Card className="border-border/60 hover:shadow-lg transition-shadow border-2 border-primary/20">
                  <CardContent className="p-6 flex flex-col h-full">
-                    <div className="flex items-center gap-3 mb-4">
-                      <Building2 className="h-6 w-6 text-primary" />
-                      <span className="text-lg font-semibold">I&apos;m here to advertise</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Launch execution orders that put your brand in front of verified operators.
-                    </p>
-                    <ul className="text-sm text-muted-foreground space-y-2 mb-6">
-                      <li>• Create and fund execution orders in minutes</li>
-                      <li>• Reach verified operators at scale</li>
-                      <li>• Monitor execution with real-time insights</li>
-                    </ul>
-                   <Button variant="brand" size="sm" className="mt-auto self-start" onClick={() => navigate('/auth?mode=signup&type=brand')}>
-                     Start advertising
-                     <ArrowRight className="ml-2 h-4 w-4" />
-                   </Button>
-                 </CardContent>
-               </Card>
+                     <div className="flex items-center gap-3 mb-4">
+                       <Building2 className="h-6 w-6 text-primary" />
+                       <span className="text-lg font-semibold">I&apos;m a Brand</span>
+                     </div>
+                     <p className="text-sm text-muted-foreground mb-4">
+                       Need real humans to test, visit, review, or take action? Deploy a campaign and tap into a verified Operator network.
+                     </p>
+                     <ul className="text-sm text-muted-foreground space-y-2 mb-6">
+                       <li>• App testing, product trials, field visits</li>
+                       <li>• Verified proof of every completed action</li>
+                       <li>• Real-time campaign tracking and reporting</li>
+                     </ul>
+                    <Button variant="brand" size="sm" className="mt-auto self-start" onClick={() => navigate('/auth?mode=signup&type=brand')}>
+                      Deploy a campaign
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
 
-               <Card className="border-border/60 hover:shadow-lg transition-shadow">
-                 <CardContent className="p-6 flex flex-col h-full">
-                    <div className="flex items-center gap-3 mb-4">
-                      <Coins className="h-6 w-6 text-primary" />
-                      <span className="text-lg font-semibold">I&apos;m here to execute</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Complete execution orders, earn credits, rank up as an operator, and withdraw your rewards securely.
-                    </p>
-                    <ul className="text-sm text-muted-foreground space-y-2 mb-6">
-                      <li>• Quick, verified execution orders</li>
-                      <li>• Transparent credits and payouts</li>
-                      <li>• Referral bonuses for inviting operators</li>
-                    </ul>
-                   <Button size="sm" className="mt-auto self-start" onClick={() => navigate('/auth?mode=signup&type=user')}>
-                     Start earning
-                     <ArrowRight className="ml-2 h-4 w-4" />
-                   </Button>
+                <Card className="border-border/60 hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6 flex flex-col h-full">
+                     <div className="flex items-center gap-3 mb-4">
+                       <Coins className="h-6 w-6 text-primary" />
+                       <span className="text-lg font-semibold">I&apos;m an Operator</span>
+                     </div>
+                     <p className="text-sm text-muted-foreground mb-4">
+                       Join YEILD&apos;s Operator network. Carry out verified real-world actions for trusted brands and get paid for proven work.
+                     </p>
+                     <ul className="text-sm text-muted-foreground space-y-2 mb-6">
+                       <li>• Real assignments from real brands</li>
+                       <li>• Transparent payouts on verified work</li>
+                       <li>• Build your operator rank and reputation</li>
+                     </ul>
+                    <Button size="sm" className="mt-auto self-start" onClick={() => navigate('/auth?mode=signup&type=user')}>
+                      Join as Operator
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
                  </CardContent>
                </Card>
              </div>
@@ -300,10 +300,10 @@ export const ModernLanding: React.FC = () => {
             duration: 0.6
           }} className="text-center mb-16">
               <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-                How It Works
+                How YEILD Works
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Getting started with YEILD is simple. Follow these easy steps to start executing.
+                Brands post real-world tasks. Operators execute them. YEILD verifies every action before rewards are released.
               </p>
             </motion.div>
 
