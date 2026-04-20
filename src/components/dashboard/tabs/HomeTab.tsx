@@ -7,8 +7,6 @@ import { Progress } from '@/components/ui/progress';
 import { OperatorRankDisplay } from '@/components/operator/OperatorRankDisplay';
 import { DashboardProgress } from '@/components/dashboard/DashboardProgress';
 import { GettingStartedChecklist } from '@/components/engagement/GettingStartedChecklist';
-import { DailyLoginBonus } from '@/components/engagement/DailyLoginBonus';
-import { DailySpinWheel } from '@/components/engagement/DailySpinWheel';
 import { PayoutProof } from '@/components/engagement/PayoutProof';
 import { 
   Trophy, 
