@@ -7,8 +7,6 @@ import { Progress } from '@/components/ui/progress';
 import { OperatorRankDisplay } from '@/components/operator/OperatorRankDisplay';
 import { DashboardProgress } from '@/components/dashboard/DashboardProgress';
 import { GettingStartedChecklist } from '@/components/engagement/GettingStartedChecklist';
-import { DailyLoginBonus } from '@/components/engagement/DailyLoginBonus';
-import { DailySpinWheel } from '@/components/engagement/DailySpinWheel';
 import { PayoutProof } from '@/components/engagement/PayoutProof';
 import { 
   Trophy, 
@@ -119,15 +117,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExpl
             You're at level {currentLevel}. Complete execution orders to advance!
           </p>
         </div>
-      </motion.div>
-
-      {/* Daily Login Bonus */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-      >
-        <DailyLoginBonus />
       </motion.div>
 
       {/* Getting Started Checklist */}
@@ -262,15 +251,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExpl
           </Card>
         </motion.div>
       )}
-
-      {/* Daily Spin Wheel */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        <DailySpinWheel />
-      </motion.div>
 
       {/* Payout Proof - Social Proof */}
       <motion.div
