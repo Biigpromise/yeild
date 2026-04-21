@@ -15,6 +15,10 @@ import { ArrowLeft, ArrowRight, CheckCircle, Upload, Image as ImageIcon, X, Calc
 import { useSimpleFormPersistence } from '@/hooks/useSimpleFormPersistence';
 import { BudgetEstimateCalculator } from '@/components/brand/BudgetEstimateCalculator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ExecutionModeSelector } from './ExecutionModeSelector';
+import { LiveCostPreview } from './LiveCostPreview';
+import { TemplateStarters, type TemplateStarter } from './TemplateStarters';
+import type { ExecutionMode } from '@/types/execution';
 
 interface MediaAsset {
   id: string;
@@ -50,6 +54,7 @@ interface CampaignFormData {
   duration: string;
   mediaAssets: MediaAsset[];
   socialLinks: SocialLinksData;
+  executionMode: ExecutionMode | null;
 }
 
 const campaignCategories = [
@@ -76,7 +81,7 @@ export const SimplifiedCampaignCreator = () => {
     description: '',
     category: '',
     logo_url: '',
-    budget: 5000,
+    budget: 20000,
     target_audience: '',
     requirements: '',
     duration: '7',
@@ -85,7 +90,8 @@ export const SimplifiedCampaignCreator = () => {
       socialProfiles: [],
       engagementPosts: [],
       hashtags: []
-    }
+    },
+    executionMode: null,
   });
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -119,13 +125,14 @@ export const SimplifiedCampaignCreator = () => {
     excludeKeys: ['logo_url']
   });
 
-  // 5 steps now: Essentials, Media & Links, Targeting, Budget Planning, Review
+  // 6 steps: Mode, Essentials, Media & Links, Targeting, Budget Planning, Review
   const steps = [
-    { id: 1, title: 'Essentials', description: 'Basic campaign details' },
-    { id: 2, title: 'Media & Links', description: 'Upload assets & social links' },
-    { id: 3, title: 'Targeting', description: 'Target audience & specs' },
-    { id: 4, title: 'Budget Planning', description: 'Plan & confirm your budget' },
-    { id: 5, title: 'Review & Submit', description: 'Final review' }
+    { id: 1, title: 'Mode', description: 'Pick execution mode' },
+    { id: 2, title: 'Essentials', description: 'Basic order details' },
+    { id: 3, title: 'Media & Links', description: 'Upload assets & social links' },
+    { id: 4, title: 'Targeting', description: 'Target audience & specs' },
+    { id: 5, title: 'Budget Planning', description: 'Plan & confirm your budget' },
+    { id: 6, title: 'Review & Submit', description: 'Final review' }
   ];
 
   const createCampaignMutation = useMutation({
@@ -291,14 +298,16 @@ export const SimplifiedCampaignCreator = () => {
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!(formData.title && formData.description && formData.category);
+        return !!formData.executionMode;
       case 2:
-        return true; // Media and links are optional
+        return !!(formData.title && formData.description && formData.category);
       case 3:
-        return !!(formData.target_audience);
+        return true; // Media and links are optional
       case 4:
-        return budgetConfirmed && formData.budget >= 20000;
+        return !!(formData.target_audience);
       case 5:
+        return budgetConfirmed && formData.budget >= 20000;
+      case 6:
         return true;
       default:
         return false;
@@ -306,10 +315,12 @@ export const SimplifiedCampaignCreator = () => {
   };
 
   const nextStep = () => {
-    if (validateStep(currentStep) && currentStep < 5) {
+    if (validateStep(currentStep) && currentStep < 6) {
       setCurrentStep(currentStep + 1);
     } else if (!validateStep(currentStep)) {
-      if (currentStep === 4 && !budgetConfirmed) {
+      if (currentStep === 1) {
+        toast.error('Please select an execution mode to continue');
+      } else if (currentStep === 5 && !budgetConfirmed) {
         toast.error('Please confirm your budget using the calculator before proceeding');
       } else {
         toast.error('Please fill in all required fields');
@@ -329,7 +340,7 @@ export const SimplifiedCampaignCreator = () => {
   };
 
   const handleSubmit = () => {
-    if (!validateStep(1) || !validateStep(3) || !validateStep(4)) {
+    if (!validateStep(1) || !validateStep(2) || !validateStep(4) || !validateStep(5)) {
       toast.error('Please complete all required fields and confirm your budget');
       return;
     }
@@ -341,6 +352,16 @@ export const SimplifiedCampaignCreator = () => {
     }
     
     createCampaignMutation.mutate(formData);
+  };
+
+  const handleTemplateSelect = (tpl: TemplateStarter) => {
+    setFormData(prev => ({
+      ...prev,
+      title: tpl.title,
+      category: tpl.category,
+      description: tpl.description,
+    }));
+    toast.success(`Template "${tpl.title}" loaded — edit the details to fit your needs.`);
   };
 
   // Media upload functions
@@ -434,6 +455,19 @@ export const SimplifiedCampaignCreator = () => {
       case 1:
         return (
           <div className="space-y-6">
+            <ExecutionModeSelector
+              value={formData.executionMode}
+              onChange={(mode) => setFormData(prev => ({ ...prev, executionMode: mode }))}
+            />
+            {formData.executionMode && (
+              <TemplateStarters mode={formData.executionMode} onSelect={handleTemplateSelect} />
+            )}
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
             <div>
               <Label htmlFor="title" className="text-base font-medium">Execution Order Title *</Label>
               <Input
@@ -525,7 +559,7 @@ export const SimplifiedCampaignCreator = () => {
           </div>
         );
 
-      case 2:
+      case 3:
         return (
           <div className="space-y-8">
             {/* Media Upload Section */}
@@ -692,7 +726,7 @@ export const SimplifiedCampaignCreator = () => {
           </div>
         );
 
-      case 3:
+      case 4:
         return (
           <div className="space-y-6">
             <div>
@@ -735,7 +769,7 @@ export const SimplifiedCampaignCreator = () => {
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
@@ -772,6 +806,11 @@ export const SimplifiedCampaignCreator = () => {
               initialBudget={formData.budget}
             />
 
+            {/* Live cost breakdown — shows operator payout, platform fee, creation fee */}
+            {formData.executionMode && formData.budget >= 20000 && (
+              <LiveCostPreview budget={formData.budget} mode={formData.executionMode} />
+            )}
+
             {budgetConfirmed && (
               <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800 text-center">
                 <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
@@ -783,7 +822,7 @@ export const SimplifiedCampaignCreator = () => {
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
@@ -894,10 +933,10 @@ export const SimplifiedCampaignCreator = () => {
           
           <div className="text-center">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-2">
-              Create Campaign
+              Create Execution Order
             </h1>
             <p className="text-muted-foreground">
-              Create your campaign in 5 simple steps
+              Set up your order in 6 simple steps
             </p>
           </div>
         </div>
@@ -954,7 +993,7 @@ export const SimplifiedCampaignCreator = () => {
                 Previous
               </Button>
               
-              {currentStep < 5 ? (
+              {currentStep < 6 ? (
                 <Button onClick={nextStep} disabled={!validateStep(currentStep)}>
                   Next
                   <ArrowRight className="h-4 w-4 ml-2" />
