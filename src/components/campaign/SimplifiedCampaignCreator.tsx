@@ -455,6 +455,19 @@ export const SimplifiedCampaignCreator = () => {
       case 1:
         return (
           <div className="space-y-6">
+            <ExecutionModeSelector
+              value={formData.executionMode}
+              onChange={(mode) => setFormData(prev => ({ ...prev, executionMode: mode }))}
+            />
+            {formData.executionMode && (
+              <TemplateStarters mode={formData.executionMode} onSelect={handleTemplateSelect} />
+            )}
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
             <div>
               <Label htmlFor="title" className="text-base font-medium">Execution Order Title *</Label>
               <Input
