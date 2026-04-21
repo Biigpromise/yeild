@@ -37,6 +37,7 @@ const BIRD_LEVEL_BONUSES = {
 };
 
 const MIN_RECOMMENDED_COMPLETIONS = 3;
+const MIN_TOTAL_BUDGET = 20000; // ₦20,000 minimum total budget per execution order
 
 export const BudgetEstimateCalculator: React.FC<BudgetEstimateCalculatorProps> = ({
   onBudgetConfirmed,
@@ -87,7 +88,7 @@ export const BudgetEstimateCalculator: React.FC<BudgetEstimateCalculatorProps> =
     const budgetValue = parseFloat(budget) || 0;
     const pointsValue = parseFloat(pointsPerTask) || minPointsPerTask;
 
-    if (budgetValue <= 0 || pointsValue < minPointsPerTask) {
+    if (budgetValue < MIN_TOTAL_BUDGET || pointsValue < minPointsPerTask) {
       setEstimate(null);
       return;
     }
@@ -132,7 +133,8 @@ export const BudgetEstimateCalculator: React.FC<BudgetEstimateCalculatorProps> =
   };
 
   const hasSufficientFunds = walletBalance === undefined || (estimate && walletBalance >= estimate.totalBudget);
-  const canConfirm = estimate && estimate.guaranteedCompletions >= 1 && hasSufficientFunds;
+  const meetsMinBudget = parseFloat(budget) >= MIN_TOTAL_BUDGET;
+  const canConfirm = estimate && estimate.guaranteedCompletions >= 1 && hasSufficientFunds && meetsMinBudget;
 
   return (
     <Card className={`border-border ${isRequired ? 'border-2 border-primary/30' : ''}`}>
@@ -216,13 +218,13 @@ export const BudgetEstimateCalculator: React.FC<BudgetEstimateCalculatorProps> =
               type="number"
               value={budget}
               onChange={(e) => setBudget(e.target.value)}
-              placeholder="15000"
-              min={minPointsPerTask}
+              placeholder="20000"
+              min={MIN_TOTAL_BUDGET}
               className="border-border bg-background text-foreground"
               disabled={isConfirmed}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Minimum: ₦{minPointsPerTask} (1 Naira = 1 Point)
+              Minimum total budget: ₦{MIN_TOTAL_BUDGET.toLocaleString()} (1 Naira = 1 Point)
             </p>
           </div>
 
@@ -243,6 +245,16 @@ export const BudgetEstimateCalculator: React.FC<BudgetEstimateCalculatorProps> =
             </p>
           </div>
         </div>
+
+        {/* Minimum Total Budget Warning */}
+        {!meetsMinBudget && parseFloat(budget) > 0 && (
+          <Alert className="border-destructive/50 bg-destructive/5">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Minimum budget required:</strong> Execution Orders must be funded with at least ₦{MIN_TOTAL_BUDGET.toLocaleString()}. Please increase your budget to proceed.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Minimum Budget Warning */}
         {estimate && estimate.guaranteedCompletions < MIN_RECOMMENDED_COMPLETIONS && (
