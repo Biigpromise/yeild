@@ -559,7 +559,7 @@ export const SimplifiedCampaignCreator = () => {
           </div>
         );
 
-      case 2:
+      case 3:
         return (
           <div className="space-y-8">
             {/* Media Upload Section */}
@@ -726,7 +726,7 @@ export const SimplifiedCampaignCreator = () => {
           </div>
         );
 
-      case 3:
+      case 4:
         return (
           <div className="space-y-6">
             <div>
@@ -769,7 +769,7 @@ export const SimplifiedCampaignCreator = () => {
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
@@ -817,7 +817,7 @@ export const SimplifiedCampaignCreator = () => {
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
