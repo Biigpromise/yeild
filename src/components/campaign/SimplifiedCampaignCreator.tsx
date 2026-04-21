@@ -298,14 +298,16 @@ export const SimplifiedCampaignCreator = () => {
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!(formData.title && formData.description && formData.category);
+        return !!formData.executionMode;
       case 2:
-        return true; // Media and links are optional
+        return !!(formData.title && formData.description && formData.category);
       case 3:
-        return !!(formData.target_audience);
+        return true; // Media and links are optional
       case 4:
-        return budgetConfirmed && formData.budget >= 20000;
+        return !!(formData.target_audience);
       case 5:
+        return budgetConfirmed && formData.budget >= 20000;
+      case 6:
         return true;
       default:
         return false;
@@ -313,10 +315,12 @@ export const SimplifiedCampaignCreator = () => {
   };
 
   const nextStep = () => {
-    if (validateStep(currentStep) && currentStep < 5) {
+    if (validateStep(currentStep) && currentStep < 6) {
       setCurrentStep(currentStep + 1);
     } else if (!validateStep(currentStep)) {
-      if (currentStep === 4 && !budgetConfirmed) {
+      if (currentStep === 1) {
+        toast.error('Please select an execution mode to continue');
+      } else if (currentStep === 5 && !budgetConfirmed) {
         toast.error('Please confirm your budget using the calculator before proceeding');
       } else {
         toast.error('Please fill in all required fields');
@@ -336,7 +340,7 @@ export const SimplifiedCampaignCreator = () => {
   };
 
   const handleSubmit = () => {
-    if (!validateStep(1) || !validateStep(3) || !validateStep(4)) {
+    if (!validateStep(1) || !validateStep(2) || !validateStep(4) || !validateStep(5)) {
       toast.error('Please complete all required fields and confirm your budget');
       return;
     }
@@ -348,6 +352,16 @@ export const SimplifiedCampaignCreator = () => {
     }
     
     createCampaignMutation.mutate(formData);
+  };
+
+  const handleTemplateSelect = (tpl: TemplateStarter) => {
+    setFormData(prev => ({
+      ...prev,
+      title: tpl.title,
+      category: tpl.category,
+      description: tpl.description,
+    }));
+    toast.success(`Template "${tpl.title}" loaded — edit the details to fit your needs.`);
   };
 
   // Media upload functions
