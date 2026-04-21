@@ -933,10 +933,10 @@ export const SimplifiedCampaignCreator = () => {
           
           <div className="text-center">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-2">
-              Create Campaign
+              Create Execution Order
             </h1>
             <p className="text-muted-foreground">
-              Create your campaign in 5 simple steps
+              Set up your order in 6 simple steps
             </p>
           </div>
         </div>
