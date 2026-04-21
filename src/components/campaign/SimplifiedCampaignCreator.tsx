@@ -15,6 +15,10 @@ import { ArrowLeft, ArrowRight, CheckCircle, Upload, Image as ImageIcon, X, Calc
 import { useSimpleFormPersistence } from '@/hooks/useSimpleFormPersistence';
 import { BudgetEstimateCalculator } from '@/components/brand/BudgetEstimateCalculator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ExecutionModeSelector } from './ExecutionModeSelector';
+import { LiveCostPreview } from './LiveCostPreview';
+import { TemplateStarters, type TemplateStarter } from './TemplateStarters';
+import type { ExecutionMode } from '@/types/execution';
 
 interface MediaAsset {
   id: string;
@@ -50,6 +54,7 @@ interface CampaignFormData {
   duration: string;
   mediaAssets: MediaAsset[];
   socialLinks: SocialLinksData;
+  executionMode: ExecutionMode | null;
 }
 
 const campaignCategories = [
@@ -76,7 +81,7 @@ export const SimplifiedCampaignCreator = () => {
     description: '',
     category: '',
     logo_url: '',
-    budget: 5000,
+    budget: 20000,
     target_audience: '',
     requirements: '',
     duration: '7',
@@ -85,7 +90,8 @@ export const SimplifiedCampaignCreator = () => {
       socialProfiles: [],
       engagementPosts: [],
       hashtags: []
-    }
+    },
+    executionMode: null,
   });
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -119,13 +125,14 @@ export const SimplifiedCampaignCreator = () => {
     excludeKeys: ['logo_url']
   });
 
-  // 5 steps now: Essentials, Media & Links, Targeting, Budget Planning, Review
+  // 6 steps: Mode, Essentials, Media & Links, Targeting, Budget Planning, Review
   const steps = [
-    { id: 1, title: 'Essentials', description: 'Basic campaign details' },
-    { id: 2, title: 'Media & Links', description: 'Upload assets & social links' },
-    { id: 3, title: 'Targeting', description: 'Target audience & specs' },
-    { id: 4, title: 'Budget Planning', description: 'Plan & confirm your budget' },
-    { id: 5, title: 'Review & Submit', description: 'Final review' }
+    { id: 1, title: 'Mode', description: 'Pick execution mode' },
+    { id: 2, title: 'Essentials', description: 'Basic order details' },
+    { id: 3, title: 'Media & Links', description: 'Upload assets & social links' },
+    { id: 4, title: 'Targeting', description: 'Target audience & specs' },
+    { id: 5, title: 'Budget Planning', description: 'Plan & confirm your budget' },
+    { id: 6, title: 'Review & Submit', description: 'Final review' }
   ];
 
   const createCampaignMutation = useMutation({
