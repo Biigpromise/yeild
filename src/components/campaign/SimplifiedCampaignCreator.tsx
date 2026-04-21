@@ -806,6 +806,11 @@ export const SimplifiedCampaignCreator = () => {
               initialBudget={formData.budget}
             />
 
+            {/* Live cost breakdown — shows operator payout, platform fee, creation fee */}
+            {formData.executionMode && formData.budget >= 20000 && (
+              <LiveCostPreview budget={formData.budget} mode={formData.executionMode} />
+            )}
+
             {budgetConfirmed && (
               <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800 text-center">
                 <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
@@ -988,7 +993,7 @@ export const SimplifiedCampaignCreator = () => {
                 Previous
               </Button>
               
-              {currentStep < 5 ? (
+              {currentStep < 6 ? (
                 <Button onClick={nextStep} disabled={!validateStep(currentStep)}>
                   Next
                   <ArrowRight className="h-4 w-4 ml-2" />
