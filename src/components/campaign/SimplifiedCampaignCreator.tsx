@@ -297,7 +297,7 @@ export const SimplifiedCampaignCreator = () => {
       case 3:
         return !!(formData.target_audience);
       case 4:
-        return budgetConfirmed && formData.budget >= 300;
+        return budgetConfirmed && formData.budget >= 20000;
       case 5:
         return true;
       default:
