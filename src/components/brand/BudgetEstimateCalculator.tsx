@@ -186,26 +186,26 @@ export const BudgetEstimateCalculator: React.FC<BudgetEstimateCalculatorProps> =
           </div>
         )}
 
-        {/* Difficulty Selector */}
-        <div className="mb-4">
-          <Label>Task Difficulty</Label>
-          <Select value={selectedDifficulty} onValueChange={handleDifficultyChange} disabled={isConfirmed}>
-            <SelectTrigger className="mt-1">
-              <SelectValue placeholder="Select difficulty" />
-            </SelectTrigger>
-            <SelectContent>
-              {DIFFICULTY_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  <div className="flex items-center justify-between gap-4">
-                    <span>{opt.label}</span>
-                    <span className="text-xs text-muted-foreground">Min: {opt.minPoints} pts</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground mt-1">
-            {DIFFICULTY_OPTIONS.find(o => o.value === selectedDifficulty)?.description}
+        {/* Difficulty (auto-assigned by platform, admin can override) */}
+        <div className="mb-4 p-3 rounded-md border border-border bg-muted/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-foreground">Task Difficulty (auto-assigned)</Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                {DIFFICULTY_OPTIONS.find(o => o.value === selectedDifficulty)?.description}
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-sm font-semibold text-foreground">
+                {DIFFICULTY_OPTIONS.find(o => o.value === selectedDifficulty)?.label}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Min {getMinPointsForDifficulty(selectedDifficulty).toLocaleString()} pts/task
+              </div>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-2 italic">
+            Difficulty is set by the platform based on execution mode and proof requirements. Admins may adjust during review.
           </p>
         </div>
 
