@@ -16,8 +16,7 @@ import {
   ArrowUpRight, 
   TrendingUp,
   Clock,
-  Star,
-  Store
+  Star
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -31,11 +30,10 @@ interface HomeTabProps {
     referrals: number;
   };
   userProfile?: any;
-  onExploreMarket?: () => void;
   onTabChange?: (tab: string) => void;
 }
 
-export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExploreMarket, onTabChange }) => {
+export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onTabChange }) => {
   const navigate = useNavigate();
   
   const currentLevel = userStats?.level || 1;
@@ -58,14 +56,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({ userStats, userProfile, onExpl
       icon: Target,
       color: 'bg-green-500/10 text-green-600 border-green-500/20',
       onClick: () => navigate('/operator-ranks'),
-      comingSoon: false
-    },
-    {
-      title: 'Discovery',
-      description: 'Explore marketplace listings',
-      icon: Store,
-      color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-      onClick: onExploreMarket,
       comingSoon: false
     }
   ];
