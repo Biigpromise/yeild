@@ -17,6 +17,7 @@ import { BrandSupport } from '@/components/brand/dashboard/BrandSupport';
 import { RichCampaignCreator } from '@/components/campaign/RichCampaignCreator';
 import { EnhancedCampaignCreation } from '@/components/campaign/EnhancedCampaignCreation';
 import { CreateQuickCampaign } from '@/components/campaign/CreateQuickCampaign';
+import BrandSetup from './BrandSetup';
 import { toast } from 'sonner';
 
 const BrandDashboard = () => {
@@ -84,6 +85,10 @@ const BrandDashboard = () => {
               onAddFunds={handleAddFunds}
             />
           }
+        />
+        <Route
+          path="/setup"
+          element={<BrandSetup />}
         />
         <Route
           path="/campaigns"
