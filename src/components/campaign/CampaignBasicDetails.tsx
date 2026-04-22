@@ -21,18 +21,10 @@ interface CampaignBasicDetailsProps {
   onDataChange: (data: CampaignBasicData) => void;
 }
 
-const campaignCategories = [
-  'Social Media Marketing',
-  'Content Creation',
-  'Influencer Marketing',
-  'Product Launch',
-  'Brand Awareness',
-  'Lead Generation',
-  'Community Building',
-  'User Generated Content',
-  'Reviews & Testimonials',
-  'Event Promotion'
-];
+import { CAMPAIGN_CATEGORY_OPTIONS } from '@/constants/campaignCategories';
+
+// Use shared category list (no engagement/follow-style options).
+const campaignCategories = CAMPAIGN_CATEGORY_OPTIONS.map(o => o.label);
 
 export const CampaignBasicDetails: React.FC<CampaignBasicDetailsProps> = ({
   data,

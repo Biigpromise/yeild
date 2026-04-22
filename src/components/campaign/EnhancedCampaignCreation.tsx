@@ -496,38 +496,8 @@ export const EnhancedCampaignCreation: React.FC = () => {
                 <CardTitle>Target Audience Demographics</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="follower_min">Minimum Followers</Label>
-                    <Input
-                      id="follower_min"
-                      type="number"
-                      min="0"
-                      value={targetDemographics.follower_count_min}
-                      onChange={(e) => setTargetDemographics({
-                        ...targetDemographics,
-                        follower_count_min: parseInt(e.target.value) || 0
-                      })}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="engagement_min">Minimum Engagement Rate (%)</Label>
-                    <Input
-                      id="engagement_min"
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      value={targetDemographics.engagement_rate_min}
-                      onChange={(e) => setTargetDemographics({
-                        ...targetDemographics,
-                        engagement_rate_min: parseFloat(e.target.value) || 0
-                      })}
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
+                {/* Follower / engagement-rate gating intentionally removed.
+                    Yeild is a verified-execution platform, not an engagement platform. */}
 
                 <div>
                   <Label htmlFor="age_ranges">Age Ranges (comma-separated)</Label>

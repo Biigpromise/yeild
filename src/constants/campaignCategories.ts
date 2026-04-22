@@ -6,18 +6,16 @@ export interface CampaignCategoryOption {
   label: string;
 }
 
+// Yeild is a human-verified execution platform — not an engagement/follow platform.
+// Categories below are limited to verifiable, structured business outcomes
+// (digital execution + field activation). Do NOT add engagement/follow/like categories.
 export const CAMPAIGN_CATEGORY_OPTIONS: CampaignCategoryOption[] = [
   { value: 'brand_awareness', label: 'Brand Awareness' },
   { value: 'product_launch', label: 'Product Launch' },
-  { value: 'engagement', label: 'Engagement' },
   { value: 'lead_generation', label: 'Lead Generation' },
   { value: 'sales_promotion', label: 'Sales Promotion' },
-  { value: 'social_media_marketing', label: 'Social Media Marketing' },
   { value: 'content_creation', label: 'Content Creation' },
-  { value: 'influencer_collaboration', label: 'Influencer Collaboration' },
-  { value: 'user_generated_content', label: 'User Generated Content' },
   { value: 'event_promotion', label: 'Event Promotion' },
-  { value: 'community_building', label: 'Community Building' },
   { value: 'reviews_testimonials', label: 'Reviews & Testimonials' },
   { value: 'field_activation', label: 'Field Activation' },
   { value: 'in_store_promotion', label: 'In-Store Promotion' },

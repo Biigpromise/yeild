@@ -65,7 +65,7 @@ const campaignTemplates = [
   {
     name: 'Event Promotion',
     mainBrief: 'Help promote our upcoming event and encourage attendance through compelling content.',
-    objectives: ['Drive event registrations', 'Create event buzz', 'Increase social engagement'],
+    objectives: ['Drive event registrations', 'Create event buzz', 'Increase attendance'],
     deliverables: [
       { id: '1', type: 'post' as const, quantity: 1, specifications: 'Event announcement with compelling visuals' },
       { id: '2', type: 'story' as const, quantity: 1, specifications: 'Event countdown and details' }
