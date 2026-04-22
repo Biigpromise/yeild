@@ -1,8 +1,8 @@
 import React from 'react';
-import { Home, Zap, Store, Wallet, User } from 'lucide-react';
+import { Home, Zap, Wallet, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type TabType = 'home' | 'earn' | 'marketplace' | 'wallet' | 'profile';
+type TabType = 'home' | 'earn' | 'wallet' | 'profile';
 
 interface MobileBottomNavProps {
   activeTab: TabType;
@@ -16,7 +16,6 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   const tabs = [
     { id: 'home' as TabType, name: 'Home', icon: Home },
     { id: 'earn' as TabType, name: 'Execute', icon: Zap },
-    { id: 'marketplace' as TabType, name: 'Discovery', icon: Store },
     { id: 'wallet' as TabType, name: 'Wallet', icon: Wallet },
     { id: 'profile' as TabType, name: 'Profile', icon: User }
   ];

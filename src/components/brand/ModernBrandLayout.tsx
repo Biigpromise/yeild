@@ -5,7 +5,7 @@ import { ModernNavHeader } from '@/components/navigation/ModernNavHeader';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, LayoutDashboard, Target, Store, Users, Palette, Wallet, BarChart3, Settings, HelpCircle, LogOut } from 'lucide-react';
+import { Menu, LayoutDashboard, Target, Users, Palette, Wallet, BarChart3, Settings, HelpCircle, LogOut } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -19,8 +19,7 @@ interface ModernBrandLayoutProps {
 
 const mobileNavItems = [
   { title: "Dashboard", url: "/brand-dashboard", icon: LayoutDashboard },
-  { title: "Campaigns", url: "/brand-dashboard/campaigns", icon: Target },
-  { title: "Discovery", url: "/brand-dashboard/marketplace", icon: Store },
+  { title: "Execution Orders", url: "/brand-dashboard/campaigns", icon: Target },
   { title: "Audience", url: "/brand-dashboard/audience", icon: Users },
   { title: "Creative Studio", url: "/brand-dashboard/creative", icon: Palette },
   { title: "Financial Hub", url: "/brand-dashboard/finance", icon: Wallet },

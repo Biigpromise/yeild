@@ -17,8 +17,7 @@ import {
   ArrowUpRight,
   Clock,
   Trophy,
-  Target,
-  Store
+  Target
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -28,10 +27,9 @@ import { ProfileTab } from './tabs/ProfileTab';
 import { WalletTab } from './tabs/WalletTab';
 import { LiveNotifications } from './LiveNotifications';
 import ExecutionOrders from '@/pages/ExecutionOrders';
-import { MarketplaceBrowser } from '@/components/marketplace/MarketplaceBrowser';
 import { MobileBottomNav } from './MobileBottomNav';
 import { UserBrandModeToggle } from '@/components/common/UserBrandModeToggle';
-type TabType = 'home' | 'earn' | 'marketplace' | 'wallet' | 'profile';
+type TabType = 'home' | 'earn' | 'wallet' | 'profile';
 
 interface SimplifiedDashboardProps {
   className?: string;
@@ -107,12 +105,6 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
       description: 'Execution orders'
     },
     {
-      id: 'marketplace' as TabType,
-      name: 'Discovery',
-      icon: Store,
-      description: 'Browse listings'
-    },
-    {
       id: 'wallet' as TabType,
       name: 'Wallet',
       icon: Wallet,
@@ -155,11 +147,9 @@ export const SimplifiedDashboard: React.FC<SimplifiedDashboardProps> = ({ classN
   const renderTabContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab userStats={userStats} userProfile={userProfile} onExploreMarket={() => setActiveTab('marketplace')} onTabChange={(tab) => setActiveTab(tab as TabType)} />;
+        return <HomeTab userStats={userStats} userProfile={userProfile} onTabChange={(tab) => setActiveTab(tab as TabType)} />;
       case 'earn':
         return <ExecutionOrders />;
-      case 'marketplace':
-        return <MarketplaceBrowser />;
       case 'wallet':
         return <WalletTab userProfile={userProfile} userStats={userStats} />;
       case 'profile':
