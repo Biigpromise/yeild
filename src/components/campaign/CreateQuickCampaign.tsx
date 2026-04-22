@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, ArrowRight, Zap, Target, Clock, Upload, Image as ImageIcon, X, CheckCircle, Calculator, AlertTriangle, Wallet } from 'lucide-react';
 import { BudgetEstimateCalculator } from '@/components/brand/BudgetEstimateCalculator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CAMPAIGN_CATEGORY_OPTIONS } from '@/constants/campaignCategories';
 
 interface QuickCampaignFormData {
   title: string;
@@ -301,11 +302,9 @@ export const CreateQuickCampaign = () => {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="brand_awareness">Brand Awareness</SelectItem>
-                    <SelectItem value="product_launch">Product Launch</SelectItem>
-                    <SelectItem value="engagement">Engagement</SelectItem>
-                    <SelectItem value="lead_generation">Lead Generation</SelectItem>
-                    <SelectItem value="sales_promotion">Sales Promotion</SelectItem>
+                    {CAMPAIGN_CATEGORY_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

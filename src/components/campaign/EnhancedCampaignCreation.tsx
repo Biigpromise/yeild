@@ -17,6 +17,7 @@ import { brandWalletService, type BrandWallet } from '@/services/brandWalletServ
 import { MediaUploadSection } from './MediaUploadSection';
 import { SocialLinksSection } from './SocialLinksSection';
 import { CampaignBriefSection } from './CampaignBriefSection';
+import { CAMPAIGN_CATEGORY_OPTIONS } from '@/constants/campaignCategories';
 
 interface BasicInfo {
   title: string;
@@ -436,11 +437,9 @@ export const EnhancedCampaignCreation: React.FC = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="brand_awareness">Brand Awareness</SelectItem>
-                        <SelectItem value="product_launch">Product Launch</SelectItem>
-                        <SelectItem value="event_promotion">Event Promotion</SelectItem>
-                        <SelectItem value="user_generated_content">User Generated Content</SelectItem>
-                        <SelectItem value="influencer_collaboration">Influencer Collaboration</SelectItem>
+                        {CAMPAIGN_CATEGORY_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
