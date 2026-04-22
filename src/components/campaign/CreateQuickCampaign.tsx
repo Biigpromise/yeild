@@ -301,11 +301,9 @@ export const CreateQuickCampaign = () => {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="brand_awareness">Brand Awareness</SelectItem>
-                    <SelectItem value="product_launch">Product Launch</SelectItem>
-                    <SelectItem value="engagement">Engagement</SelectItem>
-                    <SelectItem value="lead_generation">Lead Generation</SelectItem>
-                    <SelectItem value="sales_promotion">Sales Promotion</SelectItem>
+                    {CAMPAIGN_CATEGORY_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
