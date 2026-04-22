@@ -20,12 +20,15 @@ serve(async (req) => {
   }
 
   try {
-    // Initialize Supabase client
+    // Initialize Supabase clients
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+
+    // Service-role client for privileged DB operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Verify admin access
+    // Verify admin access via JWT
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(
@@ -34,15 +37,24 @@ serve(async (req) => {
       )
     }
 
-    // Set auth context for admin check
-    supabase.auth.setAuth(authHeader.replace('Bearer ', ''))
-    
-    // Check if user is admin
-    const { data: adminCheck } = await supabase.rpc('is_admin_safe', { 
-      user_id_param: (await supabase.auth.getUser()).data.user?.id 
+    // Use anon-key client to validate the user's JWT
+    const anonClient = createClient(supabaseUrl, supabaseAnonKey)
+    const token = authHeader.replace('Bearer ', '')
+    const { data: userData, error: userError } = await anonClient.auth.getUser(token)
+
+    if (userError || !userData?.user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Check admin role using service-role client
+    const { data: adminCheck, error: adminCheckError } = await supabase.rpc('is_admin_safe', {
+      user_id_param: userData.user.id
     })
-    
-    if (!adminCheck) {
+
+    if (adminCheckError || !adminCheck) {
       return new Response(
         JSON.stringify({ error: 'Admin access required' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
