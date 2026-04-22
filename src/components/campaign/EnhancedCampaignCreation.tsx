@@ -17,6 +17,7 @@ import { brandWalletService, type BrandWallet } from '@/services/brandWalletServ
 import { MediaUploadSection } from './MediaUploadSection';
 import { SocialLinksSection } from './SocialLinksSection';
 import { CampaignBriefSection } from './CampaignBriefSection';
+import { CAMPAIGN_CATEGORY_OPTIONS } from '@/constants/campaignCategories';
 
 interface BasicInfo {
   title: string;

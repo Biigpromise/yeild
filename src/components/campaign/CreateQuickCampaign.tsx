@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, ArrowRight, Zap, Target, Clock, Upload, Image as ImageIcon, X, CheckCircle, Calculator, AlertTriangle, Wallet } from 'lucide-react';
 import { BudgetEstimateCalculator } from '@/components/brand/BudgetEstimateCalculator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CAMPAIGN_CATEGORY_OPTIONS } from '@/constants/campaignCategories';
 
 interface QuickCampaignFormData {
   title: string;
