@@ -57,6 +57,7 @@ interface CampaignFormData {
   executionMode: ExecutionMode | null;
 }
 
+// Verified-execution categories only — no engagement/follow/social-engagement options.
 const campaignCategories = [
   'App Testing & QA',
   'Property / Real Estate Visit',
@@ -66,8 +67,9 @@ const campaignCategories = [
   'Survey & Research',
   'Lead Generation',
   'Content Creation',
-  'Social Media Engagement',
   'Event Activation',
+  'In-Store Promotion',
+  'Product Sampling',
   'Other'
 ];
 
