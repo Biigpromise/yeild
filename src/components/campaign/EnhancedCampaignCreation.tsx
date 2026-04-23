@@ -418,6 +418,14 @@ export const EnhancedCampaignCreation: React.FC = () => {
                     />
                   </div>
                 </div>
+
+                {/* Live cost breakdown — visible whenever a NGN budget is entered */}
+                {basicInfo.currency === 'NGN' && parseFloat(basicInfo.budget) > 0 && (
+                  <LiveCostPreview
+                    budget={parseFloat(basicInfo.budget)}
+                    mode="digital"
+                  />
+                )}
               </CardContent>
             </Card>
           )}
