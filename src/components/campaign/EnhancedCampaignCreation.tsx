@@ -15,8 +15,7 @@ import { toast } from 'sonner';
 import { brandWalletService, type BrandWallet } from '@/services/brandWalletService';
 
 import { MediaUploadSection } from './MediaUploadSection';
-import { SocialLinksSection } from './SocialLinksSection';
-import { CampaignBriefSection } from './CampaignBriefSection';
+import { CampaignBriefSection, type CampaignBriefData } from './CampaignBriefSection';
 import { CAMPAIGN_CATEGORY_OPTIONS } from '@/constants/campaignCategories';
 
 interface BasicInfo {
@@ -38,49 +37,17 @@ interface MediaAsset {
   size: number;
 }
 
-interface SocialLinksData {
-  website?: string;
-  socialProfiles: Array<{
-    platform: string;
-    url: string;
-    description?: string;
-  }>;
-  engagementPosts: string[];
-  hashtags: string[];
-  mentionRequirements: string[];
-}
-
-interface CampaignBriefData {
-  mainBrief: string;
-  objectives: string[];
-  deliverables: Array<{
-    id: string;
-    type: 'post' | 'story' | 'reel' | 'video' | 'review' | 'unboxing' | 'tutorial';
-    quantity: number;
-    specifications: string;
-    deadline?: string;
-  }>;
-  contentGuidelines: string;
-  brandVoice: string;
-  dos: string[];
-  donts: string[];
-  successMetrics: string[];
-}
-
 interface TargetDemographics {
   age_ranges: string[];
   locations: string[];
   interests: string[];
-  follower_count_min: number;
-  engagement_rate_min: number;
   languages: string[];
 }
 
 const steps = [
   { id: 'basic', title: 'Basic Info', description: 'Campaign title, description, and budget' },
   { id: 'media', title: 'Media Assets', description: 'Upload brand assets and campaign materials' },
-  { id: 'links', title: 'Social Links', description: 'Social media profiles and requirements' },
-  { id: 'brief', title: 'Campaign Brief', description: 'Detailed requirements and deliverables' },
+  { id: 'brief', title: 'Execution Brief', description: 'Define the action, proof, and deliverables' },
   { id: 'targeting', title: 'Target Audience', description: 'Define your target demographics' },
   { id: 'review', title: 'Review & Submit', description: 'Review all details before submission' }
 ];
@@ -105,13 +72,6 @@ export const EnhancedCampaignCreation: React.FC = () => {
   });
 
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
-  
-  const [socialLinks, setSocialLinks] = useState<SocialLinksData>({
-    socialProfiles: [],
-    engagementPosts: [],
-    hashtags: [],
-    mentionRequirements: []
-  });
 
   const [briefData, setBriefData] = useState<CampaignBriefData>({
     mainBrief: '',
@@ -128,8 +88,6 @@ export const EnhancedCampaignCreation: React.FC = () => {
     age_ranges: [],
     locations: [],
     interests: [],
-    follower_count_min: 0,
-    engagement_rate_min: 0,
     languages: []
   });
 
@@ -149,7 +107,7 @@ export const EnhancedCampaignCreation: React.FC = () => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [currentStep, basicInfo, mediaAssets, socialLinks, briefData, targetDemographics]);
+  }, [currentStep, basicInfo, mediaAssets, briefData, targetDemographics]);
 
   const loadWallet = async () => {
     if (!user) return;
@@ -166,7 +124,6 @@ export const EnhancedCampaignCreation: React.FC = () => {
         const draft = JSON.parse(savedDraft);
         setBasicInfo(draft.basicInfo || basicInfo);
         setMediaAssets(draft.mediaAssets || []);
-        setSocialLinks(draft.socialLinks || socialLinks);
         setBriefData(draft.briefData || briefData);
         setTargetDemographics(draft.targetDemographics || targetDemographics);
         setIsDraft(true);
@@ -182,7 +139,6 @@ export const EnhancedCampaignCreation: React.FC = () => {
     const draft = {
       basicInfo,
       mediaAssets,
-      socialLinks,
       briefData,
       targetDemographics,
       lastSaved: new Date().toISOString()
@@ -209,9 +165,7 @@ export const EnhancedCampaignCreation: React.FC = () => {
         return true;
       case 1: // Media Assets
         return true; // Optional
-      case 2: // Social Links
-        return true; // Optional
-      case 3: // Campaign Brief
+      case 2: // Execution Brief
         if (!briefData.mainBrief.trim()) {
           toast.error('Campaign brief is required');
           return false;
@@ -221,7 +175,7 @@ export const EnhancedCampaignCreation: React.FC = () => {
           return false;
         }
         return true;
-      case 4: // Target Demographics
+      case 3: // Target Demographics
         return true; // Optional
       default:
         return true;
@@ -261,7 +215,6 @@ export const EnhancedCampaignCreation: React.FC = () => {
         start_date: basicInfo.start_date || null,
         end_date: basicInfo.end_date || null,
         media_assets: JSON.parse(JSON.stringify(mediaAssets)),
-        social_links: JSON.parse(JSON.stringify(socialLinks)),
         campaign_brief: briefData.mainBrief,
         target_demographics: JSON.parse(JSON.stringify(targetDemographics)),
         deliverable_specifications: JSON.parse(JSON.stringify({
@@ -269,7 +222,6 @@ export const EnhancedCampaignCreation: React.FC = () => {
           contentGuidelines: briefData.contentGuidelines,
           brandVoice: briefData.brandVoice
         })),
-        hashtags: socialLinks.hashtags,
         admin_approval_status: 'pending' as const,
         payment_status: status === 'active' ? 'paid' as const : 'unpaid' as const
       };
@@ -477,20 +429,13 @@ export const EnhancedCampaignCreation: React.FC = () => {
           )}
 
           {currentStep === 2 && (
-            <SocialLinksSection
-              socialLinks={socialLinks}
-              onSocialLinksChange={setSocialLinks}
-            />
-          )}
-
-          {currentStep === 3 && (
             <CampaignBriefSection
               briefData={briefData}
               onBriefDataChange={setBriefData}
             />
           )}
 
-          {currentStep === 4 && (
+          {currentStep === 3 && (
             <Card>
               <CardHeader>
                 <CardTitle>Target Audience Demographics</CardTitle>
@@ -541,7 +486,7 @@ export const EnhancedCampaignCreation: React.FC = () => {
             </Card>
           )}
 
-          {currentStep === 5 && (
+          {currentStep === 4 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -563,12 +508,11 @@ export const EnhancedCampaignCreation: React.FC = () => {
                   </div>
 
                   <div>
-                    <h3 className="font-medium mb-2">Assets & Content</h3>
+                    <h3 className="font-medium mb-2">Assets & Brief</h3>
                     <div className="text-sm space-y-1">
                       <p><strong>Media Assets:</strong> {mediaAssets.length} files</p>
-                      <p><strong>Social Profiles:</strong> {socialLinks.socialProfiles.length}</p>
-                      <p><strong>Hashtags:</strong> {socialLinks.hashtags.length}</p>
                       <p><strong>Deliverables:</strong> {briefData.deliverables.length}</p>
+                      <p><strong>Objectives:</strong> {briefData.objectives.length}</p>
                     </div>
                   </div>
                 </div>
