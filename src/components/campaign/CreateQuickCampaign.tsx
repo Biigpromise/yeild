@@ -617,6 +617,15 @@ export const CreateQuickCampaign = () => {
                     Cancel
                   </Button>
                   <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={saveDraftManually}
+                    className="flex-1"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Draft
+                  </Button>
+                  <Button
                     onClick={nextStep}
                     disabled={!validateStep(1)}
                     className="flex-1 bg-gradient-to-r from-primary to-primary/90"
