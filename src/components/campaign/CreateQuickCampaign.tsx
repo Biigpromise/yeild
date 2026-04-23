@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { ArrowLeft, ArrowRight, Zap, Target, Clock, Upload, Image as ImageIcon, X, CheckCircle, Calculator, AlertTriangle, Wallet } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Zap, Target, Clock, Upload, Image as ImageIcon, X, CheckCircle, Calculator, AlertTriangle, Wallet, Save } from 'lucide-react';
 import { BudgetEstimateCalculator } from '@/components/brand/BudgetEstimateCalculator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CAMPAIGN_CATEGORY_OPTIONS } from '@/constants/campaignCategories';
@@ -65,6 +65,43 @@ export const CreateQuickCampaign = () => {
     },
     enabled: !!user?.id
   });
+
+  const draftKey = user?.id ? `quick_campaign_draft_${user.id}` : null;
+  const [draftLoaded, setDraftLoaded] = useState(false);
+
+  // Load draft on mount
+  useEffect(() => {
+    if (!draftKey || draftLoaded) return;
+    const saved = localStorage.getItem(draftKey);
+    if (saved) {
+      try {
+        const draft = JSON.parse(saved);
+        if (draft.formData) setFormData(draft.formData);
+        if (draft.logoPreview) setLogoPreview(draft.logoPreview);
+        toast.info('Draft restored');
+      } catch (e) {
+        console.error('Failed to load draft', e);
+      }
+    }
+    setDraftLoaded(true);
+  }, [draftKey, draftLoaded]);
+
+  // Auto-save draft every 30s while editing
+  useEffect(() => {
+    if (!draftKey) return;
+    const interval = setInterval(() => {
+      if (formData.title || formData.description) {
+        localStorage.setItem(draftKey, JSON.stringify({ formData, logoPreview, savedAt: new Date().toISOString() }));
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [draftKey, formData, logoPreview]);
+
+  const saveDraftManually = () => {
+    if (!draftKey) return;
+    localStorage.setItem(draftKey, JSON.stringify({ formData, logoPreview, savedAt: new Date().toISOString() }));
+    toast.success('Draft saved');
+  };
 
   const steps = [
     { id: 1, title: 'Campaign Details', description: 'Basic information' },
@@ -146,6 +183,8 @@ export const CreateQuickCampaign = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['brand-campaigns'] });
       queryClient.invalidateQueries({ queryKey: ['brand-wallet'] });
+      // Clear saved draft on successful creation
+      if (draftKey) localStorage.removeItem(draftKey);
       toast.success('Quick campaign created and funded successfully!');
       navigate('/brand-dashboard/campaigns');
     },
@@ -576,6 +615,15 @@ export const CreateQuickCampaign = () => {
                     className="flex-1"
                   >
                     Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={saveDraftManually}
+                    className="flex-1"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Draft
                   </Button>
                   <Button
                     onClick={nextStep}

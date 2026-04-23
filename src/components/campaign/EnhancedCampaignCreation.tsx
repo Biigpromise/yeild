@@ -16,6 +16,7 @@ import { brandWalletService, type BrandWallet } from '@/services/brandWalletServ
 
 import { MediaUploadSection } from './MediaUploadSection';
 import { CampaignBriefSection, type CampaignBriefData } from './CampaignBriefSection';
+import { LiveCostPreview } from './LiveCostPreview';
 import { CAMPAIGN_CATEGORY_OPTIONS } from '@/constants/campaignCategories';
 
 interface BasicInfo {
@@ -417,6 +418,14 @@ export const EnhancedCampaignCreation: React.FC = () => {
                     />
                   </div>
                 </div>
+
+                {/* Live cost breakdown — visible whenever a NGN budget is entered */}
+                {basicInfo.currency === 'NGN' && parseFloat(basicInfo.budget) > 0 && (
+                  <LiveCostPreview
+                    budget={parseFloat(basicInfo.budget)}
+                    mode="digital"
+                  />
+                )}
               </CardContent>
             </Card>
           )}
