@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { ArrowLeft, ArrowRight, Zap, Target, Clock, Upload, Image as ImageIcon, X, CheckCircle, Calculator, AlertTriangle, Wallet } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Zap, Target, Clock, Upload, Image as ImageIcon, X, CheckCircle, Calculator, AlertTriangle, Wallet, Save } from 'lucide-react';
 import { BudgetEstimateCalculator } from '@/components/brand/BudgetEstimateCalculator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CAMPAIGN_CATEGORY_OPTIONS } from '@/constants/campaignCategories';
