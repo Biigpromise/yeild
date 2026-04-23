@@ -9,9 +9,19 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Plus, X, Clock, Target, CheckSquare } from 'lucide-react';
 import { toast } from 'sonner';
 
+export type DeliverableType =
+  | 'photo_proof'
+  | 'video_proof'
+  | 'screen_recording'
+  | 'gps_checkin'
+  | 'receipt_upload'
+  | 'form_submission'
+  | 'written_review'
+  | 'survey_response';
+
 export interface Deliverable {
   id: string;
-  type: 'post' | 'story' | 'reel' | 'video' | 'review' | 'unboxing' | 'tutorial';
+  type: DeliverableType;
   quantity: number;
   specifications: string;
   deadline?: string;
@@ -28,50 +38,52 @@ export interface CampaignBriefData {
   successMetrics: string[];
 }
 
+const deliverableTypes: { value: DeliverableType; label: string }[] = [
+  { value: 'photo_proof', label: 'Photo proof (GPS-tagged)' },
+  { value: 'video_proof', label: 'Video proof' },
+  { value: 'screen_recording', label: 'Screen recording' },
+  { value: 'gps_checkin', label: 'GPS check-in' },
+  { value: 'receipt_upload', label: 'Receipt / confirmation upload' },
+  { value: 'form_submission', label: 'Form / survey submission' },
+  { value: 'written_review', label: 'Written review' },
+  { value: 'survey_response', label: 'Survey response' },
+];
+
+const campaignTemplates = [
+  {
+    name: 'App Test & Onboarding',
+    mainBrief: 'Operators install your app, complete onboarding end-to-end, and submit a screen recording proving the flow works.',
+    objectives: ['Verify onboarding flow', 'Surface UX bugs', 'Validate signup funnel'],
+    deliverables: [
+      { id: '1', type: 'screen_recording' as const, quantity: 1, specifications: 'Full screen recording from app open through onboarding completion.' },
+      { id: '2', type: 'form_submission' as const, quantity: 1, specifications: 'Submit confirmation ID / in-app reference number.' },
+    ],
+  },
+  {
+    name: 'Mystery Shop',
+    mainBrief: 'Operators visit the store, complete a checklist, and submit photo + receipt as verification.',
+    objectives: ['Audit in-store experience', 'Verify staff compliance', 'Collect receipt evidence'],
+    deliverables: [
+      { id: '1', type: 'photo_proof' as const, quantity: 3, specifications: 'GPS-tagged photos of storefront, shelf, and point-of-sale.' },
+      { id: '2', type: 'receipt_upload' as const, quantity: 1, specifications: 'Photo of dated receipt from the visit.' },
+    ],
+  },
+  {
+    name: 'Field Activation',
+    mainBrief: 'Operators run a sampling / activation at a target location and submit verifiable proof.',
+    objectives: ['Drive trial', 'Capture location coverage', 'Collect on-site evidence'],
+    deliverables: [
+      { id: '1', type: 'gps_checkin' as const, quantity: 1, specifications: 'GPS check-in at the activation location.' },
+      { id: '2', type: 'video_proof' as const, quantity: 1, specifications: '15–30s video showing the activation in progress.' },
+    ],
+  },
+];
+
 interface CampaignBriefSectionProps {
   briefData: CampaignBriefData;
   onBriefDataChange: (data: CampaignBriefData) => void;
 }
 
-const deliverableTypes = [
-  { value: 'post', label: 'Social Media Post' },
-  { value: 'story', label: 'Story/Story Highlight' },
-  { value: 'reel', label: 'Reel/Short Video' },
-  { value: 'video', label: 'Long-form Video' },
-  { value: 'review', label: 'Product Review' },
-  { value: 'unboxing', label: 'Unboxing Video' },
-  { value: 'tutorial', label: 'Tutorial/How-to' },
-];
-
-const campaignTemplates = [
-  {
-    name: 'Product Launch',
-    mainBrief: 'Help us introduce our new product to your audience through authentic content creation.',
-    objectives: ['Increase brand awareness', 'Drive product sales', 'Generate user-generated content'],
-    deliverables: [
-      { id: '1', type: 'post' as const, quantity: 2, specifications: 'High-quality product photos with lifestyle context' },
-      { id: '2', type: 'story' as const, quantity: 3, specifications: 'Behind-the-scenes content and product usage' }
-    ]
-  },
-  {
-    name: 'Brand Awareness',
-    mainBrief: 'Create engaging content that showcases our brand values and connects with your audience.',
-    objectives: ['Increase brand visibility', 'Build brand affinity', 'Reach new audiences'],
-    deliverables: [
-      { id: '1', type: 'post' as const, quantity: 1, specifications: 'Authentic brand integration in your content style' },
-      { id: '2', type: 'story' as const, quantity: 2, specifications: 'Brand mention with personal touch' }
-    ]
-  },
-  {
-    name: 'Event Promotion',
-    mainBrief: 'Help promote our upcoming event and encourage attendance through compelling content.',
-    objectives: ['Drive event registrations', 'Create event buzz', 'Increase attendance'],
-    deliverables: [
-      { id: '1', type: 'post' as const, quantity: 1, specifications: 'Event announcement with compelling visuals' },
-      { id: '2', type: 'story' as const, quantity: 1, specifications: 'Event countdown and details' }
-    ]
-  }
-];
 
 export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
   briefData,
