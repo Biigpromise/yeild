@@ -183,6 +183,8 @@ export const CreateQuickCampaign = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['brand-campaigns'] });
       queryClient.invalidateQueries({ queryKey: ['brand-wallet'] });
+      // Clear saved draft on successful creation
+      if (draftKey) localStorage.removeItem(draftKey);
       toast.success('Quick campaign created and funded successfully!');
       navigate('/brand-dashboard/campaigns');
     },
