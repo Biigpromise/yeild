@@ -16,6 +16,7 @@ import { brandWalletService, type BrandWallet } from '@/services/brandWalletServ
 
 import { MediaUploadSection } from './MediaUploadSection';
 import { CampaignBriefSection, type CampaignBriefData } from './CampaignBriefSection';
+import { LiveCostPreview } from './LiveCostPreview';
 import { CAMPAIGN_CATEGORY_OPTIONS } from '@/constants/campaignCategories';
 
 interface BasicInfo {
