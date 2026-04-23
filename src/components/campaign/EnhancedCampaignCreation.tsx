@@ -72,13 +72,6 @@ export const EnhancedCampaignCreation: React.FC = () => {
   });
 
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
-  
-  const [socialLinks, setSocialLinks] = useState<SocialLinksData>({
-    socialProfiles: [],
-    engagementPosts: [],
-    hashtags: [],
-    mentionRequirements: []
-  });
 
   const [briefData, setBriefData] = useState<CampaignBriefData>({
     mainBrief: '',
@@ -95,8 +88,6 @@ export const EnhancedCampaignCreation: React.FC = () => {
     age_ranges: [],
     locations: [],
     interests: [],
-    follower_count_min: 0,
-    engagement_rate_min: 0,
     languages: []
   });
 
