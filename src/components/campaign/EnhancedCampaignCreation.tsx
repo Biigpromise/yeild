@@ -165,9 +165,7 @@ export const EnhancedCampaignCreation: React.FC = () => {
         return true;
       case 1: // Media Assets
         return true; // Optional
-      case 2: // Social Links
-        return true; // Optional
-      case 3: // Campaign Brief
+      case 2: // Execution Brief
         if (!briefData.mainBrief.trim()) {
           toast.error('Campaign brief is required');
           return false;
@@ -177,7 +175,7 @@ export const EnhancedCampaignCreation: React.FC = () => {
           return false;
         }
         return true;
-      case 4: // Target Demographics
+      case 3: // Target Demographics
         return true; // Optional
       default:
         return true;
