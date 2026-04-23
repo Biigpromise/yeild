@@ -15,8 +15,7 @@ import { toast } from 'sonner';
 import { brandWalletService, type BrandWallet } from '@/services/brandWalletService';
 
 import { MediaUploadSection } from './MediaUploadSection';
-import { SocialLinksSection } from './SocialLinksSection';
-import { CampaignBriefSection } from './CampaignBriefSection';
+import { CampaignBriefSection, type CampaignBriefData } from './CampaignBriefSection';
 import { CAMPAIGN_CATEGORY_OPTIONS } from '@/constants/campaignCategories';
 
 interface BasicInfo {
@@ -38,49 +37,17 @@ interface MediaAsset {
   size: number;
 }
 
-interface SocialLinksData {
-  website?: string;
-  socialProfiles: Array<{
-    platform: string;
-    url: string;
-    description?: string;
-  }>;
-  engagementPosts: string[];
-  hashtags: string[];
-  mentionRequirements: string[];
-}
-
-interface CampaignBriefData {
-  mainBrief: string;
-  objectives: string[];
-  deliverables: Array<{
-    id: string;
-    type: 'post' | 'story' | 'reel' | 'video' | 'review' | 'unboxing' | 'tutorial';
-    quantity: number;
-    specifications: string;
-    deadline?: string;
-  }>;
-  contentGuidelines: string;
-  brandVoice: string;
-  dos: string[];
-  donts: string[];
-  successMetrics: string[];
-}
-
 interface TargetDemographics {
   age_ranges: string[];
   locations: string[];
   interests: string[];
-  follower_count_min: number;
-  engagement_rate_min: number;
   languages: string[];
 }
 
 const steps = [
   { id: 'basic', title: 'Basic Info', description: 'Campaign title, description, and budget' },
   { id: 'media', title: 'Media Assets', description: 'Upload brand assets and campaign materials' },
-  { id: 'links', title: 'Social Links', description: 'Social media profiles and requirements' },
-  { id: 'brief', title: 'Campaign Brief', description: 'Detailed requirements and deliverables' },
+  { id: 'brief', title: 'Execution Brief', description: 'Define the action, proof, and deliverables' },
   { id: 'targeting', title: 'Target Audience', description: 'Define your target demographics' },
   { id: 'review', title: 'Review & Submit', description: 'Review all details before submission' }
 ];
