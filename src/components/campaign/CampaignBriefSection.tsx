@@ -124,7 +124,7 @@ export const CampaignBriefSection: React.FC<CampaignBriefSectionProps> = ({
   const addDeliverable = () => {
     const newDeliverable: Deliverable = {
       id: Date.now().toString(),
-      type: 'post',
+      type: 'photo_proof',
       quantity: 1,
       specifications: ''
     };

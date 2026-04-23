@@ -107,7 +107,7 @@ export const EnhancedCampaignCreation: React.FC = () => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [currentStep, basicInfo, mediaAssets, socialLinks, briefData, targetDemographics]);
+  }, [currentStep, basicInfo, mediaAssets, briefData, targetDemographics]);
 
   const loadWallet = async () => {
     if (!user) return;
@@ -124,7 +124,6 @@ export const EnhancedCampaignCreation: React.FC = () => {
         const draft = JSON.parse(savedDraft);
         setBasicInfo(draft.basicInfo || basicInfo);
         setMediaAssets(draft.mediaAssets || []);
-        setSocialLinks(draft.socialLinks || socialLinks);
         setBriefData(draft.briefData || briefData);
         setTargetDemographics(draft.targetDemographics || targetDemographics);
         setIsDraft(true);
@@ -140,7 +139,6 @@ export const EnhancedCampaignCreation: React.FC = () => {
     const draft = {
       basicInfo,
       mediaAssets,
-      socialLinks,
       briefData,
       targetDemographics,
       lastSaved: new Date().toISOString()
@@ -219,7 +217,6 @@ export const EnhancedCampaignCreation: React.FC = () => {
         start_date: basicInfo.start_date || null,
         end_date: basicInfo.end_date || null,
         media_assets: JSON.parse(JSON.stringify(mediaAssets)),
-        social_links: JSON.parse(JSON.stringify(socialLinks)),
         campaign_brief: briefData.mainBrief,
         target_demographics: JSON.parse(JSON.stringify(targetDemographics)),
         deliverable_specifications: JSON.parse(JSON.stringify({
@@ -227,7 +224,6 @@ export const EnhancedCampaignCreation: React.FC = () => {
           contentGuidelines: briefData.contentGuidelines,
           brandVoice: briefData.brandVoice
         })),
-        hashtags: socialLinks.hashtags,
         admin_approval_status: 'pending' as const,
         payment_status: status === 'active' ? 'paid' as const : 'unpaid' as const
       };
@@ -435,13 +431,6 @@ export const EnhancedCampaignCreation: React.FC = () => {
           )}
 
           {currentStep === 2 && (
-            <SocialLinksSection
-              socialLinks={socialLinks}
-              onSocialLinksChange={setSocialLinks}
-            />
-          )}
-
-          {currentStep === 3 && (
             <CampaignBriefSection
               briefData={briefData}
               onBriefDataChange={setBriefData}
@@ -521,12 +510,11 @@ export const EnhancedCampaignCreation: React.FC = () => {
                   </div>
 
                   <div>
-                    <h3 className="font-medium mb-2">Assets & Content</h3>
+                    <h3 className="font-medium mb-2">Assets & Brief</h3>
                     <div className="text-sm space-y-1">
                       <p><strong>Media Assets:</strong> {mediaAssets.length} files</p>
-                      <p><strong>Social Profiles:</strong> {socialLinks.socialProfiles.length}</p>
-                      <p><strong>Hashtags:</strong> {socialLinks.hashtags.length}</p>
                       <p><strong>Deliverables:</strong> {briefData.deliverables.length}</p>
+                      <p><strong>Objectives:</strong> {briefData.objectives.length}</p>
                     </div>
                   </div>
                 </div>
