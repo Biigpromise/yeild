@@ -437,7 +437,7 @@ export const EnhancedCampaignCreation: React.FC = () => {
             />
           )}
 
-          {currentStep === 4 && (
+          {currentStep === 3 && (
             <Card>
               <CardHeader>
                 <CardTitle>Target Audience Demographics</CardTitle>
@@ -488,7 +488,7 @@ export const EnhancedCampaignCreation: React.FC = () => {
             </Card>
           )}
 
-          {currentStep === 5 && (
+          {currentStep === 4 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
