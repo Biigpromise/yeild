@@ -66,6 +66,43 @@ export const CreateQuickCampaign = () => {
     enabled: !!user?.id
   });
 
+  const draftKey = user?.id ? `quick_campaign_draft_${user.id}` : null;
+  const [draftLoaded, setDraftLoaded] = useState(false);
+
+  // Load draft on mount
+  useEffect(() => {
+    if (!draftKey || draftLoaded) return;
+    const saved = localStorage.getItem(draftKey);
+    if (saved) {
+      try {
+        const draft = JSON.parse(saved);
+        if (draft.formData) setFormData(draft.formData);
+        if (draft.logoPreview) setLogoPreview(draft.logoPreview);
+        toast.info('Draft restored');
+      } catch (e) {
+        console.error('Failed to load draft', e);
+      }
+    }
+    setDraftLoaded(true);
+  }, [draftKey, draftLoaded]);
+
+  // Auto-save draft every 30s while editing
+  useEffect(() => {
+    if (!draftKey) return;
+    const interval = setInterval(() => {
+      if (formData.title || formData.description) {
+        localStorage.setItem(draftKey, JSON.stringify({ formData, logoPreview, savedAt: new Date().toISOString() }));
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [draftKey, formData, logoPreview]);
+
+  const saveDraftManually = () => {
+    if (!draftKey) return;
+    localStorage.setItem(draftKey, JSON.stringify({ formData, logoPreview, savedAt: new Date().toISOString() }));
+    toast.success('Draft saved');
+  };
+
   const steps = [
     { id: 1, title: 'Campaign Details', description: 'Basic information' },
     { id: 2, title: 'Budget Planning', description: 'Plan & confirm budget' }
