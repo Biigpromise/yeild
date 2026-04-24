@@ -122,8 +122,11 @@ class PointCalculationService {
       qualityScore
     } = factors;
 
-    // Apply economic sustainability controls - reduce base points for economic balance
-    const economicMultiplier = 0.7; // 30% reduction for economic sustainability
+    // NOTE: The 30% economic reduction has been removed.
+    // This service now applies only to gamification/reward points
+    // (achievements, streaks, referrals) — NOT execution-order payouts.
+    // Execution payouts use direct NGN via campaignPricingService.
+    const economicMultiplier = 1.0;
     const adjustedBasePoints = Math.floor(basePoints * economicMultiplier);
 
     // Calculate all multipliers with updated ranges

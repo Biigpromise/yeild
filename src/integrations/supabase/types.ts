@@ -1665,6 +1665,10 @@ export type Database = {
           is_enabled: boolean
           min_rank_level: number
           name: string
+          payout_max: number | null
+          payout_min: number | null
+          pricing_tier: string | null
+          recommended_payout: number | null
           required_proof_types: string[]
           requires_manual_verification: boolean
           reward_type: string | null
@@ -1687,6 +1691,10 @@ export type Database = {
           is_enabled?: boolean
           min_rank_level?: number
           name: string
+          payout_max?: number | null
+          payout_min?: number | null
+          pricing_tier?: string | null
+          recommended_payout?: number | null
           required_proof_types: string[]
           requires_manual_verification?: boolean
           reward_type?: string | null
@@ -1709,6 +1717,10 @@ export type Database = {
           is_enabled?: boolean
           min_rank_level?: number
           name?: string
+          payout_max?: number | null
+          payout_min?: number | null
+          pricing_tier?: string | null
+          recommended_payout?: number | null
           required_proof_types?: string[]
           requires_manual_verification?: boolean
           reward_type?: string | null
@@ -1722,6 +1734,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "operator_ranks"
             referencedColumns: ["rank_level"]
+          },
+          {
+            foreignKeyName: "execution_order_templates_pricing_tier_fkey"
+            columns: ["pricing_tier"]
+            isOneToOne: false
+            referencedRelation: "pricing_tiers"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1737,8 +1756,10 @@ export type Database = {
           execution_mode: string | null
           expires_at: string | null
           id: string
+          is_rush: boolean
           operator_payout: number
           platform_fee: number
+          pricing_tier: string | null
           rejection_reason: string | null
           required_caption: string | null
           required_media_urls: string[] | null
@@ -1761,8 +1782,10 @@ export type Database = {
           execution_mode?: string | null
           expires_at?: string | null
           id?: string
+          is_rush?: boolean
           operator_payout: number
           platform_fee: number
+          pricing_tier?: string | null
           rejection_reason?: string | null
           required_caption?: string | null
           required_media_urls?: string[] | null
@@ -1785,8 +1808,10 @@ export type Database = {
           execution_mode?: string | null
           expires_at?: string | null
           id?: string
+          is_rush?: boolean
           operator_payout?: number
           platform_fee?: number
+          pricing_tier?: string | null
           rejection_reason?: string | null
           required_caption?: string | null
           required_media_urls?: string[] | null
@@ -1804,6 +1829,13 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "brand_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execution_orders_pricing_tier_fkey"
+            columns: ["pricing_tier"]
+            isOneToOne: false
+            referencedRelation: "pricing_tiers"
             referencedColumns: ["id"]
           },
           {
@@ -3655,6 +3687,57 @@ export type Database = {
           min_cpa?: number
           region?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      pricing_tiers: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          min_rank_level: number
+          mode: string
+          name: string
+          payout_max: number
+          payout_min: number
+          recommended_payout: number
+          rush_premium_percent: number | null
+          updated_at: string
+          use_cases: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id: string
+          is_active?: boolean
+          min_rank_level?: number
+          mode: string
+          name: string
+          payout_max: number
+          payout_min: number
+          recommended_payout: number
+          rush_premium_percent?: number | null
+          updated_at?: string
+          use_cases?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          min_rank_level?: number
+          mode?: string
+          name?: string
+          payout_max?: number
+          payout_min?: number
+          recommended_payout?: number
+          rush_premium_percent?: number | null
+          updated_at?: string
+          use_cases?: string[] | null
         }
         Relationships: []
       }

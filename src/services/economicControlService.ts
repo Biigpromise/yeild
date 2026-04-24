@@ -1,16 +1,22 @@
 import { supabase } from "@/integrations/supabase/client";
 
 // Economic constants for sustainability
+// NOTE: 1 point = ₦1 (NGN-native). Used only for non-execution rewards
+// (achievements, streaks, referrals). Execution-order payouts use NGN directly
+// via campaignPricingService and bypass these caps.
 export const ECONOMIC_CONSTANTS = {
-  // Point-to-dollar conversion: 200 points = $1.00
-  POINTS_PER_DOLLAR: 200,
-  
-  // Daily earning limits per user (in points)
+  // Point-to-NGN conversion: 1 point = ₦1
+  POINTS_PER_NGN: 1,
+  // Derived USD basis (display only)
+  POINTS_PER_DOLLAR: 1500,
+
+  // Daily earning limits per user (in points / NGN equivalent)
+  // Applies to gamification/reward points only — NOT execution payouts
   DAILY_LIMITS: {
-    NEW_USER: 500,      // First 30 days
-    REGULAR_USER: 750,   // 30+ days, <100 tasks
-    VETERAN_USER: 1000,  // 100+ tasks completed
-    VIP_USER: 1500       // Special tier users
+    NEW_USER: 5000,       // First 30 days
+    REGULAR_USER: 10000,  // 30+ days, <100 tasks
+    VETERAN_USER: 25000,  // 100+ tasks completed
+    VIP_USER: 50000       // Special tier users
   },
 
   // Campaign budget controls
