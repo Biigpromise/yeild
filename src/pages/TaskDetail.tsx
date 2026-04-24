@@ -141,9 +141,11 @@ const TaskDetail: React.FC = () => {
                 </div>
               </div>
               <div className="text-right">
-                <div className="flex items-center gap-2 text-yeild-yellow text-xl font-bold mb-2">
-                  <DollarSign className="h-5 w-5" />
-                  {task.points} points
+                <div className="flex flex-col items-end mb-2">
+                  <div className="text-yeild-yellow text-2xl font-bold">
+                    ₦{(task.points || 0).toLocaleString()}
+                  </div>
+                  <div className="text-xs text-gray-400">{task.points} points reward</div>
                 </div>
                 {task.expires_at && (
                   <div className="text-sm text-gray-400">

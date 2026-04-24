@@ -11,6 +11,7 @@ import { Search, Target, Trophy, Sparkles, Clock, CheckCircle, Zap, Shield, Aler
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import type { ExecutionOrder, ExecutionOrderTemplate } from '@/types/execution';
+import { PricingTierBadge } from '@/components/shared/PricingTierBadge';
 interface ExecutionOrderWithTemplate extends ExecutionOrder {
   template: ExecutionOrderTemplate;
 }
@@ -126,7 +127,7 @@ const ExecutionOrders: React.FC = () => {
               Complete verified executions to earn credits. Higher ranks unlock more valuable orders.
             </p>
             
-            {/* Operator Stats Summary */}
+            {/* Operator Stats Summary - NGN primary */}
             <div className="flex items-center justify-center gap-3 pt-2 flex-wrap">
               <Badge variant="secondary" className="flex items-center gap-2 px-3 py-1.5">
                 <Shield className="h-3 w-3" />
@@ -134,7 +135,10 @@ const ExecutionOrders: React.FC = () => {
               </Badge>
               <Badge variant="outline" className="flex items-center gap-2 px-3 py-1.5">
                 <Zap className="h-3 w-3" />
-                {operatorStats?.execution_credits_balance || 0} Credits
+                ₦{(operatorStats?.execution_credits_balance || 0).toLocaleString()}
+                <span className="text-xs text-muted-foreground ml-1">
+                  ({operatorStats?.execution_credits_balance || 0} pts)
+                </span>
               </Badge>
               <Badge variant="outline" className="flex items-center gap-2 px-3 py-1.5">
                 <CheckCircle className="h-3 w-3" />
@@ -187,10 +191,11 @@ const ExecutionOrders: React.FC = () => {
               const spotsLeft = order.target_quantity - order.completed_quantity;
               return <Card key={order.id} className={`group cursor-pointer transition-all duration-300 hover:shadow-lg ${canAccess ? 'hover:scale-105 hover:border-primary/50' : 'opacity-60'}`} onClick={() => handleOrderClick(order)}>
                       <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-start justify-between mb-2 gap-2 flex-wrap">
                           <Badge className={getDifficultyColor(order.template?.difficulty_level || '')}>
                             {order.template?.difficulty_level}
                           </Badge>
+                          <PricingTierBadge tier={(order as any).pricing_tier} isRush={(order as any).is_rush} />
                           {!canAccess && <Badge variant="outline" className="flex items-center gap-1">
                               <Lock className="h-3 w-3" />
                               Locked
@@ -205,12 +210,15 @@ const ExecutionOrders: React.FC = () => {
                           {order.template?.description}
                         </p>
                         
-                        {/* Order Info */}
+                        {/* Order Info - NGN primary */}
                         <div className="space-y-2 text-xs">
                           <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">Payout:</span>
-                            <span className="font-bold text-primary">
-                              {order.operator_payout} credits
+                            <span className="font-bold text-primary text-base">
+                              ₦{(order.operator_payout || 0).toLocaleString()}
+                              <span className="text-xs text-muted-foreground font-normal ml-1">
+                                ({order.operator_payout} pts)
+                              </span>
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
