@@ -113,8 +113,9 @@ const OperatorRanks: React.FC = () => {
                   </div>
                   <div className="text-center p-4 bg-yellow-500/10 rounded-lg">
                     <Zap className="h-6 w-6 mx-auto mb-2 text-yellow-500" />
-                    <p className="text-2xl font-bold">{operatorStats?.execution_credits_balance || 0}</p>
-                    <p className="text-xs text-muted-foreground">Credits Balance</p>
+                    <p className="text-2xl font-bold">₦{(operatorStats?.execution_credits_balance || 0).toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">Available Earnings</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{operatorStats?.execution_credits_balance || 0} points</p>
                   </div>
                 </div>
 
@@ -245,18 +246,21 @@ const OperatorRanks: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center p-4 bg-green-500/10 rounded-lg">
                 <Zap className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                <p className="font-bold text-2xl">{operatorStats?.execution_credits_balance || 0}</p>
-                <p className="text-sm text-muted-foreground">Available Balance</p>
+                <p className="font-bold text-2xl">₦{(operatorStats?.execution_credits_balance || 0).toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Available Earnings</p>
+                <p className="text-xs text-muted-foreground mt-1">{operatorStats?.execution_credits_balance || 0} points</p>
               </div>
               <div className="text-center p-4 bg-yellow-500/10 rounded-lg">
                 <Clock className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
-                <p className="font-bold text-2xl">{operatorStats?.execution_credits_pending || 0}</p>
+                <p className="font-bold text-2xl">₦{(operatorStats?.execution_credits_pending || 0).toLocaleString()}</p>
                 <p className="text-sm text-muted-foreground">Pending (7-day hold)</p>
+                <p className="text-xs text-muted-foreground mt-1">{operatorStats?.execution_credits_pending || 0} points</p>
               </div>
               <div className="text-center p-4 bg-primary/10 rounded-lg">
                 <Trophy className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <p className="font-bold text-2xl">{operatorStats?.execution_credits_lifetime || 0}</p>
+                <p className="font-bold text-2xl">₦{(operatorStats?.execution_credits_lifetime || 0).toLocaleString()}</p>
                 <p className="text-sm text-muted-foreground">Lifetime Earned</p>
+                <p className="text-xs text-muted-foreground mt-1">{operatorStats?.execution_credits_lifetime || 0} points</p>
               </div>
             </div>
           </CardContent>
