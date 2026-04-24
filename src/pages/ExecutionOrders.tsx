@@ -11,6 +11,7 @@ import { Search, Target, Trophy, Sparkles, Clock, CheckCircle, Zap, Shield, Aler
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import type { ExecutionOrder, ExecutionOrderTemplate } from '@/types/execution';
+import { PricingTierBadge } from '@/components/shared/PricingTierBadge';
 interface ExecutionOrderWithTemplate extends ExecutionOrder {
   template: ExecutionOrderTemplate;
 }
