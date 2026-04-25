@@ -18,7 +18,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ExecutionModeSelector } from './ExecutionModeSelector';
 import { LiveCostPreview } from './LiveCostPreview';
 import { TemplateStarters, type TemplateStarter } from './TemplateStarters';
+import { JobCategoryPicker } from './JobCategoryPicker';
 import type { ExecutionMode } from '@/types/execution';
+import type { JobCategoryCode, JobCategory } from '@/types/jobCategories';
 
 interface MediaAsset {
   id: string;
@@ -55,6 +57,7 @@ interface CampaignFormData {
   mediaAssets: MediaAsset[];
   socialLinks: SocialLinksData;
   executionMode: ExecutionMode | null;
+  jobCategory: JobCategoryCode | null;
 }
 
 // Verified-execution categories only — no engagement/follow/social-engagement options.
@@ -94,6 +97,7 @@ export const SimplifiedCampaignCreator = () => {
       hashtags: []
     },
     executionMode: null,
+    jobCategory: null,
   });
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -300,7 +304,7 @@ export const SimplifiedCampaignCreator = () => {
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!formData.executionMode;
+        return !!formData.executionMode && !!formData.jobCategory;
       case 2:
         return !!(formData.title && formData.description && formData.category);
       case 3:
@@ -321,7 +325,11 @@ export const SimplifiedCampaignCreator = () => {
       setCurrentStep(currentStep + 1);
     } else if (!validateStep(currentStep)) {
       if (currentStep === 1) {
-        toast.error('Please select an execution mode to continue');
+        if (!formData.executionMode) {
+          toast.error('Please select an execution mode to continue');
+        } else {
+          toast.error('Please pick a job category so operators get paid correctly');
+        }
       } else if (currentStep === 5 && !budgetConfirmed) {
         toast.error('Please confirm your budget using the calculator before proceeding');
       } else {
@@ -461,6 +469,12 @@ export const SimplifiedCampaignCreator = () => {
               value={formData.executionMode}
               onChange={(mode) => setFormData(prev => ({ ...prev, executionMode: mode }))}
             />
+            {formData.executionMode && (
+              <JobCategoryPicker
+                value={formData.jobCategory}
+                onChange={(code) => setFormData(prev => ({ ...prev, jobCategory: code }))}
+              />
+            )}
             {formData.executionMode && (
               <TemplateStarters mode={formData.executionMode} onSelect={handleTemplateSelect} />
             )}
