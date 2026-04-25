@@ -207,7 +207,9 @@ export const SimplifiedCampaignCreator = () => {
         target_audience: { description: campaignData.target_audience },
         requirements: { 
           description: campaignData.requirements,
-          category: campaignData.category
+          category: campaignData.category,
+          job_category_code: campaignData.jobCategory,
+          execution_mode: campaignData.executionMode,
         },
         media_assets: campaignData.mediaAssets as any,
         social_links: campaignData.socialLinks as any,
