@@ -197,6 +197,7 @@ const ExecutionOrders: React.FC = () => {
                             {order.template?.difficulty_level}
                           </Badge>
                           <PricingTierBadge tier={(order as any).pricing_tier} isRush={(order as any).is_rush} />
+                          <JobCategoryBadge code={(order as any).job_category_code} />
                           {!canAccess && <Badge variant="outline" className="flex items-center gap-1">
                               <Lock className="h-3 w-3" />
                               Locked
