@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import type { ExecutionOrder, ExecutionOrderTemplate } from '@/types/execution';
 import { PricingTierBadge } from '@/components/shared/PricingTierBadge';
+import { JobCategoryBadge } from '@/components/shared/JobCategoryBadge';
 interface ExecutionOrderWithTemplate extends ExecutionOrder {
   template: ExecutionOrderTemplate;
 }
