@@ -1655,19 +1655,26 @@ export type Database = {
           base_credit_value: number
           category: string | null
           code: string
+          commission_pct: number | null
           created_at: string
           description: string
           difficulty_level: string
           execution_mode: string | null
+          expense_reimbursable: boolean
           failure_penalty_rules: Json | null
+          hourly_rate_ngn: number | null
           icon: string | null
           id: string
           is_enabled: boolean
+          job_category_code: string | null
           min_rank_level: number
           name: string
+          outcome_bonus_pct: number
           payout_max: number | null
           payout_min: number | null
           pricing_tier: string | null
+          quality_bonus_max_pct: number
+          rank_multiplier_enabled: boolean
           recommended_payout: number | null
           required_proof_types: string[]
           requires_manual_verification: boolean
@@ -1681,19 +1688,26 @@ export type Database = {
           base_credit_value?: number
           category?: string | null
           code: string
+          commission_pct?: number | null
           created_at?: string
           description: string
           difficulty_level?: string
           execution_mode?: string | null
+          expense_reimbursable?: boolean
           failure_penalty_rules?: Json | null
+          hourly_rate_ngn?: number | null
           icon?: string | null
           id?: string
           is_enabled?: boolean
+          job_category_code?: string | null
           min_rank_level?: number
           name: string
+          outcome_bonus_pct?: number
           payout_max?: number | null
           payout_min?: number | null
           pricing_tier?: string | null
+          quality_bonus_max_pct?: number
+          rank_multiplier_enabled?: boolean
           recommended_payout?: number | null
           required_proof_types: string[]
           requires_manual_verification?: boolean
@@ -1707,19 +1721,26 @@ export type Database = {
           base_credit_value?: number
           category?: string | null
           code?: string
+          commission_pct?: number | null
           created_at?: string
           description?: string
           difficulty_level?: string
           execution_mode?: string | null
+          expense_reimbursable?: boolean
           failure_penalty_rules?: Json | null
+          hourly_rate_ngn?: number | null
           icon?: string | null
           id?: string
           is_enabled?: boolean
+          job_category_code?: string | null
           min_rank_level?: number
           name?: string
+          outcome_bonus_pct?: number
           payout_max?: number | null
           payout_min?: number | null
           pricing_tier?: string | null
+          quality_bonus_max_pct?: number
+          rank_multiplier_enabled?: boolean
           recommended_payout?: number | null
           required_proof_types?: string[]
           requires_manual_verification?: boolean
@@ -1728,6 +1749,13 @@ export type Database = {
           verification_window_hours?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "execution_order_templates_job_category_code_fkey"
+            columns: ["job_category_code"]
+            isOneToOne: false
+            referencedRelation: "job_categories"
+            referencedColumns: ["code"]
+          },
           {
             foreignKeyName: "execution_order_templates_min_rank_level_fkey"
             columns: ["min_rank_level"]
@@ -1750,16 +1778,23 @@ export type Database = {
           brand_id: string
           brand_total_cost: number
           campaign_id: string | null
+          commission_pct: number | null
           completed_quantity: number
           created_at: string
           custom_instructions: string | null
           execution_mode: string | null
+          expense_reimbursable: boolean
           expires_at: string | null
+          hourly_rate_ngn: number | null
           id: string
           is_rush: boolean
+          job_category_code: string | null
           operator_payout: number
+          outcome_bonus_pct: number
           platform_fee: number
           pricing_tier: string | null
+          quality_bonus_max_pct: number
+          rank_multiplier_enabled: boolean
           rejection_reason: string | null
           required_caption: string | null
           required_media_urls: string[] | null
@@ -1776,16 +1811,23 @@ export type Database = {
           brand_id: string
           brand_total_cost: number
           campaign_id?: string | null
+          commission_pct?: number | null
           completed_quantity?: number
           created_at?: string
           custom_instructions?: string | null
           execution_mode?: string | null
+          expense_reimbursable?: boolean
           expires_at?: string | null
+          hourly_rate_ngn?: number | null
           id?: string
           is_rush?: boolean
+          job_category_code?: string | null
           operator_payout: number
+          outcome_bonus_pct?: number
           platform_fee: number
           pricing_tier?: string | null
+          quality_bonus_max_pct?: number
+          rank_multiplier_enabled?: boolean
           rejection_reason?: string | null
           required_caption?: string | null
           required_media_urls?: string[] | null
@@ -1802,16 +1844,23 @@ export type Database = {
           brand_id?: string
           brand_total_cost?: number
           campaign_id?: string | null
+          commission_pct?: number | null
           completed_quantity?: number
           created_at?: string
           custom_instructions?: string | null
           execution_mode?: string | null
+          expense_reimbursable?: boolean
           expires_at?: string | null
+          hourly_rate_ngn?: number | null
           id?: string
           is_rush?: boolean
+          job_category_code?: string | null
           operator_payout?: number
+          outcome_bonus_pct?: number
           platform_fee?: number
           pricing_tier?: string | null
+          quality_bonus_max_pct?: number
+          rank_multiplier_enabled?: boolean
           rejection_reason?: string | null
           required_caption?: string | null
           required_media_urls?: string[] | null
@@ -1830,6 +1879,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "brand_campaigns"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execution_orders_job_category_code_fkey"
+            columns: ["job_category_code"]
+            isOneToOne: false
+            referencedRelation: "job_categories"
+            referencedColumns: ["code"]
           },
           {
             foreignKeyName: "execution_orders_pricing_tier_fkey"
@@ -1900,12 +1956,16 @@ export type Database = {
           credits_earned: number | null
           credits_released_at: string | null
           device_fingerprint: string | null
+          expense_reimbursed_ngn: number
           id: string
           ip_address: unknown
           is_first_execution: boolean
           is_random_sample: boolean
           operator_id: string
           order_id: string
+          outcome_bonus_awarded: boolean
+          quality_bonus_pct: number
+          rank_multiplier_applied: number
           rejection_category: string | null
           rejection_reason: string | null
           status: string
@@ -1920,12 +1980,16 @@ export type Database = {
           credits_earned?: number | null
           credits_released_at?: string | null
           device_fingerprint?: string | null
+          expense_reimbursed_ngn?: number
           id?: string
           ip_address?: unknown
           is_first_execution?: boolean
           is_random_sample?: boolean
           operator_id: string
           order_id: string
+          outcome_bonus_awarded?: boolean
+          quality_bonus_pct?: number
+          rank_multiplier_applied?: number
           rejection_category?: string | null
           rejection_reason?: string | null
           status?: string
@@ -1940,12 +2004,16 @@ export type Database = {
           credits_earned?: number | null
           credits_released_at?: string | null
           device_fingerprint?: string | null
+          expense_reimbursed_ngn?: number
           id?: string
           ip_address?: unknown
           is_first_execution?: boolean
           is_random_sample?: boolean
           operator_id?: string
           order_id?: string
+          outcome_bonus_awarded?: boolean
+          quality_bonus_pct?: number
+          rank_multiplier_applied?: number
           rejection_category?: string | null
           rejection_reason?: string | null
           status?: string
@@ -2302,6 +2370,75 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      job_categories: {
+        Row: {
+          code: string
+          created_at: string
+          default_base_ngn: number
+          default_max_ngn: number
+          default_min_ngn: number
+          description: string
+          display_order: number
+          effort_estimate: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          pricing_model: string
+          supports_commission: boolean
+          supports_expense_reimbursement: boolean
+          supports_hourly: boolean
+          supports_outcome_bonus: boolean
+          supports_quality_bonus: boolean
+          supports_rank_multiplier: boolean
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          default_base_ngn: number
+          default_max_ngn: number
+          default_min_ngn: number
+          description: string
+          display_order?: number
+          effort_estimate?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          pricing_model: string
+          supports_commission?: boolean
+          supports_expense_reimbursement?: boolean
+          supports_hourly?: boolean
+          supports_outcome_bonus?: boolean
+          supports_quality_bonus?: boolean
+          supports_rank_multiplier?: boolean
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          default_base_ngn?: number
+          default_max_ngn?: number
+          default_min_ngn?: number
+          description?: string
+          display_order?: number
+          effort_estimate?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          pricing_model?: string
+          supports_commission?: boolean
+          supports_expense_reimbursement?: boolean
+          supports_hourly?: boolean
+          supports_outcome_bonus?: boolean
+          supports_quality_bonus?: boolean
+          supports_rank_multiplier?: boolean
+          updated_at?: string
+        }
+        Relationships: []
       }
       marketplace_analytics_daily: {
         Row: {
