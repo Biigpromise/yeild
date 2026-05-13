@@ -3,19 +3,19 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const testimonials = [
   {
-    quote: "YEILD has been a game-changer for me. I can earn extra cash in my spare time doing simple tasks. It's so easy and rewarding!",
+    quote: "YEILD pays for verified work — not guesses. Every Execution Order I complete clears escrow and lands in my account. It's the most professional gig platform I've used.",
     name: "Jessica P.",
-    role: "Verified User",
+    role: "Verified Operator · Eagle Rank",
   },
   {
-    quote: "As a brand, YEILD helped us connect with our target audience in a meaningful way. The campaign results exceeded our expectations.",
+    quote: "As a brand, YEILD's verification authority gave us confidence. We funded an Execution Order, got proof-backed results, and only paid for what was delivered.",
     name: "Mike D.",
     role: "Marketing Manager, Acme Corp",
   },
   {
-    quote: "I love the variety of tasks available. From surveys to social media tasks, there's always something interesting to do. Payouts are fast too!",
+    quote: "From digital actions to GPS field work, the variety is real and the payouts are fast. 1 Credit = ₦1, straight to my bank.",
     name: "Sarah K.",
-    role: "Verified User",
+    role: "Verified Operator · Phoenix Rank",
   },
 ];
 

@@ -15,9 +15,9 @@ export const HowItWorks = () => {
               <div className="w-12 h-12 bg-yeild-yellow rounded-full flex items-center justify-center mb-4">
                 <span className="text-black font-bold text-xl">1</span>
               </div>
-              <CardTitle className="text-white text-2xl">Sign Up</CardTitle>
+              <CardTitle className="text-white text-2xl">Sign Up as an Operator</CardTitle>
               <CardDescription className="text-gray-300 text-lg">
-                Create your account in less than 2 minutes and set your preferences.
+                Create your Operator account in under 2 minutes and verify your profile.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -27,9 +27,9 @@ export const HowItWorks = () => {
               <div className="w-12 h-12 bg-yeild-yellow rounded-full flex items-center justify-center mb-4">
                 <span className="text-black font-bold text-xl">2</span>
               </div>
-              <CardTitle className="text-white text-2xl">Complete Tasks</CardTitle>
+              <CardTitle className="text-white text-2xl">Execute Orders</CardTitle>
               <CardDescription className="text-gray-300 text-lg">
-                Choose from available tasks that match your interests and skills.
+                Browse the Discovery Hub and accept Execution Orders that match your rank and skills.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -39,9 +39,9 @@ export const HowItWorks = () => {
               <div className="w-12 h-12 bg-yeild-yellow rounded-full flex items-center justify-center mb-4">
                 <span className="text-black font-bold text-xl">3</span>
               </div>
-              <CardTitle className="text-white text-2xl">Earn Rewards</CardTitle>
+              <CardTitle className="text-white text-2xl">Earn Credits</CardTitle>
               <CardDescription className="text-gray-300 text-lg">
-                Get paid directly to your account after task verification.
+                YEILD verifies your proof, then Credits (1 = ₦1) are released to your wallet after a 7-day escrow.
               </CardDescription>
             </CardHeader>
           </Card>

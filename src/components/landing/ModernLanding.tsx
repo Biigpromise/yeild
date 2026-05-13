@@ -40,7 +40,7 @@ export const ModernLanding: React.FC = () => {
     number: '₦2M+',
     label: 'Credits Paid'
   }];
-  const benefits = ['Quick execution orders that take minutes', 'Instant credit rewards', 'Multiple withdrawal options', 'Referral bonus program', 'Rank-based premium access', 'Real-time verification tracking'];
+  const benefits = ['Quick Execution Orders that take minutes', 'Instant Credit rewards (1 Credit = ₦1)', 'Paystack & Flutterwave withdrawals', '7-day escrow protection on every payout', 'Operator ranks: Dove → Eagle → Phoenix', 'Sole verification authority — fair to Operators'];
   return <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border/60">
@@ -77,13 +77,20 @@ export const ModernLanding: React.FC = () => {
             duration: 0.6
           }} className="mb-8">
               <YieldLogo size={80} className="mx-auto mb-6" />
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full bg-primary/10 border border-primary/30 text-xs font-semibold text-primary uppercase tracking-wider">
+                <CheckCircle className="h-3.5 w-3.5" />
+                Verified Work · Guaranteed Outcomes
+              </div>
               <h1 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight">
-                Real Tasks.<br />
-                Verified Execution.<br />
-                <span className="text-primary">Trusted Results.</span>
+                Professional Execution<br />
+                Marketplace.<br />
+                <span className="text-primary">Verified by YEILD.</span>
               </h1>
-              <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                YEILD is a managed network of verified Operators who carry out real-world actions for brands — from app testing to property visits — with proof at every step.
+              <p className="text-lg lg:text-xl text-muted-foreground mb-4 max-w-2xl mx-auto">
+                Brands fund Execution Orders upfront. Verified Operators deliver real-world work. YEILD holds sole verification authority — so payouts are fair, fast, and proof-backed.
+              </p>
+              <p className="text-sm text-muted-foreground/80 mb-8 max-w-xl mx-auto">
+                1 Credit = ₦1 · 7-day escrow protection · Paystack & Flutterwave payouts
               </p>
             </motion.div>
 
@@ -99,7 +106,7 @@ export const ModernLanding: React.FC = () => {
           }} className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Button variant="brand" size="lg" onClick={() => navigate('/auth?mode=signup&type=brand')} className="h-14 px-8 text-lg font-semibold group">
                 <Building2 className="mr-2 h-5 w-5" />
-                Deploy a Campaign
+                Deploy an Execution Order
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button size="lg" variant="outline" onClick={() => navigate('/auth?mode=signup&type=user')} className="h-14 px-8 text-lg font-semibold">
@@ -303,7 +310,7 @@ export const ModernLanding: React.FC = () => {
                 How YEILD Works
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Brands post real-world tasks. Operators execute them. YEILD verifies every action before rewards are released.
+                Brands fund Execution Orders. Verified Operators deliver. YEILD is the sole authority that approves proof before credits are released — protecting both sides.
               </p>
             </motion.div>
 
@@ -357,25 +364,25 @@ export const ModernLanding: React.FC = () => {
                 Grow Your Brand with YEILD
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Drive awareness, engagement, and real actions from verified users. Launch and manage campaigns in minutes.
+                Drive measurable, real-world outcomes from a vetted Operator network. Launch and manage Execution Orders in minutes — pay only for verified work.
               </p>
             </motion.div>
 
             <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto mb-12">
               {[{
               icon: Target,
-              title: 'Reach Targeted Users',
-              description: 'Connect with engaged users who are ready to interact with your brand and complete your campaigns',
+              title: 'Reach Verified Operators',
+              description: 'Match with ranked Operators ready to execute your Order — from Dove (entry) to Phoenix (top 1%).',
               color: 'text-blue-600 bg-blue-500/10'
             }, {
               icon: TrendingUp,
-              title: 'Track Performance',
-              description: 'Get real-time analytics and detailed insights on your campaign performance and ROI',
+              title: 'Track Every Execution',
+              description: 'Real-time analytics and proof-backed insights on every Execution Order and ROI.',
               color: 'text-purple-600 bg-purple-500/10'
             }, {
               icon: DollarSign,
-              title: 'Flexible Campaigns',
-              description: 'Set your own budget, choose your target audience, and customize campaign goals to match your needs',
+              title: 'Upfront-Funded Orders',
+              description: 'Set your budget, choose execution mode, and fund Orders upfront. Operator payouts sit in 7-day escrow.',
               color: 'text-green-600 bg-green-500/10'
             }].map((feature, index) => {
               const Icon = feature.icon;
@@ -420,7 +427,7 @@ export const ModernLanding: React.FC = () => {
           }} className="text-center">
               <Button size="lg" onClick={() => navigate('/auth?mode=signup&type=brand')} className="h-14 px-8 text-lg font-semibold bg-primary hover:bg-primary/90 group">
                 <Megaphone className="mr-2 h-5 w-5" />
-                Start Advertising Today
+                Deploy an Execution Order
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </motion.div>
@@ -446,7 +453,7 @@ export const ModernLanding: React.FC = () => {
                   Why Choose YEILD?
                 </h2>
                 <p className="text-lg text-muted-foreground mb-8">
-                  We've designed YEILD to be the most user-friendly and rewarding platform for completing execution orders and earning credits.
+                  We've designed YEILD as the most professional and trusted platform for executing Orders and earning Credits — verified, escrowed, and paid in NGN.
                 </p>
                 
                 <div className="space-y-4">
@@ -523,7 +530,7 @@ export const ModernLanding: React.FC = () => {
               className="max-w-lg mx-auto"
             >
               <h2 className="text-2xl lg:text-3xl font-bold mb-6 text-center">
-                Real Payouts, Real Users
+                Real Payouts to Real Operators
               </h2>
               <PayoutProof />
             </motion.div>
@@ -551,20 +558,20 @@ export const ModernLanding: React.FC = () => {
             <div className="max-w-3xl mx-auto space-y-4">
               {[
                 {
-                  question: 'How do I earn credits on YEILD?',
-                  answer: 'Complete execution orders from brands like engaging with content, following social accounts, or providing feedback. Each completed order rewards you with credits that can be withdrawn as cash.'
+                  question: 'How do I earn Credits on YEILD?',
+                  answer: 'Complete Execution Orders from verified brands — app testing, field visits, content actions, and more. Each approved Order rewards you with Credits (1 Credit = ₦1) that you can withdraw to your bank.'
                 },
                 {
                   question: 'How do I withdraw my earnings?',
-                  answer: 'Once you reach the minimum withdrawal threshold, you can request a payout directly to your bank account. Withdrawals are typically processed within 24-48 hours.'
+                  answer: 'Once you hit the 1,000 Credit minimum, request a payout via Paystack or Flutterwave. Earnings clear a 7-day escrow hold and are then transferred directly to your Nigerian bank account.'
                 },
                 {
-                  question: 'Is YEILD free to use?',
-                  answer: 'Yes! YEILD is completely free for operators. You earn real credits by completing execution orders without any upfront cost.'
+                  question: 'Is YEILD free for Operators?',
+                  answer: 'Yes. Operators never pay to join. You earn Credits by executing real Orders that brands have already funded upfront.'
                 },
                 {
-                  question: 'How do brands create execution orders?',
-                  answer: 'Brands can sign up, fund their wallet, and create execution orders with specific requirements. Our platform matches orders with verified operators for maximum engagement.'
+                  question: 'How do brands create Execution Orders?',
+                  answer: 'Brands sign up, get vetted, fund their wallet, and deploy Execution Orders using YEILD templates. YEILD (not the brand) verifies every proof — protecting Operators from unfair rejections.'
                 }
               ].map((faq, index) => (
                 <motion.div
@@ -626,8 +633,8 @@ export const ModernLanding: React.FC = () => {
                 Ready to Start Executing?
               </h2>
               <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-                Join thousands of verified operators who are already earning with YEILD. 
-                Sign up now and get started in minutes.
+                Join thousands of verified Operators already earning real NGN with YEILD.
+                Sign up, get verified, and start executing in minutes.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -638,7 +645,7 @@ export const ModernLanding: React.FC = () => {
                 </Button>
                 <Button size="lg" variant="brand" onClick={() => navigate('/auth?mode=signup&type=brand')} className="h-14 px-8 text-lg font-semibold">
                   <Megaphone className="mr-2 h-5 w-5" />
-                  Start Advertising Today
+                  Deploy an Execution Order
                 </Button>
               </div>
             </motion.div>
