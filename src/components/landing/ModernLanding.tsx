@@ -633,8 +633,8 @@ export const ModernLanding: React.FC = () => {
                 Ready to Start Executing?
               </h2>
               <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-                Join thousands of verified operators who are already earning with YEILD. 
-                Sign up now and get started in minutes.
+                Join thousands of verified Operators already earning real NGN with YEILD.
+                Sign up, get verified, and start executing in minutes.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -645,7 +645,7 @@ export const ModernLanding: React.FC = () => {
                 </Button>
                 <Button size="lg" variant="brand" onClick={() => navigate('/auth?mode=signup&type=brand')} className="h-14 px-8 text-lg font-semibold">
                   <Megaphone className="mr-2 h-5 w-5" />
-                  Start Advertising Today
+                  Deploy an Execution Order
                 </Button>
               </div>
             </motion.div>
