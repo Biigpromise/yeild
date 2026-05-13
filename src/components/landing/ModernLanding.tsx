@@ -310,7 +310,7 @@ export const ModernLanding: React.FC = () => {
                 How YEILD Works
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Brands post real-world tasks. Operators execute them. YEILD verifies every action before rewards are released.
+                Brands fund Execution Orders. Verified Operators deliver. YEILD is the sole authority that approves proof before credits are released — protecting both sides.
               </p>
             </motion.div>
 
