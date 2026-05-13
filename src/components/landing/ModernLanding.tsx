@@ -77,13 +77,20 @@ export const ModernLanding: React.FC = () => {
             duration: 0.6
           }} className="mb-8">
               <YieldLogo size={80} className="mx-auto mb-6" />
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full bg-primary/10 border border-primary/30 text-xs font-semibold text-primary uppercase tracking-wider">
+                <CheckCircle className="h-3.5 w-3.5" />
+                Verified Work · Guaranteed Outcomes
+              </div>
               <h1 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight">
-                Real Tasks.<br />
-                Verified Execution.<br />
-                <span className="text-primary">Trusted Results.</span>
+                Professional Execution<br />
+                Marketplace.<br />
+                <span className="text-primary">Verified by YEILD.</span>
               </h1>
-              <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                YEILD is a managed network of verified Operators who carry out real-world actions for brands — from app testing to property visits — with proof at every step.
+              <p className="text-lg lg:text-xl text-muted-foreground mb-4 max-w-2xl mx-auto">
+                Brands fund Execution Orders upfront. Verified Operators deliver real-world work. YEILD holds sole verification authority — so payouts are fair, fast, and proof-backed.
+              </p>
+              <p className="text-sm text-muted-foreground/80 mb-8 max-w-xl mx-auto">
+                1 Credit = ₦1 · 7-day escrow protection · Paystack & Flutterwave payouts
               </p>
             </motion.div>
 
