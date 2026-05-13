@@ -11,15 +11,15 @@ export const Footer = () => {
               <span className="text-yeild-yellow text-xl font-bold">YEILD</span>
             </div>
             <p className="text-gray-400 text-sm">
-              Transforming social media into sustainable income for creators worldwide.
+              Professional Execution Marketplace. Verified Work, Guaranteed Outcomes.
             </p>
           </div>
           
           <div>
             <h4 className="font-semibold mb-4">Platform</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link to="/tasks" className="hover:text-white">Browse Tasks</Link></li>
-              <li><Link to="/dashboard" className="hover:text-white">Dashboard</Link></li>
+              <li><Link to="/tasks" className="hover:text-white">Discovery Hub</Link></li>
+              <li><Link to="/dashboard" className="hover:text-white">Operator Dashboard</Link></li>
               <li><Link to="/brand-signup" className="hover:text-white">For Brands</Link></li>
             </ul>
           </div>
