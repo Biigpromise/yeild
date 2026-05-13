@@ -453,7 +453,7 @@ export const ModernLanding: React.FC = () => {
                   Why Choose YEILD?
                 </h2>
                 <p className="text-lg text-muted-foreground mb-8">
-                  We've designed YEILD to be the most user-friendly and rewarding platform for completing execution orders and earning credits.
+                  We've designed YEILD as the most professional and trusted platform for executing Orders and earning Credits — verified, escrowed, and paid in NGN.
                 </p>
                 
                 <div className="space-y-4">
