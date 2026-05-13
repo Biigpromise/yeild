@@ -427,7 +427,7 @@ export const ModernLanding: React.FC = () => {
           }} className="text-center">
               <Button size="lg" onClick={() => navigate('/auth?mode=signup&type=brand')} className="h-14 px-8 text-lg font-semibold bg-primary hover:bg-primary/90 group">
                 <Megaphone className="mr-2 h-5 w-5" />
-                Start Advertising Today
+                Deploy an Execution Order
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </motion.div>
