@@ -530,7 +530,7 @@ export const ModernLanding: React.FC = () => {
               className="max-w-lg mx-auto"
             >
               <h2 className="text-2xl lg:text-3xl font-bold mb-6 text-center">
-                Real Payouts, Real Users
+                Real Payouts to Real Operators
               </h2>
               <PayoutProof />
             </motion.div>
