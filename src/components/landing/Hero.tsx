@@ -30,11 +30,11 @@ export const Hero = () => {
         </div>
         
         <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-white">
-          Welcome to <span className="text-yeild-yellow">YEILD</span>
+          <span className="text-yeild-yellow">YEILD</span> — Verified Work,<br />Guaranteed Outcomes
         </h1>
         
         <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
-          Join thousands of users making money by completing simple tasks from your phone or computer. Start earning today!
+          Nigeria's Professional Execution Marketplace. Brands fund Execution Orders upfront. Verified Operators deliver. YEILD verifies every proof.
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
@@ -60,7 +60,7 @@ export const Hero = () => {
         </div>
         
         <div className="text-sm text-gray-400">
-          <p>No credit card required • Start earning immediately • Join 10,000+ users</p>
+          <p>1 Credit = ₦1 • 7-day escrow protection • Paystack & Flutterwave payouts</p>
         </div>
       </div>
     </div>
