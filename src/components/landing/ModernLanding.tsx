@@ -40,7 +40,7 @@ export const ModernLanding: React.FC = () => {
     number: '₦2M+',
     label: 'Credits Paid'
   }];
-  const benefits = ['Quick execution orders that take minutes', 'Instant credit rewards', 'Multiple withdrawal options', 'Referral bonus program', 'Rank-based premium access', 'Real-time verification tracking'];
+  const benefits = ['Quick Execution Orders that take minutes', 'Instant Credit rewards (1 Credit = ₦1)', 'Paystack & Flutterwave withdrawals', '7-day escrow protection on every payout', 'Operator ranks: Dove → Eagle → Phoenix', 'Sole verification authority — fair to Operators'];
   return <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border/60">
