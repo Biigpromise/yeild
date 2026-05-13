@@ -27,8 +27,8 @@ export const FeaturedTasks = () => {
     <section className="py-20">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4 text-yeild-yellow">Featured Tasks</h2>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">Here's a taste of the tasks you can complete to earn rewards.</p>
+          <h2 className="text-4xl font-bold mb-4 text-yeild-yellow">Featured Execution Orders</h2>
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">A preview of live, brand-funded Orders verified Operators can execute today.</p>
         </div>
         {featuredTasks.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
