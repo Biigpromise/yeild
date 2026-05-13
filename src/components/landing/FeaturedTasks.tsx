@@ -43,18 +43,18 @@ export const FeaturedTasks = () => {
                 </CardContent>
                 <CardFooter>
                   <div className="flex justify-between items-center w-full">
-                    <span className="text-yeild-yellow font-bold text-lg">{task.points} Points</span>
+                    <span className="text-yeild-yellow font-bold text-lg">{task.points} Credits</span>
                   </div>
                 </CardFooter>
               </Card>
             ))}
           </div>
         ) : (
-          <div className="text-center text-gray-400">Loading tasks...</div>
+          <div className="text-center text-gray-400">Loading Execution Orders...</div>
         )}
         <div className="text-center mt-16">
           <Button size="lg" className="bg-white text-black hover:bg-gray-200 text-lg px-8 py-6" onClick={() => navigate('/tasks')}>
-            View All Tasks
+            Browse Discovery Hub
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
