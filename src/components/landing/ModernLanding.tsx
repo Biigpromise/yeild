@@ -558,20 +558,20 @@ export const ModernLanding: React.FC = () => {
             <div className="max-w-3xl mx-auto space-y-4">
               {[
                 {
-                  question: 'How do I earn credits on YEILD?',
-                  answer: 'Complete execution orders from brands like engaging with content, following social accounts, or providing feedback. Each completed order rewards you with credits that can be withdrawn as cash.'
+                  question: 'How do I earn Credits on YEILD?',
+                  answer: 'Complete Execution Orders from verified brands — app testing, field visits, content actions, and more. Each approved Order rewards you with Credits (1 Credit = ₦1) that you can withdraw to your bank.'
                 },
                 {
                   question: 'How do I withdraw my earnings?',
-                  answer: 'Once you reach the minimum withdrawal threshold, you can request a payout directly to your bank account. Withdrawals are typically processed within 24-48 hours.'
+                  answer: 'Once you hit the 1,000 Credit minimum, request a payout via Paystack or Flutterwave. Earnings clear a 7-day escrow hold and are then transferred directly to your Nigerian bank account.'
                 },
                 {
-                  question: 'Is YEILD free to use?',
-                  answer: 'Yes! YEILD is completely free for operators. You earn real credits by completing execution orders without any upfront cost.'
+                  question: 'Is YEILD free for Operators?',
+                  answer: 'Yes. Operators never pay to join. You earn Credits by executing real Orders that brands have already funded upfront.'
                 },
                 {
-                  question: 'How do brands create execution orders?',
-                  answer: 'Brands can sign up, fund their wallet, and create execution orders with specific requirements. Our platform matches orders with verified operators for maximum engagement.'
+                  question: 'How do brands create Execution Orders?',
+                  answer: 'Brands sign up, get vetted, fund their wallet, and deploy Execution Orders using YEILD templates. YEILD (not the brand) verifies every proof — protecting Operators from unfair rejections.'
                 }
               ].map((faq, index) => (
                 <motion.div
