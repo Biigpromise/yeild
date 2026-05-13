@@ -106,7 +106,7 @@ export const ModernLanding: React.FC = () => {
           }} className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Button variant="brand" size="lg" onClick={() => navigate('/auth?mode=signup&type=brand')} className="h-14 px-8 text-lg font-semibold group">
                 <Building2 className="mr-2 h-5 w-5" />
-                Deploy a Campaign
+                Deploy an Execution Order
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button size="lg" variant="outline" onClick={() => navigate('/auth?mode=signup&type=user')} className="h-14 px-8 text-lg font-semibold">
