@@ -364,25 +364,25 @@ export const ModernLanding: React.FC = () => {
                 Grow Your Brand with YEILD
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Drive awareness, engagement, and real actions from verified users. Launch and manage campaigns in minutes.
+                Drive measurable, real-world outcomes from a vetted Operator network. Launch and manage Execution Orders in minutes — pay only for verified work.
               </p>
             </motion.div>
 
             <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto mb-12">
               {[{
               icon: Target,
-              title: 'Reach Targeted Users',
-              description: 'Connect with engaged users who are ready to interact with your brand and complete your campaigns',
+              title: 'Reach Verified Operators',
+              description: 'Match with ranked Operators ready to execute your Order — from Dove (entry) to Phoenix (top 1%).',
               color: 'text-blue-600 bg-blue-500/10'
             }, {
               icon: TrendingUp,
-              title: 'Track Performance',
-              description: 'Get real-time analytics and detailed insights on your campaign performance and ROI',
+              title: 'Track Every Execution',
+              description: 'Real-time analytics and proof-backed insights on every Execution Order and ROI.',
               color: 'text-purple-600 bg-purple-500/10'
             }, {
               icon: DollarSign,
-              title: 'Flexible Campaigns',
-              description: 'Set your own budget, choose your target audience, and customize campaign goals to match your needs',
+              title: 'Upfront-Funded Orders',
+              description: 'Set your budget, choose execution mode, and fund Orders upfront. Operator payouts sit in 7-day escrow.',
               color: 'text-green-600 bg-green-500/10'
             }].map((feature, index) => {
               const Icon = feature.icon;
