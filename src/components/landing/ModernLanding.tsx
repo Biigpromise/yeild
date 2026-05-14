@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { YieldLogo } from '@/components/ui/YieldLogo';
-import { ArrowRight, Zap, Trophy, Users, Star, CheckCircle, TrendingUp, Building2, Megaphone, Coins, DollarSign, Target, HelpCircle, ChevronDown } from 'lucide-react';
+import { ArrowRight, Zap, Trophy, Users, Star, CheckCircle, TrendingUp, Building2, Megaphone, Coins, DollarSign, Target, HelpCircle, ChevronDown, Shield, Lock, Bird, Feather, Flame } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PayoutProof } from '@/components/engagement/PayoutProof';
 
@@ -291,7 +291,148 @@ export const ModernLanding: React.FC = () => {
              </div>
            </motion.div>
          </section>
-         
+
+         {/* Operator Ranks Progression */}
+         <section className="py-16 lg:py-24 bg-muted/30">
+           <div className="container mx-auto px-4">
+             <motion.div
+               initial={{ opacity: 0, y: 20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               transition={{ duration: 0.6 }}
+               className="text-center mb-12 max-w-3xl mx-auto"
+             >
+               <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-4 rounded-full bg-primary/10 border border-primary/30 text-xs font-semibold text-primary uppercase tracking-wider">
+                 <Trophy className="h-3.5 w-3.5" />
+                 Operator Career Path
+               </div>
+               <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+                 Earn Your Rank. Unlock Higher-Value Orders.
+               </h2>
+               <p className="text-lg text-muted-foreground">
+                 Every Operator starts as a Dove and rises through verified work. Higher ranks unlock larger Orders, Field-mode assignments, and priority payouts. Fraud or rejected proofs trigger rank decay — keeping the network clean.
+               </p>
+             </motion.div>
+
+             <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
+               {[
+                 { name: 'Dove', icon: Feather, tier: 'Entry', perks: 'Digital Orders only', color: 'from-slate-400/20 to-slate-500/10', accent: 'text-slate-400' },
+                 { name: 'Hawk', icon: Bird, tier: 'Verified', perks: 'Higher Order limits', color: 'from-blue-400/20 to-blue-500/10', accent: 'text-blue-400' },
+                 { name: 'Eagle', icon: Bird, tier: 'Trusted', perks: 'Field-mode unlocked', color: 'from-amber-400/20 to-amber-500/10', accent: 'text-amber-500' },
+                 { name: 'Falcon', icon: Bird, tier: 'Elite', perks: 'Priority + premium Orders', color: 'from-orange-500/20 to-red-500/10', accent: 'text-orange-500' },
+                 { name: 'Phoenix', icon: Flame, tier: 'Top 1%', perks: 'Max payouts, fastest review', color: 'from-primary/30 to-primary/10', accent: 'text-primary' },
+               ].map((rank, i) => {
+                 const Icon = rank.icon;
+                 return (
+                   <motion.div
+                     key={rank.name}
+                     initial={{ opacity: 0, y: 20 }}
+                     whileInView={{ opacity: 1, y: 0 }}
+                     viewport={{ once: true }}
+                     transition={{ duration: 0.4, delay: i * 0.08 }}
+                   >
+                     <Card className={`h-full border-border/60 bg-gradient-to-br ${rank.color} hover:shadow-lg transition-shadow`}>
+                       <CardContent className="p-5 text-center">
+                         <Icon className={`h-8 w-8 mx-auto mb-3 ${rank.accent}`} />
+                         <div className="font-bold text-lg">{rank.name}</div>
+                         <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{rank.tier}</div>
+                         <p className="text-xs text-muted-foreground">{rank.perks}</p>
+                       </CardContent>
+                     </Card>
+                   </motion.div>
+                 );
+               })}
+             </div>
+
+             <div className="text-center mt-10">
+               <Button variant="outline" size="lg" onClick={() => navigate('/operator-ranks')} className="gap-2">
+                 See full rank progression
+                 <ArrowRight className="h-4 w-4" />
+               </Button>
+             </div>
+           </div>
+         </section>
+
+         {/* NGN Economy + Escrow Trust */}
+         <section className="py-16 lg:py-24">
+           <div className="container mx-auto px-4">
+             <motion.div
+               initial={{ opacity: 0, y: 20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               transition={{ duration: 0.6 }}
+               className="text-center mb-12 max-w-3xl mx-auto"
+             >
+               <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-4 rounded-full bg-green-500/10 border border-green-500/30 text-xs font-semibold text-green-600 uppercase tracking-wider">
+                 <Shield className="h-3.5 w-3.5" />
+                 Money You Can Trust
+               </div>
+               <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+                 Real Naira. Real Escrow. Real Payouts.
+               </h2>
+               <p className="text-lg text-muted-foreground">
+                 Credits aren&apos;t points. They&apos;re your money — held safely in escrow until verified, then withdrawn straight to your Nigerian bank.
+               </p>
+             </motion.div>
+
+             <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-10">
+               <Card className="border-border/60 hover:shadow-lg transition-shadow">
+                 <CardContent className="p-6 text-center">
+                   <div className="w-14 h-14 rounded-2xl bg-primary/10 mx-auto mb-4 flex items-center justify-center">
+                     <Coins className="h-7 w-7 text-primary" />
+                   </div>
+                   <div className="text-2xl font-bold mb-1">1 Credit = ₦1</div>
+                   <p className="text-sm text-muted-foreground">
+                     Transparent NGN-pegged value. What you earn is what you withdraw — no hidden conversions.
+                   </p>
+                 </CardContent>
+               </Card>
+
+               <Card className="border-border/60 hover:shadow-lg transition-shadow">
+                 <CardContent className="p-6 text-center">
+                   <div className="w-14 h-14 rounded-2xl bg-green-500/10 mx-auto mb-4 flex items-center justify-center">
+                     <Lock className="h-7 w-7 text-green-600" />
+                   </div>
+                   <div className="text-2xl font-bold mb-1">7-Day Escrow</div>
+                   <p className="text-sm text-muted-foreground">
+                     Brands fund Orders upfront. Earnings sit in escrow for 7 days, then unlock for withdrawal — protected on both sides.
+                   </p>
+                 </CardContent>
+               </Card>
+
+               <Card className="border-border/60 hover:shadow-lg transition-shadow">
+                 <CardContent className="p-6 text-center">
+                   <div className="w-14 h-14 rounded-2xl bg-blue-500/10 mx-auto mb-4 flex items-center justify-center">
+                     <DollarSign className="h-7 w-7 text-blue-600" />
+                   </div>
+                   <div className="text-2xl font-bold mb-1">Direct Bank Payouts</div>
+                   <p className="text-sm text-muted-foreground">
+                     Withdraw via Paystack or Flutterwave once you hit 1,000 Credits. Money lands in your bank — no third-party wallets.
+                   </p>
+                 </CardContent>
+               </Card>
+             </div>
+
+             <motion.div
+               initial={{ opacity: 0 }}
+               whileInView={{ opacity: 1 }}
+               viewport={{ once: true }}
+               transition={{ duration: 0.6 }}
+               className="flex flex-col items-center gap-4"
+             >
+               <p className="text-xs uppercase tracking-wider text-muted-foreground">Powered by trusted payment rails</p>
+               <div className="flex flex-wrap items-center justify-center gap-8">
+                 <div className="px-6 py-3 rounded-lg bg-card border border-border/60 font-bold text-lg">
+                   <span className="text-blue-600">Pay</span>stack
+                 </div>
+                 <div className="px-6 py-3 rounded-lg bg-card border border-border/60 font-bold text-lg">
+                   <span className="text-orange-500">Flutter</span>wave
+                 </div>
+               </div>
+             </motion.div>
+           </div>
+         </section>
+
          {/* Features Section */}
         <section className="py-16 lg:py-24 bg-muted/30">
           <div className="container mx-auto px-4">
