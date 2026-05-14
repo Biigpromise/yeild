@@ -1,0 +1,30 @@
+# YEILD
+
+> Nigeria's Professional Execution Marketplace — Brands fund Execution Orders upfront, verified Operators deliver real work, and YEILD verifies every proof. 1 Credit = ₦1.
+
+YEILD replaces vanity-metric advertising with verified outcomes. Brands post Execution Orders backed by upfront escrow funding. Operators (vetted contributors with ranks from Dove to Phoenix) execute the work and submit proof. YEILD acts as the sole verification authority, protecting both sides from fraud and self-dealing. Earnings sit in a 7-day escrow before withdrawal via Paystack or Flutterwave.
+
+## Core Concepts
+
+- Execution Orders — brand-funded jobs with upfront escrow (replaces "tasks")
+- Operators — verified contributors who execute Orders (replaces "users")
+- Credits — platform currency, 1 Credit = ₦1 (replaces "points")
+- Discovery Hub — non-paid 16:9 listings of available work (replaces "marketplace")
+- Operator Ranks — Dove → Sparrow → Hawk → Eagle → Falcon → Phoenix
+- Sole Verification Authority — YEILD (not the brand) is the final judge of proof quality
+
+## Pages
+
+- [Home](/): Professional Execution Marketplace overview, slogan, how it works
+- [Operator sign-in / sign-up](/auth): Account creation for Operators
+- [Brand sign-in](/brand-auth): Account access for Brands
+- [Brand Onboarding](/brand-onboarding): Brand qualification, vetting, funding setup
+- [Operator Ranks](/operator-ranks): Dove to Phoenix progression, KYC, fraud decay rules
+- [FAQ](/faq): Verification, escrow, payouts, fees explained
+- [Support](/support): Help and contact
+- [Terms of Service](/terms): Legal terms
+- [Privacy Policy](/privacy): Data handling
+
+## Optional
+
+- [Sitemap](/sitemap.xml)
