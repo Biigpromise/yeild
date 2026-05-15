@@ -243,7 +243,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ userProfile, userStats }
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Tasks Completed</span>
+                  <span className="text-sm text-muted-foreground">Orders Completed</span>
                   <span className="font-medium">{userStats?.tasksCompleted || 0}</span>
                 </div>
                 <div className="flex justify-between">

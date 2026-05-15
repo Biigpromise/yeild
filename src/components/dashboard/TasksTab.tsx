@@ -160,7 +160,7 @@ export const TasksTab: React.FC<TasksTabProps> = () => {
               </div>
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">{userStats?.points || 0}</div>
-                <div className="text-sm text-blue-500">Total Points</div>
+                <div className="text-sm text-blue-500">Total Credits</div>
               </div>
             </div>
           </CardContent>
@@ -212,7 +212,7 @@ export const TasksTab: React.FC<TasksTabProps> = () => {
           <CardContent className="space-y-2 pt-0">
             <Button size="sm" className="w-full justify-start" onClick={() => navigate('/tasks')}>
               <Target className="h-4 w-4 mr-2" />
-              Browse Tasks
+              Find Execution Orders
             </Button>
             <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => navigate('/dashboard?tab=wallet')}>
               <Wallet className="h-4 w-4 mr-2" />

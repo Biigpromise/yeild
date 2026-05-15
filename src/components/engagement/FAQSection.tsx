@@ -14,43 +14,43 @@ import { useNavigate } from 'react-router-dom';
 const FAQ_ITEMS = [
   {
     id: 'how-earn',
-    question: 'How do I earn points on YEILD?',
-    answer: 'You can earn points by completing tasks from brands, referring friends, logging in daily, and spinning the lucky wheel. Each task has different point values depending on its complexity.'
+    question: 'How do I earn Credits as an Operator?',
+    answer: 'Operators earn Credits by completing Execution Orders posted by verified Brands. Each Order specifies the work required, the Credit reward, and the verification criteria. Credits are released after YEILD verifies your proof of completion.'
+  },
+  {
+    id: 'credits-value',
+    question: 'How much is 1 Credit worth?',
+    answer: '1 Credit = ₦1 NGN. Every Order is funded upfront by the Brand in real currency, so the value behind your Credits is guaranteed before you ever start work.'
+  },
+  {
+    id: 'escrow',
+    question: 'How does the escrow protect me?',
+    answer: 'When a Brand creates an Execution Order, the full Credit amount is locked in escrow upfront. Brands cannot pull funds out once Operators start work. After your proof is verified, Credits are held in a 7-day clearance window before becoming withdrawable — this protects against fraud disputes on both sides.'
+  },
+  {
+    id: 'verification-authority',
+    question: 'Who decides if my work is approved?',
+    answer: 'YEILD is the sole verification authority — not the Brand. This protects Operators from arbitrary rejections. Verification takes 24–72 hours and is based on the proof requirements published with the Execution Order.'
   },
   {
     id: 'withdraw',
-    question: 'How do I withdraw my earnings?',
-    answer: 'Once you\'ve earned enough points, you can transfer them to your Yield Wallet and then request a withdrawal to your bank account. The minimum withdrawal amount is 1,000 points (₦1,000). Withdrawals are processed within 24-48 hours.'
-  },
-  {
-    id: 'points-value',
-    question: 'How much are points worth?',
-    answer: 'Points are converted at a rate of 1 point = ₦1 NGN. So if you have 5,000 points, you can withdraw ₦5,000 to your bank account.'
+    question: 'How do I withdraw my Credits?',
+    answer: 'Move cleared Credits to your Yield Wallet and request a payout to your verified bank account. Minimum withdrawal is 1,000 Credits (₦1,000). Bank payouts are processed via Paystack and Flutterwave (2% fee). Internal Yield Wallet transfers are free.'
   },
   {
     id: 'referral',
     question: 'How does the referral program work?',
-    answer: 'When you invite friends using your referral link, you earn bonus points when they sign up and complete their first task. The more friends you refer, the more you earn!'
+    answer: 'Invite Operators or Brands with your referral link. You earn bonus Credits when they complete their first verified Execution Order. Referral rewards are paid only on verified outcomes — no rewards for empty signups.'
   },
   {
-    id: 'bird-levels',
-    question: 'What are Bird Levels?',
-    answer: 'Bird Levels are a gamification feature that rewards your activity on the platform. As you earn more points and complete more tasks, you level up through different bird tiers (Sparrow → Eagle → Phoenix, etc.), unlocking special perks and higher earning multipliers.'
-  },
-  {
-    id: 'task-approval',
-    question: 'Why is my task pending approval?',
-    answer: 'After you submit a task, it goes through a verification process to ensure it was completed correctly. This usually takes 24-48 hours. Once approved, points are automatically added to your account.'
-  },
-  {
-    id: 'yield-wallet',
-    question: 'What is the Yield Wallet?',
-    answer: 'The Yield Wallet is a secure holding area for your points before withdrawal. You can transfer points from your main balance to the Yield Wallet when you\'re ready to cash out.'
+    id: 'operator-ranks',
+    question: 'What are Operator Ranks?',
+    answer: 'Ranks (Dove → Hawk → Eagle → Falcon → Phoenix) reflect your verified track record. Higher ranks unlock higher-value Orders, Field Mode (Eagle+), faster verification queues, and stronger earning multipliers. Ranks decay if fraud is detected.'
   },
   {
     id: 'account-security',
     question: 'How is my account secured?',
-    answer: 'We use industry-standard security measures including encrypted connections, secure authentication, and protected payment processing. Never share your login credentials with anyone.'
+    answer: 'Encrypted connections, device and IP fingerprinting, duplicate-proof detection, and bank-grade payment processing. Never share your login credentials. Self-dealing between your Operator and Brand accounts is automatically blocked.'
   }
 ];
 
