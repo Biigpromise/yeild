@@ -49,7 +49,7 @@ export const ModernOverviewTab: React.FC<ModernOverviewTabProps> = ({ userStats 
             <div className="p-6 rounded-xl bg-background/60 backdrop-blur border border-border/60">
               <div className="flex items-center gap-3 mb-2">
                 <Target className="h-5 w-5 text-blue-500" />
-                <span className="text-sm font-medium text-muted-foreground">Total Points</span>
+                <span className="text-sm font-medium text-muted-foreground">Total Credits</span>
               </div>
               <div className="text-2xl font-bold text-foreground">{userStats?.points?.toLocaleString() || 0}</div>
               <div className="text-xs text-muted-foreground">Keep up the great work!</div>
@@ -62,14 +62,14 @@ export const ModernOverviewTab: React.FC<ModernOverviewTabProps> = ({ userStats 
                 <span className="text-sm font-medium text-muted-foreground">Current Level</span>
               </div>
               <div className="text-2xl font-bold text-foreground">{level}</div>
-              <div className="text-xs text-muted-foreground">{pointsToNextLevel > 0 ? `${pointsToNextLevel} pts to next level` : 'Max level!'}</div>
+              <div className="text-xs text-muted-foreground">{pointsToNextLevel > 0 ? `${pointsToNextLevel} credits to next level` : 'Max level!'}</div>
             </div>
 
             {/* Tasks Card */}
             <div className="p-6 rounded-xl bg-background/60 backdrop-blur border border-border/60">
               <div className="flex items-center gap-3 mb-2">
                 <Award className="h-5 w-5 text-green-500" />
-                <span className="text-sm font-medium text-muted-foreground">Tasks Completed</span>
+                <span className="text-sm font-medium text-muted-foreground">Orders Completed</span>
               </div>
               <div className="text-2xl font-bold text-foreground">{userStats?.tasksCompleted || 0}</div>
               <div className="text-xs text-muted-foreground">Great job!</div>
@@ -91,7 +91,7 @@ export const ModernOverviewTab: React.FC<ModernOverviewTabProps> = ({ userStats 
                 <Target className="h-5 w-5 text-blue-500" />
               </div>
               <div>
-                <div className="font-semibold">Browse Tasks</div>
+                <div className="font-semibold">Find Execution Orders</div>
                 <div className="text-sm text-muted-foreground">Find new opportunities</div>
               </div>
             </div>

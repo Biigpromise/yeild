@@ -33,6 +33,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Onboarding from "./pages/Onboarding";
 import BrandOnboarding from "./pages/BrandOnboarding";
 import FAQ from "./pages/FAQ";
+import About from "./pages/About";
 import Support from "./pages/Support";
 import { SupportChatWidget } from "@/components/support/SupportChatWidget";
 
@@ -97,6 +98,7 @@ const AppContent = () => {
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/faq" element={<FAQ />} />
+        <Route path="/about" element={<About />} />
         <Route path="/support" element={<Support />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/brand-onboarding" element={<BrandOnboarding />} />
