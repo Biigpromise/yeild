@@ -32,19 +32,26 @@ const PILLARS = [
 const About: React.FC = () => {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    document.title = 'About YEILD — Professional Execution Marketplace';
+    const setMeta = (selector: string, attr: string, value: string) => {
+      let el = document.head.querySelector(selector) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        const [name, key] = selector.replace(/[\[\]"]/g, '').split('=');
+        el.setAttribute(name, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute(attr, value);
+    };
+    setMeta('meta[name="description"]', 'content', 'YEILD is a professional execution marketplace where Brands fund verified outcomes and Operators earn real currency for proven work.');
+    setMeta('meta[property="og:title"]', 'content', 'About YEILD — Verified Work, Guaranteed Outcomes');
+    setMeta('meta[property="og:description"]', 'content', 'A professional execution marketplace built on verified outcomes, escrow funding, and sole verification authority.');
+    setMeta('meta[property="og:url"]', 'content', 'https://yeildsocials.com/about');
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Helmet>
-        <title>About YEILD — Professional Execution Marketplace</title>
-        <meta
-          name="description"
-          content="YEILD is a professional execution marketplace where Brands fund verified outcomes and Operators earn real currency for proven work. Sole verification authority, escrow-backed."
-        />
-        <link rel="canonical" href="https://yeildsocials.com/about" />
-        <meta property="og:title" content="About YEILD — Verified Work, Guaranteed Outcomes" />
-        <meta property="og:description" content="A professional execution marketplace built on verified outcomes, escrow funding, and sole verification authority." />
-        <meta property="og:url" content="https://yeildsocials.com/about" />
-      </Helmet>
 
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
