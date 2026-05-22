@@ -3,22 +3,19 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  BarChart3, 
-  Target, 
-  Wallet, 
-  Users, 
+import {
+  BarChart3,
+  Target,
+  Wallet,
   Gift,
-  Heart,
   Settings,
-  Bell,
   LogOut,
   ChevronLeft,
   ChevronRight,
   Crown,
-  Menu,
-  MessageCircle
+  Banknote
 } from "lucide-react";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
