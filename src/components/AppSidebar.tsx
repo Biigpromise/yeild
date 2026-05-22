@@ -57,42 +57,35 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
       route: '/execution-orders'
     },
     {
-      id: 'social',
-      label: 'Social',
-      icon: Heart,
-      description: 'Community & Feed',
-      route: '/social'
-    },
-    {
-      id: 'chat',
-      label: 'Messages',
-      icon: MessageCircle,
-      description: 'Chat & Messages',
-      route: '/chat',
-      unreadCount: unreadCount
-    },
-    {
       id: 'wallet',
       label: 'Wallet',
       icon: Wallet,
-      description: 'Credits & Earnings',
-      route: '/wallet'
+      description: 'Credits & Escrow',
+      route: '/dashboard?tab=wallet'
     },
     {
-      id: 'referral',
-      label: 'Referrals',
-      icon: Gift,
-      description: 'Invite Friends',
-      route: '/referrals'
+      id: 'withdraw',
+      label: 'Withdraw',
+      icon: Banknote,
+      description: 'Bank payouts',
+      route: '/withdrawal'
     },
     {
       id: 'ranks',
       label: 'Operator Rank',
       icon: Crown,
-      description: 'Rank System',
+      description: 'Dove → Phoenix',
       route: '/operator-ranks'
+    },
+    {
+      id: 'referral',
+      label: 'Referrals',
+      icon: Gift,
+      description: 'Invite & earn',
+      route: '/referrals'
     }
   ];
+
 
   const bottomItems = [
     {
