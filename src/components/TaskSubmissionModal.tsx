@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { taskService, Task } from "@/services/taskService";
 import { simplifiedTaskSubmissionService as taskSubmissionService } from "@/services/tasks/simplifiedTaskSubmissionService";
 import { useTaskSubmissionPersistence } from "@/hooks/useTaskSubmissionPersistence";
-import { MultipleMediaUpload } from "./posts/MultipleMediaUpload";
 import { TaskSocialMediaDisplay } from "./tasks/TaskSocialMediaDisplay";
 
 interface TaskSubmissionModalProps {
@@ -181,7 +180,6 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
                     Upload screenshots, videos, or other files as proof of task completion. Each file must be unique.
                   </p>
                   
-                  <MultipleMediaUpload
                     onFilesSelect={setEvidenceFiles}
                     disabled={isSubmitting}
                     maxFiles={20}

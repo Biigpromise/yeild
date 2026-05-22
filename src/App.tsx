@@ -27,7 +27,6 @@ import VerifySignupCode from "./pages/VerifySignupCode";
 import CreateNewPassword from "./pages/CreateNewPassword";
 import Tasks from "./pages/Tasks";
 import EarnPage from "./components/EarnPage";
-import Chat from "./pages/Chat";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Onboarding from "./pages/Onboarding";
@@ -38,7 +37,6 @@ import Support from "./pages/Support";
 import { SupportChatWidget } from "@/components/support/SupportChatWidget";
 
 import Referrals from "./pages/Referrals";
-import Birds from "./pages/Birds";
 import OperatorRanks from "./pages/OperatorRanks";
 import ExecutionOrders from "./pages/ExecutionOrders";
 import WithdrawalPage from "./pages/WithdrawalPage";
