@@ -239,30 +239,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           );
         })}
 
-        {/* Notifications */}
-        <button
-          className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left hover:bg-muted/60 text-muted-foreground hover:text-foreground relative",
-            isCollapsed && "justify-center"
-          )}
-        >
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <Badge 
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 text-white hover:bg-red-600"
-            >
-              {unreadCount}
-            </Badge>
-          )}
-          {!isCollapsed && (
-            <div className="flex-1 min-w-0">
-              <div className="font-medium text-sm">Notifications</div>
-              <div className="text-xs opacity-70">
-                {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
-              </div>
-            </div>
-          )}
-        </button>
+
+
 
         {/* Sign Out */}
         <button
