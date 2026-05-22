@@ -22,7 +22,6 @@ import { BirdLevelCelebration } from "./BirdLevelCelebration";
 import { ProfileBirdBadge } from "./ProfileBirdBadge";
 import { CommissionDashboard } from "./CommissionDashboard";
 import { ReferralTroubleshooter } from "./ReferralTroubleshooter";
-import { UserProfileModal } from "@/components/user/UserProfileModal";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { generateReferralLink, APP_CONFIG } from "@/config/app";

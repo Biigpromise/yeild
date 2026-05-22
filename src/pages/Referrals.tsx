@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EnhancedReferralSystem } from '@/components/referral/EnhancedReferralSystem';
-import { UserProfileBirds } from '@/components/community/UserProfileBirds';
 import { useAuth } from '@/contexts/AuthContext';
 import { Users, Share2, Trophy, TrendingUp, Gift, Crown, Target, Sparkles, Copy, MessageSquare } from 'lucide-react';
 const Referrals: React.FC = () => {
@@ -119,17 +118,6 @@ const Referrals: React.FC = () => {
                     <CardTitle className="text-lg">Your Bird Status</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <UserProfileBirds points={0} tasksCompleted={0} level={1} activeReferrals={0} />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Quick Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button className="w-full" onClick={() => setActiveTab('share')}>
-                      <Share2 className="h-4 w-4 mr-2" />
                       Share Link
                     </Button>
                     <Button variant="outline" className="w-full">

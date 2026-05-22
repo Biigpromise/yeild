@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ProfileBirdDisplay } from '@/components/profile/ProfileBirdDisplay';
-import { UserProfileBirds } from '@/components/community/UserProfileBirds';
 import { 
   User, 
   Wallet, 
@@ -133,13 +132,6 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ userProfile, userStats }
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16">
-                    <UserProfileBirds 
-                      points={userStats?.points || 0}
-                      tasksCompleted={userStats?.tasksCompleted || 0}
-                      level={userStats?.level || 1}
-                      activeReferrals={userStats?.referrals || 0}
-                      compact={true}
-                    />
                   </div>
                   <div>
                     <Badge variant="secondary">Level {userStats?.level || 1}</Badge>
