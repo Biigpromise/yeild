@@ -365,11 +365,8 @@ export const EnhancedReferralSystem = () => {
         </CardContent>
       </Card>
 
-      <UserProfileModal 
-        userId={selectedUserId}
-        isOpen={isModalOpen}
-        onClose={closeUserProfile}
-      />
+
+
 
       <BirdLevelCelebration
         newLevel={newLevelAchieved}
