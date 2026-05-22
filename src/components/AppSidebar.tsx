@@ -199,22 +199,11 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                 <Icon className={cn("h-5 w-5", isActive && "text-primary-foreground")} />
                 {!isCollapsed && (
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm flex items-center justify-between">
-                      <span>{item.label}</span>
-                      {item.unreadCount && item.unreadCount > 0 && (
-                        <Badge variant="destructive" className="h-5 px-2 text-xs">
-                          {item.unreadCount > 99 ? '99+' : item.unreadCount}
-                        </Badge>
-                      )}
-                    </div>
+                    <div className="font-medium text-sm">{item.label}</div>
                     <div className="text-xs opacity-70">{item.description}</div>
                   </div>
                 )}
-                {isCollapsed && item.unreadCount && item.unreadCount > 0 && (
-                  <Badge variant="destructive" className="h-4 w-4 p-0 text-xs flex items-center justify-center">
-                    {item.unreadCount > 9 ? '9+' : item.unreadCount}
-                  </Badge>
-                )}
+
               </NavLink>
             );
           })}
