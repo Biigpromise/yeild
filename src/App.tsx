@@ -199,11 +199,20 @@ const AppContent = () => {
           }
         />
         
-        {/* Legacy Routes - redirect to dashboard */}
+        {/* Legacy / removed surfaces - redirect to dashboard */}
         <Route path="/social" element={<Navigate to="/dashboard" replace />} />
         <Route path="/chat" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/messages" element={<Navigate to="/dashboard" replace />} />
         <Route path="/wallet" element={<Navigate to="/dashboard" replace />} />
         <Route path="/referrals" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/stories" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/community" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/leaderboard" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/rewards" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/achievements" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/posts" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/notifications" element={<Navigate to="/dashboard" replace />} />
+
         
         {/* Operator Ranks Route */}
         <Route

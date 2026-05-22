@@ -3,22 +3,19 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  BarChart3, 
-  Target, 
-  Wallet, 
-  Users, 
+import {
+  BarChart3,
+  Target,
+  Wallet,
   Gift,
-  Heart,
   Settings,
-  Bell,
   LogOut,
   ChevronLeft,
   ChevronRight,
   Crown,
-  Menu,
-  MessageCircle
+  Banknote
 } from "lucide-react";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -60,42 +57,35 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
       route: '/execution-orders'
     },
     {
-      id: 'social',
-      label: 'Social',
-      icon: Heart,
-      description: 'Community & Feed',
-      route: '/social'
-    },
-    {
-      id: 'chat',
-      label: 'Messages',
-      icon: MessageCircle,
-      description: 'Chat & Messages',
-      route: '/chat',
-      unreadCount: unreadCount
-    },
-    {
       id: 'wallet',
       label: 'Wallet',
       icon: Wallet,
-      description: 'Credits & Earnings',
-      route: '/wallet'
+      description: 'Credits & Escrow',
+      route: '/dashboard?tab=wallet'
     },
     {
-      id: 'referral',
-      label: 'Referrals',
-      icon: Gift,
-      description: 'Invite Friends',
-      route: '/referrals'
+      id: 'withdraw',
+      label: 'Withdraw',
+      icon: Banknote,
+      description: 'Bank payouts',
+      route: '/withdrawal'
     },
     {
       id: 'ranks',
       label: 'Operator Rank',
       icon: Crown,
-      description: 'Rank System',
+      description: 'Dove → Phoenix',
       route: '/operator-ranks'
+    },
+    {
+      id: 'referral',
+      label: 'Referrals',
+      icon: Gift,
+      description: 'Invite & earn',
+      route: '/referrals'
     }
   ];
+
 
   const bottomItems = [
     {
@@ -209,22 +199,11 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                 <Icon className={cn("h-5 w-5", isActive && "text-primary-foreground")} />
                 {!isCollapsed && (
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm flex items-center justify-between">
-                      <span>{item.label}</span>
-                      {item.unreadCount && item.unreadCount > 0 && (
-                        <Badge variant="destructive" className="h-5 px-2 text-xs">
-                          {item.unreadCount > 99 ? '99+' : item.unreadCount}
-                        </Badge>
-                      )}
-                    </div>
+                    <div className="font-medium text-sm">{item.label}</div>
                     <div className="text-xs opacity-70">{item.description}</div>
                   </div>
                 )}
-                {isCollapsed && item.unreadCount && item.unreadCount > 0 && (
-                  <Badge variant="destructive" className="h-4 w-4 p-0 text-xs flex items-center justify-center">
-                    {item.unreadCount > 9 ? '9+' : item.unreadCount}
-                  </Badge>
-                )}
+
               </NavLink>
             );
           })}
@@ -260,30 +239,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           );
         })}
 
-        {/* Notifications */}
-        <button
-          className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left hover:bg-muted/60 text-muted-foreground hover:text-foreground relative",
-            isCollapsed && "justify-center"
-          )}
-        >
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <Badge 
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 text-white hover:bg-red-600"
-            >
-              {unreadCount}
-            </Badge>
-          )}
-          {!isCollapsed && (
-            <div className="flex-1 min-w-0">
-              <div className="font-medium text-sm">Notifications</div>
-              <div className="text-xs opacity-70">
-                {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
-              </div>
-            </div>
-          )}
-        </button>
+
+
 
         {/* Sign Out */}
         <button
