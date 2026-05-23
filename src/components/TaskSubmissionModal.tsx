@@ -180,11 +180,6 @@ export const TaskSubmissionModal: React.FC<TaskSubmissionModalProps> = ({
                     Upload screenshots, videos, or other files as proof of task completion. Each file must be unique.
                   </p>
                   
-                    onFilesSelect={setEvidenceFiles}
-                    disabled={isSubmitting}
-                    maxFiles={20}
-                    selectedFiles={evidenceFiles}
-                  />
                   
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
