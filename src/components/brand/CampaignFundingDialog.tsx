@@ -14,7 +14,7 @@ import { CreditCard, DollarSign } from "lucide-react";
 import type { BrandCampaign } from "@/hooks/useBrandCampaigns";
 
 const fundingSchema = z.object({
-  amount: z.number().min(10, "Minimum funding amount is $10"),
+  amount: z.number().min(1000, "Minimum funding amount is ₦1,000"),
 });
 
 type FundingFormData = z.infer<typeof fundingSchema>;
@@ -38,7 +38,7 @@ export const CampaignFundingDialog: React.FC<CampaignFundingDialogProps> = ({
   const form = useForm<FundingFormData>({
     resolver: zodResolver(fundingSchema),
     defaultValues: {
-      amount: 10,
+      amount: 1000,
     }
   });
 
@@ -47,29 +47,23 @@ export const CampaignFundingDialog: React.FC<CampaignFundingDialogProps> = ({
     
     setLoading(true);
     try {
-      // Create payment transaction
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('flutterwave-payment', {
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('paystack-initialize', {
         body: {
           amount: data.amount,
-          currency: 'USD',
-          customer_name: user.user_metadata.company_name || user.email,
-          customer_email: user.email,
+          email: user.email,
           payment_type: 'campaign_funding',
           campaign_id: campaign.id,
-          redirect_url: `${window.location.origin}/brand-dashboard?payment=success`
-        }
+          callback_url: `${window.location.origin}/brand-dashboard?payment=success`,
+        },
       });
 
       if (paymentError) throw paymentError;
+      if (!paymentData?.authorization_url) throw new Error('Failed to create payment link');
 
-      if (paymentData?.payment_link) {
-        // Open payment page in new tab
-        window.open(paymentData.payment_link, '_blank');
-        toast.success('Payment window opened. Complete the payment to fund your campaign.');
-        onOpenChange(false);
-      } else {
-        throw new Error('Failed to create payment link');
-      }
+      window.open(paymentData.authorization_url, '_blank');
+      toast.success('Payment window opened. Complete the payment to fund your campaign.');
+      onOpenChange(false);
+      onFundingComplete();
     } catch (error: any) {
       toast.error('Failed to initiate payment: ' + error.message);
     } finally {
