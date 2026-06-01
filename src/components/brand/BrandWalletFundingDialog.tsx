@@ -43,52 +43,31 @@ export const BrandWalletFundingDialog: React.FC<BrandWalletFundingDialogProps> =
     
     setLoading(true);
     try {
-      // Create payment transaction for wallet funding
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('flutterwave-payment', {
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('paystack-initialize', {
         body: {
           amount: data.amount,
-          currency: 'NGN',
-          email: user.email!,
-          phone_number: user.phone || '+2348000000000',
-          name: user.user_metadata?.company_name || user.email!,
-          title: 'Wallet Funding',
-          description: `Fund brand wallet - Amount: ₦${data.amount.toLocaleString()}`,
-          redirect_url: `${window.location.origin}/brand-dashboard?payment=success`,
-          meta: {
-            user_id: user.id,
-            payment_type: 'wallet_funding'
-          }
-        }
+          email: user.email,
+          payment_type: 'wallet_funding',
+          callback_url: `${window.location.origin}/brand-dashboard?payment=success`,
+        },
       });
 
       if (paymentError) throw paymentError;
+      if (!paymentData?.authorization_url) throw new Error('Failed to create payment link');
 
-      if (paymentData?.data?.link) {
-        // Open payment page in new window
-        const paymentWindow = window.open(paymentData.data.link, '_blank', 'width=800,height=600');
-        
-        if (paymentWindow) {
-          toast.success('Payment window opened. Complete the payment to fund your wallet.');
-          
-          // Check if window is closed (user completed or cancelled payment)
-          const checkClosed = setInterval(() => {
-            if (paymentWindow.closed) {
-              clearInterval(checkClosed);
-              // Refresh wallet data after potential payment
-              setTimeout(() => {
-                onFundingComplete();
-              }, 2000);
-            }
-          }, 1000);
-        } else {
-          // Fallback: redirect in current window
-          window.location.href = paymentData.data.link;
-        }
-        
-        onOpenChange(false);
+      const paymentWindow = window.open(paymentData.authorization_url, '_blank', 'width=800,height=700');
+      if (paymentWindow) {
+        toast.success('Payment window opened. Complete the payment to fund your wallet.');
+        const checkClosed = setInterval(() => {
+          if (paymentWindow.closed) {
+            clearInterval(checkClosed);
+            setTimeout(() => onFundingComplete(), 2000);
+          }
+        }, 1000);
       } else {
-        throw new Error('Failed to create payment link');
+        window.location.href = paymentData.authorization_url;
       }
+      onOpenChange(false);
     } catch (error: any) {
       console.error('Wallet funding error:', error);
       toast.error('Failed to initiate payment: ' + (error.message || 'Unknown error'));
@@ -140,10 +119,10 @@ export const BrandWalletFundingDialog: React.FC<BrandWalletFundingDialogProps> =
             <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
               <div className="flex items-center gap-2 text-blue-700">
                 <CreditCard className="w-4 h-4" />
-                <span className="text-sm font-medium">Secure Payment with Flutterwave</span>
+                <span className="text-sm font-medium">Secure Payment with Paystack</span>
               </div>
               <p className="text-xs text-blue-600 mt-1">
-                Live payment processing. You'll be redirected to complete the transaction securely.
+                You'll be redirected to Paystack to complete the transaction securely.
               </p>
             </div>
 

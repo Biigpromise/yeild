@@ -14,7 +14,7 @@ import { CreditCard, DollarSign } from "lucide-react";
 import type { BrandCampaign } from "@/hooks/useBrandCampaigns";
 
 const fundingSchema = z.object({
-  amount: z.number().min(10, "Minimum funding amount is $10"),
+  amount: z.number().min(1000, "Minimum funding amount is ₦1,000"),
 });
 
 type FundingFormData = z.infer<typeof fundingSchema>;
@@ -38,7 +38,7 @@ export const CampaignFundingDialog: React.FC<CampaignFundingDialogProps> = ({
   const form = useForm<FundingFormData>({
     resolver: zodResolver(fundingSchema),
     defaultValues: {
-      amount: 10,
+      amount: 1000,
     }
   });
 
@@ -47,29 +47,23 @@ export const CampaignFundingDialog: React.FC<CampaignFundingDialogProps> = ({
     
     setLoading(true);
     try {
-      // Create payment transaction
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('flutterwave-payment', {
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('paystack-initialize', {
         body: {
           amount: data.amount,
-          currency: 'USD',
-          customer_name: user.user_metadata.company_name || user.email,
-          customer_email: user.email,
+          email: user.email,
           payment_type: 'campaign_funding',
           campaign_id: campaign.id,
-          redirect_url: `${window.location.origin}/brand-dashboard?payment=success`
-        }
+          callback_url: `${window.location.origin}/brand-dashboard?payment=success`,
+        },
       });
 
       if (paymentError) throw paymentError;
+      if (!paymentData?.authorization_url) throw new Error('Failed to create payment link');
 
-      if (paymentData?.payment_link) {
-        // Open payment page in new tab
-        window.open(paymentData.payment_link, '_blank');
-        toast.success('Payment window opened. Complete the payment to fund your campaign.');
-        onOpenChange(false);
-      } else {
-        throw new Error('Failed to create payment link');
-      }
+      window.open(paymentData.authorization_url, '_blank');
+      toast.success('Payment window opened. Complete the payment to fund your campaign.');
+      onOpenChange(false);
+      onFundingComplete();
     } catch (error: any) {
       toast.error('Failed to initiate payment: ' + error.message);
     } finally {
@@ -94,21 +88,21 @@ export const CampaignFundingDialog: React.FC<CampaignFundingDialogProps> = ({
             <h3 className="font-medium text-sm text-gray-700">Campaign Details</h3>
             <p className="font-semibold">{campaign.title}</p>
             <p className="text-sm text-gray-600">
-              Budget: ${campaign.budget.toFixed(2)} | 
-              Funded: ${campaign.funded_amount.toFixed(2)}
+              Budget: ₦{campaign.budget.toLocaleString()} | 
+              Funded: ₦{campaign.funded_amount.toLocaleString()}
             </p>
           </div>
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <Label htmlFor="amount">Funding Amount ($)</Label>
+              <Label htmlFor="amount">Funding Amount (₦)</Label>
               <Input
                 id="amount"
                 type="number"
-                min="10"
-                step="0.01"
+                min="1000"
+                step="100"
                 {...form.register('amount', { valueAsNumber: true })}
-                placeholder="10.00"
+                placeholder="1,000"
               />
               {form.formState.errors.amount && (
                 <p className="text-sm text-red-600 mt-1">{form.formState.errors.amount.message}</p>
@@ -118,10 +112,10 @@ export const CampaignFundingDialog: React.FC<CampaignFundingDialogProps> = ({
             <div className="bg-blue-50 p-3 rounded-lg">
               <div className="flex items-center gap-2 text-blue-700">
                 <CreditCard className="w-4 h-4" />
-                <span className="text-sm font-medium">Secure Payment with Flutterwave</span>
+                <span className="text-sm font-medium">Secure Payment with Paystack</span>
               </div>
               <p className="text-xs text-blue-600 mt-1">
-                Your payment will be processed securely. You'll be redirected to complete the transaction.
+                You'll be redirected to Paystack to complete the transaction securely.
               </p>
             </div>
 
