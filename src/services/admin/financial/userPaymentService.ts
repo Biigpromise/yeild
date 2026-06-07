@@ -280,5 +280,3 @@ const initiatePaystackTransfer = async (params: {
     };
   }
 };
-
-};
