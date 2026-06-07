@@ -12,7 +12,6 @@ interface SettlementRequest {
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -23,23 +22,18 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const flutterwaveSecretKey = Deno.env.get('FLUTTERWAVE_SECRET_KEY');
-    if (!flutterwaveSecretKey) {
-      console.error('Flutterwave secret key not configured');
+    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY');
+    if (!paystackSecretKey) {
+      console.error('Paystack secret key not configured');
       return new Response('Configuration error', { status: 500, headers: corsHeaders });
     }
 
     let requestData: SettlementRequest = {};
-    
     if (req.method === 'POST') {
-      try {
-        requestData = await req.json();
-      } catch {
-        // If no JSON body, use defaults
-      }
+      try { requestData = await req.json(); } catch { /* defaults */ }
     }
 
-    const result = await processSettlements(supabase, flutterwaveSecretKey, requestData);
+    const result = await processSettlements(supabase, paystackSecretKey, requestData);
 
     return new Response(JSON.stringify(result), {
       status: 200,
@@ -48,9 +42,9 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Settlement processing error:', error);
-    return new Response(JSON.stringify({ 
-      error: error.message,
-      success: false 
+    return new Response(JSON.stringify({
+      error: (error as Error).message,
+      success: false
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -59,13 +53,12 @@ Deno.serve(async (req) => {
 });
 
 async function processSettlements(
-  supabase: any, 
-  flutterwaveSecretKey: string, 
+  supabase: any,
+  paystackSecretKey: string,
   request: SettlementRequest
 ) {
-  console.log('Starting settlement process...');
+  console.log('Starting Paystack settlement process...');
 
-  // Get settlement account
   const { data: account, error: accountError } = await supabase
     .from('company_financial_accounts')
     .select('*')
@@ -77,9 +70,8 @@ async function processSettlements(
     throw new Error('No active settlement account found');
   }
 
-  // Get pending transfers that meet minimum amount criteria
   const minimumAmount = request.minimumAmount || 5000;
-  
+
   const { data: pendingTransfers, error: transfersError } = await supabase
     .from('fund_transfers')
     .select('*')
@@ -99,37 +91,61 @@ async function processSettlements(
     };
   }
 
-  // Group transfers and create bulk settlement
-  const totalAmount = pendingTransfers.reduce((sum, transfer) => sum + Number(transfer.net_amount), 0);
-  const transferIds = pendingTransfers.map(t => t.id);
-
-  console.log(`Processing ${pendingTransfers.length} transfers, total amount: ₦${totalAmount}`);
-
-  // Create bulk transfer to company account
+  const totalAmount = pendingTransfers.reduce((sum: number, t: any) => sum + Number(t.net_amount), 0);
+  const transferIds = pendingTransfers.map((t: any) => t.id);
   const transferReference = `SETTLEMENT-${Date.now()}`;
-  const transferResult = await initiateFlutterwaveTransfer(
-    flutterwaveSecretKey,
-    {
-      account_number: account.account_number,
-      account_bank: account.bank_code,
-      amount: totalAmount,
-      reference: transferReference,
-      narration: `Bulk settlement for ${pendingTransfers.length} transactions`,
-      currency: 'NGN'
-    }
-  );
 
-  if (!transferResult.success) {
-    throw new Error(`Transfer failed: ${transferResult.message}`);
+  console.log(`Processing ${pendingTransfers.length} transfers, total: ₦${totalAmount}`);
+
+  // 1. Create/resolve transfer recipient on Paystack
+  const recipientRes = await fetch('https://api.paystack.co/transferrecipient', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${paystackSecretKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      type: 'nuban',
+      name: account.account_name || 'Settlement Account',
+      account_number: account.account_number,
+      bank_code: account.bank_code,
+      currency: 'NGN',
+    }),
+  });
+  const recipientData = await recipientRes.json();
+  if (!recipientData.status) {
+    throw new Error(`Recipient creation failed: ${recipientData.message}`);
+  }
+  const recipientCode = recipientData.data.recipient_code;
+
+  // 2. Initiate transfer (Paystack uses kobo)
+  const transferRes = await fetch('https://api.paystack.co/transfer', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${paystackSecretKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      source: 'balance',
+      amount: Math.round(totalAmount * 100),
+      recipient: recipientCode,
+      reference: transferReference,
+      reason: `Bulk settlement for ${pendingTransfers.length} transactions`,
+    }),
+  });
+  const transferData = await transferRes.json();
+
+  if (!transferData.status) {
+    throw new Error(`Transfer failed: ${transferData.message}`);
   }
 
-  // Update fund transfers status
+  // 3. Update fund_transfers (reuse legacy column names as generic provider fields)
   const { error: updateError } = await supabase
     .from('fund_transfers')
     .update({
       status: 'processing',
-      flutterwave_id: transferResult.data.id.toString(),
-      flutterwave_response: transferResult.data,
+      flutterwave_id: transferData.data.transfer_code || String(transferData.data.id || ''),
+      flutterwave_response: transferData.data,
       updated_at: new Date().toISOString()
     })
     .in('id', transferIds);
@@ -138,7 +154,6 @@ async function processSettlements(
     console.error('Error updating transfer statuses:', updateError);
   }
 
-  // Update settlement schedule if this was a scheduled run
   if (request.scheduleId) {
     await updateSettlementSchedule(supabase, request.scheduleId);
   }
@@ -148,72 +163,26 @@ async function processSettlements(
     message: `Settlement initiated for ₦${totalAmount}`,
     processedCount: pendingTransfers.length,
     transferReference,
-    flutterwaveId: transferResult.data.id
+    paystackTransferCode: transferData.data.transfer_code,
   };
-}
-
-async function initiateFlutterwaveTransfer(secretKey: string, transferData: any) {
-  try {
-    const response = await fetch('https://api.flutterwave.com/v3/transfers', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${secretKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(transferData)
-    });
-
-    const result = await response.json();
-
-    if (response.ok && result.status === 'success') {
-      return {
-        success: true,
-        data: result.data
-      };
-    } else {
-      return {
-        success: false,
-        message: result.message || 'Transfer failed',
-        data: result
-      };
-    }
-  } catch (error) {
-    return {
-      success: false,
-      message: error.message,
-      data: null
-    };
-  }
 }
 
 async function updateSettlementSchedule(supabase: any, scheduleId: string) {
   const now = new Date();
-  
-  // Calculate next run time based on schedule frequency
   const { data: schedule } = await supabase
     .from('settlement_schedules')
     .select('*')
     .eq('id', scheduleId)
     .single();
-
   if (!schedule) return;
 
   let nextRun = new Date(now);
-  
   switch (schedule.frequency) {
-    case 'daily':
-      nextRun.setDate(nextRun.getDate() + 1);
-      break;
-    case 'weekly':
-      nextRun.setDate(nextRun.getDate() + 7);
-      break;
-    case 'monthly':
-      nextRun.setMonth(nextRun.getMonth() + 1);
-      break;
+    case 'daily': nextRun.setDate(nextRun.getDate() + 1); break;
+    case 'weekly': nextRun.setDate(nextRun.getDate() + 7); break;
+    case 'monthly': nextRun.setMonth(nextRun.getMonth() + 1); break;
   }
-
-  // Set the time
-  const [hours, minutes] = schedule.time_of_day.split(':');
+  const [hours, minutes] = (schedule.time_of_day || '00:00').split(':');
   nextRun.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
   await supabase
