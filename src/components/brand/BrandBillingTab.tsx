@@ -16,7 +16,7 @@ interface PaymentTransaction {
   status: string;
   created_at: string;
   campaign_id?: string;
-  flutterwave_id?: string;
+  paystack_id?: string;
 }
 
 export const BrandBillingTab: React.FC = () => {
@@ -121,7 +121,7 @@ export const BrandBillingTab: React.FC = () => {
               <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">2</div>
               <div>
                 <h4 className="font-medium">Add Funding</h4>
-                <p className="text-sm text-gray-600">Use Flutterwave to securely fund your campaigns</p>
+                <p className="text-sm text-gray-600">Use Paystack to securely fund your campaigns</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -155,8 +155,8 @@ export const BrandBillingTab: React.FC = () => {
                       <div className="text-sm text-gray-500">
                         {new Date(transaction.created_at).toLocaleDateString()} at {new Date(transaction.created_at).toLocaleTimeString()}
                       </div>
-                      {transaction.flutterwave_id && (
-                        <div className="text-xs text-gray-400">ID: {transaction.flutterwave_id}</div>
+                      {transaction.paystack_id && (
+                        <div className="text-xs text-gray-400">ID: {transaction.paystack_id}</div>
                       )}
                     </div>
                     <div className="flex items-center gap-4">

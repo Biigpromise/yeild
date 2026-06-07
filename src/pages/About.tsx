@@ -25,7 +25,7 @@ const PILLARS = [
   {
     icon: Target,
     title: 'Real Currency, Real Payouts',
-    body: '1 Credit = ₦1 NGN. Withdrawals settle to verified bank accounts via Paystack and Flutterwave. Minimum payout is 1,000 Credits.'
+    body: '1 Credit = ₦1 NGN. Withdrawals settle to verified bank accounts via Paystack and Paystack. Minimum payout is 1,000 Credits.'
   }
 ];
 

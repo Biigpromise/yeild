@@ -37,7 +37,7 @@ export const QuickActionPanel: React.FC<QuickActionPanelProps> = ({
       disabled: userBalance < 100
     },
     {
-      id: 'flutterwave',
+      id: 'paystack',
       title: 'Bank Withdrawal',
       subtitle: 'To Bank Account',
       description: '5% fee, 1-24 hours',

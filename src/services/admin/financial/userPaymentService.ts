@@ -108,15 +108,6 @@ export const processInstantUserPayment = async (
         accountName: paymentRequest.payoutDetails.accountName,
         reference: `USER-PAYOUT-${withdrawalRequest.id}`,
       });
-    } else if (paymentRequest.payoutMethod === 'flutterwave') {
-      transferResult = await initiateFlutterwaveTransfer({
-        amount: paymentRequest.amount,
-        accountNumber: paymentRequest.payoutDetails.accountNumber,
-        accountBank: paymentRequest.payoutDetails.bankCode,
-        beneficiaryName: paymentRequest.payoutDetails.accountName,
-        reference: `USER-PAYOUT-${withdrawalRequest.id}`,
-        narration: paymentRequest.description || 'User earning payout'
-      });
     } else {
       return {
         id: withdrawalRequest.id,
@@ -133,7 +124,7 @@ export const processInstantUserPayment = async (
           status: 'processed',
           processed_at: new Date().toISOString(),
           transaction_reference: transferResult.reference,
-          flutterwave_transfer_id: transferResult.transferId
+          paystack_transfer_id: transferResult.transferId
         })
         .eq('id', withdrawalRequest.id);
 
@@ -286,57 +277,6 @@ const initiatePaystackTransfer = async (params: {
     return {
       success: false,
       message: 'Paystack transfer service error'
-    };
-  }
-};
-
-/**
- * Initiate Flutterwave transfer
- */
-const initiateFlutterwaveTransfer = async (params: {
-  amount: number;
-  accountNumber: string;
-  accountBank: string;
-  beneficiaryName: string;
-  reference: string;
-  narration: string;
-}): Promise<{ success: boolean; transferId?: string; reference?: string; message?: string }> => {
-  try {
-    // Call Supabase Edge Function to initiate transfer
-    const { data, error } = await supabase.functions.invoke('flutterwave-transfer', {
-      body: {
-        amount: params.amount,
-        account_number: params.accountNumber,
-        account_bank: params.accountBank,
-        beneficiary_name: params.beneficiaryName,
-        reference: params.reference,
-        narration: params.narration,
-        currency: 'NGN'
-      }
-    });
-
-    if (error) {
-      console.error('Error invoking transfer function:', error);
-      return { success: false, message: error.message };
-    }
-
-    if (data?.success) {
-      return {
-        success: true,
-        transferId: data.transfer_id,
-        reference: data.reference
-      };
-    } else {
-      return {
-        success: false,
-        message: data?.message || 'Transfer initiation failed'
-      };
-    }
-  } catch (error) {
-    console.error('Error in initiateFlutterwaveTransfer:', error);
-    return {
-      success: false,
-      message: 'Transfer service error'
     };
   }
 };

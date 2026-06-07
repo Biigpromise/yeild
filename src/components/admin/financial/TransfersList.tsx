@@ -170,7 +170,7 @@ export const TransfersList: React.FC = () => {
                       </div>
                       {transfer.flutterwave_id && (
                         <div className="text-xs text-muted-foreground">
-                          FLW: {transfer.flutterwave_id}
+                          Ref: {transfer.flutterwave_id}
                         </div>
                       )}
                     </div>
@@ -221,9 +221,9 @@ export const TransfersList: React.FC = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          // Open Flutterwave dashboard in new tab
+                          // Open Paystack dashboard in new tab
                           window.open(
-                            `https://dashboard.flutterwave.com/transfers/${transfer.flutterwave_id}`,
+                            `https://dashboard.paystack.com/transfers/${transfer.flutterwave_id}`,
                             '_blank'
                           );
                         }}

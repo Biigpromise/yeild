@@ -86,7 +86,7 @@ export const CampaignFundingForm: React.FC<CampaignFundingFormProps> = ({
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('flutterwave-payment', {
+      const { data, error } = await supabase.functions.invoke('paystack-payment', {
         body: {
           amount: fundingAmount,
           email: user.email,
@@ -107,7 +107,7 @@ export const CampaignFundingForm: React.FC<CampaignFundingFormProps> = ({
           description: "Opening secure payment window...",
         });
         
-        // Redirect to Flutterwave payment page
+        // Redirect to Paystack payment page
         window.location.href = data.payment_link;
       }
     } catch (error) {
@@ -234,7 +234,7 @@ export const CampaignFundingForm: React.FC<CampaignFundingFormProps> = ({
               <li>• Support innovative marketing campaigns</li>
               <li>• Get priority access to campaign results</li>
               <li>• Build relationships with influencers</li>
-              <li>• Secure payment processing via Flutterwave</li>
+              <li>• Secure payment processing via Paystack</li>
             </ul>
           </div>
 
@@ -256,7 +256,7 @@ export const CampaignFundingForm: React.FC<CampaignFundingFormProps> = ({
 
           <p className="text-xs text-muted-foreground text-center">
             By funding this campaign, you agree to our terms of service. 
-            Payments are processed securely by Flutterwave.
+            Payments are processed securely by Paystack.
           </p>
         </CardContent>
       </Card>

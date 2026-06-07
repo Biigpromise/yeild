@@ -49,10 +49,10 @@ export const ImplementationSummary: React.FC = () => {
 
   const pendingFeatures = [
     {
-      title: 'Flutterwave Live Mode',
+      title: 'Paystack Live Mode',
       description: 'Configure live payment processing',
       status: 'pending',
-      note: 'Requires live Flutterwave secret key configuration'
+      note: 'Requires live Paystack secret key configuration'
     },
     {
       title: 'Real-time Notifications',
@@ -174,7 +174,7 @@ export const ImplementationSummary: React.FC = () => {
             <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
               <h4 className="font-medium text-indigo-900">Payment Security</h4>
               <p className="text-sm text-indigo-700">
-                Flutterwave integration with test/live mode detection. All financial transactions 
+                Paystack integration with test/live mode detection. All financial transactions 
                 are tracked with full audit trails.
               </p>
             </div>

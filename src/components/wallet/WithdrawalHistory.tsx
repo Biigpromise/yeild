@@ -95,7 +95,7 @@ export const WithdrawalHistory: React.FC = () => {
 
   const getPaymentMethodLabel = (method: string) => {
     switch (method) {
-      case 'flutterwave':
+      case 'paystack':
         return 'Bank Transfer';
       case 'yield_wallet':
         return 'Yield Wallet';
@@ -209,7 +209,7 @@ export const WithdrawalHistory: React.FC = () => {
                     )}
                   </div>
 
-                  {request.payout_details && request.payout_method === 'flutterwave' && (
+                  {request.payout_details && request.payout_method === 'paystack' && (
                     <div className="mt-3 p-3 bg-gray-50 rounded-md">
                       <div className="text-sm">
                         <div className="font-medium">Bank Details:</div>

@@ -60,7 +60,7 @@ export const Hero = () => {
         </div>
         
         <div className="text-sm text-gray-400">
-          <p>1 Credit = ₦1 • 7-day escrow protection • Paystack & Flutterwave payouts</p>
+          <p>1 Credit = ₦1 • 7-day escrow protection • Paystack & Paystack payouts</p>
         </div>
       </div>
     </div>

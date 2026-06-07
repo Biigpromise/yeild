@@ -21,8 +21,8 @@ import {
 import { 
   getActiveBanks, 
   getBanksByType, 
-  getFlutterwaveSupportedBanks,
-  isBankSupportedByFlutterwave 
+  getPaystackSupportedBanks,
+  isBankSupportedByPaystack 
 } from '@/services/bankService';
 
 interface BankAccountSelectorProps {
@@ -47,7 +47,7 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
   });
 
   const banks = getActiveBanks();
-  const supportedBanks = getFlutterwaveSupportedBanks();
+  const supportedBanks = getPaystackSupportedBanks();
   const traditionalBanks = getBanksByType('traditional');
   const fintechBanks = getBanksByType('fintech');
   const microfinanceBanks = getBanksByType('microfinance');
@@ -117,7 +117,7 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
     }
 
     try {
-      const isSupported = isBankSupportedByFlutterwave(newAccount.bankCode);
+      const isSupported = isBankSupportedByPaystack(newAccount.bankCode);
       const savedAccount = await saveBankAccount({
         user_id: user.id,
         account_name: newAccount.accountName,
@@ -203,7 +203,7 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
   }
 
   const selectedBank = banks.find(b => b.code === newAccount.bankCode);
-  const isSelectedBankSupported = selectedBank ? isBankSupportedByFlutterwave(selectedBank.code) : false;
+  const isSelectedBankSupported = selectedBank ? isBankSupportedByPaystack(selectedBank.code) : false;
 
   return (
     <Card>
@@ -254,7 +254,7 @@ export const BankAccountSelector: React.FC<BankAccountSelectorProps> = ({
                       
                       <div className="p-2">
                         <div className="font-medium text-sm mb-2 text-orange-600">⚠ Limited Support (Manual verification)</div>
-                        {traditionalBanks.filter(bank => !bank.flutterwaveSupported).map((bank) => (
+                        {traditionalBanks.filter(bank => !bank.paystackSupported).map((bank) => (
                           <SelectItem key={bank.code} value={bank.code}>
                             <div className="flex items-center gap-2">
                               <AlertTriangle className="h-4 w-4 text-orange-600" />

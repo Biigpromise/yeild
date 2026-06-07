@@ -41,7 +41,7 @@ export const WithdrawalAmountInput: React.FC<WithdrawalAmountInputProps> = ({
   const getFeePercentage = () => {
     if (selectedMethod === 'yield_wallet') return 0;
     if (selectedMethod === 'paystack') return 0.02; // 2%
-    return 0.05; // 5% for flutterwave and others
+    return 0.05; // 5% for paystack and others
   };
   
   const processingFee = Math.ceil(withdrawalAmount * getFeePercentage());
