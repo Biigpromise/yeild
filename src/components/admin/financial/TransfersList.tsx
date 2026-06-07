@@ -170,7 +170,7 @@ export const TransfersList: React.FC = () => {
                       </div>
                       {transfer.flutterwave_id && (
                         <div className="text-xs text-muted-foreground">
-                          FLW: {transfer.flutterwave_id}
+                          Ref: {transfer.flutterwave_id}
                         </div>
                       )}
                     </div>
