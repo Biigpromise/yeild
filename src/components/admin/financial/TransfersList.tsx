@@ -78,7 +78,7 @@ export const TransfersList: React.FC = () => {
   const filteredTransfers = transfers.filter(transfer =>
     transfer.transfer_reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
     transfer.recipient_account.includes(searchTerm) ||
-    transfer.paystack_id?.includes(searchTerm)
+    transfer.flutterwave_id?.includes(searchTerm)
   );
 
   const getStatusBadge = (status: string) => {
@@ -168,9 +168,9 @@ export const TransfersList: React.FC = () => {
                       <div className="font-medium">
                         {transfer.transfer_reference}
                       </div>
-                      {transfer.paystack_id && (
+                      {transfer.flutterwave_id && (
                         <div className="text-xs text-muted-foreground">
-                          FLW: {transfer.paystack_id}
+                          FLW: {transfer.flutterwave_id}
                         </div>
                       )}
                     </div>
@@ -216,14 +216,14 @@ export const TransfersList: React.FC = () => {
                     )}
                   </TableCell>
                   <TableCell>
-                    {transfer.paystack_id && (
+                    {transfer.flutterwave_id && (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => {
                           // Open Paystack dashboard in new tab
                           window.open(
-                            `https://dashboard.paystack.com/transfers/${transfer.paystack_id}`,
+                            `https://dashboard.paystack.com/transfers/${transfer.flutterwave_id}`,
                             '_blank'
                           );
                         }}
