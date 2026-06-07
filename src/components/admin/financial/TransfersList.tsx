@@ -26,7 +26,7 @@ import { formatDistanceToNow } from 'date-fns';
 interface FundTransfer {
   id: string;
   transfer_reference: string;
-  paystack_id: string;
+  flutterwave_id: string;
   source_type: string;
   amount: number;
   fee: number;
