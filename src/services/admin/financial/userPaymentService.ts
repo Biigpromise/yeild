@@ -108,15 +108,6 @@ export const processInstantUserPayment = async (
         accountName: paymentRequest.payoutDetails.accountName,
         reference: `USER-PAYOUT-${withdrawalRequest.id}`,
       });
-    } else if (paymentRequest.payoutMethod === 'paystack') {
-      transferResult = await initiatePaystackTransfer({
-        amount: paymentRequest.amount,
-        accountNumber: paymentRequest.payoutDetails.accountNumber,
-        accountBank: paymentRequest.payoutDetails.bankCode,
-        beneficiaryName: paymentRequest.payoutDetails.accountName,
-        reference: `USER-PAYOUT-${withdrawalRequest.id}`,
-        narration: paymentRequest.description || 'User earning payout'
-      });
     } else {
       return {
         id: withdrawalRequest.id,
