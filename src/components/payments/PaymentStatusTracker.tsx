@@ -15,7 +15,7 @@ interface PaymentTransaction {
   currency: string;
   payment_type: string;
   status: string;
-  flutterwave_id?: string;
+  paystack_id?: string;
   amount_settled?: number;
   payment_method?: string;
   created_at: string;
@@ -153,7 +153,7 @@ export const PaymentStatusTracker: React.FC = () => {
 
   const verifyPayment = async (transactionRef: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('flutterwave-verify', {
+      const { data, error } = await supabase.functions.invoke('paystack-verify', {
         body: { tx_ref: transactionRef }
       });
 

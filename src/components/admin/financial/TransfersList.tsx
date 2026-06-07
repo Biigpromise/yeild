@@ -26,7 +26,7 @@ import { formatDistanceToNow } from 'date-fns';
 interface FundTransfer {
   id: string;
   transfer_reference: string;
-  flutterwave_id: string;
+  paystack_id: string;
   source_type: string;
   amount: number;
   fee: number;
@@ -78,7 +78,7 @@ export const TransfersList: React.FC = () => {
   const filteredTransfers = transfers.filter(transfer =>
     transfer.transfer_reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
     transfer.recipient_account.includes(searchTerm) ||
-    transfer.flutterwave_id?.includes(searchTerm)
+    transfer.paystack_id?.includes(searchTerm)
   );
 
   const getStatusBadge = (status: string) => {
@@ -168,9 +168,9 @@ export const TransfersList: React.FC = () => {
                       <div className="font-medium">
                         {transfer.transfer_reference}
                       </div>
-                      {transfer.flutterwave_id && (
+                      {transfer.paystack_id && (
                         <div className="text-xs text-muted-foreground">
-                          FLW: {transfer.flutterwave_id}
+                          FLW: {transfer.paystack_id}
                         </div>
                       )}
                     </div>
@@ -216,14 +216,14 @@ export const TransfersList: React.FC = () => {
                     )}
                   </TableCell>
                   <TableCell>
-                    {transfer.flutterwave_id && (
+                    {transfer.paystack_id && (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          // Open Flutterwave dashboard in new tab
+                          // Open Paystack dashboard in new tab
                           window.open(
-                            `https://dashboard.flutterwave.com/transfers/${transfer.flutterwave_id}`,
+                            `https://dashboard.paystack.com/transfers/${transfer.paystack_id}`,
                             '_blank'
                           );
                         }}

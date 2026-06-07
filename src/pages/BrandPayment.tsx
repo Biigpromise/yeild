@@ -62,7 +62,7 @@ const BrandPayment = () => {
       console.log('Initiating payment with payload:', paymentPayload);
 
       const { data: paymentResponse, error: paymentError } = await supabase.functions
-        .invoke('flutterwave-payment', {
+        .invoke('paystack-payment', {
           body: paymentPayload
         });
 
@@ -194,7 +194,7 @@ const BrandPayment = () => {
                 <ul className="space-y-2 text-sm text-gray-300">
                   <li>• Funds will be available in your account immediately after successful payment</li>
                   <li>• You can use account funds for campaign creation and management</li>
-                  <li>• All payments are processed securely via Flutterwave</li>
+                  <li>• All payments are processed securely via Paystack</li>
                   <li>• A 1.5% processing fee applies to all transactions</li>
                   <li>• Funds are non-refundable but can be used for any YIELD services</li>
                 </ul>
@@ -247,7 +247,7 @@ const BrandPayment = () => {
                 <div className="text-center space-y-4">
                   <div className="text-4xl">🔒</div>
                   <p className="text-sm text-gray-300">
-                    Your payment is secured by Flutterwave's industry-leading encryption and security measures.
+                    Your payment is secured by Paystack's industry-leading encryption and security measures.
                   </p>
                   {/* Payment Mode Indicator */}
                   <div className="mt-4 p-3 bg-amber-500/20 border border-amber-500/40 rounded-lg">

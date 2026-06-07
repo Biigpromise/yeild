@@ -90,7 +90,7 @@ export const PaymentDashboard = () => {
   const verifyPayment = async (transactionRef: string) => {
     try {
       const { data, error } = await supabase.functions
-        .invoke('flutterwave-verify', {
+        .invoke('paystack-verify', {
           body: { tx_ref: transactionRef }
         });
 

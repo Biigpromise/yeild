@@ -80,7 +80,7 @@ export const CampaignFunding = ({ campaignId, existingCampaign }: CampaignFundin
         currentCampaignId = campaign.id;
       }
 
-      // Initialize payment with Flutterwave
+      // Initialize payment with Paystack
       const paymentPayload = {
         amount: parseFloat(formData.budget),
         currency: formData.currency,
@@ -100,14 +100,14 @@ export const CampaignFunding = ({ campaignId, existingCampaign }: CampaignFundin
       console.log("Initiating campaign funding payment:", paymentPayload);
 
       const { data: paymentResponse, error: paymentError } = await supabase.functions
-        .invoke('flutterwave-payment', {
+        .invoke('paystack-payment', {
           body: paymentPayload
         });
 
       if (paymentError) throw paymentError;
 
       if (paymentResponse?.data?.link) {
-        // Redirect to Flutterwave payment page
+        // Redirect to Paystack payment page
         window.location.href = paymentResponse.data.link;
       } else {
         throw new Error("Payment link not received");
@@ -272,7 +272,7 @@ export const CampaignFunding = ({ campaignId, existingCampaign }: CampaignFundin
             <div className="bg-muted p-4 rounded-lg">
               <h4 className="font-medium mb-2">What happens next?</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• You'll be redirected to Flutterwave for secure payment</li>
+                <li>• You'll be redirected to Paystack for secure payment</li>
                 <li>• Once paid, your campaign will be activated</li>
                 <li>• Users can start working on your campaign tasks</li>
                 <li>• Payments to users are processed automatically upon task completion</li>

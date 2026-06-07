@@ -50,7 +50,7 @@ export const WithdrawalValidation: React.FC<WithdrawalValidationProps> = ({
 
   // Method-specific validation
   switch (paymentMethod) {
-    case 'flutterwave':
+    case 'paystack':
       if (!payoutDetails.accountNumber) {
         validationResults.push({
           type: 'error',

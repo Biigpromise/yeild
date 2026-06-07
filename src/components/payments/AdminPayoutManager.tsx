@@ -76,7 +76,7 @@ export const AdminPayoutManager = () => {
           created_at,
           profiles!inner(name, email)
         `)
-        .eq('payout_method', 'flutterwave')
+        .eq('payout_method', 'paystack')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -131,7 +131,7 @@ export const AdminPayoutManager = () => {
       };
 
       const { data, error } = await supabase.functions
-        .invoke('flutterwave-transfer', {
+        .invoke('paystack-transfer', {
           body: transferPayload
         });
 
@@ -170,7 +170,7 @@ export const AdminPayoutManager = () => {
       };
 
       const { data, error } = await supabase.functions
-        .invoke('flutterwave-transfer', {
+        .invoke('paystack-transfer', {
           body: transferPayload
         });
 
@@ -232,7 +232,7 @@ export const AdminPayoutManager = () => {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Payout Management</h2>
         <p className="text-muted-foreground">
-          Process user withdrawals and manage bulk payouts via Flutterwave.
+          Process user withdrawals and manage bulk payouts via Paystack.
         </p>
       </div>
 

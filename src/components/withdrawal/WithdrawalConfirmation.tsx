@@ -32,7 +32,7 @@ export const WithdrawalConfirmation: React.FC<WithdrawalConfirmationProps> = ({
   const getFeePercentage = () => {
     if (selectedMethod === 'yield_wallet') return 0;
     if (selectedMethod === 'paystack') return 0.02; // 2%
-    return 0.05; // 5% for flutterwave and others
+    return 0.05; // 5% for paystack and others
   };
   
   const processingFee = Math.ceil(withdrawalAmount * getFeePercentage());
@@ -54,9 +54,9 @@ export const WithdrawalConfirmation: React.FC<WithdrawalConfirmationProps> = ({
           processingTime: '2-10 minutes',
           icon: '🏦'
         };
-      case 'flutterwave':
+      case 'paystack':
         return {
-          name: 'Flutterwave Bank Transfer',
+          name: 'Paystack Bank Transfer',
           description: 'Direct transfer to your Nigerian bank account',
           processingTime: '1-24 hours',
           icon: '🏦'
@@ -122,7 +122,7 @@ export const WithdrawalConfirmation: React.FC<WithdrawalConfirmationProps> = ({
 
         toast.success('Points transferred to yield wallet successfully!');
       } else {
-        // Handle other withdrawal methods (Paystack, Flutterwave, etc.)
+        // Handle other withdrawal methods (Paystack, Paystack, etc.)
         // Step 1: Deduct points from user's balance immediately
         const { error: pointsError } = await supabase
           .from('profiles')

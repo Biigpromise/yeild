@@ -36,7 +36,7 @@ export const AdminSettings = () => {
     // Payment Settings
     platformFeePercent: 5,
     minimumWithdrawal: 1000,
-    paymentGateway: 'flutterwave',
+    paymentGateway: 'paystack',
     autoApproveWithdrawals: false,
     
     // Notification Settings
@@ -253,7 +253,7 @@ export const AdminSettings = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="flutterwave">Flutterwave</SelectItem>
+                    <SelectItem value="paystack">Paystack</SelectItem>
                     <SelectItem value="paystack">Paystack</SelectItem>
                     <SelectItem value="stripe">Stripe</SelectItem>
                   </SelectContent>

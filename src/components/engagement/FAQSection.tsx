@@ -35,7 +35,7 @@ const FAQ_ITEMS = [
   {
     id: 'withdraw',
     question: 'How do I withdraw my Credits?',
-    answer: 'Move cleared Credits to your Yield Wallet and request a payout to your verified bank account. Minimum withdrawal is 1,000 Credits (₦1,000). Bank payouts are processed via Paystack and Flutterwave (2% fee). Internal Yield Wallet transfers are free.'
+    answer: 'Move cleared Credits to your Yield Wallet and request a payout to your verified bank account. Minimum withdrawal is 1,000 Credits (₦1,000). Bank payouts are processed via Paystack and Paystack (2% fee). Internal Yield Wallet transfers are free.'
   },
   {
     id: 'referral',

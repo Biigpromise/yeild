@@ -3,7 +3,7 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { NIGERIAN_BANKS, getFlutterwaveSupportedBanks } from "@/services/bankService";
+import { NIGERIAN_BANKS, getPaystackSupportedBanks } from "@/services/bankService";
 
 interface BankTransferFormProps {
   amount: string;
@@ -22,8 +22,8 @@ export const BankTransferForm = ({
   minWithdrawal,
   maxWithdrawal
 }: BankTransferFormProps) => {
-  // Only show banks supported by Flutterwave for withdrawals
-  const supportedBanks = getFlutterwaveSupportedBanks();
+  // Only show banks supported by Paystack for withdrawals
+  const supportedBanks = getPaystackSupportedBanks();
 
   return (
     <div className="space-y-4">
@@ -42,7 +42,7 @@ export const BankTransferForm = ({
 
       <div className="space-y-3">
         <div>
-          <Label htmlFor="bank">Bank (Flutterwave Supported)</Label>
+          <Label htmlFor="bank">Bank (Paystack Supported)</Label>
           <Select value={payoutDetails.bankCode} onValueChange={(value) => {
             const bank = NIGERIAN_BANKS.find(b => b.code === value);
             setPayoutDetails({

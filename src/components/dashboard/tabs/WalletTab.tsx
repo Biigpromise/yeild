@@ -173,7 +173,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({ userProfile, userStats }) 
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span>Flutterwave: 5% fee, 1-24 hrs</span>
+                      <span>Paystack: 5% fee, 1-24 hrs</span>
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <CheckCircle className="h-4 w-4 text-green-600" />

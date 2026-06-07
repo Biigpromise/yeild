@@ -108,8 +108,8 @@ export const processInstantUserPayment = async (
         accountName: paymentRequest.payoutDetails.accountName,
         reference: `USER-PAYOUT-${withdrawalRequest.id}`,
       });
-    } else if (paymentRequest.payoutMethod === 'flutterwave') {
-      transferResult = await initiateFlutterwaveTransfer({
+    } else if (paymentRequest.payoutMethod === 'paystack') {
+      transferResult = await initiatePaystackTransfer({
         amount: paymentRequest.amount,
         accountNumber: paymentRequest.payoutDetails.accountNumber,
         accountBank: paymentRequest.payoutDetails.bankCode,
@@ -133,7 +133,7 @@ export const processInstantUserPayment = async (
           status: 'processed',
           processed_at: new Date().toISOString(),
           transaction_reference: transferResult.reference,
-          flutterwave_transfer_id: transferResult.transferId
+          paystack_transfer_id: transferResult.transferId
         })
         .eq('id', withdrawalRequest.id);
 
@@ -291,9 +291,9 @@ const initiatePaystackTransfer = async (params: {
 };
 
 /**
- * Initiate Flutterwave transfer
+ * Initiate Paystack transfer
  */
-const initiateFlutterwaveTransfer = async (params: {
+const initiatePaystackTransfer = async (params: {
   amount: number;
   accountNumber: string;
   accountBank: string;
@@ -303,7 +303,7 @@ const initiateFlutterwaveTransfer = async (params: {
 }): Promise<{ success: boolean; transferId?: string; reference?: string; message?: string }> => {
   try {
     // Call Supabase Edge Function to initiate transfer
-    const { data, error } = await supabase.functions.invoke('flutterwave-transfer', {
+    const { data, error } = await supabase.functions.invoke('paystack-transfer', {
       body: {
         amount: params.amount,
         account_number: params.accountNumber,
@@ -333,7 +333,7 @@ const initiateFlutterwaveTransfer = async (params: {
       };
     }
   } catch (error) {
-    console.error('Error in initiateFlutterwaveTransfer:', error);
+    console.error('Error in initiatePaystackTransfer:', error);
     return {
       success: false,
       message: 'Transfer service error'

@@ -40,7 +40,7 @@ export const ModernLanding: React.FC = () => {
     number: '₦2M+',
     label: 'Credits Paid'
   }];
-  const benefits = ['Quick Execution Orders that take minutes', 'Instant Credit rewards (1 Credit = ₦1)', 'Paystack & Flutterwave withdrawals', '7-day escrow protection on every payout', 'Operator ranks: Dove → Eagle → Phoenix', 'Sole verification authority — fair to Operators'];
+  const benefits = ['Quick Execution Orders that take minutes', 'Instant Credit rewards (1 Credit = ₦1)', 'Paystack & Paystack withdrawals', '7-day escrow protection on every payout', 'Operator ranks: Dove → Eagle → Phoenix', 'Sole verification authority — fair to Operators'];
   return <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border/60">
@@ -90,7 +90,7 @@ export const ModernLanding: React.FC = () => {
                 Brands fund Execution Orders upfront. Verified Operators deliver real-world work. YEILD holds sole verification authority — so payouts are fair, fast, and proof-backed.
               </p>
               <p className="text-sm text-muted-foreground/80 mb-8 max-w-xl mx-auto">
-                1 Credit = ₦1 · 7-day escrow protection · Paystack & Flutterwave payouts
+                1 Credit = ₦1 · 7-day escrow protection · Paystack & Paystack payouts
               </p>
             </motion.div>
 
@@ -407,7 +407,7 @@ export const ModernLanding: React.FC = () => {
                    </div>
                    <div className="text-2xl font-bold mb-1">Direct Bank Payouts</div>
                    <p className="text-sm text-muted-foreground">
-                     Withdraw via Paystack or Flutterwave once you hit 1,000 Credits. Money lands in your bank — no third-party wallets.
+                     Withdraw via Paystack or Paystack once you hit 1,000 Credits. Money lands in your bank — no third-party wallets.
                    </p>
                  </CardContent>
                </Card>
@@ -704,7 +704,7 @@ export const ModernLanding: React.FC = () => {
                 },
                 {
                   question: 'How do I withdraw my earnings?',
-                  answer: 'Once you hit the 1,000 Credit minimum, request a payout via Paystack or Flutterwave. Earnings clear a 7-day escrow hold and are then transferred directly to your Nigerian bank account.'
+                  answer: 'Once you hit the 1,000 Credit minimum, request a payout via Paystack or Paystack. Earnings clear a 7-day escrow hold and are then transferred directly to your Nigerian bank account.'
                 },
                 {
                   question: 'Is YEILD free for Operators?',

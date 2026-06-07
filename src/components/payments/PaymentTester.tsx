@@ -26,7 +26,7 @@ export const PaymentTester = () => {
   const initiatePayment = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('flutterwave-payment', {
+      const { data, error } = await supabase.functions.invoke('paystack-payment', {
         body: {
           amount: parseFloat(paymentData.amount),
           email: paymentData.email,
@@ -77,7 +77,7 @@ export const PaymentTester = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('flutterwave-verify', {
+      const { data, error } = await supabase.functions.invoke('paystack-verify', {
         body: {
           transaction_id: verificationData.transactionId || undefined,
           tx_ref: verificationData.txRef || undefined
@@ -192,7 +192,7 @@ export const PaymentTester = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="transactionId">Transaction ID (from Flutterwave)</Label>
+            <Label htmlFor="transactionId">Transaction ID (from Paystack)</Label>
             <Input
               id="transactionId"
               value={verificationData.transactionId}
@@ -224,7 +224,7 @@ export const PaymentTester = () => {
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p><strong>1.</strong> Fill in the payment details above and click "Initiate Test Payment"</p>
-          <p><strong>2.</strong> A Flutterwave payment window will open - use test card details</p>
+          <p><strong>2.</strong> A Paystack payment window will open - use test card details</p>
           <p><strong>3.</strong> After payment, copy the transaction ID from the success page</p>
           <p><strong>4.</strong> Paste it in the verification section and click "Verify Payment"</p>
           <p><strong>Test Card:</strong> 4187427415564246, CVV: 828, Expiry: 09/32, PIN: 3310</p>

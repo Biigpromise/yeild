@@ -101,7 +101,7 @@ export const RewardPurchaseForm: React.FC<RewardPurchaseFormProps> = ({
   const handleCashPayment = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('flutterwave-payment', {
+      const { data, error } = await supabase.functions.invoke('paystack-payment', {
         body: {
           amount: totalCashPrice,
           email: user.email,
@@ -123,7 +123,7 @@ export const RewardPurchaseForm: React.FC<RewardPurchaseFormProps> = ({
           description: "Opening secure payment window...",
         });
         
-        // Redirect to Flutterwave payment page
+        // Redirect to Paystack payment page
         window.location.href = data.payment_link;
       }
     } catch (error) {
@@ -311,7 +311,7 @@ export const RewardPurchaseForm: React.FC<RewardPurchaseFormProps> = ({
           <p className="text-xs text-muted-foreground text-center">
             {paymentMethod === 'points' 
               ? "Points will be deducted immediately upon redemption."
-              : "Payments are processed securely by Flutterwave."
+              : "Payments are processed securely by Paystack."
             }
           </p>
         </CardContent>
