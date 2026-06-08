@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY');
+    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY')?.trim();
     if (!paystackSecretKey) {
       console.error('Paystack secret key not configured');
       return new Response('Configuration error', { status: 500, headers: corsHeaders });

@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     );
 
-    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY');
+    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY')?.trim();
     
     if (!paystackSecretKey) {
       throw new Error('Paystack secret key not configured');
