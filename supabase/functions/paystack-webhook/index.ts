@@ -6,7 +6,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY');
+    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY')?.trim();
     if (!paystackSecretKey) throw new Error('Paystack secret key not configured');
 
     const rawBody = await req.text();
