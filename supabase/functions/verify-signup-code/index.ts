@@ -107,7 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
             type: 'magiclink',
             email: email,
             options: {
-              redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}/`
+              redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}${redirectPath}`
             }
           });
 
@@ -193,7 +193,7 @@ const handler = async (req: Request): Promise<Response> => {
           type: 'magiclink',
           email: email,
           options: {
-            redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}/`
+            redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}${redirectPath}`
           }
         });
 
@@ -296,7 +296,7 @@ const handler = async (req: Request): Promise<Response> => {
           type: 'magiclink',
           email: email,
           options: {
-            redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}/`
+            redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}${redirectPath}`
           }
         });
         
