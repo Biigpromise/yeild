@@ -7,12 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { EmailConfirmationPending } from '@/components/auth/EmailConfirmationPending';
 
 const BrandSignUp: React.FC = () => {
   const navigate = useNavigate();
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -49,8 +52,8 @@ const BrandSignUp: React.FC = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success('Brand account created successfully! Please check your email to verify your account.');
-        navigate('/brand-dashboard');
+        setPendingEmail(formData.email);
+        setShowEmailConfirmation(true);
       }
     } catch (error) {
       toast.error('An unexpected error occurred');
@@ -58,6 +61,18 @@ const BrandSignUp: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  if (showEmailConfirmation) {
+    return (
+      <EmailConfirmationPending
+        email={pendingEmail}
+        onBack={() => {
+          setShowEmailConfirmation(false);
+          setPendingEmail('');
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-yeild-black relative overflow-hidden">
