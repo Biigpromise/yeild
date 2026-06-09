@@ -56,6 +56,18 @@ const handler = async (req: Request): Promise<Response> => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     console.log('Supabase client initialized');
 
+    // Determine post-auth redirect path based on user_type metadata (brand vs operator)
+    let redirectPath = '/dashboard';
+    try {
+      const { data: usersList } = await supabase.auth.admin.listUsers();
+      const matchedUser = usersList?.users?.find((u: any) => u.email === email);
+      const userType = matchedUser?.user_metadata?.user_type;
+      if (userType === 'brand') redirectPath = '/brand-dashboard';
+    } catch (e) {
+      console.error('Could not resolve user_type for redirect, defaulting to /dashboard', e);
+    }
+    console.log('Post-auth redirectPath:', redirectPath);
+
     console.log('Verifying code for email:', email, 'type:', type);
 
     // Find the verification code
@@ -107,7 +119,7 @@ const handler = async (req: Request): Promise<Response> => {
             type: 'magiclink',
             email: email,
             options: {
-              redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}/`
+              redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}${redirectPath}`
             }
           });
 
@@ -193,7 +205,7 @@ const handler = async (req: Request): Promise<Response> => {
           type: 'magiclink',
           email: email,
           options: {
-            redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}/`
+            redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}${redirectPath}`
           }
         });
 
@@ -296,7 +308,7 @@ const handler = async (req: Request): Promise<Response> => {
           type: 'magiclink',
           email: email,
           options: {
-            redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}/`
+            redirectTo: `${Deno.env.get('SITE_URL') || 'https://yeildsocials.com'}${redirectPath}`
           }
         });
         
