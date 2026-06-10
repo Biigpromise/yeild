@@ -53,16 +53,38 @@ export const SimplifiedAuthFlow = () => {
     }
   }, [searchParams]);
 
-  // Redirect if already logged in
+  // Redirect if already logged in — resolve destination from user_roles + metadata + selection
   useEffect(() => {
-    if (!loading && user) {
-      // Clear the pending OAuth user type
+    if (loading || !user) return;
+
+    const resolveDestination = async () => {
       localStorage.removeItem(OAUTH_USER_TYPE_KEY);
-      
-      const userType = user.user_metadata?.user_type;
-      navigate(userType === 'brand' ? '/brand-dashboard' : '/dashboard');
-    }
-  }, [user, loading, navigate]);
+
+      // 1. Check user_roles for an actual brand role (source of truth)
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        const { data: brandRole } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'brand')
+          .maybeSingle();
+        if (brandRole) {
+          navigate('/brand-dashboard');
+          return;
+        }
+      } catch (e) {
+        console.warn('Role lookup failed, falling back to metadata', e);
+      }
+
+      // 2. Fall back to metadata or current toggle selection
+      const metaType = user.user_metadata?.user_type;
+      const effectiveType = metaType ?? formData.userType;
+      navigate(effectiveType === 'brand' ? '/brand-dashboard' : '/dashboard');
+    };
+
+    resolveDestination();
+  }, [user, loading, navigate, formData.userType]);
 
   const validateForm = () => {
     if (!formData.email || !formData.email.includes('@')) {
