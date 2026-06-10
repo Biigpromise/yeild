@@ -76,11 +76,6 @@ const navigationItems: NavigationItem[] = [
 
 const bottomItems: NavigationItem[] = [
   {
-    title: "Help & Support",
-    url: "/brand-dashboard/support",
-    icon: HelpCircle,
-  },
-  {
     title: "Settings",
     url: "/brand-dashboard/settings",
     icon: Settings,
