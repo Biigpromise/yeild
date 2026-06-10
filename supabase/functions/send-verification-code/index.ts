@@ -129,9 +129,9 @@ const handler = async (req: Request): Promise<Response> => {
       if (existingUser) {
         console.log('User already exists for signup:', email);
         return new Response(
-          JSON.stringify({ success: false, message: 'An account with this email already exists' }),
+          JSON.stringify({ success: false, message: 'An account with this email already exists. Please sign in instead.' }),
           { 
-            status: 400, 
+            status: 200, 
             headers: { 'Content-Type': 'application/json', ...corsHeaders } 
           }
         );

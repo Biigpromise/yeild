@@ -49,7 +49,11 @@ export const useAuthOperations = () => {
 
       if (codeError) {
         console.error("Error sending verification code:", codeError);
-        const errorMessage = 'Failed to send verification code. Please try again.';
+        let errorMessage = 'Failed to send verification code. Please try again.';
+        try {
+          const body = await (codeError as any)?.context?.json?.();
+          if (body?.message) errorMessage = body.message;
+        } catch (_) {}
         return { data: null, error: { message: errorMessage } };
       }
 

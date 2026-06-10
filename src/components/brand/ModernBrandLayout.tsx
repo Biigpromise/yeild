@@ -25,7 +25,6 @@ const mobileNavItems = [
   { title: "Financial Hub", url: "/brand-dashboard/finance", icon: Wallet },
   { title: "Analytics", url: "/brand-dashboard/analytics", icon: BarChart3 },
   { title: "Settings", url: "/brand-dashboard/settings", icon: Settings },
-  { title: "Help", url: "/brand-dashboard/support", icon: HelpCircle },
 ];
 
 export const ModernBrandLayout: React.FC<ModernBrandLayoutProps> = ({
@@ -95,10 +94,7 @@ export const ModernBrandLayout: React.FC<ModernBrandLayoutProps> = ({
                   ))}
                 </nav>
 
-                {/* Mode Toggle */}
-                <div className="p-4 border-t border-border">
-                  <UserBrandModeToggle />
-                </div>
+
                 
                 <div className="p-4 border-t border-border">
                   <Button 
