@@ -94,10 +94,7 @@ export const ModernBrandLayout: React.FC<ModernBrandLayoutProps> = ({
                   ))}
                 </nav>
 
-                {/* Mode Toggle */}
-                <div className="p-4 border-t border-border">
-                  <UserBrandModeToggle />
-                </div>
+
                 
                 <div className="p-4 border-t border-border">
                   <Button 
