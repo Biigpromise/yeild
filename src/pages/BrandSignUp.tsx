@@ -52,8 +52,10 @@ const BrandSignUp: React.FC = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        setPendingEmail(formData.email);
-        setShowEmailConfirmation(true);
+        toast.success('Verification code sent! Check your email.');
+        navigate(
+          `/verify-signup-code?email=${encodeURIComponent(formData.email)}&name=${encodeURIComponent(formData.name)}&userType=brand`
+        );
       }
     } catch (error) {
       toast.error('An unexpected error occurred');
@@ -61,18 +63,6 @@ const BrandSignUp: React.FC = () => {
       setIsLoading(false);
     }
   };
-
-  if (showEmailConfirmation) {
-    return (
-      <EmailConfirmationPending
-        email={pendingEmail}
-        onBack={() => {
-          setShowEmailConfirmation(false);
-          setPendingEmail('');
-        }}
-      />
-    );
-  }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-yeild-black relative overflow-hidden">
