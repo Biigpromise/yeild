@@ -196,12 +196,7 @@ export function BrandSidebar({ profile, wallet }: BrandSidebarProps) {
           </div>
         )}
 
-        {/* Mode Toggle */}
-        {!collapsed && (
-          <div className="px-3 py-4 border-t border-sidebar-border">
-            <UserBrandModeToggle />
-          </div>
-        )}
+
 
         {/* Bottom Navigation */}
         <SidebarGroup className="px-3 py-4 border-t border-sidebar-border">
