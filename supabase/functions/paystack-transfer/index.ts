@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         source: 'balance',
-        amount: Math.round(amount * 100), // Convert to kobo
+        amount: Math.round(amt * 100), // Convert to kobo
         recipient: recipient,
         reference: reference,
         reason: 'Withdrawal from Yield platform'
