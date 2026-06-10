@@ -48,19 +48,16 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (profileError || !profile) {
-      console.log('User not found in profiles:', email);
+      // Do NOT reveal whether the email is registered (prevents account enumeration).
+      console.log('Password reset requested for non-existent email (silenced):', email);
       return new Response(
-        JSON.stringify({ 
-          success: false,
-          error: 'No account found with this email address. Please check your email or sign up for a new account.',
-          code: 'USER_NOT_FOUND'
+        JSON.stringify({
+          success: true,
+          message: 'If an account exists for this email, a reset code has been sent.',
         }),
         {
-          status: 404,
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
         }
       );
     }

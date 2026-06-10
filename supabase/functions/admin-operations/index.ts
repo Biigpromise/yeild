@@ -24,11 +24,38 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { action, ...body } = await req.json();
+    // ----- AuthN/Z: require an authenticated admin -----
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const anonClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!);
+    const { data: userData, error: userErr } = await anonClient.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     const supabaseAdmin = getSupabaseAdminClient();
+    const { data: isAdmin, error: adminErr } = await supabaseAdmin.rpc('is_admin_safe', {
+      user_id_param: userData.user.id,
+    });
+    if (adminErr || !isAdmin) {
+      return new Response(JSON.stringify({ error: 'Admin access required' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    // ---------------------------------------------------
+
+    const { action, ...body } = await req.json();
     let data, error;
 
-    console.log(`Admin operation '${action}' invoked with body:`, body);
+    console.log(`Admin operation '${action}' invoked by ${userData.user.id} with body:`, body);
 
     switch (action) {
       case 'check_admin_access':
