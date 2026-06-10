@@ -8,27 +8,74 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
+    // ----- AuthN/Z: require admin -----
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ success: false, error: 'Missing authorization header' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const anonClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
+    const { data: userData, error: userErr } = await anonClient.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid or expired token' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+    const { data: isAdmin, error: adminErr } = await supabaseAdmin.rpc('is_admin_safe', {
+      user_id_param: userData.user.id,
+    });
+    if (adminErr || !isAdmin) {
+      return new Response(JSON.stringify({ success: false, error: 'Admin access required' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    // ----------------------------------
 
     const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY')?.trim();
-    
     if (!paystackSecretKey) {
       throw new Error('Paystack secret key not configured');
     }
 
-    const { 
-      amount, 
-      accountNumber, 
-      bankCode, 
+    const {
+      amount,
+      accountNumber,
+      bankCode,
       accountName,
       recipientCode,
-      reference 
+      reference,
     } = await req.json();
 
-    console.log('Processing Paystack transfer:', { amount, accountNumber, bankCode, reference });
+    // ----- Input validation -----
+    const amt = Number(amount);
+    if (!Number.isFinite(amt) || amt <= 0) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid amount' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const MAX_TRANSFER_NGN = Number(Deno.env.get('PAYSTACK_MAX_TRANSFER_NGN') ?? '5000000');
+    if (amt > MAX_TRANSFER_NGN) {
+      return new Response(JSON.stringify({ success: false, error: `Amount exceeds maximum of ₦${MAX_TRANSFER_NGN}` }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (!recipientCode && (!accountNumber || !bankCode || !accountName)) {
+      return new Response(JSON.stringify({ success: false, error: 'Missing recipient details' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    // ----------------------------
+
+    console.log('Processing Paystack transfer:', { amount: amt, accountNumber, bankCode, reference, by: userData.user.id });
 
     // Create transfer recipient if not exists
     let recipient = recipientCode;
