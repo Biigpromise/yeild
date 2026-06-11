@@ -11,6 +11,10 @@ interface VerifyCodeRequest {
   email: string;
   code: string;
   type: 'signup' | 'signin';
+  password?: string;
+  name?: string;
+  userType?: 'user' | 'brand';
+  userData?: Record<string, unknown>;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -25,7 +29,7 @@ const handler = async (req: Request): Promise<Response> => {
     const requestBody = await req.json();
     console.log('Request body received:', { ...requestBody, code: '[REDACTED]' });
     
-    const { email, code, type }: VerifyCodeRequest = requestBody;
+    const { email, code, type, password, name, userType, userData }: VerifyCodeRequest = requestBody;
 
     if (!email || !code || !type) {
       console.log('Missing required fields:', { email: !!email, code: !!code, type: !!type });
@@ -57,12 +61,12 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('Supabase client initialized');
 
     // Determine post-auth redirect path based on user_type metadata (brand vs operator)
-    let redirectPath = '/dashboard';
+    let redirectPath = userType === 'brand' ? '/brand-dashboard' : '/dashboard';
     try {
       const { data: usersList } = await supabase.auth.admin.listUsers();
       const matchedUser = usersList?.users?.find((u: any) => u.email === email);
-      const userType = matchedUser?.user_metadata?.user_type;
-      if (userType === 'brand') redirectPath = '/brand-dashboard';
+      const existingUserType = matchedUser?.user_metadata?.user_type;
+      if (existingUserType === 'brand') redirectPath = '/brand-dashboard';
     } catch (e) {
       console.error('Could not resolve user_type for redirect, defaulting to /dashboard', e);
     }
