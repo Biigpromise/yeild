@@ -38,6 +38,9 @@ export default function VerifySignupCode() {
     setLoading(true);
     try {
       console.log('Verifying signup code for:', email);
+      const normalizedEmail = email.trim().toLowerCase();
+      const pendingSignupRaw = sessionStorage.getItem(`pendingSignup:${normalizedEmail}`);
+      const pendingSignup = pendingSignupRaw ? JSON.parse(pendingSignupRaw) : null;
       
       // Verify the code and confirm the user's email
       const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-signup-code', {
@@ -60,6 +63,35 @@ export default function VerifySignupCode() {
       }
 
       console.log('Email verified successfully!', verifyData);
+      
+      if (type === 'signup' && pendingSignup?.password) {
+        const metadata = {
+          name: pendingSignup.name || name || email.split('@')[0],
+          user_type: pendingSignup.userType || userType,
+          ...(pendingSignup.userData || {})
+        };
+
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: pendingSignup.email || email,
+          password: pendingSignup.password,
+          options: {
+            data: metadata,
+            emailRedirectTo: undefined
+          }
+        });
+
+        if (signUpError) {
+          toast.error(signUpError.message || 'Failed to create account. Please try again.');
+          return;
+        }
+
+        if (signUpData.session) {
+          await supabase.auth.signOut();
+        }
+
+        sessionStorage.removeItem(`pendingSignup:${normalizedEmail}`);
+        toast.success('Email verified! Signing you in...');
+      }
       
       // If magic link is provided, redirect to it for auto-signin
       if (verifyData.magicLink) {
