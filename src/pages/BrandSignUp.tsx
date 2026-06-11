@@ -52,24 +52,27 @@ const BrandSignUp: React.FC = () => {
         return;
       }
 
-      sessionStorage.setItem(`pendingSignup:${email.toLowerCase()}`, JSON.stringify({
-        email,
-        password: formData.password,
-        name: formData.name,
-        userType: 'brand',
-        userData: {
-          companyName: formData.companyName,
-          website: formData.website
-        }
-      }));
-
       if (codeData.token) {
         sessionStorage.setItem('verificationToken', codeData.token);
       }
 
       toast.success('Verification code sent! Check your email.');
       navigate(
-        `/verify-signup-code?email=${encodeURIComponent(email)}&name=${encodeURIComponent(formData.name)}&userType=brand`
+        `/verify-signup-code?email=${encodeURIComponent(email)}&name=${encodeURIComponent(formData.name)}&userType=brand`,
+        {
+          state: {
+            pendingSignup: {
+              email,
+              password: formData.password,
+              name: formData.name,
+              userType: 'brand',
+              userData: {
+                companyName: formData.companyName,
+                website: formData.website
+              }
+            }
+          }
+        }
       );
     } catch (error) {
       toast.error('An unexpected error occurred');
