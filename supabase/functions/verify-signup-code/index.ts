@@ -282,7 +282,7 @@ const handler = async (req: Request): Promise<Response> => {
             }
           });
 
-          if (createUserError || !createdUser.user) {
+          if (createUserError || !createdUser?.user) {
             console.error('Error creating verified user:', createUserError);
             return new Response(
               JSON.stringify({ success: false, error: createUserError?.message || 'Failed to create account' }),
