@@ -8,6 +8,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { YieldLogo } from '@/components/ui/YieldLogo';
 import { ForgotPasswordLink } from './ForgotPasswordLink';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FormData {
   email: string;
@@ -124,6 +125,40 @@ export const SimplifiedAuthFlow = () => {
         } else {
           toast.success('Welcome back!');
         }
+      } else if (formData.userType === 'brand') {
+        const email = formData.email.trim();
+        const { data: codeData, error: codeError } = await supabase.functions.invoke('send-verification-code', {
+          body: {
+            email,
+            type: 'signup'
+          }
+        });
+
+        if (codeError || !codeData?.success) {
+          let errorMessage = codeData?.message || 'Failed to send verification code. Please try again.';
+          try {
+            const body = await (codeError as any)?.context?.json?.();
+            if (body?.message) errorMessage = body.message;
+          } catch (_) {}
+          toast.error(errorMessage);
+          return;
+        }
+
+        if (codeData.token) {
+          sessionStorage.setItem('verificationToken', codeData.token);
+        }
+
+        toast.success('Verification code sent! Redirecting...');
+        navigate(`/verify-signup-code?email=${encodeURIComponent(email)}&name=${encodeURIComponent(formData.name)}&userType=brand`, {
+          state: {
+            pendingSignup: {
+              email,
+              password: formData.password,
+              name: formData.name,
+              userType: 'brand'
+            }
+          }
+        });
       } else {
         const { error } = await signUp(formData.email, formData.password, formData.name, formData.userType);
         if (error) {

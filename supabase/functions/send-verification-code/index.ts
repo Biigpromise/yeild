@@ -126,8 +126,8 @@ const handler = async (req: Request): Promise<Response> => {
       
       const existingUser = existingUsers.users.find(user => user.email === email);
       
-      if (existingUser) {
-        console.log('User already exists for signup:', email);
+      if (existingUser?.email_confirmed_at) {
+        console.log('Confirmed user already exists for signup:', email);
         return new Response(
           JSON.stringify({ success: false, message: 'An account with this email already exists. Please sign in instead.' }),
           { 
@@ -135,6 +135,10 @@ const handler = async (req: Request): Promise<Response> => {
             headers: { 'Content-Type': 'application/json', ...corsHeaders } 
           }
         );
+      }
+      
+      if (existingUser) {
+        console.log('Unverified user exists - sending another signup code:', email);
       }
       
       console.log('User does not exist - good for signup:', email);

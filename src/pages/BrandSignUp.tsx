@@ -1,21 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
-import { EmailConfirmationPending } from '@/components/auth/EmailConfirmationPending';
 
 const BrandSignUp: React.FC = () => {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
-  const [pendingEmail, setPendingEmail] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -38,25 +34,46 @@ const BrandSignUp: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const { error } = await signUp(
-        formData.email, 
-        formData.password, 
-        formData.name,
-        'brand',
+      const email = formData.email.trim();
+      const { data: codeData, error: codeError } = await supabase.functions.invoke('send-verification-code', {
+        body: {
+          email,
+          type: 'signup'
+        }
+      });
+
+      if (codeError || !codeData?.success) {
+        let errorMessage = codeData?.message || 'Failed to send verification code. Please try again.';
+        try {
+          const body = await (codeError as any)?.context?.json?.();
+          if (body?.message) errorMessage = body.message;
+        } catch (_) {}
+        toast.error(errorMessage);
+        return;
+      }
+
+      if (codeData.token) {
+        sessionStorage.setItem('verificationToken', codeData.token);
+      }
+
+      toast.success('Verification code sent! Check your email.');
+      navigate(
+        `/verify-signup-code?email=${encodeURIComponent(email)}&name=${encodeURIComponent(formData.name)}&userType=brand`,
         {
-          companyName: formData.companyName,
-          website: formData.website
+          state: {
+            pendingSignup: {
+              email,
+              password: formData.password,
+              name: formData.name,
+              userType: 'brand',
+              userData: {
+                companyName: formData.companyName,
+                website: formData.website
+              }
+            }
+          }
         }
       );
-
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Verification code sent! Check your email.');
-        navigate(
-          `/verify-signup-code?email=${encodeURIComponent(formData.email)}&name=${encodeURIComponent(formData.name)}&userType=brand`
-        );
-      }
     } catch (error) {
       toast.error('An unexpected error occurred');
     } finally {

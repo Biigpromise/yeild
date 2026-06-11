@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
@@ -11,12 +11,14 @@ export default function VerifySignupCode() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
   const email = searchParams.get('email');
   const name = searchParams.get('name');
   const userType = searchParams.get('userType') || 'user';
+  const pendingSignup = (location.state as any)?.pendingSignup;
 
   // Redirect if no email provided
   useEffect(() => {
@@ -38,13 +40,18 @@ export default function VerifySignupCode() {
     setLoading(true);
     try {
       console.log('Verifying signup code for:', email);
+      const normalizedEmail = email.trim().toLowerCase();
       
       // Verify the code and confirm the user's email
       const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-signup-code', {
         body: { 
           email, 
           code,
-          type: 'signup'
+          type: 'signup',
+          password: pendingSignup?.password,
+          name: pendingSignup?.name || name,
+          userType: pendingSignup?.userType || userType,
+          userData: pendingSignup?.userData
         }
       });
 
@@ -60,6 +67,7 @@ export default function VerifySignupCode() {
       }
 
       console.log('Email verified successfully!', verifyData);
+      sessionStorage.removeItem(`pendingSignup:${normalizedEmail}`);
       
       // If magic link is provided, redirect to it for auto-signin
       if (verifyData.magicLink) {
