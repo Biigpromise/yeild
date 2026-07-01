@@ -51,9 +51,9 @@ Deno.serve(async (req) => {
     }
     // ----------------------------------
 
-    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY')?.trim();
-    if (!paystackSecretKey) {
-      console.error('Paystack secret key not configured');
+    const flwSecretKey = Deno.env.get('FLUTTERWAVE_SECRET_KEY')?.trim();
+    if (!flwSecretKey) {
+      console.error('Flutterwave secret key not configured');
       return new Response('Configuration error', { status: 500, headers: corsHeaders });
     }
 
@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
       try { requestData = await req.json(); } catch { /* defaults */ }
     }
 
-    const result = await processSettlements(supabase, paystackSecretKey, requestData);
+    const result = await processSettlements(supabase, flwSecretKey, requestData);
 
     return new Response(JSON.stringify(result), {
       status: 200,
@@ -83,10 +83,10 @@ Deno.serve(async (req) => {
 
 async function processSettlements(
   supabase: any,
-  paystackSecretKey: string,
+  flwSecretKey: string,
   request: SettlementRequest
 ) {
-  console.log('Starting Paystack settlement process...');
+  console.log('Starting Flutterwave settlement process...');
 
   const { data: account, error: accountError } = await supabase
     .from('company_financial_accounts')
@@ -126,54 +126,34 @@ async function processSettlements(
 
   console.log(`Processing ${pendingTransfers.length} transfers, total: ₦${totalAmount}`);
 
-  // 1. Create/resolve transfer recipient on Paystack
-  const recipientRes = await fetch('https://api.paystack.co/transferrecipient', {
+  // Initiate Flutterwave transfer directly (no separate recipient step)
+  const transferRes = await fetch('https://api.flutterwave.com/v3/transfers', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${paystackSecretKey}`,
+      'Authorization': `Bearer ${flwSecretKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      type: 'nuban',
-      name: account.account_name || 'Settlement Account',
+      account_bank: account.bank_code,
       account_number: account.account_number,
-      bank_code: account.bank_code,
+      amount: totalAmount,
+      narration: `Bulk settlement for ${pendingTransfers.length} transactions`,
       currency: 'NGN',
-    }),
-  });
-  const recipientData = await recipientRes.json();
-  if (!recipientData.status) {
-    throw new Error(`Recipient creation failed: ${recipientData.message}`);
-  }
-  const recipientCode = recipientData.data.recipient_code;
-
-  // 2. Initiate transfer (Paystack uses kobo)
-  const transferRes = await fetch('https://api.paystack.co/transfer', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${paystackSecretKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      source: 'balance',
-      amount: Math.round(totalAmount * 100),
-      recipient: recipientCode,
       reference: transferReference,
-      reason: `Bulk settlement for ${pendingTransfers.length} transactions`,
+      beneficiary_name: account.account_name || 'Settlement Account',
     }),
   });
   const transferData = await transferRes.json();
 
-  if (!transferData.status) {
+  if (transferData.status !== 'success') {
     throw new Error(`Transfer failed: ${transferData.message}`);
   }
 
-  // 3. Update fund_transfers (reuse legacy column names as generic provider fields)
   const { error: updateError } = await supabase
     .from('fund_transfers')
     .update({
       status: 'processing',
-      flutterwave_id: transferData.data.transfer_code || String(transferData.data.id || ''),
+      flutterwave_id: String(transferData.data?.id || transferData.data?.reference || ''),
       flutterwave_response: transferData.data,
       updated_at: new Date().toISOString()
     })
@@ -192,7 +172,7 @@ async function processSettlements(
     message: `Settlement initiated for ₦${totalAmount}`,
     processedCount: pendingTransfers.length,
     transferReference,
-    paystackTransferCode: transferData.data.transfer_code,
+    flutterwaveTransferId: transferData.data?.id,
   };
 }
 
