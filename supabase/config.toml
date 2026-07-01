@@ -31,13 +31,13 @@ schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
-[functions.paystack-webhook]
+[functions.flutterwave-webhook]
 verify_jwt = false
 
-[functions.paystack-initialize]
+[functions.flutterwave-initialize]
 verify_jwt = true
 
-[functions.paystack-transfer]
+[functions.flutterwave-transfer]
 verify_jwt = true
 
 [functions.verify-bank-account]
