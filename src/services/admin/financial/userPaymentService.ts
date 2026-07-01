@@ -99,9 +99,13 @@ export const processInstantUserPayment = async (
 
     // 5. Initiate actual payout based on payment method
     let transferResult;
-    
-    if (paymentRequest.payoutMethod === 'paystack') {
-      transferResult = await initiatePaystackTransfer({
+
+    if (
+      paymentRequest.payoutMethod === 'flutterwave' ||
+      paymentRequest.payoutMethod === 'paystack' ||
+      paymentRequest.payoutMethod === 'bank_transfer'
+    ) {
+      transferResult = await initiateFlutterwaveTransfer({
         amount: paymentRequest.amount,
         accountNumber: paymentRequest.payoutDetails.accountNumber,
         bankCode: paymentRequest.payoutDetails.bankCode,
@@ -234,9 +238,9 @@ export const bulkProcessUserPayments = async (
 };
 
 /**
- * Initiate Paystack transfer
+ * Initiate Flutterwave transfer
  */
-const initiatePaystackTransfer = async (params: {
+const initiateFlutterwaveTransfer = async (params: {
   amount: number;
   accountNumber: string;
   bankCode: string;
@@ -244,8 +248,7 @@ const initiatePaystackTransfer = async (params: {
   reference: string;
 }): Promise<{ success: boolean; transferId?: string; reference?: string; message?: string }> => {
   try {
-    // Call Supabase Edge Function to initiate Paystack transfer
-    const { data, error } = await supabase.functions.invoke('paystack-transfer', {
+    const { data, error } = await supabase.functions.invoke('flutterwave-transfer', {
       body: {
         amount: params.amount,
         accountNumber: params.accountNumber,
@@ -256,27 +259,26 @@ const initiatePaystackTransfer = async (params: {
     });
 
     if (error) {
-      console.error('Error invoking Paystack transfer function:', error);
+      console.error('Error invoking Flutterwave transfer function:', error);
       return { success: false, message: error.message };
     }
 
     if (data?.success) {
       return {
         success: true,
-        transferId: data.data?.id || data.data?.transfer_code,
+        transferId: data.data?.id?.toString() || data.data?.reference,
         reference: data.data?.reference || params.reference
       };
-    } else {
-      return {
-        success: false,
-        message: data?.error || 'Paystack transfer initiation failed'
-      };
     }
-  } catch (error) {
-    console.error('Error in initiatePaystackTransfer:', error);
     return {
       success: false,
-      message: 'Paystack transfer service error'
+      message: data?.error || 'Flutterwave transfer initiation failed'
+    };
+  } catch (error) {
+    console.error('Error in initiateFlutterwaveTransfer:', error);
+    return {
+      success: false,
+      message: 'Flutterwave transfer service error'
     };
   }
 };

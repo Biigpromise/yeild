@@ -43,7 +43,7 @@ export const BrandWalletFundingDialog: React.FC<BrandWalletFundingDialogProps> =
     
     setLoading(true);
     try {
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('paystack-initialize', {
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('flutterwave-initialize', {
         body: {
           amount: data.amount,
           email: user.email,
@@ -119,10 +119,10 @@ export const BrandWalletFundingDialog: React.FC<BrandWalletFundingDialogProps> =
             <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
               <div className="flex items-center gap-2 text-blue-700">
                 <CreditCard className="w-4 h-4" />
-                <span className="text-sm font-medium">Secure Payment with Paystack</span>
+                <span className="text-sm font-medium">Secure Payment with Flutterwave</span>
               </div>
               <p className="text-xs text-blue-600 mt-1">
-                You'll be redirected to Paystack to complete the transaction securely.
+                You'll be redirected to Flutterwave to complete the transaction securely.
               </p>
             </div>
 

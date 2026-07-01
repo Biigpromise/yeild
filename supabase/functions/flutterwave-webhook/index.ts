@@ -1,27 +1,44 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { createHmac } from 'node:crypto';
 import { corsHeaders } from '../_shared/cors.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY')?.trim();
-    if (!paystackSecretKey) throw new Error('Paystack secret key not configured');
+    const webhookHash = Deno.env.get('FLUTTERWAVE_WEBHOOK_HASH')?.trim();
+    const flwSecret = Deno.env.get('FLUTTERWAVE_SECRET_KEY')?.trim();
+    if (!webhookHash) throw new Error('Flutterwave webhook hash not configured');
+    if (!flwSecret) throw new Error('Flutterwave secret key not configured');
 
-    const rawBody = await req.text();
-    const signature = req.headers.get('x-paystack-signature') ?? '';
-    const expected = createHmac('sha512', paystackSecretKey).update(rawBody).digest('hex');
-    if (signature !== expected) {
-      console.warn('Invalid Paystack signature');
+    const signature = req.headers.get('verif-hash') ?? '';
+    if (signature !== webhookHash) {
+      console.warn('Invalid Flutterwave webhook signature');
       return new Response('Invalid signature', { status: 401 });
     }
 
-    const event = JSON.parse(rawBody);
-    console.log('Paystack event:', event.event, event.data?.reference);
+    const event = await req.json();
+    console.log('Flutterwave event:', event.event, event.data?.tx_ref);
 
-    if (event.event !== 'charge.success') {
+    // Only handle successful charge events
+    const eventType = event.event ?? '';
+    const eventData = event.data ?? {};
+    const isChargeCompleted =
+      eventType === 'charge.completed' || eventType.includes('charge');
+    if (!isChargeCompleted || eventData.status !== 'successful') {
       return new Response(JSON.stringify({ received: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Re-verify with Flutterwave to prevent spoofing
+    const verifyResp = await fetch(
+      `https://api.flutterwave.com/v3/transactions/${eventData.id}/verify`,
+      { headers: { Authorization: `Bearer ${flwSecret}` } },
+    );
+    const verified = await verifyResp.json();
+    if (verified.status !== 'success' || verified.data?.status !== 'successful') {
+      console.warn('Flutterwave verify failed', verified);
+      return new Response(JSON.stringify({ received: true, verified: false }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -31,25 +48,25 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    const data = event.data;
-    const meta = data.metadata ?? {};
+    const data = verified.data;
+    const meta = data.meta ?? {};
     const userId = meta.user_id;
     const paymentType = meta.payment_type ?? 'wallet_funding';
-    const amount = Number(data.amount) / 100; // back to naira
-    const reference = data.reference;
+    const amount = Number(data.amount);
+    const reference = data.tx_ref;
 
     if (!userId) {
-      console.warn('No user_id in metadata, skipping');
+      console.warn('No user_id in meta, skipping');
       return new Response(JSON.stringify({ received: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Idempotency: skip if we've already recorded this reference
+    // Idempotency
     const { data: existing } = await supabase
       .from('brand_wallet_transactions')
       .select('id')
-      .eq('description', `Paystack ref: ${reference}`)
+      .eq('description', `Flutterwave ref: ${reference}`)
       .maybeSingle();
     if (existing) {
       return new Response(JSON.stringify({ received: true, duplicate: true }), {
@@ -57,7 +74,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Upsert brand wallet
     const { data: walletRow } = await supabase
       .from('brand_wallets')
       .select('*')
@@ -90,11 +106,10 @@ Deno.serve(async (req) => {
       transaction_type: 'deposit',
       amount,
       balance_after: newBalance,
-      description: `Paystack ref: ${reference}`,
+      description: `Flutterwave ref: ${reference}`,
       campaign_id: meta.campaign_id ?? null,
     });
 
-    // If this funded a specific campaign, update its funded_amount
     if (paymentType === 'campaign_funding' && meta.campaign_id) {
       const { data: campaign } = await supabase
         .from('brand_campaigns')
@@ -104,7 +119,10 @@ Deno.serve(async (req) => {
       if (campaign) {
         await supabase
           .from('brand_campaigns')
-          .update({ funded_amount: Number(campaign.funded_amount) + amount, payment_status: 'paid' })
+          .update({
+            funded_amount: Number(campaign.funded_amount) + amount,
+            payment_status: 'paid',
+          })
           .eq('id', meta.campaign_id);
       }
     }
@@ -113,7 +131,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('paystack-webhook error:', error);
+    console.error('flutterwave-webhook error:', error);
     return new Response(JSON.stringify({ error: (error as Error).message }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

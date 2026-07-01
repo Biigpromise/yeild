@@ -47,7 +47,7 @@ export const CampaignFundingDialog: React.FC<CampaignFundingDialogProps> = ({
     
     setLoading(true);
     try {
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('paystack-initialize', {
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('flutterwave-initialize', {
         body: {
           amount: data.amount,
           email: user.email,
