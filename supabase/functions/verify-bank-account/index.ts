@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const PAYSTACK_SECRET_KEY = Deno.env.get('PAYSTACK_SECRET_KEY')?.trim();
+const FLW_SECRET = Deno.env.get('FLUTTERWAVE_SECRET_KEY')?.trim();
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -18,16 +18,20 @@ serve(async (req) => {
       });
     }
 
-    if (!PAYSTACK_SECRET_KEY) throw new Error('Paystack secret key not configured');
+    if (!FLW_SECRET) throw new Error('Flutterwave secret key not configured');
 
-    const url = `https://api.paystack.co/bank/resolve?account_number=${encodeURIComponent(account_number)}&bank_code=${encodeURIComponent(account_bank)}`;
-    const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
+    const response = await fetch('https://api.flutterwave.com/v3/accounts/resolve', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${FLW_SECRET}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ account_number, account_bank }),
     });
     const data = await response.json();
-    console.log('Paystack resolve response:', data);
+    console.log('Flutterwave resolve response:', data);
 
-    if (response.ok && data.status && data.data?.account_name) {
+    if (response.ok && data.status === 'success' && data.data?.account_name) {
       return new Response(JSON.stringify({
         success: true,
         account_name: data.data.account_name,
