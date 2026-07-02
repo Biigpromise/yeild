@@ -56,21 +56,26 @@ const BrandSignUp: React.FC = () => {
         sessionStorage.setItem('verificationToken', codeData.token);
       }
 
+      const pendingSignup = {
+        email,
+        password: formData.password,
+        name: formData.name,
+        userType: 'brand' as const,
+        userData: {
+          companyName: formData.companyName,
+          company_name: formData.companyName,
+          website: formData.website
+        }
+      };
+
+      sessionStorage.setItem(`pendingSignup:${email.toLowerCase()}`, JSON.stringify(pendingSignup));
+
       toast.success('Verification code sent! Check your email.');
       navigate(
         `/verify-signup-code?email=${encodeURIComponent(email)}&name=${encodeURIComponent(formData.name)}&userType=brand`,
         {
           state: {
-            pendingSignup: {
-              email,
-              password: formData.password,
-              name: formData.name,
-              userType: 'brand',
-              userData: {
-                companyName: formData.companyName,
-                website: formData.website
-              }
-            }
+            pendingSignup
           }
         }
       );
