@@ -18,7 +18,20 @@ export default function VerifySignupCode() {
   const email = searchParams.get('email');
   const name = searchParams.get('name');
   const userType = searchParams.get('userType') || 'user';
-  const pendingSignup = (location.state as any)?.pendingSignup;
+  const normalizedEmail = email?.trim().toLowerCase() || '';
+  const storedPendingSignup = normalizedEmail
+    ? sessionStorage.getItem(`pendingSignup:${normalizedEmail}`)
+    : null;
+  const pendingSignup = (location.state as any)?.pendingSignup || (storedPendingSignup ? JSON.parse(storedPendingSignup) : null);
+
+  const getFunctionErrorMessage = async (error: any, fallback: string) => {
+    try {
+      const body = await error?.context?.json?.();
+      return body?.error || body?.message || fallback;
+    } catch (_) {
+      return error?.message || fallback;
+    }
+  };
 
   // Redirect if no email provided
   useEffect(() => {
@@ -57,7 +70,8 @@ export default function VerifySignupCode() {
 
       if (verifyError) {
         console.error('Code verification error:', verifyError);
-        toast.error(verifyError.message || 'Invalid or expired code');
+        const errorMessage = await getFunctionErrorMessage(verifyError, 'Invalid or expired code');
+        toast.error(errorMessage);
         return;
       }
 
