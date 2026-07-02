@@ -115,10 +115,12 @@ const handler = async (req: Request): Promise<Response> => {
     if (existingCode.verified_at) {
       console.log('Code already verified at:', existingCode.verified_at);
       
-      // For signin with already verified code, try to generate a new magic link
-      if (type === 'signin') {
+      // For already verified signin/signup codes, recover by generating a fresh magic link.
+      // This prevents a successful account creation from turning into a non-2xx error if the
+      // browser retries the request or the user taps verify again before redirect completes.
+      if (type === 'signin' || type === 'signup') {
         try {
-          console.log('Generating new magic link for already verified signin code');
+          console.log('Generating new magic link for already verified code');
           const { data: magicLink, error: linkError } = await supabase.auth.admin.generateLink({
             type: 'magiclink',
             email: email,
@@ -135,6 +137,7 @@ const handler = async (req: Request): Promise<Response> => {
                 token: existingCode.token,
                 magicLink: magicLink.properties.action_link,
                 message: 'Code already verified, signing you in...',
+                verified: true,
                 alreadyVerified: true
               }),
               { 
@@ -147,6 +150,22 @@ const handler = async (req: Request): Promise<Response> => {
           }
         } catch (linkError) {
           console.error('Error generating new magic link:', linkError);
+        }
+
+        if (type === 'signup') {
+          return new Response(
+            JSON.stringify({
+              success: true,
+              token: existingCode.token,
+              message: 'Code already verified. Please sign in to continue.',
+              verified: true,
+              alreadyVerified: true
+            }),
+            { 
+              status: 200, 
+              headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+            }
+          );
         }
       }
       

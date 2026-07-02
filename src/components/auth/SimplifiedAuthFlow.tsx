@@ -20,6 +20,16 @@ interface FormData {
 // Store user type before OAuth redirect
 const OAUTH_USER_TYPE_KEY = 'oauth_pending_user_type';
 
+const storePendingSignup = (signup: {
+  email: string;
+  password: string;
+  name: string;
+  userType: 'user' | 'brand';
+  userData?: Record<string, unknown>;
+}) => {
+  sessionStorage.setItem(`pendingSignup:${signup.email.toLowerCase()}`, JSON.stringify(signup));
+};
+
 export const SimplifiedAuthFlow = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -148,15 +158,19 @@ export const SimplifiedAuthFlow = () => {
           sessionStorage.setItem('verificationToken', codeData.token);
         }
 
+        const pendingSignup = {
+          email,
+          password: formData.password,
+          name: formData.name,
+          userType: 'brand' as const
+        };
+
+        storePendingSignup(pendingSignup);
+
         toast.success('Verification code sent! Redirecting...');
         navigate(`/verify-signup-code?email=${encodeURIComponent(email)}&name=${encodeURIComponent(formData.name)}&userType=brand`, {
           state: {
-            pendingSignup: {
-              email,
-              password: formData.password,
-              name: formData.name,
-              userType: 'brand'
-            }
+            pendingSignup
           }
         });
       } else {
