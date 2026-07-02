@@ -22,7 +22,15 @@ export default function VerifySignupCode() {
   const storedPendingSignup = normalizedEmail
     ? sessionStorage.getItem(`pendingSignup:${normalizedEmail}`)
     : null;
-  const pendingSignup = (location.state as any)?.pendingSignup || (storedPendingSignup ? JSON.parse(storedPendingSignup) : null);
+  const pendingSignup = (location.state as any)?.pendingSignup || (() => {
+    if (!storedPendingSignup) return null;
+    try {
+      return JSON.parse(storedPendingSignup);
+    } catch (_) {
+      sessionStorage.removeItem(`pendingSignup:${normalizedEmail}`);
+      return null;
+    }
+  })();
 
   const getFunctionErrorMessage = async (error: any, fallback: string) => {
     try {
