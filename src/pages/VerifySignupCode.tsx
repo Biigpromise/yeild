@@ -52,7 +52,7 @@ export default function VerifySignupCode() {
       });
 
       if (!signInError) {
-        navigate(destination, { replace: true });
+        window.location.assign(destination);
         return;
       }
 
