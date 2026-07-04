@@ -41,6 +41,34 @@ export default function VerifySignupCode() {
     }
   };
 
+  const proceedToDashboard = async (verifyData: any) => {
+    const targetUserType = pendingSignup?.userType || userType;
+    const destination = verifyData?.redirectPath || (targetUserType === 'brand' ? '/brand-dashboard' : '/dashboard');
+
+    if (pendingSignup?.password) {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail || email.trim().toLowerCase(),
+        password: pendingSignup.password,
+      });
+
+      if (!signInError) {
+        sessionStorage.removeItem(`pendingSignup:${normalizedEmail}`);
+        window.location.assign(destination);
+        return;
+      }
+
+      console.error('Post-verification sign-in failed:', signInError);
+    }
+
+    if (verifyData?.magicLink) {
+      sessionStorage.removeItem(`pendingSignup:${normalizedEmail}`);
+      window.location.assign(verifyData.magicLink);
+      return;
+    }
+
+    navigate('/auth', { replace: true });
+  };
+
   // Redirect if no email provided
   useEffect(() => {
     if (!email) {
@@ -89,28 +117,8 @@ export default function VerifySignupCode() {
       }
 
       console.log('Email verified successfully!', verifyData);
-      sessionStorage.removeItem(`pendingSignup:${normalizedEmail}`);
-      
-      // If magic link is provided, redirect to it for auto-signin
-      if (verifyData.magicLink) {
-        toast.success('Email verified! Signing you in...');
-        setTimeout(() => {
-          window.location.href = verifyData.magicLink;
-        }, 1500);
-        return;
-      }
-
-      // Otherwise show success and redirect based on user type
-      toast.success('Email verified successfully! Signing you in...');
-      
-      // Redirect to appropriate dashboard based on user type
-      setTimeout(() => {
-        if (userType === 'brand') {
-          navigate('/brand-dashboard');
-        } else {
-          navigate('/dashboard');
-        }
-      }, 2000);
+      toast.success('Email verified! Signing you in...');
+      await proceedToDashboard(verifyData);
 
     } catch (error: any) {
       console.error('Verification catch error:', error);
