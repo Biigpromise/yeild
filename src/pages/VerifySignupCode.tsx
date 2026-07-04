@@ -52,6 +52,7 @@ export default function VerifySignupCode() {
       });
 
       if (!signInError) {
+        sessionStorage.removeItem(`pendingSignup:${normalizedEmail}`);
         window.location.assign(destination);
         return;
       }
@@ -60,6 +61,7 @@ export default function VerifySignupCode() {
     }
 
     if (verifyData?.magicLink) {
+      sessionStorage.removeItem(`pendingSignup:${normalizedEmail}`);
       window.location.assign(verifyData.magicLink);
       return;
     }
@@ -115,7 +117,6 @@ export default function VerifySignupCode() {
       }
 
       console.log('Email verified successfully!', verifyData);
-      sessionStorage.removeItem(`pendingSignup:${normalizedEmail}`);
       toast.success('Email verified! Signing you in...');
       await proceedToDashboard(verifyData);
 
