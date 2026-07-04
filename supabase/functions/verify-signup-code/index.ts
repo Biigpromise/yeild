@@ -17,6 +17,84 @@ interface VerifyCodeRequest {
   userData?: Record<string, unknown>;
 }
 
+const asString = (value: unknown): string | undefined => {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+};
+
+const resolveUserType = (requested?: string, metadata?: Record<string, unknown>): 'user' | 'brand' => {
+  const metadataType = asString(metadata?.user_type);
+  return requested === 'brand' || metadataType === 'brand' ? 'brand' : 'user';
+};
+
+const resolveCompanyName = (
+  email: string,
+  name?: string,
+  userData?: Record<string, unknown>,
+  metadata?: Record<string, unknown>
+) => {
+  return asString(userData?.company_name)
+    || asString(userData?.companyName)
+    || asString(metadata?.company_name)
+    || asString(metadata?.companyName)
+    || asString(metadata?.name)
+    || asString(name)
+    || email.split('@')[0]
+    || 'Brand User';
+};
+
+const ensureSignupRecords = async (
+  supabase: any,
+  user: any,
+  email: string,
+  requestedUserType?: 'user' | 'brand',
+  name?: string,
+  userData?: Record<string, unknown>
+) => {
+  const metadata = user?.user_metadata || {};
+  const effectiveUserType = resolveUserType(requestedUserType, metadata);
+
+  await supabase
+    .from('user_roles')
+    .insert({ user_id: user.id, role: effectiveUserType })
+    .select('id')
+    .maybeSingle();
+
+  if (effectiveUserType !== 'brand') {
+    return effectiveUserType;
+  }
+
+  const companyName = resolveCompanyName(email, name, userData, metadata);
+
+  await supabase.auth.admin.updateUserById(user.id, {
+    user_metadata: {
+      ...metadata,
+      ...(userData || {}),
+      name: asString(name) || asString(metadata.name) || email.split('@')[0],
+      user_type: 'brand',
+      company_name: companyName,
+    }
+  });
+
+  await supabase
+    .from('user_roles')
+    .insert({ user_id: user.id, role: 'brand' })
+    .select('id')
+    .maybeSingle();
+
+  await supabase
+    .from('brand_profiles')
+    .upsert({
+      user_id: user.id,
+      company_name: companyName,
+      website: asString(userData?.website) || asString(metadata.website) || null,
+      industry: asString(userData?.industry) || asString(metadata.industry) || null,
+      description: asString(userData?.description) || asString(metadata.description) || null,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' });
+
+  return effectiveUserType;
+};
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -62,10 +140,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Determine post-auth redirect path based on user_type metadata (brand vs operator)
     let redirectPath = userType === 'brand' ? '/brand-dashboard' : '/dashboard';
+    let matchedAuthUser: any | null = null;
     try {
       const { data: usersList } = await supabase.auth.admin.listUsers();
-      const matchedUser = usersList?.users?.find((u: any) => u.email === email);
-      const existingUserType = matchedUser?.user_metadata?.user_type;
+      matchedAuthUser = usersList?.users?.find((u: any) => u.email === email) || null;
+      const existingUserType = matchedAuthUser?.user_metadata?.user_type;
       if (existingUserType === 'brand') redirectPath = '/brand-dashboard';
     } catch (e) {
       console.error('Could not resolve user_type for redirect, defaulting to /dashboard', e);
@@ -120,6 +199,11 @@ const handler = async (req: Request): Promise<Response> => {
       // browser retries the request or the user taps verify again before redirect completes.
       if (type === 'signin' || type === 'signup') {
         try {
+          if (type === 'signup' && matchedAuthUser) {
+            const effectiveUserType = await ensureSignupRecords(supabase, matchedAuthUser, email, userType, name, userData);
+            redirectPath = effectiveUserType === 'brand' ? '/brand-dashboard' : '/dashboard';
+          }
+
           console.log('Generating new magic link for already verified code');
           const { data: magicLink, error: linkError } = await supabase.auth.admin.generateLink({
             type: 'magiclink',
@@ -136,6 +220,7 @@ const handler = async (req: Request): Promise<Response> => {
                 success: true, 
                 token: existingCode.token,
                 magicLink: magicLink.properties.action_link,
+                redirectPath,
                 message: 'Code already verified, signing you in...',
                 verified: true,
                 alreadyVerified: true
@@ -157,6 +242,7 @@ const handler = async (req: Request): Promise<Response> => {
             JSON.stringify({
               success: true,
               token: existingCode.token,
+              redirectPath,
               message: 'Code already verified. Please sign in to continue.',
               verified: true,
               alreadyVerified: true
@@ -290,14 +376,17 @@ const handler = async (req: Request): Promise<Response> => {
           }
 
           console.log('Creating verified user after code validation:', email);
+          const effectiveUserType = resolveUserType(userType, {});
+          const companyName = resolveCompanyName(email, name, userData, {});
           const { data: createdUser, error: createUserError } = await supabase.auth.admin.createUser({
             email,
             password,
             email_confirm: true,
             user_metadata: {
               name: name || email.split('@')[0],
-              user_type: userType || 'user',
-              ...(userData || {})
+              user_type: effectiveUserType,
+              ...(userData || {}),
+              ...(effectiveUserType === 'brand' ? { company_name: companyName } : {})
             }
           });
 
@@ -337,6 +426,9 @@ const handler = async (req: Request): Promise<Response> => {
           
           console.log('User email confirmed successfully');
         }
+
+        const effectiveUserType = await ensureSignupRecords(supabase, user, email, userType, name, userData);
+        redirectPath = effectiveUserType === 'brand' ? '/brand-dashboard' : '/dashboard';
         
         // Mark verification code as used
         const { error: verifyError } = await supabase
@@ -369,6 +461,7 @@ const handler = async (req: Request): Promise<Response> => {
               success: true, 
               token: existingCode.token,
               magicLink: magicLink.properties.action_link,
+              redirectPath,
               message: 'Email verified successfully! Signing you in...',
               verified: true
             }),
@@ -383,6 +476,7 @@ const handler = async (req: Request): Promise<Response> => {
             JSON.stringify({ 
               success: true, 
               token: existingCode.token,
+              redirectPath,
               message: 'Email verified successfully! You can now sign in.',
               verified: true
             }),
