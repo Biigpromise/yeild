@@ -49,16 +49,9 @@ export const WithdrawalConfirmation: React.FC<WithdrawalConfirmationProps> = ({
         };
       case 'paystack':
         return {
-          name: 'Paystack Bank Transfer',
+          name: 'Flutterwave Bank Transfer',
           description: 'Fast and secure transfer to your Nigerian bank account',
           processingTime: '2-10 minutes',
-          icon: '🏦'
-        };
-      case 'paystack':
-        return {
-          name: 'Paystack Bank Transfer',
-          description: 'Direct transfer to your Nigerian bank account',
-          processingTime: '1-24 hours',
           icon: '🏦'
         };
       default:
