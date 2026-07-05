@@ -42,7 +42,7 @@ export const BankTransferForm = ({
 
       <div className="space-y-3">
         <div>
-          <Label htmlFor="bank">Bank (Paystack Supported)</Label>
+          <Label htmlFor="bank">Bank (Flutterwave Supported)</Label>
           <Select value={payoutDetails.bankCode} onValueChange={(value) => {
             const bank = NIGERIAN_BANKS.find(b => b.code === value);
             setPayoutDetails({
