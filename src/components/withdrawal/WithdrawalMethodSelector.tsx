@@ -16,7 +16,7 @@ interface PaymentMethod {
 const paymentMethods: PaymentMethod[] = [
   {
     id: 'paystack',
-    name: 'Bank Transfer (Paystack)',
+    name: 'Bank Transfer (Flutterwave)',
     description: 'Direct transfer to any Nigerian bank account including OPay, Moniepoint, Kuda & more',
     icon: Building,
     fee: '2% fee',

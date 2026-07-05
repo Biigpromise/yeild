@@ -233,7 +233,7 @@ export const WithdrawalAmountInput: React.FC<WithdrawalAmountInputProps> = ({
               {selectedMethod === 'yield_wallet' 
                 ? 'Yield Wallet Transfer' 
                 : selectedMethod === 'paystack'
-                ? 'Paystack Bank Transfer'
+                ? 'Flutterwave Bank Transfer'
                 : 'Bank Transfer'} Information
             </h5>
             <div className="text-xs text-muted-foreground space-y-1">

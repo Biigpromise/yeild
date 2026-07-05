@@ -135,7 +135,7 @@ export const PaystackPayment: React.FC<PaystackPaymentProps> = ({
         <div className="flex items-start gap-3">
           <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
           <div className="space-y-1">
-            <p className="text-sm font-medium">Low Fees with Paystack</p>
+            <p className="text-sm font-medium">Low Fees with Flutterwave</p>
             <p className="text-xs text-muted-foreground">
               Only 2% processing fee • Supports all Nigerian banks including OPay, Moniepoint, Kuda
             </p>
