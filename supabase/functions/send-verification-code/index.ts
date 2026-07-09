@@ -47,7 +47,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { email, type }: SendCodeRequest = await req.json();
+    const { email: rawEmail, type }: SendCodeRequest = await req.json();
+    const email = rawEmail?.trim().toLowerCase();
 
     if (!email || !type) {
       return new Response(
@@ -92,7 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
       
-      const existingUser = existingUsers.users.find(user => user.email === email);
+      const existingUser = existingUsers.users.find(user => user.email?.toLowerCase() === email);
       
       if (!existingUser) {
         console.log('User not found for signin:', email);
@@ -124,12 +125,19 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
       
-      const existingUser = existingUsers.users.find(user => user.email === email);
+      const existingUser = existingUsers.users.find(user => user.email?.toLowerCase() === email);
       
       if (existingUser?.email_confirmed_at) {
         console.log('Confirmed user already exists for signup:', email);
+        const existingUserType = existingUser.user_metadata?.user_type === 'brand' ? 'brand' : 'user';
         return new Response(
-          JSON.stringify({ success: false, message: 'An account with this email already exists. Please sign in instead.' }),
+          JSON.stringify({
+            success: false,
+            alreadyRegistered: true,
+            alreadyVerified: true,
+            redirectPath: existingUserType === 'brand' ? '/brand-dashboard' : '/dashboard',
+            message: 'An account with this email already exists. Please sign in instead.'
+          }),
           { 
             status: 200, 
             headers: { 'Content-Type': 'application/json', ...corsHeaders } 

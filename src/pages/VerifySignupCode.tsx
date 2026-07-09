@@ -41,6 +41,16 @@ export default function VerifySignupCode() {
     }
   };
 
+  const redirectAfterAuth = (destination: string) => {
+    navigate(destination, { replace: true });
+
+    window.setTimeout(() => {
+      if (window.location.pathname === '/verify-signup-code') {
+        window.location.replace(destination);
+      }
+    }, 600);
+  };
+
   const proceedToDashboard = async (verifyData: any) => {
     const targetUserType = pendingSignup?.userType || userType;
     const destination = verifyData?.redirectPath || (targetUserType === 'brand' ? '/brand-dashboard' : '/dashboard');
@@ -52,8 +62,13 @@ export default function VerifySignupCode() {
       });
 
       if (!signInError) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (!sessionData.session) {
+          await new Promise(resolve => window.setTimeout(resolve, 300));
+        }
+
         sessionStorage.removeItem(`pendingSignup:${normalizedEmail}`);
-        window.location.assign(destination);
+        redirectAfterAuth(destination);
         return;
       }
 
@@ -62,11 +77,12 @@ export default function VerifySignupCode() {
 
     if (verifyData?.magicLink) {
       sessionStorage.removeItem(`pendingSignup:${normalizedEmail}`);
-      window.location.assign(verifyData.magicLink);
+      window.location.replace(verifyData.magicLink);
       return;
     }
 
-    navigate('/auth', { replace: true });
+    toast.success('Account verified. Please sign in to continue.');
+    navigate('/auth?type=brand', { replace: true });
   };
 
   // Redirect if no email provided
@@ -94,7 +110,7 @@ export default function VerifySignupCode() {
       // Verify the code and confirm the user's email
       const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-signup-code', {
         body: { 
-          email, 
+          email: normalizedEmail, 
           code,
           type: 'signup',
           password: pendingSignup?.password,
@@ -131,19 +147,36 @@ export default function VerifySignupCode() {
   const handleResendCode = async () => {
     setResending(true);
     try {
-      const { error } = await supabase.functions.invoke('send-verification-code', {
+      const { data, error } = await supabase.functions.invoke('send-verification-code', {
         body: { 
-          email,
+          email: normalizedEmail,
           type: 'signup'
         }
       });
 
       if (error) {
-        toast.error('Failed to resend code');
-      } else {
-        toast.success('New code sent to your email');
-        setCode('');
+        const errorMessage = await getFunctionErrorMessage(error, 'Failed to resend code');
+        toast.error(errorMessage);
+        return;
       }
+
+      if (!data?.success) {
+        if (data?.alreadyRegistered && pendingSignup?.password) {
+          toast.info('Account already verified. Signing you in...');
+          await proceedToDashboard(data);
+          return;
+        }
+
+        toast.error(data?.message || 'Failed to resend code');
+        return;
+      }
+
+      if (data.token) {
+        sessionStorage.setItem('verificationToken', data.token);
+      }
+
+      toast.success('New code sent to your email');
+      setCode('');
     } catch (error: any) {
       console.error('Resend error:', error);
       toast.error('Failed to resend code');
